@@ -443,6 +443,9 @@ struct QuotientPathAlgebraData<F: Field> {
     regular_enveloping_module_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     regular_enveloping_module_bound: OnceLock<()>,
     regular_enveloping_module_fail: OnceLock<()>,
+    dual_enveloping_module_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
+    dual_enveloping_module_bound: OnceLock<()>,
+    dual_enveloping_module_fail: OnceLock<()>,
     is_enveloping: OnceLock<bool>,
 }
 
@@ -535,6 +538,9 @@ impl<F: Field> QuotientPathAlgebra<F> {
             regular_enveloping_module_weak: RwLock::new(None),
             regular_enveloping_module_bound: OnceLock::new(),
             regular_enveloping_module_fail: OnceLock::new(),
+            dual_enveloping_module_weak: RwLock::new(None),
+            dual_enveloping_module_bound: OnceLock::new(),
+            dual_enveloping_module_fail: OnceLock::new(),
             is_enveloping: OnceLock::new(),
         })))
     }
@@ -564,6 +570,9 @@ impl<F: Field> QuotientPathAlgebra<F> {
             regular_enveloping_module_weak: RwLock::new(None),
             regular_enveloping_module_bound: OnceLock::new(),
             regular_enveloping_module_fail: OnceLock::new(),
+            dual_enveloping_module_weak: RwLock::new(None),
+            dual_enveloping_module_bound: OnceLock::new(),
+            dual_enveloping_module_fail: OnceLock::new(),
             is_enveloping: OnceLock::new(),
         })))
     }
@@ -899,6 +908,45 @@ impl<F: Field> QuotientPathAlgebra<F> {
         module.clone()
     }
 
+    pub(crate) fn cached_dual_enveloping_module(&self) -> Option<PathAlgebraModule<F>> {
+        self.0
+            .dual_enveloping_module_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModule::upgrade)
+    }
+
+    pub(crate) fn has_dual_enveloping_module_attribute(&self) -> bool {
+        self.0.dual_enveloping_module_bound.get().is_some()
+    }
+
+    pub(crate) fn dual_enveloping_module_attribute_is_fail(&self) -> bool {
+        self.0.dual_enveloping_module_fail.get().is_some()
+    }
+
+    pub(crate) fn mark_dual_enveloping_module_attribute_fail(&self) {
+        let _ = self.0.dual_enveloping_module_fail.set(());
+        let _ = self.0.dual_enveloping_module_bound.set(());
+    }
+
+    pub(crate) fn cache_dual_enveloping_module(
+        &self,
+        module: &PathAlgebraModule<F>,
+    ) -> PathAlgebraModule<F> {
+        let mut slot = self
+            .0
+            .dual_enveloping_module_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakPathAlgebraModule::upgrade) {
+            return cached;
+        }
+        *slot = Some(module.downgrade());
+        let _ = self.0.dual_enveloping_module_bound.set(());
+        module.clone()
+    }
+
     /// Translate QPA's cached `OppositePathAlgebra` for a quotient.
     ///
     /// QPA takes opposite relators, computes the configured Gröbner basis on
@@ -1123,6 +1171,9 @@ impl<F: Field> QuotientPathAlgebra<F> {
             regular_enveloping_module_weak: RwLock::new(None),
             regular_enveloping_module_bound: OnceLock::new(),
             regular_enveloping_module_fail: OnceLock::new(),
+            dual_enveloping_module_weak: RwLock::new(None),
+            dual_enveloping_module_bound: OnceLock::new(),
+            dual_enveloping_module_fail: OnceLock::new(),
             is_enveloping: OnceLock::new(),
         }));
         if quotient.ideal().is_admissible()? {

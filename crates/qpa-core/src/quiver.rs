@@ -1033,6 +1033,31 @@ impl Quiver {
         Ok(opposite)
     }
 
+    /// Apply QPA's `OppositeQuiverNameMap(Q)` to one generator name.
+    ///
+    /// Constructing the opposite first installs the same append/remove map
+    /// attributes as QPA's `OppositeQuiver` method.
+    ///
+    /// # Errors
+    ///
+    /// Propagates opposite-quiver construction and rejects a name lacking the
+    /// required `_op` suffix when this quiver is itself an opposite.
+    pub fn opposite_quiver_name(&self, name: &str) -> Result<Box<str>, PathError> {
+        let _ = self.opposite().map_err(PathError::QuiverConstruction)?;
+        let name_map = *self
+            .0
+            .opposite_name_map
+            .get()
+            .ok_or(PathError::MissingOppositeNameMap)?;
+        Ok(match name_map {
+            OppositeNameMap::AppendSuffix => format!("{name}_op").into_boxed_str(),
+            OppositeNameMap::RemoveSuffix => name
+                .strip_suffix("_op")
+                .ok_or_else(|| PathError::InvalidOppositeName { name: name.into() })?
+                .into(),
+        })
+    }
+
     /// Translate QPA's `OppositePath` method.
     ///
     /// QPA performs this operation through generator names, including its
@@ -1049,12 +1074,6 @@ impl Quiver {
             return Err(PathError::ZeroHasNoWalk);
         }
         let opposite = self.opposite().map_err(PathError::QuiverConstruction)?;
-        let name_map = *self
-            .0
-            .opposite_name_map
-            .get()
-            .ok_or(PathError::MissingOppositeNameMap)?;
-
         let names = match &path.representation {
             PathRepresentation::Vertex(index) => {
                 vec![self.0.vertex_names[index.zero_based()].as_ref()]
@@ -1068,18 +1087,12 @@ impl Quiver {
         };
         let mut mapped = Vec::with_capacity(names.len());
         for name in names {
-            let mapped_name = match name_map {
-                OppositeNameMap::AppendSuffix => format!("{name}_op"),
-                OppositeNameMap::RemoveSuffix => name
-                    .strip_suffix("_op")
-                    .ok_or_else(|| PathError::InvalidOppositeName { name: name.into() })?
-                    .to_owned(),
-            };
-            mapped.push(opposite.generator_by_name(&mapped_name).ok_or_else(|| {
-                PathError::MissingOppositeGenerator {
-                    name: mapped_name.into_boxed_str(),
-                }
-            })?);
+            let mapped_name = self.opposite_quiver_name(name)?;
+            mapped.push(
+                opposite
+                    .generator_by_name(&mapped_name)
+                    .ok_or(PathError::MissingOppositeGenerator { name: mapped_name })?,
+            );
         }
         Path::product_of_generators(&opposite, &mapped)
     }

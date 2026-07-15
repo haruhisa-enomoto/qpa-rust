@@ -29,8 +29,9 @@ pub use invlenlex::{
     tip_reduced_list_inv_len_inv_lex, tip_walk_inv_len_inv_lex, truncate_element,
 };
 pub use module::{
-    EnvelopingModuleError, algebra_as_module_of_enveloping_algebra,
-    algebra_as_module_over_enveloping_algebra,
+    EnvelopingModuleError, ModuleFunctorError, algebra_as_module_of_enveloping_algebra,
+    algebra_as_module_over_enveloping_algebra, dual_of_algebra_as_module_over_enveloping_algebra,
+    dual_of_module,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,

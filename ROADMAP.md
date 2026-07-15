@@ -534,7 +534,11 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   canonical basis into `e_i A e_j`, constructs every product-arrow action by
   QPA's projected left/right multiplication, retains the identical enveloping
   algebra, and caches both module values and infinite-dimensional `fail` over
-  `QQ` and `GF(2)`. The dual regular bimodule remains.
+  `QQ` and `GF(2)`. Generic `DualOfModule` now transposes arrow actions over
+  QPA's opposite algebra with its reciprocal attribute identity. The dual
+  regular bimodule then follows QPA's second-stage tensor-factor name
+  permutation back to the original enveloping algebra, including cached
+  identity and the pre-construction infinite-dimensional `fail` branch.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.

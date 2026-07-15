@@ -8,7 +8,7 @@
 
 use std::{
     fmt,
-    sync::{Arc, Weak},
+    sync::{Arc, OnceLock, RwLock, Weak},
 };
 
 use numerica::domains::Field;
@@ -67,6 +67,8 @@ struct PathAlgebraModuleData<F: Field> {
     dimension: usize,
     arrow_matrices: Vec<DenseMatrix<F>>,
     retained_tensor: Option<TensorProductAlgebra<F>>,
+    dual_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
+    dual_strong: OnceLock<PathAlgebraModule<F>>,
 }
 
 /// A QPA right path-algebra matrix module.
@@ -137,6 +139,55 @@ impl<F: Field> PathAlgebraModule<F> {
         self.0.retained_tensor.as_ref()
     }
 
+    /// Return an already-live cached `DualOfModule` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_dual_module(&self) -> Option<Self> {
+        self.0.dual_strong.get().cloned().or_else(|| {
+            self.0
+                .dual_weak
+                .read()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .as_ref()
+                .and_then(WeakPathAlgebraModule::upgrade)
+        })
+    }
+
+    /// Install only this module's `DualOfModule` cache direction.
+    ///
+    /// QPA's zero-module branch returns before setting the reciprocal
+    /// attribute on the result.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_dual_module(&self, dual: &Self) -> Self {
+        let mut slot = self
+            .0
+            .dual_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakPathAlgebraModule::upgrade) {
+            return cached;
+        }
+        *slot = Some(dual.downgrade());
+        dual.clone()
+    }
+
+    /// Install QPA's reciprocal `DualOfModule` attribute pair.
+    ///
+    /// # Errors
+    ///
+    /// Reports a concurrent reciprocal-cache initialization race.
+    #[doc(hidden)]
+    pub fn install_dual_module(&self, dual: &Self) -> Result<Self, PathAlgebraModuleError> {
+        if let Some(cached) = self.cached_dual_module() {
+            return Ok(cached);
+        }
+        if dual.0.dual_strong.set(self.clone()).is_err() {
+            return Err(PathAlgebraModuleError::DualCacheRace);
+        }
+        Ok(self.cache_dual_module(dual))
+    }
+
     pub(crate) fn downgrade(&self) -> WeakPathAlgebraModule<F> {
         WeakPathAlgebraModule(Arc::downgrade(&self.0))
     }
@@ -167,7 +218,7 @@ impl<F: Field> PartialEq for PathAlgebraModule<F> {
 
 impl<F: Field> Eq for PathAlgebraModule<F> {}
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(crate) struct WeakPathAlgebraModule<F: Field>(Weak<PathAlgebraModuleData<F>>);
 
 impl<F: Field> WeakPathAlgebraModule<F> {
@@ -310,6 +361,8 @@ fn right_module_over_path_algebra_impl<F: Field>(
         dimension,
         arrow_matrices,
         retained_tensor,
+        dual_weak: RwLock::new(None),
+        dual_strong: OnceLock::new(),
     }))))
 }
 
@@ -419,6 +472,9 @@ pub enum PathAlgebraModuleError {
     /// The retained tensor metadata must wrap the identical acting algebra.
     #[error("retained tensor product does not wrap the module's acting algebra")]
     RetainedTensorAlgebraMismatch,
+    /// Concurrent construction lost QPA's reciprocal dual-module attribute.
+    #[error("concurrent dual-module cache initialization failed")]
+    DualCacheRace,
     /// Relation evaluation encountered incompatible explicit matrices.
     #[error(transparent)]
     Matrix(#[from] MatrixError),

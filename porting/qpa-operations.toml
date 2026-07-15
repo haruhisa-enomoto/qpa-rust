@@ -4666,9 +4666,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dual_of_module; PathAlgebraModule::cached_dual_module"
+tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4874,9 +4874,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 14
 source_end = 60
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dual_of_module"
+tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19759,9 +19759,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 66
 source_end = 66
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dual_of_algebra_as_module_over_enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20110,9 +20110,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 496
 source_end = 553
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dual_of_algebra_as_module_over_enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
 deviations = []
 
 [[entries]]

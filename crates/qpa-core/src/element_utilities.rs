@@ -257,6 +257,59 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Return an already-live cached
+    /// `DualOfAlgebraAsModuleOverEnvelopingAlgebra` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_dual_enveloping_module(&self) -> Option<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_dual_enveloping_module(),
+            Self::Quotient(algebra) => algebra.cached_dual_enveloping_module(),
+        }
+    }
+
+    /// Return QPA's `HasDualOfAlgebraAsModuleOverEnvelopingAlgebra` state.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn has_dual_enveloping_module_attribute(&self) -> bool {
+        match self {
+            Self::Path(algebra) => algebra.has_dual_enveloping_module_attribute(),
+            Self::Quotient(algebra) => algebra.has_dual_enveloping_module_attribute(),
+        }
+    }
+
+    /// Return whether the bound dual regular-module attribute is GAP's `fail`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn dual_enveloping_module_attribute_is_fail(&self) -> bool {
+        match self {
+            Self::Path(algebra) => algebra.dual_enveloping_module_attribute_is_fail(),
+            Self::Quotient(algebra) => algebra.dual_enveloping_module_attribute_is_fail(),
+        }
+    }
+
+    /// Bind the dual regular-module attribute to GAP's `fail` value.
+    #[doc(hidden)]
+    pub fn mark_dual_enveloping_module_attribute_fail(&self) {
+        match self {
+            Self::Path(algebra) => algebra.mark_dual_enveloping_module_attribute_fail(),
+            Self::Quotient(algebra) => algebra.mark_dual_enveloping_module_attribute_fail(),
+        }
+    }
+
+    /// Install and return QPA's cached dual regular-module attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_dual_enveloping_module(
+        &self,
+        module: &PathAlgebraModule<F>,
+    ) -> PathAlgebraModule<F> {
+        match self {
+            Self::Path(algebra) => algebra.cache_dual_enveloping_module(module),
+            Self::Quotient(algebra) => algebra.cache_dual_enveloping_module(module),
+        }
+    }
+
     /// Look up a vertex or arrow using QPA's record-component name semantics
     /// and return its image in this algebra.
     ///
