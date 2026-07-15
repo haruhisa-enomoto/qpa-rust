@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_associated",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "finite_path_is_monomial": true,
+    "finite_path_identity": true,
+    "finite_path_graded_identity": true,
+    "nonmonomial": false,
+    "monomial_identity": false,
+    "monomial_result_is_monomial": true,
+    "monomial_dimension": 11,
+    "monomial_relations": [
+      [{"path": [2, 2, 2], "coefficient": [1, 1]}],
+      [{"path": [2, 2, 3], "coefficient": [1, 1]}],
+      [{"path": [3, 2, 2], "coefficient": [1, 1]}],
+      [{"path": [3, 3, 3], "coefficient": [1, 1]}],
+      [{"path": [2, 3, 2, 3], "coefficient": [1, 1]}],
+      [{"path": [2, 3, 3, 2], "coefficient": [1, 1]}],
+      [{"path": [3, 2, 3, 2], "coefficient": [1, 1]}],
+      [{"path": [3, 2, 3, 3], "coefficient": [1, 1]}],
+      [{"path": [3, 3, 2, 3], "coefficient": [1, 1]}]
+    ],
+    "graded_identity": false,
+    "graded_dimension": 11,
+    "graded_relations": [
+      [{"path": [2, 2], "coefficient": [1, 1]}],
+      [{"path": [2, 3, 2, 3], "coefficient": [1, 1]}],
+      [{"path": [2, 3, 3, 2], "coefficient": [1, 1]}],
+      [{"path": [2, 3, 3, 3], "coefficient": [1, 1]}],
+      [{"path": [3, 2, 3, 2], "coefficient": [1, 1]}],
+      [{"path": [3, 2, 3, 3], "coefficient": [1, 1]}],
+      [{"path": [3, 3, 2, 3], "coefficient": [1, 1]}],
+      [{"path": [3, 3, 3, 2], "coefficient": [1, 1]}],
+      [{"path": [3, 3, 3, 3], "coefficient": [1, 1]}]
+    ],
+    "already_monomial_identity": true
+  },
+  "f2": {
+    "finite_path_is_monomial": true,
+    "finite_path_identity": true,
+    "finite_path_graded_identity": true,
+    "nonmonomial": false,
+    "monomial_identity": false,
+    "monomial_result_is_monomial": true,
+    "monomial_dimension": 11,
+    "monomial_relations": [
+      [{"path": [2, 2, 2], "coefficient": 1}],
+      [{"path": [2, 2, 3], "coefficient": 1}],
+      [{"path": [3, 2, 2], "coefficient": 1}],
+      [{"path": [3, 3, 3], "coefficient": 1}],
+      [{"path": [2, 3, 2, 3], "coefficient": 1}],
+      [{"path": [2, 3, 3, 2], "coefficient": 1}],
+      [{"path": [3, 2, 3, 2], "coefficient": 1}],
+      [{"path": [3, 2, 3, 3], "coefficient": 1}],
+      [{"path": [3, 3, 2, 3], "coefficient": 1}]
+    ],
+    "graded_identity": false,
+    "graded_dimension": 11,
+    "graded_relations": [
+      [{"path": [2, 2], "coefficient": 1}],
+      [{"path": [2, 3, 2, 3], "coefficient": 1}],
+      [{"path": [2, 3, 3, 2], "coefficient": 1}],
+      [{"path": [2, 3, 3, 3], "coefficient": 1}],
+      [{"path": [3, 2, 3, 2], "coefficient": 1}],
+      [{"path": [3, 2, 3, 3], "coefficient": 1}],
+      [{"path": [3, 3, 2, 3], "coefficient": 1}],
+      [{"path": [3, 3, 3, 2], "coefficient": 1}],
+      [{"path": [3, 3, 3, 3], "coefficient": 1}]
+    ],
+    "already_monomial_identity": true
+  }
+}

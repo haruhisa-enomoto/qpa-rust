@@ -16743,9 +16743,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 95
 source_end = 95
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "associated_monomial_path_algebra; associated_monomial_quotient"
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16756,9 +16756,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 96
 source_end = 96
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "associated_graded_path_algebra; associated_graded_quotient"
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json","tests/gap-reference/pathalg_associated_infinite_error.g","tests/gap-reference/pathalg_associated_nonadmissible_error.g"]
 deviations = []
 
 [[entries]]
@@ -16769,9 +16769,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 97
 source_end = 97
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_monomial; quotient_is_monomial"
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18303,9 +18303,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2635
 source_end = 2665
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "associated_graded_path_algebra; associated_graded_quotient"
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json","tests/gap-reference/pathalg_associated_infinite_error.g","tests/gap-reference/pathalg_associated_nonadmissible_error.g"]
 deviations = []
 
 [[entries]]
@@ -18316,9 +18316,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2677
 source_end = 2698
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "associated_monomial_path_algebra; associated_monomial_quotient"
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18329,9 +18329,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2706
 source_end = 2722
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_monomial; quotient_is_monomial"
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json"]
 deviations = []
 
 [[entries]]

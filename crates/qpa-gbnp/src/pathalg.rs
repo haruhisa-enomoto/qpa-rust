@@ -12,7 +12,10 @@ use qpa_core::{
 };
 use thiserror::Error;
 
-use crate::{QpaGbnpError, gbnp_groebner_basis};
+use crate::{
+    InvLenLexError, QpaGbnpError, biggest_homogeneous_parts_inv_len_inv_lex, gbnp_groebner_basis,
+    groebner_basis_inv_len_inv_lex,
+};
 
 /// Translate QPA's `/` method for a path algebra and relation list using the
 /// default `GBNPGroebnerBasis` backend.
@@ -183,6 +186,118 @@ pub fn quotient_is_triangular_reduced<F: Field>(
     Ok(quotient.is_triangular_reduced()?)
 }
 
+/// Translate QPA's `IsMonomialAlgebra` method for a path algebra.
+///
+/// QPA returns `true` without inspecting the quiver or computing a basis.
+#[must_use]
+pub const fn path_algebra_is_monomial<F: Field>(_: &PathAlgebra<F>) -> bool {
+    true
+}
+
+/// Translate QPA's `IsMonomialAlgebra` method for a quotient through its
+/// configured default GBNP backend.
+///
+/// QPA first accepts a trivial ideal or monomial defining generators without
+/// computing a Gröbner basis. Only a nonmonomial generator list reaches the
+/// lazy default backend.
+///
+/// # Errors
+///
+/// Propagates default GBNP and source-translated ideal failures.
+pub fn quotient_is_monomial<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    if quotient.ideal().is_trivial() || quotient.ideal().generators_are_monomial() {
+        return Ok(true);
+    }
+    ensure_quotient_groebner_basis(quotient)?;
+    Ok(quotient.ideal().is_monomial()?)
+}
+
+/// Translate `AssociatedMonomialAlgebra(A)` for a path algebra.
+///
+/// QPA returns the identical path-algebra object.
+#[must_use]
+pub fn associated_monomial_path_algebra<F: Field>(algebra: &PathAlgebra<F>) -> QuiverAlgebra<F> {
+    QuiverAlgebra::Path(algebra.clone())
+}
+
+/// Translate `AssociatedMonomialAlgebra(A)` for a quotient through QPA's
+/// configured default GBNP backend.
+///
+/// An already monomial quotient is returned identically. Otherwise QPA takes
+/// `Tip` of every relation in the attached default Gröbner-basis object and
+/// factors the original path algebra by those tips.
+///
+/// # Errors
+///
+/// Propagates the monomial test, default GBNP, and quotient construction.
+pub fn associated_monomial_quotient<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<QuiverAlgebra<F>, PathalgGbnpError> {
+    if quotient_is_monomial(quotient)? {
+        return Ok(QuiverAlgebra::Quotient(quotient.clone()));
+    }
+    let basis = ensure_quotient_groebner_basis(quotient)?;
+    let relations = basis
+        .relations()
+        .iter()
+        .map(PathAlgebraElement::leading_term)
+        .collect::<Vec<_>>();
+    Ok(QuiverAlgebra::Quotient(quotient_by_relations(
+        quotient.original_path_algebra().clone(),
+        &relations,
+    )?))
+}
+
+/// Translate `AssociatedGradedAlgebra(A)` for a path algebra.
+///
+/// QPA checks finite dimensionality before its path-algebra identity branch.
+/// Thus an acyclic parent is returned identically and a cyclic parent fails.
+///
+/// # Errors
+///
+/// Returns QPA's finite-dimensionality failure for a cyclic quiver.
+pub fn associated_graded_path_algebra<F: Field>(
+    algebra: &PathAlgebra<F>,
+) -> Result<QuiverAlgebra<F>, PathalgGbnpError> {
+    if !algebra.has_finite_canonical_basis() {
+        return Err(PathalgGbnpError::InfiniteDimensionalAssociatedAlgebra);
+    }
+    Ok(QuiverAlgebra::Path(algebra.clone()))
+}
+
+/// Translate `AssociatedGradedAlgebra(A)` for a quotient through QPA's
+/// configured default GBNP and inverse-length/inverse-lexicographic backends.
+///
+/// QPA requires a finite-dimensional admissible quotient, computes
+/// `GroebnerBasisInvLenInvLex` from `RelationsOfAlgebra(A)`, retains the first
+/// homogeneous block of every resulting relation, and factors the original
+/// path algebra by that list.
+///
+/// # Errors
+///
+/// Propagates the finite/admissible preconditions, both source-translated
+/// Gröbner computations, and quotient construction.
+pub fn associated_graded_quotient<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<QuiverAlgebra<F>, PathalgGbnpError> {
+    ensure_quotient_groebner_basis(quotient)?;
+    if !quotient.is_finite_dimensional()? {
+        return Err(PathalgGbnpError::InfiniteDimensionalAssociatedAlgebra);
+    }
+    if !quotient.is_admissible()? {
+        return Err(PathalgGbnpError::NonAdmissibleAssociatedAlgebra);
+    }
+    let parent = quotient.original_path_algebra();
+    let inverse_basis = groebner_basis_inv_len_inv_lex(quotient.relations(), parent)?;
+    let relations = biggest_homogeneous_parts_inv_len_inv_lex(&inverse_basis)?;
+    Ok(QuiverAlgebra::Quotient(quotient_by_relations(
+        parent.clone(),
+        &relations,
+    )?))
+}
+
 /// Translate QPA's public `TruncatedPathAlgebra(K, Q, n)` through its default
 /// GBNP backend.
 ///
@@ -239,6 +354,12 @@ pub enum PathalgGbnpError {
     /// An attached basis disappeared after the identity-preserving update.
     #[error("the quotient ideal did not retain its computed Groebner basis")]
     MissingAttachedBasis,
+    /// `AssociatedGradedAlgebra` rejects an infinite-dimensional algebra.
+    #[error("the entered algebra is not finite dimensional")]
+    InfiniteDimensionalAssociatedAlgebra,
+    /// `AssociatedGradedAlgebra` rejects a nonadmissible quotient.
+    #[error("the entered algebra is not an admissible quotient of a path algebra")]
+    NonAdmissibleAssociatedAlgebra,
     /// QPA's source-translated center construction failed.
     #[error(transparent)]
     Centre(#[from] CentreError),
@@ -248,6 +369,9 @@ pub enum PathalgGbnpError {
     /// QPA's triangular-reduced subset computation failed.
     #[error(transparent)]
     TriangularReduced(#[from] TriangularReducedError),
+    /// QPA's inverse-length/inverse-lexicographic backend failed.
+    #[error(transparent)]
+    InvLenLex(#[from] InvLenLexError),
     /// Parent or opposite path-algebra construction failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
@@ -274,11 +398,13 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        inverse_quotient_element, opposite_path_algebra, opposite_quotient_element,
+        PathalgGbnpError, associated_graded_path_algebra, associated_graded_quotient,
+        associated_monomial_path_algebra, associated_monomial_quotient, inverse_quotient_element,
+        opposite_path_algebra, opposite_quotient_element, path_algebra_is_monomial,
         power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
         quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
-        quotient_dimension, quotient_is_finite_dimensional, quotient_is_triangular_reduced,
-        truncated_path_algebra,
+        quotient_dimension, quotient_is_finite_dimensional, quotient_is_monomial,
+        quotient_is_triangular_reduced, truncated_path_algebra,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -364,6 +490,143 @@ mod tests {
             panic!("the oracle vertex quotient must be finite");
         };
         small_integer(&dimension)
+    }
+
+    #[test]
+    #[allow(clippy::many_single_char_names, clippy::too_many_lines)]
+    fn pinned_qpa_associated_algebra_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_associated.schema-v1.json"
+        ))
+        .unwrap();
+        let finite_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let loop_quiver = Quiver::from_indexed(
+            1,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "x"),
+                ArrowSpec::named(vertex(1), vertex(1), "y"),
+            ],
+        )
+        .unwrap();
+
+        let finite = PathAlgebra::new(Q, finite_quiver.clone()).unwrap();
+        let finite_monomial = associated_monomial_path_algebra(&finite);
+        let finite_graded = associated_graded_path_algebra(&finite).unwrap();
+        let parent = PathAlgebra::new(Q, loop_quiver.clone()).unwrap();
+        let generators = parent.generators();
+        let mut relations = vec![
+            generators[1]
+                .pow(2)
+                .unwrap()
+                .add(&generators[2].pow(3).unwrap())
+                .unwrap(),
+        ];
+        parent
+            .add_nth_power_to_relations(&mut relations, 4)
+            .unwrap();
+        let algebra = quotient_by_relations(parent, &relations).unwrap();
+        let monomial = associated_monomial_quotient(&algebra).unwrap();
+        let graded = associated_graded_quotient(&algebra).unwrap();
+        let truncated = truncated_path_algebra(Q, loop_quiver.clone(), 3).unwrap();
+        let truncated_monomial = associated_monomial_quotient(&truncated).unwrap();
+        let monomial_quotient = monomial.as_quotient().unwrap();
+
+        assert_eq!(
+            json!({
+                "finite_path_is_monomial": path_algebra_is_monomial(&finite),
+                "finite_path_identity": matches!(finite_monomial, QuiverAlgebra::Path(ref result) if result.is_identical(&finite)),
+                "finite_path_graded_identity": matches!(finite_graded, QuiverAlgebra::Path(ref result) if result.is_identical(&finite)),
+                "nonmonomial": quotient_is_monomial(&algebra).unwrap(),
+                "monomial_identity": monomial_quotient.is_identical(&algebra),
+                "monomial_result_is_monomial": quotient_is_monomial(monomial_quotient).unwrap(),
+                "monomial_dimension": finite_dimension(&monomial),
+                "monomial_relations": monomial.relations().iter().map(rational_element_json).collect::<Vec<_>>(),
+                "graded_identity": graded.as_quotient().unwrap().is_identical(&algebra),
+                "graded_dimension": finite_dimension(&graded),
+                "graded_relations": graded.relations().iter().map(rational_element_json).collect::<Vec<_>>(),
+                "already_monomial_identity": truncated_monomial.as_quotient().unwrap().is_identical(&truncated)
+            }),
+            expected["rational"]
+        );
+
+        let finite2 = PathAlgebra::new(Z2, finite_quiver).unwrap();
+        let finite_monomial2 = associated_monomial_path_algebra(&finite2);
+        let finite_graded2 = associated_graded_path_algebra(&finite2).unwrap();
+        let parent2 = PathAlgebra::new(Z2, loop_quiver.clone()).unwrap();
+        let generators2 = parent2.generators();
+        let mut relations2 = vec![
+            generators2[1]
+                .pow(2)
+                .unwrap()
+                .add(&generators2[2].pow(3).unwrap())
+                .unwrap(),
+        ];
+        parent2
+            .add_nth_power_to_relations(&mut relations2, 4)
+            .unwrap();
+        let algebra2 = quotient_by_relations(parent2, &relations2).unwrap();
+        let monomial2 = associated_monomial_quotient(&algebra2).unwrap();
+        let graded2 = associated_graded_quotient(&algebra2).unwrap();
+        let truncated2 = truncated_path_algebra(Z2, loop_quiver.clone(), 3).unwrap();
+        let truncated_monomial2 = associated_monomial_quotient(&truncated2).unwrap();
+        let monomial_quotient2 = monomial2.as_quotient().unwrap();
+
+        assert_eq!(
+            json!({
+                "finite_path_is_monomial": path_algebra_is_monomial(&finite2),
+                "finite_path_identity": matches!(finite_monomial2, QuiverAlgebra::Path(ref result) if result.is_identical(&finite2)),
+                "finite_path_graded_identity": matches!(finite_graded2, QuiverAlgebra::Path(ref result) if result.is_identical(&finite2)),
+                "nonmonomial": quotient_is_monomial(&algebra2).unwrap(),
+                "monomial_identity": monomial_quotient2.is_identical(&algebra2),
+                "monomial_result_is_monomial": quotient_is_monomial(monomial_quotient2).unwrap(),
+                "monomial_dimension": finite_dimension(&monomial2),
+                "monomial_relations": monomial2.relations().iter().map(z2_element_json).collect::<Vec<_>>(),
+                "graded_identity": graded2.as_quotient().unwrap().is_identical(&algebra2),
+                "graded_dimension": finite_dimension(&graded2),
+                "graded_relations": graded2.relations().iter().map(z2_element_json).collect::<Vec<_>>(),
+                "already_monomial_identity": truncated_monomial2.as_quotient().unwrap().is_identical(&truncated2)
+            }),
+            expected["f2"]
+        );
+
+        let cyclic_parent = PathAlgebra::new(Z2, loop_quiver.clone()).unwrap();
+        assert_eq!(
+            associated_graded_path_algebra(&cyclic_parent),
+            Err(PathalgGbnpError::InfiniteDimensionalAssociatedAlgebra)
+        );
+        let linear_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let linear_parent = PathAlgebra::new(Z2, linear_quiver).unwrap();
+        let x = linear_parent.generators()[1].clone();
+        let nonadmissible = quotient_by_relations(linear_parent, &[x]).unwrap();
+        assert_eq!(
+            associated_graded_quotient(&nonadmissible),
+            Err(PathalgGbnpError::NonAdmissibleAssociatedAlgebra)
+        );
+    }
+
+    #[test]
+    fn monomial_predicate_preserves_qpa_lazy_basis_branches() {
+        let quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(Q, quiver).unwrap();
+        let x = parent.generators()[1].clone();
+
+        let monomial_ideal =
+            PathAlgebraIdeal::new(parent.clone(), vec![x.pow(2).unwrap()]).unwrap();
+        let monomial = QuotientPathAlgebra::by_ideal(&monomial_ideal).unwrap();
+        assert!(quotient_is_monomial(&monomial).unwrap());
+        assert!(monomial_ideal.groebner_basis().is_none());
+
+        let nonmonomial_ideal = PathAlgebraIdeal::new(
+            parent,
+            vec![x.pow(2).unwrap().add(&x.pow(3).unwrap()).unwrap()],
+        )
+        .unwrap();
+        let nonmonomial = QuotientPathAlgebra::by_ideal(&nonmonomial_ideal).unwrap();
+        assert!(!quotient_is_monomial(&nonmonomial).unwrap());
+        assert!(nonmonomial_ideal.groebner_basis().is_some());
     }
 
     #[test]

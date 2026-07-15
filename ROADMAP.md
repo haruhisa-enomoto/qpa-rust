@@ -491,6 +491,12 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   complete using QPA's vertex-subset enumeration and canonical-basis product
   test for parent and quotient algebras.
 - [ ] Port associated monomial/graded algebras and corner/quotient constructions.
+  `IsMonomialAlgebra`, `AssociatedMonomialAlgebra`, and
+  `AssociatedGradedAlgebra` are source-translated through QPA's lazy default
+  GBNP basis, ordinary tips, inverse-length/inverse-lexicographic basis, and
+  largest homogeneous-part calls. Their identity-return branches and graded
+  finite/admissible failures are pinned over exact rational and prime-field
+  arithmetic.
   `QuiverAlgebraOfAmodAeA` is source-translated through `PathRemoval`, named
   full-subquiver reconstruction, arrow-name relation conversion, and the
   default GBNP quotient backend. Its empty-relation path-algebra return type is

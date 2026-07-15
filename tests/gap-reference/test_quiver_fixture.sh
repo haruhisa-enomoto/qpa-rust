@@ -87,6 +87,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_triangular_reduced.g" \
     "$repo_root/tests/fixtures/pathalg_triangular_reduced.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_associated.g" \
+    "$repo_root/tests/fixtures/pathalg_associated.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_triangular_infinite_error.g" \
     >"$actual" 2>&1
@@ -95,6 +98,22 @@ then
     exit 1
 fi
 grep -Fq "The entered algebra is not finite dimensional" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_associated_infinite_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an infinite associated-graded input" >&2
+    exit 1
+fi
+grep -Fq "The entered algebra is not finite dimensional" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_associated_nonadmissible_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a nonadmissible associated-graded input" >&2
+    exit 1
+fi
+grep -Fq "The entered algebra is not an admissible quotient of a path algebra" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_vector_empty_error.g" \
     >"$actual" 2>&1

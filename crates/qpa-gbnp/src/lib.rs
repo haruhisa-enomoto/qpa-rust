@@ -34,11 +34,13 @@ pub use obstruction::{
 pub use occur_tree::{OccurTree, OccurTreeError, TreeDirection};
 pub use options::GbnpOptions;
 pub use pathalg::{
-    PathalgGbnpError, ensure_quotient_groebner_basis, inverse_quotient_element,
-    opposite_path_algebra, opposite_quotient_element, power_quotient_element,
-    quiver_algebra_of_path_algebra_mod_aea, quiver_algebra_of_quotient_mod_aea,
-    quotient_by_relations, quotient_centre, quotient_dimension, quotient_is_finite_dimensional,
-    quotient_is_triangular_reduced, truncated_path_algebra,
+    PathalgGbnpError, associated_graded_path_algebra, associated_graded_quotient,
+    associated_monomial_path_algebra, associated_monomial_quotient, ensure_quotient_groebner_basis,
+    inverse_quotient_element, opposite_path_algebra, opposite_quotient_element,
+    path_algebra_is_monomial, power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
+    quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre, quotient_dimension,
+    quotient_is_finite_dimensional, quotient_is_monomial, quotient_is_triangular_reduced,
+    truncated_path_algebra,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,
