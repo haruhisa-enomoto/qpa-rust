@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_special_biserial",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "quivers": {
+    "one_loop": true,
+    "three_out": false
+  },
+  "paths": {
+    "chain": [true, true, true],
+    "one_loop": [false, false, false]
+  },
+  "rational": {
+    "doc_q1": [true, true, false],
+    "doc_q1_minimal_walks": [["a", "a"], ["a", "b"], ["b", "b"]],
+    "doc_q2": [true, false, false],
+    "doc_q3": [true, true, false],
+    "doc_q4": [false, false, false],
+    "square_loop": [true, true, true],
+    "cubic_loop": [true, true, false],
+    "linear_loop": [false, false, false],
+    "gentle_implication": [false, true, true]
+  },
+  "f2": {
+    "doc_q1": [true, true, false],
+    "doc_q1_minimal_walks": [["a", "a"], ["a", "b"], ["b", "b"]],
+    "doc_q2": [true, false, false],
+    "doc_q3": [true, true, false],
+    "doc_q4": [false, false, false],
+    "square_loop": [true, true, true],
+    "cubic_loop": [true, true, false],
+    "linear_loop": [false, false, false],
+    "gentle_implication": [false, true, true]
+  }
+}

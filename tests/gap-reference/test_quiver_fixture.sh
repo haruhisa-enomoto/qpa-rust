@@ -99,6 +99,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_prime_field_logs.g" \
     "$repo_root/tests/fixtures/pathalg_prime_field_logs.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_special_biserial.g" \
+    "$repo_root/tests/fixtures/pathalg_special_biserial.schema-v1.json"
 "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/pathalg_save_keep.g" \
     >"$actual"

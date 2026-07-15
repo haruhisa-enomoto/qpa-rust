@@ -514,6 +514,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.
+  QPA's special-biserial quiver/path/quotient predicates, string-algebra
+  predicates, gentle predicate, and gentle true-method implications are
+  source-translated through the default GBNP ideal backend; predefined
+  constructors and the remaining recognition properties remain.
 - [ ] Port representation-type and finite-global-dimension tests in this layer.
 - [ ] Port save/read using a safe, versioned, language-independent format while
   retaining a QPA-compatible import path.

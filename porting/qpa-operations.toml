@@ -18615,9 +18615,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_gentle; quotient_is_gentle"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18628,9 +18628,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 12
 source_end = 12
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gentle_algebra_is_gorenstein"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18641,9 +18641,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 13
 source_end = 13
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gentle_algebra_is_special_biserial"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18681,8 +18681,8 @@ source_start = 16
 source_end = 16
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraIdeal::minimal_generating_set"
-tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
+rust_symbol = "PathAlgebraIdeal::minimal_generating_set; PathAlgebraIdeal::minimal_generating_set_with; ideal_minimal_generating_set"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json","tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18798,8 +18798,8 @@ source_start = 305
 source_end = 342
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraIdeal::minimal_generating_set"
-tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
+rust_symbol = "PathAlgebraIdeal::minimal_generating_set; PathAlgebraIdeal::minimal_generating_set_with; ideal_minimal_generating_set"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json","tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18810,9 +18810,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 351
 source_end = 409
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_gentle; quotient_is_gentle"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19031,9 +19031,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_special_biserial_quiver"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19044,9 +19044,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_special_biserial"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19057,9 +19057,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quotient_is_special_biserial"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19070,9 +19070,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_string"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19083,9 +19083,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quotient_is_string"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19278,9 +19278,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 348
 source_end = 368
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_special_biserial_quiver"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19291,9 +19291,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 383
 source_end = 407
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_special_biserial"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19304,9 +19304,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 422
 source_end = 465
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quotient_is_special_biserial"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19317,9 +19317,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 475
 source_end = 482
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_string"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19330,9 +19330,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 492
 source_end = 507
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quotient_is_string"
+tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
 
 [[entries]]

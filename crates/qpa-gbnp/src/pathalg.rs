@@ -5,9 +5,9 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    AlgebraDimension, CentreError, ElementInverseError, GroebnerBasis, PathAlgebra,
-    PathAlgebraElement, PathAlgebraError, Quiver, QuiverAlgebra, QuotientError,
-    QuotientPathAlgebra, QuotientPathAlgebraCentre, QuotientPathAlgebraElement,
+    AlgebraDimension, Arrow, CentreError, ElementInverseError, GroebnerBasis, PathAlgebra,
+    PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, Quiver, QuiverAlgebra, QuiverError,
+    QuotientError, QuotientPathAlgebra, QuotientPathAlgebraCentre, QuotientPathAlgebraElement,
     TriangularReducedError, VertexQuotientPresentation,
 };
 use thiserror::Error;
@@ -227,6 +227,214 @@ pub fn quotient_is_admissible<F: Field>(
     Ok(quotient.is_admissible()?)
 }
 
+/// Translate QPA's `MinimalGeneratingSetOfIdeal` through the
+/// `GBNPGroebnerBasis` function installed by the default path-algebra
+/// constructor.
+///
+/// # Errors
+///
+/// Propagates default GBNP, admissibility, quotient, basis, and exact
+/// linear-algebra failures.
+pub fn ideal_minimal_generating_set<F: Field>(
+    ideal: &PathAlgebraIdeal<F>,
+) -> Result<Vec<PathAlgebraElement<F>>, PathalgGbnpError> {
+    if ideal.groebner_basis().is_none() {
+        let relations = gbnp_groebner_basis(ideal.generators(), ideal.algebra())?;
+        ideal.with_complete_groebner_basis(&relations)?;
+    }
+    ideal.minimal_generating_set_with(quotient_by_relations)
+}
+
+/// Translate QPA's `IsSpecialBiserialQuiver` degree test.
+///
+/// Every vertex must have at most two incoming and at most two outgoing
+/// arrows. Parallel arrows and loops are counted exactly as QPA counts them.
+#[must_use]
+pub fn is_special_biserial_quiver(quiver: &Quiver) -> bool {
+    quiver
+        .vertices()
+        .all(|vertex| vertex.in_degree() <= 2 && vertex.out_degree() <= 2)
+}
+
+/// Translate QPA's `IsSpecialBiserialAlgebra` method for a path algebra.
+///
+/// In addition to the quiver degree bound, every arrow has at most one
+/// continuation on either side and the quiver must be acyclic.
+#[must_use]
+pub fn path_algebra_is_special_biserial<F: Field>(algebra: &PathAlgebra<F>) -> bool {
+    let quiver = algebra.quiver();
+    is_special_biserial_quiver(quiver)
+        && quiver
+            .arrows()
+            .all(|arrow| arrow.target().out_degree() <= 1 && arrow.source().in_degree() <= 1)
+        && quiver.is_acyclic()
+}
+
+/// Translate QPA's `IsSpecialBiserialAlgebra` method for a quotient through
+/// its configured default GBNP backend.
+///
+/// # Errors
+///
+/// Propagates default admissibility, ideal membership, and path-arithmetic
+/// failures.
+pub fn quotient_is_special_biserial<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    let quiver = quotient.original_path_algebra().quiver();
+    if !is_special_biserial_quiver(quiver) || !quotient_is_admissible(quotient)? {
+        return Ok(false);
+    }
+    for arrow in quiver.arrows() {
+        let mut surviving_right = 0_usize;
+        for right in quiver.outgoing_arrows(&arrow.target())? {
+            if !arrow_product_is_in_ideal(quotient, &arrow, &right)? {
+                surviving_right += 1;
+            }
+        }
+        if surviving_right > 1 {
+            return Ok(false);
+        }
+
+        let mut surviving_left = 0_usize;
+        for left in quiver.incoming_arrows(&arrow.source())? {
+            if !arrow_product_is_in_ideal(quotient, &left, &arrow)? {
+                surviving_left += 1;
+            }
+        }
+        if surviving_left > 1 {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+/// Translate QPA's `IsStringAlgebra` method for a path algebra.
+#[must_use]
+pub fn path_algebra_is_string<F: Field>(algebra: &PathAlgebra<F>) -> bool {
+    path_algebra_is_special_biserial(algebra)
+}
+
+/// Translate QPA's `IsStringAlgebra` method for a quotient.
+///
+/// # Errors
+///
+/// Propagates the default special-biserial and monomial-ideal computations.
+pub fn quotient_is_string<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    if !quotient_is_special_biserial(quotient)? {
+        return Ok(false);
+    }
+    quotient_is_monomial(quotient)
+}
+
+/// Translate QPA's `IsGentleAlgebra` method for a path algebra.
+#[must_use]
+pub fn path_algebra_is_gentle<F: Field>(algebra: &PathAlgebra<F>) -> bool {
+    path_algebra_is_special_biserial(algebra)
+}
+
+/// Translate QPA's `IsGentleAlgebra` method for a quotient through its default
+/// GBNP quotient backend.
+///
+/// QPA requires a special-biserial admissible quotient whose minimal ideal
+/// generators are monomial paths of length two, with at most one forbidden
+/// continuation on either side of each arrow.
+///
+/// # Errors
+///
+/// Propagates default GBNP, admissibility, minimal-generator, membership, and
+/// path-arithmetic failures.
+pub fn quotient_is_gentle<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    if !quotient_is_special_biserial(quotient)? || !quotient_is_admissible(quotient)? {
+        return Ok(false);
+    }
+    let minimal_generators = ideal_minimal_generating_set(quotient.ideal())?;
+    if minimal_generators.iter().any(|relation| {
+        relation.terms().len() != 1 || relation.terms()[0].path().length() != Some(2)
+    }) {
+        return Ok(false);
+    }
+
+    let quiver = quotient.original_path_algebra().quiver();
+    for arrow in quiver.arrows() {
+        let mut forbidden_right = 0_usize;
+        for right in quiver.outgoing_arrows(&arrow.target())? {
+            if arrow_product_is_in_ideal(quotient, &arrow, &right)? {
+                forbidden_right += 1;
+            }
+        }
+        if forbidden_right > 1 {
+            return Ok(false);
+        }
+
+        let mut forbidden_left = 0_usize;
+        for left in quiver.incoming_arrows(&arrow.source())? {
+            if arrow_product_is_in_ideal(quotient, &left, &arrow)? {
+                forbidden_left += 1;
+            }
+        }
+        if forbidden_left > 1 {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+/// Translate QPA's true-method implication from `IsGentleAlgebra` to
+/// `IsSpecialBiserialAlgebra`.
+///
+/// # Errors
+///
+/// Returns a typed dispatch error when the algebra is not gentle and
+/// propagates the quotient predicate's default GBNP failures.
+pub fn gentle_algebra_is_special_biserial<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    require_gentle_algebra(algebra)?;
+    Ok(true)
+}
+
+/// Translate QPA's true-method implication from `IsGentleAlgebra` to
+/// `IsGorensteinAlgebra`.
+///
+/// # Errors
+///
+/// Returns a typed dispatch error when the algebra is not gentle and
+/// propagates the quotient predicate's default GBNP failures.
+pub fn gentle_algebra_is_gorenstein<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    require_gentle_algebra(algebra)?;
+    Ok(true)
+}
+
+fn require_gentle_algebra<F: Field>(algebra: &QuiverAlgebra<F>) -> Result<(), PathalgGbnpError> {
+    let gentle = match algebra {
+        QuiverAlgebra::Path(path_algebra) => path_algebra_is_gentle(path_algebra),
+        QuiverAlgebra::Quotient(quotient) => quotient_is_gentle(quotient)?,
+    };
+    if gentle {
+        Ok(())
+    } else {
+        Err(PathalgGbnpError::NonGentleAlgebraProperty)
+    }
+}
+
+fn arrow_product_is_in_ideal<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+    left: &Arrow,
+    right: &Arrow,
+) -> Result<bool, PathalgGbnpError> {
+    let parent = quotient.original_path_algebra();
+    let product = parent
+        .element(left.path())?
+        .multiply(&parent.element(right.path())?)?;
+    Ok(quotient.ideal().contains(product)?)
+}
+
 fn require_admissible_quotient<F: Field>(
     quotient: &QuotientPathAlgebra<F>,
 ) -> Result<(), PathalgGbnpError> {
@@ -434,6 +642,9 @@ pub enum PathalgGbnpError {
     /// GAP dispatch filter.
     #[error("the quotient is not an admissible quotient of a path algebra")]
     NonAdmissibleQuotientProperty,
+    /// A gentle-algebra-only true-method implication received another algebra.
+    #[error("the algebra is not a gentle algebra")]
+    NonGentleAlgebraProperty,
     /// QPA's source-translated center construction failed.
     #[error(transparent)]
     Centre(#[from] CentreError),
@@ -449,6 +660,9 @@ pub enum PathalgGbnpError {
     /// Parent or opposite path-algebra construction failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
+    /// A source-translated quiver incidence lookup failed.
+    #[error(transparent)]
+    Quiver(#[from] QuiverError),
     /// QPA's checked GBNP adapter or `SGrobner` failed.
     #[error(transparent)]
     Gbnp(#[from] QpaGbnpError),
@@ -460,7 +674,7 @@ pub enum PathalgGbnpError {
 #[cfg(test)]
 mod tests {
     use numerica::domains::{
-        Ring,
+        Field, Ring,
         finite_field::Z2,
         integer::Integer,
         rational::{Q, RationalField},
@@ -475,11 +689,15 @@ mod tests {
         PathalgGbnpError, admissible_quotient_is_basic, admissible_quotient_is_elementary,
         admissible_quotient_is_semisimple, associated_graded_path_algebra,
         associated_graded_quotient, associated_monomial_path_algebra, associated_monomial_quotient,
-        inverse_quotient_element, opposite_path_algebra, opposite_quotient_element,
-        path_algebra_is_monomial, power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
+        gentle_algebra_is_gorenstein, gentle_algebra_is_special_biserial,
+        ideal_minimal_generating_set, inverse_quotient_element, is_special_biserial_quiver,
+        opposite_path_algebra, opposite_quotient_element, path_algebra_is_gentle,
+        path_algebra_is_monomial, path_algebra_is_special_biserial, path_algebra_is_string,
+        power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
         quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
         quotient_dimension, quotient_is_admissible, quotient_is_finite_dimensional,
-        quotient_is_monomial, quotient_is_triangular_reduced, truncated_path_algebra,
+        quotient_is_gentle, quotient_is_monomial, quotient_is_special_biserial, quotient_is_string,
+        quotient_is_triangular_reduced, truncated_path_algebra,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -565,6 +783,146 @@ mod tests {
             panic!("the oracle vertex quotient must be finite");
         };
         small_integer(&dimension)
+    }
+
+    fn special_predicates<F: Field>(algebra: &QuotientPathAlgebra<F>) -> Value {
+        json!([
+            quotient_is_special_biserial(algebra).unwrap(),
+            quotient_is_string(algebra).unwrap(),
+            quotient_is_gentle(algebra).unwrap()
+        ])
+    }
+
+    #[allow(clippy::many_single_char_names)]
+    fn special_field_fixture<F: Field>(field: F) -> Value {
+        let two_loop_quiver = Quiver::from_indexed(
+            1,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "a"),
+                ArrowSpec::named(vertex(1), vertex(1), "b"),
+            ],
+        )
+        .unwrap();
+        let parent = PathAlgebra::new(field.clone(), two_loop_quiver).unwrap();
+        let generators = parent.generators();
+        let a = &generators[1];
+        let b = &generators[2];
+        let ab = a.multiply(b).unwrap();
+        let ba = b.multiply(a).unwrap();
+        let a2 = a.pow(2).unwrap();
+        let b2 = b.pow(2).unwrap();
+        let b3 = b.pow(3).unwrap();
+        let q1 =
+            quotient_by_relations(parent.clone(), &[ab.clone(), a2.clone(), b2.clone()]).unwrap();
+        let q2 = quotient_by_relations(
+            parent.clone(),
+            &[ab.sub(&ba).unwrap(), a2.clone(), b2.clone()],
+        )
+        .unwrap();
+        let q3 = quotient_by_relations(parent, &[ab.add(&ba).unwrap(), a2.clone(), b2.clone(), ba])
+            .unwrap();
+        let q4 = quotient_by_relations(a.algebra().clone(), &[ab, a2, b3]).unwrap();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let loop_parent = PathAlgebra::new(field, loop_quiver).unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let square = quotient_by_relations(loop_parent.clone(), &[x.pow(2).unwrap()]).unwrap();
+        let cubic = quotient_by_relations(loop_parent.clone(), &[x.pow(3).unwrap()]).unwrap();
+        let linear = quotient_by_relations(loop_parent, &[x]).unwrap();
+        let gentle = quotient_is_gentle(&square).unwrap();
+        let square_algebra = QuiverAlgebra::Quotient(square.clone());
+        let q1_quiver = q1.original_path_algebra().quiver();
+        let q1_minimal_walks = ideal_minimal_generating_set(q1.ideal())
+            .unwrap()
+            .into_iter()
+            .map(|relation| {
+                relation.terms()[0]
+                    .path()
+                    .walk()
+                    .unwrap()
+                    .iter()
+                    .map(|index| q1_quiver.arrow(*index).unwrap().name().to_owned())
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+
+        json!({
+            "doc_q1": special_predicates(&q1),
+            "doc_q1_minimal_walks": q1_minimal_walks,
+            "doc_q2": special_predicates(&q2),
+            "doc_q3": special_predicates(&q3),
+            "doc_q4": special_predicates(&q4),
+            "square_loop": special_predicates(&square),
+            "cubic_loop": special_predicates(&cubic),
+            "linear_loop": special_predicates(&linear),
+            "gentle_implication": [
+                false,
+                gentle,
+                gentle_algebra_is_gorenstein(&square_algebra).unwrap()
+            ]
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_special_biserial_string_and_gentle_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_special_biserial.schema-v1.json"
+        ))
+        .unwrap();
+        let one_loop =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let three_out = Quiver::from_indexed(
+            4,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(1), vertex(3), "b"),
+                ArrowSpec::named(vertex(1), vertex(4), "c"),
+            ],
+        )
+        .unwrap();
+        let chain = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        )
+        .unwrap();
+        let chain_path = PathAlgebra::new(Q, chain).unwrap();
+        let loop_path = PathAlgebra::new(Q, one_loop.clone()).unwrap();
+        let chain_algebra = QuiverAlgebra::Path(chain_path.clone());
+
+        assert_eq!(
+            json!({
+                "one_loop": is_special_biserial_quiver(&one_loop),
+                "three_out": is_special_biserial_quiver(&three_out)
+            }),
+            expected["quivers"]
+        );
+        assert_eq!(
+            json!({
+                "chain": [
+                    path_algebra_is_special_biserial(&chain_path),
+                    path_algebra_is_string(&chain_path),
+                    path_algebra_is_gentle(&chain_path)
+                ],
+                "one_loop": [
+                    path_algebra_is_special_biserial(&loop_path),
+                    path_algebra_is_string(&loop_path),
+                    path_algebra_is_gentle(&loop_path)
+                ]
+            }),
+            expected["paths"]
+        );
+        assert_eq!(special_field_fixture(Q), expected["rational"]);
+        assert_eq!(special_field_fixture(Z2), expected["f2"]);
+        assert!(gentle_algebra_is_special_biserial(&chain_algebra).unwrap());
+        assert!(gentle_algebra_is_gorenstein(&chain_algebra).unwrap());
+        assert_eq!(
+            gentle_algebra_is_gorenstein(&QuiverAlgebra::Path(loop_path)),
+            Err(PathalgGbnpError::NonGentleAlgebraProperty)
+        );
     }
 
     #[test]

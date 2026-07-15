@@ -313,11 +313,37 @@ impl<F: Field> PathAlgebraIdeal<F> {
     /// Requires an admissible ideal and finite basis computations; all exact
     /// arithmetic and Gröbner failures are propagated.
     pub fn minimal_generating_set(&self) -> Result<Vec<PathAlgebraElement<F>>, QuotientError> {
+        self.minimal_generating_set_with(|parent, relations| {
+            QuotientPathAlgebra::by_relations_high_level(parent, relations)
+        })
+    }
+
+    /// Execute QPA's `MinimalGeneratingSetOfIdeal` with an explicitly selected
+    /// relation-list quotient backend.
+    ///
+    /// QPA routes the internal `KQ/(JI+IJ)` construction through the
+    /// `GroebnerBasisFunction` installed on `KQ`. This hook lets the GBNP
+    /// facade preserve that dispatch while retaining the backend-neutral
+    /// linear-algebra part here.
+    ///
+    /// # Errors
+    ///
+    /// Requires an admissible ideal and finite basis computations; backend and
+    /// exact-arithmetic failures are converted to `E`.
+    pub fn minimal_generating_set_with<E, Factor>(
+        &self,
+        factor: Factor,
+    ) -> Result<Vec<PathAlgebraElement<F>>, E>
+    where
+        E: From<QuotientError>,
+        Factor:
+            FnOnce(PathAlgebra<F>, &[PathAlgebraElement<F>]) -> Result<QuotientPathAlgebra<F>, E>,
+    {
         if self.generators().is_empty() {
             return Ok(Vec::new());
         }
-        if !self.is_admissible()? {
-            return Err(QuotientError::IdealNotAdmissible);
+        if !self.is_admissible().map_err(E::from)? {
+            return Err(E::from(QuotientError::IdealNotAdmissible));
         }
 
         let arrows = self
@@ -325,11 +351,16 @@ impl<F: Field> PathAlgebraIdeal<F> {
             .quiver()
             .arrows()
             .map(|arrow| self.algebra().element(arrow.path()))
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(QuotientError::from)
+            .map_err(E::from)?;
         let mut radical_products = Vec::new();
         for arrow in &arrows {
             for generator in self.generators() {
-                let product = generator.multiply(arrow)?;
+                let product = generator
+                    .multiply(arrow)
+                    .map_err(QuotientError::from)
+                    .map_err(E::from)?;
                 if !product.is_zero() {
                     radical_products.push(product);
                 }
@@ -337,7 +368,10 @@ impl<F: Field> PathAlgebraIdeal<F> {
         }
         for arrow in &arrows {
             for generator in self.generators() {
-                let product = arrow.multiply(generator)?;
+                let product = arrow
+                    .multiply(generator)
+                    .map_err(QuotientError::from)
+                    .map_err(E::from)?;
                 if !product.is_zero() {
                     radical_products.push(product);
                 }
@@ -348,24 +382,27 @@ impl<F: Field> PathAlgebraIdeal<F> {
             let algebra_basis = self
                 .algebra()
                 .canonical_basis()
-                .ok_or(QuotientError::InfiniteParentBasis)?;
-            return path_algebra_ideal_span(self.algebra(), self.generators(), &algebra_basis);
+                .ok_or(QuotientError::InfiniteParentBasis)
+                .map_err(E::from)?;
+            return path_algebra_ideal_span(self.algebra(), self.generators(), &algebra_basis)
+                .map_err(E::from);
         }
 
-        let quotient = QuotientPathAlgebra::by_relations_high_level(
-            self.algebra().clone(),
-            &radical_products,
-        )?;
+        let quotient = factor(self.algebra().clone(), &radical_products)?;
         let algebra_basis = quotient
-            .canonical_basis()?
-            .ok_or(QuotientError::InfiniteQuotientBasis)?;
+            .canonical_basis()
+            .map_err(E::from)?
+            .ok_or(QuotientError::InfiniteQuotientBasis)
+            .map_err(E::from)?;
         let generators = self
             .generators()
             .iter()
             .cloned()
             .map(|generator| quotient.element(generator))
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(quotient_ideal_span(&quotient, &generators, &algebra_basis)?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(E::from)?;
+        Ok(quotient_ideal_span(&quotient, &generators, &algebra_basis)
+            .map_err(E::from)?
             .into_iter()
             .map(|element| element.representative().clone())
             .collect())
