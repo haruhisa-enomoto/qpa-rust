@@ -54,8 +54,10 @@ pub use persistence::{
     read_qpa_algebra_file, save_qpa_algebra_file,
 };
 pub use predefined::{
+    BrauerConfiguration, BrauerConfigurationAlgebra, BrauerConfigurationAlgebraResult,
+    BrauerConfigurationPolygon, BrauerConfigurationValidationError, BrauerConfigurationVertex,
     INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PosetAlgebra, PredefinedAlgebra,
-    PredefinedAlgebraError, PredefinedAlgebraKind, canonical_algebra,
+    PredefinedAlgebraError, PredefinedAlgebraKind, brauer_configuration_algebra, canonical_algebra,
     canonical_algebra_two_weights, kronecker_algebra, nakayama_algebra,
     nakayama_algebra_sequence_first, poset_algebra, poset_algebra_with_string_function,
 };

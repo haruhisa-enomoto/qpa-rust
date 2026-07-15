@@ -108,6 +108,37 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_poset_algebra.g" \
     "$repo_root/tests/fixtures/pathalg_poset_algebra.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_brauer_configuration.g" \
+    "$repo_root/tests/fixtures/pathalg_brauer_configuration.schema-v1.json"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/pathalg_brauer_configuration_invalid.g" \
+    >"$actual"
+for diagnostic in \
+    "Brauer Algebra input must contain 3 arrays: [vertices], [edges or polygons], [orientations]." \
+    "There must be at least 1 vertex" \
+    "Vertices should be of the form: [name, multiplicity]." \
+    "Multiplicities must be positive integers." \
+    "Each vertex must have a unique name." \
+    "Edges or Polygons should be lists of length 2 or greater." \
+    "An edge or polygon cannot have the same name as a vertex." \
+    "An edge or polygon cannot contain a vertex which was not listed." \
+    "Edges or polygons must have unique names." \
+    "There must be an orientation corresponding to each vertex." \
+    "Orientations must be lists of length 1 or greater." \
+    "Orientations may only contain edges or polygons which were listed." \
+    "Orientations must contain exactly the edges or polygons which contain the corresponding vertex."
+do
+    grep -Fq "$diagnostic" "$actual"
+done
+for label in \
+    OUTER_SHAPE NO_VERTICES VERTEX_SHAPE MULTIPLICITY DUPLICATE_VERTEX \
+    EMPTY_POLYGON POLYGON_VERTEX_NAME UNKNOWN_VERTEX DUPLICATE_POLYGON \
+    ORIENTATION_COUNT EMPTY_ORIENTATION UNKNOWN_POLYGON CONTAINMENT
+do
+    grep -Fq "FAIL_$label=true" "$actual"
+done
+grep -Fq 'MUTATED_ORIENTATIONS=[ [ "z" ], [ "x", "z" ] ]' "$actual"
 "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/pathalg_predefined_invalid.g" \
     >"$actual"

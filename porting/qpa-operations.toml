@@ -19135,9 +19135,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "brauer_configuration_algebra"
+tests = ["tests/fixtures/pathalg_brauer_configuration.schema-v1.json","tests/gap-reference/pathalg_brauer_configuration_invalid.g"]
 deviations = []
 
 [[entries]]
@@ -19356,9 +19356,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 613
 source_end = 834
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "brauer_configuration_algebra"
+tests = ["tests/fixtures/pathalg_brauer_configuration.schema-v1.json","tests/gap-reference/pathalg_brauer_configuration_invalid.g"]
 deviations = []
 
 [[entries]]

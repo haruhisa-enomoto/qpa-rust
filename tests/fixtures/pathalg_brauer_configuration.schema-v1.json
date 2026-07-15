@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_brauer_configuration",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "trivial": {
+      "path_algebra": true,
+      "dimension": 1,
+      "vertices": ["e"],
+      "arrows": [],
+      "relations": []
+    },
+    "documented": {
+      "path_algebra": false,
+      "dimension": 7,
+      "vertices": ["e1", "e2"],
+      "arrows": [
+        {"name": "v2_1_from_e1_to_e2", "source": 1, "target": 2},
+        {"name": "v2_2_from_e2_to_e1", "source": 2, "target": 1},
+        {"name": "v3_1_from_e2_to_e2", "source": 2, "target": 2}
+      ],
+      "relations": [
+        [{"path": [3, 5], "coefficient": [1, 1]}],
+        [{"path": [5, 4], "coefficient": [1, 1]}],
+        [
+          {"path": [4, 3], "coefficient": [-1, 1]},
+          {"path": [5, 5], "coefficient": [1, 1]}
+        ],
+        [{"path": [3, 4, 3], "coefficient": [1, 1]}],
+        [{"path": [4, 3, 4], "coefficient": [1, 1]}]
+      ]
+    },
+    "orientations_after": [["e1"], ["e1", "e2"], ["e2"]],
+    "properties": [true, true]
+  },
+  "f2": {
+    "repeated": {
+      "path_algebra": false,
+      "dimension": 20,
+      "vertices": ["1", "2", "3", "4"],
+      "arrows": [
+        {"name": "a_1_from_1_to_2", "source": 1, "target": 2},
+        {"name": "a_2_from_2_to_3", "source": 2, "target": 3},
+        {"name": "a_3_from_3_to_1", "source": 3, "target": 1},
+        {"name": "b_1_from_2_to_3", "source": 2, "target": 3},
+        {"name": "b_2_from_3_to_4", "source": 3, "target": 4},
+        {"name": "b_3_from_4_to_2", "source": 4, "target": 2}
+      ],
+      "relations": [
+        [{"path": [5, 8], "coefficient": 1}],
+        [{"path": [6, 9], "coefficient": 1}],
+        [{"path": [8, 7], "coefficient": 1}],
+        [{"path": [10, 6], "coefficient": 1}],
+        [
+          {"path": [6, 7, 5], "coefficient": 1},
+          {"path": [8, 9, 10], "coefficient": 1}
+        ],
+        [
+          {"path": [7, 5, 6], "coefficient": 1},
+          {"path": [9, 10, 8], "coefficient": 1}
+        ],
+        [{"path": [5, 6, 7, 5], "coefficient": 1}],
+        [{"path": [6, 7, 5, 6], "coefficient": 1}],
+        [{"path": [7, 5, 6, 7], "coefficient": 1}]
+      ]
+    },
+    "orientations_after": [["1", "2", "3"], ["2", "3", "4"], ["4"]],
+    "properties": [true]
+  }
+}

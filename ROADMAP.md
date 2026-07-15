@@ -526,12 +526,19 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   the identity-preserving `PosetOfPosetAlgebra` attribute, relation-free path
   return, default GBNP quotient, and finite-global-dimension filter are pinned
   for graded and nongraded posets.
+  `BrauerConfigurationAlgebra` now preserves QPA's ordered validation and
+  `fail` diagnostics, in-place row-by-row orientation sorting (including
+  partial mutation before a later failure), special-cycle arrow names, all
+  three raw relation-family loops, relation-list GBNP quotient, relation-free
+  path-algebra return, and constructor-known symmetric property. The trivial
+  configuration, the documented rational example, and a repeated-vertex
+  `GF(2)` example are pinned against QPA; the raw zero/noncomposable type-one
+  entries and repeated polygon occurrences are asserted before completion.
   QPA's special-biserial quiver/path/quotient predicates, string-algebra
   predicates, gentle predicate, and gentle true-method implications are
-  source-translated through the default GBNP ideal backend. Brauer
-  configuration, preprojective, admissible-sequence, and finite-global-
-  dimension predefined families and the remaining recognition properties
-  remain.
+  source-translated through the default GBNP ideal backend. Preprojective,
+  admissible-sequence, and finite-global-dimension predefined families and the
+  remaining recognition properties remain.
 - [ ] Port representation-type and finite-global-dimension tests in this layer.
 - [ ] Port save/read using a safe, versioned, language-independent format while
   retaining a QPA-compatible import path.

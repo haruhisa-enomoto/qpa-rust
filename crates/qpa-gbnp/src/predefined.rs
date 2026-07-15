@@ -1,11 +1,11 @@
-//! QPA's predefined Nakayama, canonical, and Kronecker algebras.
+//! QPA's basic predefined, poset, and Brauer-configuration algebras.
 //!
-//! This is a line-by-line translation of the first constructor block in
-//! QPA 1.37 `lib/pathalgpredef.gi`.  In particular, nonempty presentations
-//! create an ideal from the original relations, attach the configured GBNP
-//! basis, and only then form the quotient.  The constructor filters set by QPA
-//! are retained by [`PredefinedAlgebra`] instead of being inferred from the
-//! resulting presentation.
+//! These are source-section translations of QPA 1.37
+//! `lib/pathalgpredef.gi`. Basic nonempty presentations retain their original
+//! relation ideal before attaching the configured GBNP basis; QPA constructors
+//! that divide by a relation list retain that distinct quotient path. QPA's
+//! installed constructor filters and attributes are represented explicitly
+//! rather than inferred from the resulting presentation.
 
 use std::fmt::Display;
 
@@ -466,6 +466,563 @@ pub struct PosetAlgebra<F: Field, Element> {
     poset: Poset<Element>,
 }
 
+/// A named vertex and positive multiplicity in QPA's Brauer-configuration
+/// input.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BrauerConfigurationVertex {
+    /// QPA vertex name.
+    pub name: String,
+    /// QPA vertex multiplicity.
+    pub multiplicity: Integer,
+}
+
+/// A named Brauer polygon followed by its vertex occurrences.
+///
+/// Occurrences are retained rather than deduplicated because QPA's type-two
+/// relation loop treats repeated vertices in a polygon separately.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BrauerConfigurationPolygon {
+    /// Polygon name, later used as a quiver vertex name.
+    pub name: String,
+    /// Ordered vertex occurrences in the polygon.
+    pub vertices: Vec<String>,
+}
+
+/// Typed form of QPA's `[vertices, polygons, orientations]` input.
+///
+/// [`brauer_configuration_algebra`] sorts orientation rows in place at the
+/// same point as the pinned QPA method, including before returning a final
+/// containment-validation failure.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BrauerConfiguration {
+    /// Named vertices with multiplicities.
+    pub vertices: Vec<BrauerConfigurationVertex>,
+    /// Named polygons with vertex occurrences.
+    pub polygons: Vec<BrauerConfigurationPolygon>,
+    /// One polygon-name orientation row for each vertex.
+    pub orientations: Vec<Vec<String>>,
+}
+
+/// A path algebra or relation-list quotient returned by QPA's
+/// `BrauerConfigurationAlgebra` and tagged symmetric by the constructor.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BrauerConfigurationAlgebra<F: Field> {
+    algebra: QuiverAlgebra<F>,
+}
+
+impl<F: Field> BrauerConfigurationAlgebra<F> {
+    /// Borrow the constructed path algebra or quotient.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuiverAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return the `IsSymmetricAlgebra` value set by the constructor.
+    #[must_use]
+    pub const fn is_symmetric_algebra(&self) -> Option<bool> {
+        Some(true)
+    }
+
+    /// Consume the symmetric tag and return the underlying quiver algebra.
+    #[must_use]
+    pub fn into_algebra(self) -> QuiverAlgebra<F> {
+        self.algebra
+    }
+}
+
+/// QPA's algebra-or-`fail` result from `BrauerConfigurationAlgebra`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BrauerConfigurationAlgebraResult<F: Field> {
+    /// A valid configuration's symmetric quiver algebra.
+    Algebra(BrauerConfigurationAlgebra<F>),
+    /// QPA's `fail`, paired with the validation branch that printed it.
+    InvalidConfiguration(BrauerConfigurationValidationError),
+}
+
+impl<F: Field> BrauerConfigurationAlgebraResult<F> {
+    /// Borrow the constructed algebra, if validation succeeded.
+    #[must_use]
+    pub const fn as_algebra(&self) -> Option<&BrauerConfigurationAlgebra<F>> {
+        match self {
+            Self::Algebra(algebra) => Some(algebra),
+            Self::InvalidConfiguration(_) => None,
+        }
+    }
+
+    /// Return the exact diagnostic printed by QPA before `fail`.
+    #[must_use]
+    pub const fn diagnostic(&self) -> Option<&'static str> {
+        match self {
+            Self::Algebra(_) => None,
+            Self::InvalidConfiguration(error) => Some(error.diagnostic()),
+        }
+    }
+}
+
+/// A representable validation failure in QPA's Brauer-configuration method.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum BrauerConfigurationValidationError {
+    /// The vertex list is empty.
+    NoVertices,
+    /// A vertex multiplicity is less than one.
+    NonPositiveMultiplicity {
+        /// One-based vertex position.
+        position: usize,
+    },
+    /// Vertex names are not duplicate-free.
+    DuplicateVertexName {
+        /// Repeated name.
+        name: String,
+    },
+    /// A polygon has no vertex occurrence after its name.
+    PolygonWithoutVertex {
+        /// One-based polygon position.
+        position: usize,
+    },
+    /// A polygon name is also a Brauer vertex name.
+    PolygonNameMatchesVertex {
+        /// Conflicting name.
+        name: String,
+    },
+    /// A polygon contains a name absent from the vertex list.
+    PolygonContainsUnknownVertex {
+        /// Polygon name.
+        polygon: String,
+        /// Unknown vertex name.
+        vertex: String,
+    },
+    /// Polygon names are not duplicate-free.
+    DuplicatePolygonName {
+        /// Repeated name.
+        name: String,
+    },
+    /// The number of orientations differs from the number of vertices.
+    OrientationCountMismatch {
+        /// Required number of rows.
+        expected: usize,
+        /// Supplied number of rows.
+        actual: usize,
+    },
+    /// An orientation row is empty.
+    EmptyOrientation {
+        /// One-based vertex/orientation position.
+        position: usize,
+    },
+    /// An orientation names an unknown polygon.
+    OrientationContainsUnknownPolygon {
+        /// One-based vertex/orientation position.
+        position: usize,
+        /// Unknown polygon name.
+        polygon: String,
+    },
+    /// A sorted orientation is not exactly the polygon-containment list.
+    OrientationContainmentMismatch {
+        /// One-based vertex/orientation position.
+        position: usize,
+    },
+}
+
+impl BrauerConfigurationValidationError {
+    /// Return QPA's exact printed diagnostic for this `fail` branch.
+    #[must_use]
+    pub const fn diagnostic(&self) -> &'static str {
+        match self {
+            Self::NoVertices => "There must be at least 1 vertex\n",
+            Self::NonPositiveMultiplicity { .. } => "Multiplicities must be positive integers.\n",
+            Self::DuplicateVertexName { .. } => "Each vertex must have a unique name.\n",
+            Self::PolygonWithoutVertex { .. } => {
+                "Edges or Polygons should be lists of length 2 or greater.\n"
+            }
+            Self::PolygonNameMatchesVertex { .. } => {
+                "An edge or polygon cannot have the same name as a vertex.\n"
+            }
+            Self::PolygonContainsUnknownVertex { .. } => {
+                "An edge or polygon cannot contain a vertex which was not listed.\n"
+            }
+            Self::DuplicatePolygonName { .. } => "Edges or polygons must have unique names.\n",
+            Self::OrientationCountMismatch { .. } => {
+                "There must be an orientation corresponding to each vertex.\n"
+            }
+            Self::EmptyOrientation { .. } => "Orientations must be lists of length 1 or greater.\n",
+            Self::OrientationContainsUnknownPolygon { .. } => {
+                "Orientations may only contain edges or polygons which were listed.\n"
+            }
+            Self::OrientationContainmentMismatch { .. } => {
+                "Orientations must contain exactly the edges or polygons which contain the corresponding vertex.\n"
+            }
+        }
+    }
+}
+
+/// Translate `BrauerConfigurationAlgebra(K, configuration)` through QPA's
+/// three relation families and default GBNP backend.
+///
+/// Rust's typed input enforces the source's outer-list, row-list, string, and
+/// integer shape checks.  Every remaining validation branch returns
+/// [`BrauerConfigurationAlgebraResult::InvalidConfiguration`], corresponding
+/// to QPA's printed diagnostic followed by `fail`.  QPA sorts orientation rows
+/// in place during its final validation loop; this function deliberately does
+/// the same.
+///
+/// # Errors
+///
+/// Propagates named-quiver construction, path arithmetic, generated lookup,
+/// QPA-to-GBNP conversion, and quotient construction failures.
+pub fn brauer_configuration_algebra<F: Field>(
+    field: F,
+    configuration: &mut BrauerConfiguration,
+) -> Result<BrauerConfigurationAlgebraResult<F>, PredefinedAlgebraError> {
+    if let Err(error) = validate_brauer_configuration(configuration) {
+        return Ok(BrauerConfigurationAlgebraResult::InvalidConfiguration(
+            error,
+        ));
+    }
+
+    let BrauerConfigurationPresentation {
+        path_algebra,
+        relation_families:
+            [
+                mut type_one_relations,
+                type_two_relations,
+                type_three_relations,
+            ],
+    } = brauer_configuration_algebra_presentation(field, configuration)?;
+    type_one_relations.extend(type_two_relations);
+    type_one_relations.extend(type_three_relations);
+    let algebra = factor_relation_list_presentation(path_algebra, &type_one_relations)?;
+    Ok(BrauerConfigurationAlgebraResult::Algebra(
+        BrauerConfigurationAlgebra { algebra },
+    ))
+}
+
+fn validate_brauer_configuration(
+    configuration: &mut BrauerConfiguration,
+) -> Result<(), BrauerConfigurationValidationError> {
+    validate_brauer_vertices(&configuration.vertices)?;
+    let vertex_names = configuration
+        .vertices
+        .iter()
+        .map(|vertex| vertex.name.clone())
+        .collect::<Vec<_>>();
+    validate_brauer_polygons(&configuration.polygons, &vertex_names)?;
+    let polygon_names = configuration
+        .polygons
+        .iter()
+        .map(|polygon| polygon.name.clone())
+        .collect::<Vec<_>>();
+    validate_brauer_orientations(
+        &configuration.vertices,
+        &configuration.polygons,
+        &polygon_names,
+        &mut configuration.orientations,
+    )
+}
+
+fn validate_brauer_vertices(
+    vertices: &[BrauerConfigurationVertex],
+) -> Result<(), BrauerConfigurationValidationError> {
+    if vertices.is_empty() {
+        return Err(BrauerConfigurationValidationError::NoVertices);
+    }
+    if let Some((position, _)) = vertices
+        .iter()
+        .enumerate()
+        .find(|(_, vertex)| vertex.multiplicity < 1)
+    {
+        return Err(
+            BrauerConfigurationValidationError::NonPositiveMultiplicity {
+                position: position + 1,
+            },
+        );
+    }
+    if let Some(name) = first_duplicate(vertices.iter().map(|vertex| &vertex.name)) {
+        return Err(BrauerConfigurationValidationError::DuplicateVertexName { name: name.clone() });
+    }
+    Ok(())
+}
+
+fn validate_brauer_polygons(
+    polygons: &[BrauerConfigurationPolygon],
+    vertex_names: &[String],
+) -> Result<(), BrauerConfigurationValidationError> {
+    for (position, polygon) in polygons.iter().enumerate() {
+        if polygon.vertices.is_empty() {
+            return Err(BrauerConfigurationValidationError::PolygonWithoutVertex {
+                position: position + 1,
+            });
+        }
+        if vertex_names.contains(&polygon.name) {
+            return Err(
+                BrauerConfigurationValidationError::PolygonNameMatchesVertex {
+                    name: polygon.name.clone(),
+                },
+            );
+        }
+        if let Some(vertex) = polygon
+            .vertices
+            .iter()
+            .find(|vertex| !vertex_names.contains(vertex))
+        {
+            return Err(
+                BrauerConfigurationValidationError::PolygonContainsUnknownVertex {
+                    polygon: polygon.name.clone(),
+                    vertex: vertex.to_string(),
+                },
+            );
+        }
+    }
+    if let Some(name) = first_duplicate(polygons.iter().map(|polygon| &polygon.name)) {
+        return Err(BrauerConfigurationValidationError::DuplicatePolygonName {
+            name: name.clone(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_brauer_orientations(
+    vertices: &[BrauerConfigurationVertex],
+    polygons: &[BrauerConfigurationPolygon],
+    polygon_names: &[String],
+    orientations: &mut [Vec<String>],
+) -> Result<(), BrauerConfigurationValidationError> {
+    if orientations.len() != vertices.len() {
+        return Err(
+            BrauerConfigurationValidationError::OrientationCountMismatch {
+                expected: vertices.len(),
+                actual: orientations.len(),
+            },
+        );
+    }
+    for (position, orientation) in orientations.iter().enumerate() {
+        if orientation.is_empty() {
+            return Err(BrauerConfigurationValidationError::EmptyOrientation {
+                position: position + 1,
+            });
+        }
+        if let Some(polygon) = orientation
+            .iter()
+            .find(|polygon| !polygon_names.contains(polygon))
+        {
+            return Err(
+                BrauerConfigurationValidationError::OrientationContainsUnknownPolygon {
+                    position: position + 1,
+                    polygon: polygon.to_string(),
+                },
+            );
+        }
+    }
+    for (position, (orientation, vertex)) in orientations.iter_mut().zip(vertices).enumerate() {
+        let mut containing = polygons
+            .iter()
+            .filter(|polygon| polygon.vertices.contains(&vertex.name))
+            .map(|polygon| polygon.name.clone())
+            .collect::<Vec<_>>();
+        orientation.sort();
+        containing.sort();
+        if orientation != &containing {
+            return Err(
+                BrauerConfigurationValidationError::OrientationContainmentMismatch {
+                    position: position + 1,
+                },
+            );
+        }
+    }
+    Ok(())
+}
+
+struct BrauerConfigurationPresentation<F: Field> {
+    path_algebra: PathAlgebra<F>,
+    relation_families: [Vec<PathAlgebraElement<F>>; 3],
+}
+
+fn brauer_configuration_algebra_presentation<F: Field>(
+    field: F,
+    configuration: &BrauerConfiguration,
+) -> Result<BrauerConfigurationPresentation<F>, PredefinedAlgebraError> {
+    let (quiver, special_cycles) = brauer_quiver_and_special_cycles(configuration)?;
+    let path_algebra = PathAlgebra::new(field, quiver)?;
+    let generators = path_algebra.generators();
+    let arrow_elements = &generators[path_algebra.quiver().number_of_vertices()..];
+    let type_one_relations = brauer_type_one_relations(
+        arrow_elements,
+        &special_cycles,
+        configuration.vertices.len(),
+    )?;
+    let type_two_relations = brauer_type_two_relations(
+        &path_algebra,
+        arrow_elements,
+        &special_cycles,
+        configuration,
+    )?;
+    let type_three_relations = brauer_type_three_relations(
+        &path_algebra,
+        arrow_elements,
+        &special_cycles,
+        &configuration.vertices,
+    )?;
+    Ok(BrauerConfigurationPresentation {
+        path_algebra,
+        relation_families: [type_one_relations, type_two_relations, type_three_relations],
+    })
+}
+
+fn brauer_quiver_and_special_cycles(
+    configuration: &BrauerConfiguration,
+) -> Result<(Quiver, Vec<Vec<usize>>), PredefinedAlgebraError> {
+    let mut arrows = Vec::new();
+    let mut special_cycles = Vec::with_capacity(configuration.vertices.len());
+    for (vertex_index, vertex) in configuration.vertices.iter().enumerate() {
+        let orientation = &configuration.orientations[vertex_index];
+        if orientation.len() > 1 || vertex.multiplicity > 1 {
+            let mut cycle = Vec::with_capacity(orientation.len());
+            for position in 0..orientation.len() {
+                let next = (position + 1) % orientation.len();
+                arrows.push(NamedArrowSpec::named(
+                    orientation[position].clone(),
+                    orientation[next].clone(),
+                    format!(
+                        "{}_{}_from_{}_to_{}",
+                        vertex.name,
+                        position + 1,
+                        orientation[position],
+                        orientation[next]
+                    ),
+                ));
+                cycle.push(arrows.len() - 1);
+            }
+            special_cycles.push(cycle);
+        } else {
+            special_cycles.push(Vec::new());
+        }
+    }
+    let quiver_vertices = configuration
+        .polygons
+        .iter()
+        .map(|polygon| polygon.name.clone().into_boxed_str())
+        .collect();
+    let quiver = Quiver::from_named(quiver_vertices, arrows)?;
+    Ok((quiver, special_cycles))
+}
+
+fn brauer_type_one_relations<F: Field>(
+    arrow_elements: &[PathAlgebraElement<F>],
+    special_cycles: &[Vec<usize>],
+    number_of_vertices: usize,
+) -> Result<Vec<PathAlgebraElement<F>>, PredefinedAlgebraError> {
+    let mut type_one_relations = Vec::new();
+    for first in 0..number_of_vertices.saturating_sub(1) {
+        for second in first + 1..number_of_vertices {
+            for &left in &special_cycles[first] {
+                for &right in &special_cycles[second] {
+                    type_one_relations.push(
+                        generated_arrow(arrow_elements, left)?
+                            .multiply(generated_arrow(arrow_elements, right)?)?,
+                    );
+                    type_one_relations.push(
+                        generated_arrow(arrow_elements, right)?
+                            .multiply(generated_arrow(arrow_elements, left)?)?,
+                    );
+                }
+            }
+        }
+    }
+    Ok(type_one_relations)
+}
+
+fn brauer_type_two_relations<F: Field>(
+    path_algebra: &PathAlgebra<F>,
+    arrow_elements: &[PathAlgebraElement<F>],
+    special_cycles: &[Vec<usize>],
+    configuration: &BrauerConfiguration,
+) -> Result<Vec<PathAlgebraElement<F>>, PredefinedAlgebraError> {
+    let vertex_names = configuration
+        .vertices
+        .iter()
+        .map(|vertex| vertex.name.clone())
+        .collect::<Vec<_>>();
+    let mut type_two_relations = Vec::new();
+    for (polygon_index, polygon) in configuration.polygons.iter().enumerate() {
+        let polygon_vertex = path_algebra
+            .quiver()
+            .vertex(
+                VertexIndex::new(polygon_index + 1)
+                    .ok_or(PredefinedAlgebraError::GeneratedIndexOverflow)?,
+            )
+            .ok_or(PredefinedAlgebraError::GeneratedBrauerLookupMissing)?;
+        if polygon_vertex.in_degree() <= 1 {
+            continue;
+        }
+        for first_occurrence in 0..polygon.vertices.len().saturating_sub(1) {
+            let first_vertex = vertex_names
+                .iter()
+                .position(|name| name == &polygon.vertices[first_occurrence])
+                .ok_or(PredefinedAlgebraError::GeneratedBrauerLookupMissing)?;
+            if special_cycles[first_vertex].is_empty() {
+                continue;
+            }
+            for second_occurrence in first_occurrence + 1..polygon.vertices.len() {
+                let second_vertex = vertex_names
+                    .iter()
+                    .position(|name| name == &polygon.vertices[second_occurrence])
+                    .ok_or(PredefinedAlgebraError::GeneratedBrauerLookupMissing)?;
+                if special_cycles[second_vertex].is_empty() {
+                    continue;
+                }
+                let first_start = configuration.orientations[first_vertex]
+                    .iter()
+                    .position(|name| name == &polygon.name)
+                    .ok_or(PredefinedAlgebraError::GeneratedBrauerLookupMissing)?;
+                let second_start = configuration.orientations[second_vertex]
+                    .iter()
+                    .position(|name| name == &polygon.name)
+                    .ok_or(PredefinedAlgebraError::GeneratedBrauerLookupMissing)?;
+                let first_cycle = brauer_special_cycle(
+                    path_algebra,
+                    arrow_elements,
+                    &special_cycles[first_vertex],
+                    first_start,
+                )?;
+                let second_cycle = brauer_special_cycle(
+                    path_algebra,
+                    arrow_elements,
+                    &special_cycles[second_vertex],
+                    second_start,
+                )?;
+                type_two_relations.push(
+                    pow_path_element_integer(
+                        &first_cycle,
+                        &configuration.vertices[first_vertex].multiplicity,
+                    )?
+                    .sub(&pow_path_element_integer(
+                        &second_cycle,
+                        &configuration.vertices[second_vertex].multiplicity,
+                    )?)?,
+                );
+            }
+        }
+    }
+    Ok(type_two_relations)
+}
+
+fn brauer_type_three_relations<F: Field>(
+    path_algebra: &PathAlgebra<F>,
+    arrow_elements: &[PathAlgebraElement<F>],
+    special_cycles: &[Vec<usize>],
+    vertices: &[BrauerConfigurationVertex],
+) -> Result<Vec<PathAlgebraElement<F>>, PredefinedAlgebraError> {
+    let mut type_three_relations = Vec::new();
+    for (vertex_index, cycle) in special_cycles.iter().enumerate() {
+        for start in 0..cycle.len() {
+            let special_cycle = brauer_special_cycle(path_algebra, arrow_elements, cycle, start)?;
+            type_three_relations.push(
+                pow_path_element_integer(&special_cycle, &vertices[vertex_index].multiplicity)?
+                    .multiply(generated_arrow(arrow_elements, cycle[start])?)?,
+            );
+        }
+    }
+    Ok(type_three_relations)
+}
+
 impl<F: Field, Element> PosetAlgebra<F, Element> {
     /// Borrow the constructed path algebra or relation-list quotient.
     #[must_use]
@@ -547,15 +1104,7 @@ where
 {
     let (path_algebra, relations) =
         poset_algebra_presentation(poset, &mut string_of_element, field)?;
-    let algebra = if relations.is_empty() {
-        QuiverAlgebra::Path(path_algebra)
-    } else {
-        let complete_relations = gbnp_groebner_basis(&relations, &path_algebra)?;
-        QuiverAlgebra::Quotient(QuotientPathAlgebra::by_complete_groebner_relations(
-            path_algebra,
-            &complete_relations,
-        )?)
-    };
+    let algebra = factor_relation_list_presentation(path_algebra, &relations)?;
     Ok(PosetAlgebra {
         algebra,
         poset: poset.clone(),
@@ -760,6 +1309,74 @@ fn product_of_arrows<F: Field>(
     Ok(product)
 }
 
+fn first_duplicate<'a>(values: impl IntoIterator<Item = &'a String>) -> Option<&'a String> {
+    let mut seen = Vec::new();
+    for value in values {
+        if seen.contains(&value) {
+            return Some(value);
+        }
+        seen.push(value);
+    }
+    None
+}
+
+fn generated_arrow<F: Field>(
+    arrows: &[PathAlgebraElement<F>],
+    index: usize,
+) -> Result<&PathAlgebraElement<F>, PredefinedAlgebraError> {
+    arrows
+        .get(index)
+        .ok_or(PredefinedAlgebraError::GeneratedArrowIndexOutOfRange { index })
+}
+
+fn brauer_special_cycle<F: Field>(
+    path_algebra: &PathAlgebra<F>,
+    arrows: &[PathAlgebraElement<F>],
+    cycle: &[usize],
+    start: usize,
+) -> Result<PathAlgebraElement<F>, PredefinedAlgebraError> {
+    if start >= cycle.len() {
+        return Err(PredefinedAlgebraError::GeneratedBrauerLookupMissing);
+    }
+    product_of_arrows(
+        path_algebra,
+        arrows,
+        cycle[start..].iter().chain(&cycle[..start]).copied(),
+    )
+}
+
+fn pow_path_element_integer<F: Field>(
+    element: &PathAlgebraElement<F>,
+    exponent: &Integer,
+) -> Result<PathAlgebraElement<F>, PredefinedAlgebraError> {
+    let mut exponent = exponent.clone();
+    let mut result = element.algebra().one();
+    let mut base = element.clone();
+    while exponent > 0 {
+        if &exponent % 2 == 1 {
+            result = result.multiply(&base)?;
+        }
+        exponent >>= 1_u8;
+        if exponent > 0 {
+            base = base.multiply(&base)?;
+        }
+    }
+    Ok(result)
+}
+
+fn factor_relation_list_presentation<F: Field>(
+    path_algebra: PathAlgebra<F>,
+    relations: &[PathAlgebraElement<F>],
+) -> Result<QuiverAlgebra<F>, PredefinedAlgebraError> {
+    if relations.is_empty() {
+        return Ok(QuiverAlgebra::Path(path_algebra));
+    }
+    let complete_relations = gbnp_groebner_basis(relations, &path_algebra)?;
+    Ok(QuiverAlgebra::Quotient(
+        QuotientPathAlgebra::by_complete_groebner_relations(path_algebra, &complete_relations)?,
+    ))
+}
+
 fn factor_predefined_presentation<F: Field>(
     path_algebra: PathAlgebra<F>,
     relations: &[PathAlgebraElement<F>],
@@ -843,6 +1460,9 @@ pub enum PredefinedAlgebraError {
     /// A generated nonzero path did not expose vertex endpoints.
     #[error("a generated poset-algebra path has no vertex endpoint")]
     GeneratedPathEndpointMissing,
+    /// A validated Brauer configuration did not resolve a generated object.
+    #[error("a generated Brauer-configuration lookup unexpectedly failed")]
+    GeneratedBrauerLookupMissing,
     /// A source-translated poset query failed.
     #[error(transparent)]
     Poset(#[from] PosetError),
@@ -872,10 +1492,14 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
+        BrauerConfiguration, BrauerConfigurationAlgebra, BrauerConfigurationAlgebraResult,
+        BrauerConfigurationPolygon, BrauerConfigurationValidationError, BrauerConfigurationVertex,
         INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PredefinedAlgebra,
-        PredefinedAlgebraError, canonical_algebra, canonical_algebra_two_weights,
-        kronecker_algebra, nakayama_algebra, nakayama_algebra_sequence_first, poset_algebra,
-        poset_algebra_presentation, poset_algebra_with_string_function,
+        PredefinedAlgebraError, brauer_configuration_algebra,
+        brauer_configuration_algebra_presentation, canonical_algebra,
+        canonical_algebra_two_weights, kronecker_algebra, nakayama_algebra,
+        nakayama_algebra_sequence_first, poset_algebra, poset_algebra_presentation,
+        poset_algebra_with_string_function,
     };
 
     fn integers(values: &[i64]) -> Vec<Integer> {
@@ -980,6 +1604,85 @@ mod tests {
             panic!("fixture sequence must be admissible");
         };
         algebra
+    }
+
+    fn brauer_vertex(name: &str, multiplicity: i64) -> BrauerConfigurationVertex {
+        BrauerConfigurationVertex {
+            name: name.to_owned(),
+            multiplicity: Integer::from(multiplicity),
+        }
+    }
+
+    fn brauer_polygon(name: &str, vertices: &[&str]) -> BrauerConfigurationPolygon {
+        BrauerConfigurationPolygon {
+            name: name.to_owned(),
+            vertices: vertices.iter().map(ToString::to_string).collect(),
+        }
+    }
+
+    fn brauer_orientations(rows: &[&[&str]]) -> Vec<Vec<String>> {
+        rows.iter()
+            .map(|row| row.iter().map(ToString::to_string).collect())
+            .collect()
+    }
+
+    fn trivial_brauer_configuration() -> BrauerConfiguration {
+        BrauerConfiguration {
+            vertices: vec![brauer_vertex("v", 1)],
+            polygons: vec![brauer_polygon("e", &["v"])],
+            orientations: brauer_orientations(&[&["e"]]),
+        }
+    }
+
+    fn documented_brauer_configuration() -> BrauerConfiguration {
+        BrauerConfiguration {
+            vertices: vec![
+                brauer_vertex("v1", 1),
+                brauer_vertex("v2", 1),
+                brauer_vertex("v3", 2),
+            ],
+            polygons: vec![
+                brauer_polygon("e1", &["v1", "v2"]),
+                brauer_polygon("e2", &["v2", "v3"]),
+            ],
+            orientations: brauer_orientations(&[&["e1"], &["e2", "e1"], &["e2"]]),
+        }
+    }
+
+    fn repeated_brauer_configuration() -> BrauerConfiguration {
+        BrauerConfiguration {
+            vertices: vec![
+                brauer_vertex("a", 1),
+                brauer_vertex("b", 1),
+                brauer_vertex("c", 1),
+            ],
+            polygons: vec![
+                brauer_polygon("1", &["a", "a"]),
+                brauer_polygon("2", &["a", "b"]),
+                brauer_polygon("3", &["b", "a"]),
+                brauer_polygon("4", &["b", "c"]),
+            ],
+            orientations: brauer_orientations(&[&["1", "2", "3"], &["2", "4", "3"], &["4"]]),
+        }
+    }
+
+    fn constructed_brauer<F: Field>(
+        result: BrauerConfigurationAlgebraResult<F>,
+    ) -> BrauerConfigurationAlgebra<F> {
+        let BrauerConfigurationAlgebraResult::Algebra(algebra) = result else {
+            panic!("fixture configuration must be valid");
+        };
+        algebra
+    }
+
+    fn invalid_brauer(
+        configuration: &mut BrauerConfiguration,
+    ) -> BrauerConfigurationValidationError {
+        let result = brauer_configuration_algebra(Q, configuration).unwrap();
+        let BrauerConfigurationAlgebraResult::InvalidConfiguration(error) = result else {
+            panic!("invalid fixture unexpectedly constructed an algebra");
+        };
+        error
     }
 
     #[test]
@@ -1236,6 +1939,257 @@ mod tests {
                 non_graded.is_poset_algebra().unwrap(),
                 non_graded.is_finite_global_dimension_algebra().unwrap()
             ]
+        });
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(f2, expected["f2"]);
+    }
+
+    #[test]
+    fn brauer_configuration_vertex_and_polygon_validation_follow_qpa() {
+        let mut no_vertices = BrauerConfiguration {
+            vertices: Vec::new(),
+            polygons: Vec::new(),
+            orientations: Vec::new(),
+        };
+        assert_eq!(
+            invalid_brauer(&mut no_vertices),
+            BrauerConfigurationValidationError::NoVertices
+        );
+
+        let mut nonpositive = trivial_brauer_configuration();
+        nonpositive.vertices[0].multiplicity = Integer::from(0);
+        assert_eq!(
+            invalid_brauer(&mut nonpositive),
+            BrauerConfigurationValidationError::NonPositiveMultiplicity { position: 1 }
+        );
+
+        let mut duplicate_vertex = trivial_brauer_configuration();
+        duplicate_vertex.vertices.push(brauer_vertex("v", 1));
+        assert_eq!(
+            invalid_brauer(&mut duplicate_vertex),
+            BrauerConfigurationValidationError::DuplicateVertexName { name: "v".into() }
+        );
+
+        let mut empty_polygon = trivial_brauer_configuration();
+        empty_polygon.polygons[0].vertices.clear();
+        assert_eq!(
+            invalid_brauer(&mut empty_polygon),
+            BrauerConfigurationValidationError::PolygonWithoutVertex { position: 1 }
+        );
+
+        let mut polygon_vertex_name = trivial_brauer_configuration();
+        polygon_vertex_name.polygons[0].name = "v".into();
+        polygon_vertex_name.orientations[0][0] = "v".into();
+        assert_eq!(
+            invalid_brauer(&mut polygon_vertex_name),
+            BrauerConfigurationValidationError::PolygonNameMatchesVertex { name: "v".into() }
+        );
+
+        let mut unknown_vertex = trivial_brauer_configuration();
+        unknown_vertex.polygons[0].vertices[0] = "x".into();
+        assert_eq!(
+            invalid_brauer(&mut unknown_vertex),
+            BrauerConfigurationValidationError::PolygonContainsUnknownVertex {
+                polygon: "e".into(),
+                vertex: "x".into()
+            }
+        );
+
+        let mut duplicate_polygon = trivial_brauer_configuration();
+        duplicate_polygon.polygons.push(brauer_polygon("e", &["v"]));
+        assert_eq!(
+            invalid_brauer(&mut duplicate_polygon),
+            BrauerConfigurationValidationError::DuplicatePolygonName { name: "e".into() }
+        );
+    }
+
+    #[test]
+    fn brauer_configuration_orientation_validation_and_mutation_follow_qpa() {
+        let mut orientation_count = trivial_brauer_configuration();
+        orientation_count.orientations.clear();
+        assert_eq!(
+            invalid_brauer(&mut orientation_count),
+            BrauerConfigurationValidationError::OrientationCountMismatch {
+                expected: 1,
+                actual: 0
+            }
+        );
+
+        let mut empty_orientation = trivial_brauer_configuration();
+        empty_orientation.orientations[0].clear();
+        assert_eq!(
+            invalid_brauer(&mut empty_orientation),
+            BrauerConfigurationValidationError::EmptyOrientation { position: 1 }
+        );
+
+        let mut unknown_polygon = trivial_brauer_configuration();
+        unknown_polygon.orientations[0][0] = "x".into();
+        assert_eq!(
+            invalid_brauer(&mut unknown_polygon),
+            BrauerConfigurationValidationError::OrientationContainsUnknownPolygon {
+                position: 1,
+                polygon: "x".into()
+            }
+        );
+
+        let mut containment = BrauerConfiguration {
+            vertices: vec![brauer_vertex("a", 1), brauer_vertex("b", 1)],
+            polygons: vec![brauer_polygon("z", &["a"]), brauer_polygon("x", &["b"])],
+            orientations: brauer_orientations(&[&["z"], &["z", "x"]]),
+        };
+        let containment_error = invalid_brauer(&mut containment);
+        assert_eq!(
+            containment_error,
+            BrauerConfigurationValidationError::OrientationContainmentMismatch { position: 2 }
+        );
+        assert_eq!(
+            containment.orientations,
+            brauer_orientations(&[&["z"], &["x", "z"]])
+        );
+    }
+
+    #[test]
+    fn brauer_configuration_diagnostics_follow_qpa() {
+        let expected_diagnostics = [
+            (
+                BrauerConfigurationValidationError::NoVertices,
+                "There must be at least 1 vertex\n",
+            ),
+            (
+                BrauerConfigurationValidationError::NonPositiveMultiplicity { position: 1 },
+                "Multiplicities must be positive integers.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::DuplicateVertexName { name: "v".into() },
+                "Each vertex must have a unique name.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::PolygonWithoutVertex { position: 1 },
+                "Edges or Polygons should be lists of length 2 or greater.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::PolygonNameMatchesVertex { name: "v".into() },
+                "An edge or polygon cannot have the same name as a vertex.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::PolygonContainsUnknownVertex {
+                    polygon: "e".into(),
+                    vertex: "x".into(),
+                },
+                "An edge or polygon cannot contain a vertex which was not listed.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::DuplicatePolygonName { name: "e".into() },
+                "Edges or polygons must have unique names.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::OrientationCountMismatch {
+                    expected: 1,
+                    actual: 0,
+                },
+                "There must be an orientation corresponding to each vertex.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::EmptyOrientation { position: 1 },
+                "Orientations must be lists of length 1 or greater.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::OrientationContainsUnknownPolygon {
+                    position: 1,
+                    polygon: "x".into(),
+                },
+                "Orientations may only contain edges or polygons which were listed.\n",
+            ),
+            (
+                BrauerConfigurationValidationError::OrientationContainmentMismatch { position: 2 },
+                "Orientations must contain exactly the edges or polygons which contain the corresponding vertex.\n",
+            ),
+        ];
+        for (error, diagnostic) in expected_diagnostics {
+            assert_eq!(error.diagnostic(), diagnostic);
+        }
+    }
+
+    #[test]
+    fn brauer_configuration_raw_relation_families_follow_qpa_loops() {
+        let mut trivial = trivial_brauer_configuration();
+        constructed_brauer(brauer_configuration_algebra(Q, &mut trivial).unwrap());
+        let trivial_presentation = brauer_configuration_algebra_presentation(Q, &trivial).unwrap();
+        assert_eq!(
+            trivial_presentation
+                .relation_families
+                .each_ref()
+                .map(Vec::len),
+            [0, 0, 0]
+        );
+
+        let mut documented = documented_brauer_configuration();
+        constructed_brauer(brauer_configuration_algebra(Q, &mut documented).unwrap());
+        let documented_presentation =
+            brauer_configuration_algebra_presentation(Q, &documented).unwrap();
+        assert_eq!(
+            documented_presentation
+                .relation_families
+                .each_ref()
+                .map(Vec::len),
+            [4, 1, 3]
+        );
+        assert_eq!(
+            documented_presentation.relation_families[0]
+                .iter()
+                .filter(|relation| relation.is_zero())
+                .count(),
+            2
+        );
+
+        let mut repeated = repeated_brauer_configuration();
+        constructed_brauer(brauer_configuration_algebra(Z2, &mut repeated).unwrap());
+        let repeated_presentation =
+            brauer_configuration_algebra_presentation(Z2, &repeated).unwrap();
+        assert_eq!(
+            repeated_presentation
+                .relation_families
+                .each_ref()
+                .map(Vec::len),
+            [18, 2, 6]
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_brauer_configuration_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_brauer_configuration.schema-v1.json"
+        ))
+        .unwrap();
+
+        let mut trivial_configuration = trivial_brauer_configuration();
+        let trivial = constructed_brauer(
+            brauer_configuration_algebra(Q, &mut trivial_configuration).unwrap(),
+        );
+        let mut documented_configuration = documented_brauer_configuration();
+        let documented = constructed_brauer(
+            brauer_configuration_algebra(Q, &mut documented_configuration).unwrap(),
+        );
+        let rational = json!({
+            "trivial": quiver_algebra_json(trivial.algebra(), &rational_coefficient),
+            "documented": quiver_algebra_json(documented.algebra(), &rational_coefficient),
+            "orientations_after": documented_configuration.orientations,
+            "properties": [
+                trivial.is_symmetric_algebra().unwrap(),
+                documented.is_symmetric_algebra().unwrap()
+            ]
+        });
+
+        let mut repeated_configuration = repeated_brauer_configuration();
+        let repeated = constructed_brauer(
+            brauer_configuration_algebra(Z2, &mut repeated_configuration).unwrap(),
+        );
+        let z2_coefficient = |coefficient: &u8| Value::from(*coefficient);
+        let f2 = json!({
+            "repeated": quiver_algebra_json(repeated.algebra(), &z2_coefficient),
+            "orientations_after": repeated_configuration.orientations,
+            "properties": [repeated.is_symmetric_algebra().unwrap()]
         });
 
         assert_eq!(rational, expected["rational"]);
