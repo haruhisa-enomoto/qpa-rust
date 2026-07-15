@@ -19096,9 +19096,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PosetAlgebra::is_poset_algebra"
+tests = ["tests/fixtures/pathalg_poset_algebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19109,9 +19109,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "poset_algebra"
+tests = ["tests/fixtures/pathalg_poset_algebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19122,9 +19122,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PosetAlgebra::poset_of_poset_algebra"
+tests = ["tests/fixtures/pathalg_poset_algebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19343,9 +19343,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 517
 source_end = 599
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "poset_algebra"
+tests = ["tests/fixtures/pathalg_poset_algebra.schema-v1.json"]
 deviations = []
 
 [[entries]]

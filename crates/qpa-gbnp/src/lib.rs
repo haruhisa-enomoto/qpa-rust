@@ -54,10 +54,10 @@ pub use persistence::{
     read_qpa_algebra_file, save_qpa_algebra_file,
 };
 pub use predefined::{
-    INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PredefinedAlgebra,
+    INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PosetAlgebra, PredefinedAlgebra,
     PredefinedAlgebraError, PredefinedAlgebraKind, canonical_algebra,
     canonical_algebra_two_weights, kronecker_algebra, nakayama_algebra,
-    nakayama_algebra_sequence_first,
+    nakayama_algebra_sequence_first, poset_algebra, poset_algebra_with_string_function,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,

@@ -521,9 +521,14 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   implications. The invalid Nakayama list-return branch, empty-list source
   error, and QPA's nonpositive-singleton Gröbner failure are pinned explicitly
   over `QQ` and `GF(2)`.
+  `PosetAlgebra` is source-translated from the Hasse quiver through QPA's
+  arrow-ideal-square endpoint spaces and its shadowed repeated-relation loop;
+  the identity-preserving `PosetOfPosetAlgebra` attribute, relation-free path
+  return, default GBNP quotient, and finite-global-dimension filter are pinned
+  for graded and nongraded posets.
   QPA's special-biserial quiver/path/quotient predicates, string-algebra
   predicates, gentle predicate, and gentle true-method implications are
-  source-translated through the default GBNP ideal backend. Poset, Brauer
+  source-translated through the default GBNP ideal backend. Brauer
   configuration, preprojective, admissible-sequence, and finite-global-
   dimension predefined families and the remaining recognition properties
   remain.

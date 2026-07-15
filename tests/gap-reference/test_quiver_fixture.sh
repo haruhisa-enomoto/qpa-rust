@@ -105,6 +105,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_predefined.g" \
     "$repo_root/tests/fixtures/pathalg_predefined.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_poset_algebra.g" \
+    "$repo_root/tests/fixtures/pathalg_poset_algebra.schema-v1.json"
 "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/pathalg_predefined_invalid.g" \
     >"$actual"

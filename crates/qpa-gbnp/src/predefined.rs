@@ -7,10 +7,13 @@
 //! are retained by [`PredefinedAlgebra`] instead of being inferred from the
 //! resulting presentation.
 
+use std::fmt::Display;
+
 use numerica::domains::{Field, integer::Integer};
 use qpa_core::{
     ArrowSpec, NamedArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal,
-    Quiver, QuiverAlgebra, QuiverError, QuotientError, QuotientPathAlgebra, VertexIndex,
+    PathEndpoint, Poset, PosetError, Quiver, QuiverAlgebra, QuiverError, QuotientError,
+    QuotientPathAlgebra, VertexIndex,
 };
 use thiserror::Error;
 
@@ -455,6 +458,197 @@ pub fn kronecker_algebra<F: Field>(
     ))
 }
 
+/// A quiver algebra constructed by QPA's `PosetAlgebra`, together with its
+/// identity-preserving `PosetOfPosetAlgebra` attribute.
+#[derive(Clone, Debug)]
+pub struct PosetAlgebra<F: Field, Element> {
+    algebra: QuiverAlgebra<F>,
+    poset: Poset<Element>,
+}
+
+impl<F: Field, Element> PosetAlgebra<F, Element> {
+    /// Borrow the constructed path algebra or relation-list quotient.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuiverAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return QPA's identity-preserving `PosetOfPosetAlgebra` attribute.
+    #[must_use]
+    pub const fn poset_of_poset_algebra(&self) -> &Poset<Element> {
+        &self.poset
+    }
+
+    /// Return QPA's constructor-known `IsPosetAlgebra` value.
+    #[must_use]
+    pub const fn is_poset_algebra(&self) -> Option<bool> {
+        Some(true)
+    }
+
+    /// Return the finite-global-dimension filter set by `PosetAlgebra`.
+    #[must_use]
+    pub const fn is_finite_global_dimension_algebra(&self) -> Option<bool> {
+        Some(true)
+    }
+
+    /// Consume the attribute wrapper and return the underlying quiver algebra.
+    #[must_use]
+    pub fn into_algebra(self) -> QuiverAlgebra<F> {
+        self.algebra
+    }
+}
+
+/// Translate `PosetAlgebra(K, P)` using Rust display strings for QPA's
+/// `String(p)` calls.
+///
+/// The quiver is the Hasse quiver.  Relations follow QPA's computation of a
+/// basis of `J^2`, its endpoint subspaces, and the repeated `B[1] - B[k]`
+/// loop before the relation list is passed to the default GBNP backend.
+/// Cloning the supplied [`Poset`] handle preserves the identity observed by
+/// `PosetOfPosetAlgebra`.
+///
+/// Use [`poset_algebra_with_string_function`] when an element's Rust
+/// [`Display`] output is not its intended GAP `String` representation.
+///
+/// # Errors
+///
+/// Propagates poset queries, named-quiver construction, path arithmetic,
+/// QPA-to-GBNP conversion, and quotient construction failures.
+pub fn poset_algebra<F, Element>(
+    field: F,
+    poset: &Poset<Element>,
+) -> Result<PosetAlgebra<F, Element>, PredefinedAlgebraError>
+where
+    F: Field,
+    Element: Clone + Display + Ord,
+{
+    poset_algebra_with_string_function(field, poset, ToString::to_string)
+}
+
+/// Translate `PosetAlgebra(K, P)` with an explicit implementation of QPA's
+/// `String(p)` conversion.
+///
+/// This is the same source algorithm as [`poset_algebra`]; only the boundary
+/// used to name vertices and arrows is supplied by the caller.
+///
+/// # Errors
+///
+/// Propagates poset queries, named-quiver construction, path arithmetic,
+/// QPA-to-GBNP conversion, and quotient construction failures.
+pub fn poset_algebra_with_string_function<F, Element, StringFunction>(
+    field: F,
+    poset: &Poset<Element>,
+    mut string_of_element: StringFunction,
+) -> Result<PosetAlgebra<F, Element>, PredefinedAlgebraError>
+where
+    F: Field,
+    Element: Clone + Ord,
+    StringFunction: FnMut(&Element) -> String,
+{
+    let (path_algebra, relations) =
+        poset_algebra_presentation(poset, &mut string_of_element, field)?;
+    let algebra = if relations.is_empty() {
+        QuiverAlgebra::Path(path_algebra)
+    } else {
+        let complete_relations = gbnp_groebner_basis(&relations, &path_algebra)?;
+        QuiverAlgebra::Quotient(QuotientPathAlgebra::by_complete_groebner_relations(
+            path_algebra,
+            &complete_relations,
+        )?)
+    };
+    Ok(PosetAlgebra {
+        algebra,
+        poset: poset.clone(),
+    })
+}
+
+fn poset_algebra_presentation<F, Element, StringFunction>(
+    poset: &Poset<Element>,
+    string_of_element: &mut StringFunction,
+    field: F,
+) -> Result<(PathAlgebra<F>, Vec<PathAlgebraElement<F>>), PredefinedAlgebraError>
+where
+    F: Field,
+    Element: Clone + Ord,
+    StringFunction: FnMut(&Element) -> String,
+{
+    let elements = poset.underlying_set();
+    let names = elements.iter().map(string_of_element).collect::<Vec<_>>();
+    let vertices = names
+        .iter()
+        .map(|name| name.clone().into_boxed_str())
+        .collect();
+    let mut arrows = Vec::new();
+    for source in 0..elements.len() {
+        for target in 0..elements.len() {
+            if poset
+                .minimal_relations()
+                .iter()
+                .any(|relation| relation == &(elements[source].clone(), elements[target].clone()))
+            {
+                arrows.push(NamedArrowSpec::named(
+                    names[source].clone(),
+                    names[target].clone(),
+                    format!("{}_{}", names[source], names[target]),
+                ));
+            }
+        }
+    }
+    let quiver = Quiver::from_named(vertices, arrows)?;
+    let path_algebra = PathAlgebra::new(field, quiver)?;
+
+    // `Basis(ProductSpace(I, I))` for the arrow ideal I consists of every
+    // path of length at least two in canonical path order.
+    let radical_square_basis = path_algebra
+        .quiver()
+        .paths()
+        .filter(|path| path.length().is_some_and(|length| length >= 2))
+        .map(|path| {
+            let PathEndpoint::Vertex(source) = path.source() else {
+                return Err(PredefinedAlgebraError::GeneratedPathEndpointMissing);
+            };
+            let PathEndpoint::Vertex(target) = path.target() else {
+                return Err(PredefinedAlgebraError::GeneratedPathEndpointMissing);
+            };
+            Ok((
+                source.index().get() - 1,
+                target.index().get() - 1,
+                path_algebra.element(path)?,
+            ))
+        })
+        .collect::<Result<Vec<_>, PredefinedAlgebraError>>()?;
+
+    let mut endpoint_spaces = Vec::new();
+    for source in 0..elements.len() {
+        for target in 0..elements.len() {
+            if source != target && poset.less_than_or_equal(&elements[source], &elements[target])? {
+                let basis = radical_square_basis
+                    .iter()
+                    .filter(|(left, right, _)| *left == source && *right == target)
+                    .map(|(_, _, element)| element.clone())
+                    .collect::<Vec<_>>();
+                if basis.len() > 1 {
+                    endpoint_spaces.push((source, target, basis));
+                }
+            }
+        }
+    }
+
+    let mut relations = Vec::new();
+    for (source, _target, basis) in endpoint_spaces {
+        // The pinned method shadows its saved target with this loop variable.
+        // Hence each basis-difference list is appended n-1 times.
+        for repeated_target in 0..elements.len() {
+            if source != repeated_target && basis.len() > 1 {
+                for other in &basis[1..] {
+                    relations.push(basis[0].sub(other)?);
+                }
+            }
+        }
+    }
+    Ok((path_algebra, relations))
+}
+
 fn is_admissible_sequence(sequence: &[Integer]) -> bool {
     let one = Integer::from(1);
     for pair in sequence.windows(2) {
@@ -646,6 +840,12 @@ pub enum PredefinedAlgebraError {
         /// Zero-based internal arrow index.
         index: usize,
     },
+    /// A generated nonzero path did not expose vertex endpoints.
+    #[error("a generated poset-algebra path has no vertex endpoint")]
+    GeneratedPathEndpointMissing,
+    /// A source-translated poset query failed.
+    #[error(transparent)]
+    Poset(#[from] PosetError),
     /// Quiver construction failed.
     #[error(transparent)]
     Quiver(#[from] QuiverError),
@@ -668,13 +868,14 @@ mod tests {
         integer::Integer,
         rational::{Q, RationalField},
     };
-    use qpa_core::{AlgebraDimension, PathAlgebraElement, QuiverAlgebra};
+    use qpa_core::{AlgebraDimension, PathAlgebraElement, Poset, QuiverAlgebra};
     use serde_json::{Value, json};
 
     use super::{
         INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PredefinedAlgebra,
         PredefinedAlgebraError, canonical_algebra, canonical_algebra_two_weights,
-        kronecker_algebra, nakayama_algebra, nakayama_algebra_sequence_first,
+        kronecker_algebra, nakayama_algebra, nakayama_algebra_sequence_first, poset_algebra,
+        poset_algebra_presentation, poset_algebra_with_string_function,
     };
 
     fn integers(values: &[i64]) -> Vec<Integer> {
@@ -717,28 +918,40 @@ mod tests {
         algebra: &PredefinedAlgebra<F>,
         coefficient_json: &impl Fn(&F::Element) -> Value,
     ) -> Value {
-        let original = algebra.algebra().original_path_algebra();
-        let (admissible_quotient, dimension) = match algebra.algebra() {
-            QuiverAlgebra::Path(path_algebra) => (
-                false,
-                path_algebra
-                    .canonical_basis()
-                    .expect("oracle predefined path algebra is finite")
-                    .len(),
-            ),
+        let mut value = quiver_algebra_json(algebra.algebra(), coefficient_json);
+        let admissible_quotient = match algebra.algebra() {
+            QuiverAlgebra::Path(_) => false,
+            QuiverAlgebra::Quotient(quotient) => quotient.is_admissible().unwrap(),
+        };
+        value
+            .as_object_mut()
+            .expect("algebra fixture is a JSON object")
+            .insert(
+                "admissible_quotient".to_owned(),
+                Value::Bool(admissible_quotient),
+            );
+        value
+    }
+
+    fn quiver_algebra_json<F: Field>(
+        algebra: &QuiverAlgebra<F>,
+        coefficient_json: &impl Fn(&F::Element) -> Value,
+    ) -> Value {
+        let original = algebra.original_path_algebra();
+        let dimension = match algebra {
+            QuiverAlgebra::Path(path_algebra) => path_algebra
+                .canonical_basis()
+                .expect("oracle predefined path algebra is finite")
+                .len(),
             QuiverAlgebra::Quotient(quotient) => {
                 let AlgebraDimension::Finite(dimension) = quotient.dimension().unwrap() else {
                     panic!("oracle predefined quotient is finite");
                 };
-                (
-                    quotient.is_admissible().unwrap(),
-                    usize::try_from(dimension).unwrap(),
-                )
+                usize::try_from(dimension).unwrap()
             }
         };
         json!({
-            "path_algebra": algebra.algebra().is_path_algebra(),
-            "admissible_quotient": admissible_quotient,
+            "path_algebra": algebra.is_path_algebra(),
             "dimension": dimension,
             "vertices": original
                 .quiver()
@@ -755,7 +968,6 @@ mod tests {
                 }))
                 .collect::<Vec<_>>(),
             "relations": algebra
-                .algebra()
                 .relations()
                 .iter()
                 .map(|relation| element_json(relation, coefficient_json))
@@ -920,6 +1132,110 @@ mod tests {
                     kronecker_f2.is_hereditary_algebra().unwrap()
                 ]
             }
+        });
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(f2, expected["f2"]);
+    }
+
+    #[test]
+    fn poset_presentation_preserves_qpa_shadowed_relation_loop() {
+        let diamond =
+            Poset::new(vec![4, 2, 1, 3], &[vec![1, 2, 3], vec![2, 4], vec![3, 4]]).unwrap();
+        let mut integer_string = |value: &i32| value.to_string();
+        let (_, diamond_relations) =
+            poset_algebra_presentation(&diamond, &mut integer_string, Q).unwrap();
+        assert_eq!(diamond_relations.len(), 3);
+        assert!(
+            diamond_relations
+                .iter()
+                .all(|relation| relation == &diamond_relations[0])
+        );
+
+        let parallel = Poset::new(
+            vec![1, 2, 3, 4, 5],
+            &[vec![1, 2, 3, 4], vec![2, 5], vec![3, 5], vec![4, 5]],
+        )
+        .unwrap();
+        let (_, parallel_relations) =
+            poset_algebra_presentation(&parallel, &mut integer_string, Q).unwrap();
+        assert_eq!(parallel_relations.len(), 8);
+        assert_eq!(parallel_relations[0], parallel_relations[2]);
+        assert_eq!(parallel_relations[1], parallel_relations[3]);
+
+        let named =
+            poset_algebra_with_string_function(Q, &diamond, |value| format!("p{value}")).unwrap();
+        assert!(named.poset_of_poset_algebra().is_identical(&diamond));
+        assert_eq!(named.is_poset_algebra(), Some(true));
+        assert_eq!(named.is_finite_global_dimension_algebra(), Some(true));
+        assert_eq!(
+            named
+                .algebra()
+                .original_path_algebra()
+                .quiver()
+                .vertices()
+                .map(|vertex| vertex.name().to_owned())
+                .collect::<Vec<_>>(),
+            ["p1", "p2", "p3", "p4"]
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_poset_algebra_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_poset_algebra.schema-v1.json"
+        ))
+        .unwrap();
+
+        let singleton_poset = Poset::new(vec!["only"], &[]).unwrap();
+        let singleton = poset_algebra(Q, &singleton_poset).unwrap();
+        let chain_poset =
+            Poset::new(vec!["c", "a", "b"], &[vec!["a", "b"], vec!["b", "c"]]).unwrap();
+        let chain = poset_algebra(Q, &chain_poset).unwrap();
+        let diamond_poset =
+            Poset::new(vec![4, 2, 1, 3], &[vec![1, 2, 3], vec![2, 4], vec![3, 4]]).unwrap();
+        let diamond = poset_algebra(Q, &diamond_poset).unwrap();
+        let rational = json!({
+            "singleton": quiver_algebra_json(singleton.algebra(), &rational_coefficient),
+            "chain": quiver_algebra_json(chain.algebra(), &rational_coefficient),
+            "diamond": quiver_algebra_json(diamond.algebra(), &rational_coefficient),
+            "attribute_identity": [
+                singleton.poset_of_poset_algebra().is_identical(&singleton_poset),
+                chain.poset_of_poset_algebra().is_identical(&chain_poset),
+                diamond.poset_of_poset_algebra().is_identical(&diamond_poset)
+            ],
+            "properties": [
+                diamond.is_poset_algebra().unwrap(),
+                diamond.is_finite_global_dimension_algebra().unwrap()
+            ]
+        });
+
+        let parallel_poset = Poset::new(
+            vec![1, 2, 3, 4, 5],
+            &[vec![1, 2, 3, 4], vec![2, 5], vec![3, 5], vec![4, 5]],
+        )
+        .unwrap();
+        let parallel = poset_algebra(Z2, &parallel_poset).unwrap();
+        let non_graded_poset = Poset::new(
+            vec![1, 2, 3, 4, 5],
+            &[vec![1, 2, 3], vec![2, 5], vec![3, 4], vec![4, 5]],
+        )
+        .unwrap();
+        let non_graded = poset_algebra(Z2, &non_graded_poset).unwrap();
+        let z2_coefficient = |coefficient: &u8| Value::from(*coefficient);
+        let f2 = json!({
+            "parallel": quiver_algebra_json(parallel.algebra(), &z2_coefficient),
+            "non_graded": quiver_algebra_json(non_graded.algebra(), &z2_coefficient),
+            "attribute_identity": [
+                parallel.poset_of_poset_algebra().is_identical(&parallel_poset),
+                non_graded
+                    .poset_of_poset_algebra()
+                    .is_identical(&non_graded_poset)
+            ],
+            "properties": [
+                non_graded.is_poset_algebra().unwrap(),
+                non_graded.is_finite_global_dimension_algebra().unwrap()
+            ]
         });
 
         assert_eq!(rational, expected["rational"]);
