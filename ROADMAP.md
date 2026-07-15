@@ -515,8 +515,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   `QuiverProduct` retains QPA's Cartesian generator order, composed names, and
   two-factor decomposition; list-like factor access, display, path-or-vertex
   walks, `ReversePath`, inclusion, and projection are pinned against QPA. The
-  path-algebra embedding and element-term helpers are the next tensor-layer
-  block before `SimpleTensor` and relation-bearing algebra tensor products.
+  path/vertex embedding into both path algebras and quotients, ordered vertex
+  idempotents, and the exact tip-peeling `PathAlgebraElementTerms` loop are
+  also pinned over `QQ` and `GF(2)`. `SimpleTensor` and relation-bearing
+  algebra tensor products remain next in this layer.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.

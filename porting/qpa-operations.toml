@@ -19603,9 +19603,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 51
 source_end = 51
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "include_in_path_algebra"
+tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19616,9 +19616,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 52
 source_end = 52
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "vertices_of_path_algebra"
+tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19629,9 +19629,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 53
 source_end = 53
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_element_terms"
+tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19980,9 +19980,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 161
 source_end = 170
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "include_in_path_algebra"
+tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19993,9 +19993,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 173
 source_end = 179
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "vertices_of_path_algebra"
+tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20006,9 +20006,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 182
 source_end = 203
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_element_terms"
+tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
 
 [[entries]]

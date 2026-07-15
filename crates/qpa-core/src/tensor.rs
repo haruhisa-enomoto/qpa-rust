@@ -7,10 +7,12 @@
 
 use std::{collections::HashMap, fmt};
 
+use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    Generator, NamedArrowSpec, Path, PathEndpoint, PathError, Quiver, QuiverError, Vertex,
+    Generator, NamedArrowSpec, Path, PathEndpoint, PathError, Quiver, QuiverAlgebra,
+    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverError, Vertex,
 };
 
 /// QPA's two-factor decomposition object attached to a product quiver.
@@ -285,6 +287,119 @@ pub fn project_from_product_quiver(
     product_of_paths(&projected).map_err(Into::into)
 }
 
+/// Include a path or vertex in a path algebra or quotient using QPA's
+/// name-based record-component lookup.
+///
+/// The source maps every entry of `WalkOfPathOrVertex(path)` to the algebra
+/// component with the same printed name, then multiplies those components.
+/// This intentionally permits an input from another quiver when all required
+/// names exist, just as GAP record lookup does.
+///
+/// # Errors
+///
+/// Reports the zero-path walk boundary, a missing algebra record component,
+/// or path/quotient arithmetic failure.
+pub fn include_in_path_algebra<F: Field>(
+    path: &Path,
+    algebra: &QuiverAlgebra<F>,
+) -> Result<QuiverAlgebraElement<F>, PathAlgebraTensorError> {
+    let mut included = Vec::new();
+    for generator in walk_of_path_or_vertex(path)? {
+        let name = generator_name(&generator);
+        let element = algebra
+            .generator_element_by_name(name)?
+            .ok_or_else(|| PathAlgebraTensorError::MissingAlgebraGenerator { name: name.into() })?;
+        included.push(element);
+    }
+    product_of_algebra_elements(&included).map_err(Into::into)
+}
+
+/// Return QPA's ordered list of vertex idempotents for a path algebra or
+/// quotient.
+///
+/// Each source-quiver vertex is passed through [`include_in_path_algebra`]
+/// rather than embedded positionally, preserving record-name collision
+/// behavior.
+///
+/// # Errors
+///
+/// Propagates source-translated inclusion and quotient-reduction failures.
+pub fn vertices_of_path_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Vec<QuiverAlgebraElement<F>>, PathAlgebraTensorError> {
+    algebra
+        .quiver()
+        .vertices()
+        .map(|vertex| include_in_path_algebra(&vertex.path(), algebra))
+        .collect()
+}
+
+/// One record returned by QPA's `PathAlgebraElementTerms` helper.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PathAlgebraElementTermRecord<F: Field> {
+    monomial: Path,
+    coefficient: F::Element,
+}
+
+impl<F: Field> PathAlgebraElementTermRecord<F> {
+    /// Return the source record's `monom` component.
+    #[must_use]
+    pub const fn monomial(&self) -> &Path {
+        &self.monomial
+    }
+
+    /// Return the source record's `coeff` component.
+    #[must_use]
+    pub const fn coefficient(&self) -> &F::Element {
+        &self.coefficient
+    }
+}
+
+/// Translate QPA's tip-peeling `PathAlgebraElementTerms` loop.
+///
+/// Terms are returned from greatest to least monomial. The implementation
+/// deliberately repeats `Tip`, `TipMonomial`, `TipCoefficient`, and
+/// subtraction until the tip coefficient is zero, matching the source rather
+/// than merely reversing Rust's sparse storage.
+///
+/// # Errors
+///
+/// Propagates path-algebra family and quotient normal-form failures from each
+/// source subtraction.
+pub fn path_algebra_element_terms<F: Field>(
+    element: &QuiverAlgebraElement<F>,
+) -> Result<Vec<PathAlgebraElementTermRecord<F>>, PathAlgebraTensorError> {
+    let mut terms = Vec::new();
+    let mut rest = element.clone();
+    loop {
+        let tip = rest.leading_term();
+        let monomial = rest.leading_monomial();
+        let coefficient = rest.leading_coefficient();
+        if rest.field().is_zero(&coefficient) {
+            break;
+        }
+        rest = rest.sub(&tip)?;
+        terms.push(PathAlgebraElementTermRecord {
+            monomial,
+            coefficient,
+        });
+    }
+    Ok(terms)
+}
+
+fn product_of_algebra_elements<F: Field>(
+    elements: &[QuiverAlgebraElement<F>],
+) -> Result<QuiverAlgebraElement<F>, QuiverAlgebraElementError> {
+    let Some((first, rest)) = elements.split_first() else {
+        return Err(QuiverAlgebraElementError::EmptyProduct);
+    };
+    let mut product = first.clone();
+    for element in rest {
+        product = product.multiply(element)?;
+    }
+    Ok(product)
+}
+
 fn product_of_paths(paths: &[Path]) -> Result<Path, PathError> {
     let Some((first, rest)) = paths.split_first() else {
         return Err(PathError::EmptyProduct);
@@ -368,14 +483,41 @@ pub enum QuiverProductError {
     Path(#[from] PathError),
 }
 
+/// Failure in QPA's path-algebra portion of the tensor helper layer.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum PathAlgebraTensorError {
+    /// QPA's algebra record had no component with the required generator name.
+    #[error("cannot find path-algebra generator named {name}")]
+    MissingAlgebraGenerator {
+        /// Missing source generator name.
+        name: Box<str>,
+    },
+    /// A source path operation failed.
+    #[error(transparent)]
+    Path(#[from] PathError),
+    /// Quiver-algebra element arithmetic or reduction failed.
+    #[error(transparent)]
+    Element(#[from] QuiverAlgebraElementError),
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{ArrowSpec, NamedArrowSpec, PathError, Quiver, VertexIndex};
+    use crate::{
+        ArrowSpec, NamedArrowSpec, PathAlgebra, PathError, Quiver, QuiverAlgebra,
+        QuiverAlgebraElement, QuotientPathAlgebra, VertexIndex,
+    };
+    use numerica::domains::{
+        Field, Ring,
+        finite_field::Z2,
+        integer::Integer,
+        rational::{Q, Rational, RationalField},
+    };
     use serde_json::{Value, json};
 
     use super::{
-        QuiverProductError, include_in_product_quiver, project_from_product_quiver, quiver_product,
-        reverse_path, walk_of_path_or_vertex,
+        PathAlgebraElementTermRecord, QuiverProductError, include_in_path_algebra,
+        include_in_product_quiver, path_algebra_element_terms, project_from_product_quiver,
+        quiver_product, reverse_path, vertices_of_path_algebra, walk_of_path_or_vertex,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -398,6 +540,40 @@ mod tests {
             )
             .unwrap(),
         ]
+    }
+
+    fn q(numerator: i64) -> Rational {
+        Q.to_element(Integer::from(numerator), Integer::from(1), true)
+    }
+
+    fn terms_json<F: Field>(
+        terms: &[PathAlgebraElementTermRecord<F>],
+        coefficient_text: impl Fn(&F::Element) -> String,
+    ) -> Value {
+        Value::Array(
+            terms
+                .iter()
+                .map(|term| {
+                    json!({
+                        "monomial": term.monomial().to_string(),
+                        "coefficient": coefficient_text(term.coefficient()),
+                    })
+                })
+                .collect(),
+        )
+    }
+
+    fn rational_element_json(element: &QuiverAlgebraElement<RationalField>) -> Value {
+        terms_json(
+            &path_algebra_element_terms(element).unwrap(),
+            ToString::to_string,
+        )
+    }
+
+    fn binary_element_json(element: &QuiverAlgebraElement<Z2>) -> Value {
+        terms_json(&path_algebra_element_terms(element).unwrap(), |_| {
+            "Z(2)^0".to_owned()
+        })
     }
 
     #[test]
@@ -572,5 +748,83 @@ mod tests {
             reverse_path(&st).unwrap().to_string(),
             expected["reverse"]["loop_path"]
         );
+    }
+
+    #[test]
+    fn pinned_qpa_path_algebra_element_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalgtensor_elements.schema-v1.json"
+        ))
+        .unwrap();
+
+        let quiver = Quiver::from_named(
+            vec!["u".into(), "v".into()],
+            vec![
+                NamedArrowSpec::named("u", "u", "a"),
+                NamedArrowSpec::named("u", "v", "b"),
+            ],
+        )
+        .unwrap();
+        let parent = PathAlgebra::new(Q, quiver.clone()).unwrap();
+        let u = quiver.generator_by_name("u").unwrap().path();
+        let a = quiver.generator_by_name("a").unwrap().path();
+        let b = quiver.generator_by_name("b").unwrap().path();
+        let aa = a.multiply(&a).unwrap();
+        let ab = a.multiply(&b).unwrap();
+        let aa_relation = parent.element(aa.clone()).unwrap();
+        let quotient = QuotientPathAlgebra::by_relations_high_level(
+            parent.clone(),
+            std::slice::from_ref(&aa_relation),
+        )
+        .unwrap();
+        let parent_algebra = QuiverAlgebra::Path(parent.clone());
+        let quotient_algebra = QuiverAlgebra::Quotient(quotient.clone());
+        let parent_element = QuiverAlgebraElement::Path(
+            parent
+                .from_terms([(u, q(2)), (a.clone(), q(3)), (ab, q(5))])
+                .unwrap(),
+        );
+        let quotient_element = QuiverAlgebraElement::Quotient(
+            quotient
+                .element(match &parent_element {
+                    QuiverAlgebraElement::Path(element) => element.clone(),
+                    QuiverAlgebraElement::Quotient(_) => unreachable!(),
+                })
+                .unwrap(),
+        );
+        let parent_vertices = vertices_of_path_algebra(&parent_algebra).unwrap();
+        let quotient_vertices = vertices_of_path_algebra(&quotient_algebra).unwrap();
+        let rational = json!({
+            "include_parent": rational_element_json(
+                &include_in_path_algebra(&a.multiply(&b).unwrap(), &parent_algebra).unwrap()
+            ),
+            "include_quotient_zero": rational_element_json(
+                &include_in_path_algebra(&aa, &quotient_algebra).unwrap()
+            ),
+            "parent_vertices": parent_vertices.iter().map(rational_element_json).collect::<Vec<_>>(),
+            "quotient_vertices": quotient_vertices.iter().map(rational_element_json).collect::<Vec<_>>(),
+            "parent_terms": rational_element_json(&parent_element),
+            "quotient_terms": rational_element_json(&quotient_element),
+        });
+        assert_eq!(rational, expected["rational"]);
+
+        let binary_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "c")]).unwrap();
+        let binary_parent = PathAlgebra::new(Z2, binary_quiver.clone()).unwrap();
+        let v1 = binary_quiver.generator_by_name("v1").unwrap().path();
+        let c = binary_quiver.generator_by_name("c").unwrap().path();
+        let binary_element = QuiverAlgebraElement::Path(
+            binary_parent
+                .from_terms([(v1, Z2.one()), (c.clone(), Z2.one())])
+                .unwrap(),
+        );
+        let binary_algebra = QuiverAlgebra::Path(binary_parent);
+        let binary_vertices = vertices_of_path_algebra(&binary_algebra).unwrap();
+        let binary = json!({
+            "include": binary_element_json(&include_in_path_algebra(&c, &binary_algebra).unwrap()),
+            "vertices": binary_vertices.iter().map(binary_element_json).collect::<Vec<_>>(),
+            "terms": binary_element_json(&binary_element),
+        });
+        assert_eq!(binary, expected["binary"]);
     }
 }

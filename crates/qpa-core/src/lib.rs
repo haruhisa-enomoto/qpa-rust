@@ -26,7 +26,9 @@ pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use element_inverse::ElementInverseError;
-pub use element_utilities::{QuiverAlgebra, VertexQuotientPresentation};
+pub use element_utilities::{
+    QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, VertexQuotientPresentation,
+};
 pub use groebner::{
     GroebnerBasis, GroebnerBasisKind, GroebnerError, high_level_groebner_basis,
     leftmost_occurrence, make_uniform, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,
@@ -55,8 +57,10 @@ pub use suffix_tree::{
     SuffixTreeOccurrence, SuffixTreeToken,
 };
 pub use tensor::{
-    QuiverProduct, QuiverProductDecomposition, QuiverProductError, include_in_product_quiver,
-    project_from_product_quiver, quiver_product, reverse_path, walk_of_path_or_vertex,
+    PathAlgebraElementTermRecord, PathAlgebraTensorError, QuiverProduct,
+    QuiverProductDecomposition, QuiverProductError, include_in_path_algebra,
+    include_in_product_quiver, path_algebra_element_terms, project_from_product_quiver,
+    quiver_product, reverse_path, vertices_of_path_algebra, walk_of_path_or_vertex,
 };
 pub use triangular_reduced::TriangularReducedError;
 pub use vector_reduction::{VectorCoefficients, VectorReductionError, VectorTip};

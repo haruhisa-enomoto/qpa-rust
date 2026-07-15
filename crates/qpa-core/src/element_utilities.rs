@@ -6,9 +6,10 @@
 //! stored paths.
 
 use numerica::domains::Field;
+use thiserror::Error;
 
 use crate::{
-    NamedArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver, QuotientError,
+    NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver, QuotientError,
     QuotientPathAlgebra, QuotientPathAlgebraElement,
 };
 
@@ -41,6 +42,18 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Return the common coefficient field of this path algebra or quotient.
+    #[must_use]
+    pub fn field(&self) -> &F {
+        self.original_path_algebra().field()
+    }
+
+    /// Return QPA's `QuiverOfPathAlgebra` value.
+    #[must_use]
+    pub fn quiver(&self) -> &Quiver {
+        self.original_path_algebra().quiver()
+    }
+
     /// Return QPA's `RelationsOfAlgebra` value.
     #[must_use]
     pub fn relations(&self) -> &[PathAlgebraElement<F>] {
@@ -58,6 +71,195 @@ impl<F: Field> QuiverAlgebra<F> {
             Self::Quotient(algebra) => Some(algebra),
         }
     }
+
+    /// Return the additive zero in the observable algebra variant.
+    #[must_use]
+    pub fn zero(&self) -> QuiverAlgebraElement<F> {
+        match self {
+            Self::Path(algebra) => QuiverAlgebraElement::Path(algebra.zero()),
+            Self::Quotient(algebra) => QuiverAlgebraElement::Quotient(algebra.zero()),
+        }
+    }
+
+    /// Return QPA's identity element in the observable algebra variant.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient normal-form failures.
+    pub fn one(&self) -> Result<QuiverAlgebraElement<F>, QuiverAlgebraElementError> {
+        match self {
+            Self::Path(algebra) => Ok(QuiverAlgebraElement::Path(algebra.one())),
+            Self::Quotient(algebra) => Ok(QuiverAlgebraElement::Quotient(algebra.one()?)),
+        }
+    }
+
+    /// Look up a vertex or arrow using QPA's record-component name semantics
+    /// and return its image in this algebra.
+    ///
+    /// Repeated names resolve to the last arrow, then the last vertex, exactly
+    /// as for the source quiver record.
+    ///
+    /// # Errors
+    ///
+    /// Propagates path embedding and quotient normal-form failures.
+    pub fn generator_element_by_name(
+        &self,
+        name: &str,
+    ) -> Result<Option<QuiverAlgebraElement<F>>, QuiverAlgebraElementError> {
+        let Some(generator) = self.quiver().generator_by_name(name) else {
+            return Ok(None);
+        };
+        Ok(Some(match self {
+            Self::Path(algebra) => QuiverAlgebraElement::Path(algebra.element(generator.path())?),
+            Self::Quotient(algebra) => {
+                QuiverAlgebraElement::Quotient(algebra.path(generator.path())?)
+            }
+        }))
+    }
+}
+
+impl<F: Field> From<PathAlgebra<F>> for QuiverAlgebra<F> {
+    fn from(algebra: PathAlgebra<F>) -> Self {
+        Self::Path(algebra)
+    }
+}
+
+impl<F: Field> From<QuotientPathAlgebra<F>> for QuiverAlgebra<F> {
+    fn from(algebra: QuotientPathAlgebra<F>) -> Self {
+        Self::Quotient(algebra)
+    }
+}
+
+/// An element of QPA's `IsQuiverAlgebra` union, retaining whether its algebra
+/// is a path algebra or a proper quotient.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum QuiverAlgebraElement<F: Field> {
+    /// An element of a path algebra.
+    Path(PathAlgebraElement<F>),
+    /// An element of a quotient of a path algebra.
+    Quotient(QuotientPathAlgebraElement<F>),
+}
+
+impl<F: Field> QuiverAlgebraElement<F> {
+    /// Return the exact coefficient field.
+    #[must_use]
+    pub fn field(&self) -> &F {
+        match self {
+            Self::Path(element) => element.algebra().field(),
+            Self::Quotient(element) => element.algebra().original_path_algebra().field(),
+        }
+    }
+
+    /// Return whether this is the additive zero.
+    #[must_use]
+    pub fn is_zero(&self) -> bool {
+        match self {
+            Self::Path(element) => element.is_zero(),
+            Self::Quotient(element) => element.is_zero(),
+        }
+    }
+
+    /// Return QPA's leading term in the same algebra variant.
+    #[must_use]
+    pub fn leading_term(&self) -> Self {
+        match self {
+            Self::Path(element) => Self::Path(element.leading_term()),
+            Self::Quotient(element) => Self::Quotient(element.leading_term()),
+        }
+    }
+
+    /// Return QPA's leading coefficient, including field zero for zero.
+    #[must_use]
+    pub fn leading_coefficient(&self) -> F::Element {
+        match self {
+            Self::Path(element) => element.leading_coefficient(),
+            Self::Quotient(element) => element.leading_coefficient(),
+        }
+    }
+
+    /// Return QPA's leading monomial, including the zero path for zero.
+    #[must_use]
+    pub fn leading_monomial(&self) -> Path {
+        match self {
+            Self::Path(element) => element.leading_monomial(),
+            Self::Quotient(element) => element.leading_monomial(),
+        }
+    }
+
+    /// Add two elements in one identical quiver-algebra family.
+    ///
+    /// # Errors
+    ///
+    /// Reports mixed variants, different algebra families, and quotient
+    /// normal-form failures.
+    pub fn add(&self, right: &Self) -> Result<Self, QuiverAlgebraElementError> {
+        match (self, right) {
+            (Self::Path(left), Self::Path(right)) => Ok(Self::Path(left.add(right)?)),
+            (Self::Quotient(left), Self::Quotient(right)) => Ok(Self::Quotient(left.add(right)?)),
+            _ => Err(QuiverAlgebraElementError::DifferentVariants),
+        }
+    }
+
+    /// Subtract two elements in one identical quiver-algebra family.
+    ///
+    /// # Errors
+    ///
+    /// Reports mixed variants, different algebra families, and quotient
+    /// normal-form failures.
+    pub fn sub(&self, right: &Self) -> Result<Self, QuiverAlgebraElementError> {
+        match (self, right) {
+            (Self::Path(left), Self::Path(right)) => Ok(Self::Path(left.sub(right)?)),
+            (Self::Quotient(left), Self::Quotient(right)) => Ok(Self::Quotient(left.sub(right)?)),
+            _ => Err(QuiverAlgebraElementError::DifferentVariants),
+        }
+    }
+
+    /// Multiply two elements in one identical quiver-algebra family.
+    ///
+    /// # Errors
+    ///
+    /// Reports mixed variants, different algebra families, and quotient
+    /// normal-form failures.
+    pub fn multiply(&self, right: &Self) -> Result<Self, QuiverAlgebraElementError> {
+        match (self, right) {
+            (Self::Path(left), Self::Path(right)) => Ok(Self::Path(left.multiply(right)?)),
+            (Self::Quotient(left), Self::Quotient(right)) => {
+                Ok(Self::Quotient(left.multiply(right)?))
+            }
+            _ => Err(QuiverAlgebraElementError::DifferentVariants),
+        }
+    }
+
+    /// Multiply by a field scalar on the left.
+    ///
+    /// # Errors
+    ///
+    /// Propagates path- or quotient-algebra arithmetic failures.
+    pub fn scale_left(&self, scalar: &F::Element) -> Result<Self, QuiverAlgebraElementError> {
+        match self {
+            Self::Path(element) => Ok(Self::Path(element.scale_left(scalar)?)),
+            Self::Quotient(element) => Ok(Self::Quotient(element.scale_left(scalar)?)),
+        }
+    }
+}
+
+/// Failure in arithmetic over QPA's path-algebra/quotient union.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum QuiverAlgebraElementError {
+    /// GAP has no common element family for a path-algebra element and a
+    /// quotient element.
+    #[error("the elements belong to different quiver-algebra variants")]
+    DifferentVariants,
+    /// GAP's generic `Product` has no identity for an empty element list in
+    /// this method family.
+    #[error("an empty quiver-algebra element product is undefined")]
+    EmptyProduct,
+    /// Path-algebra arithmetic failed.
+    #[error(transparent)]
+    PathAlgebra(#[from] PathAlgebraError),
+    /// Quotient arithmetic or normal-form reduction failed.
+    #[error(transparent)]
+    Quotient(#[from] QuotientError),
 }
 
 /// The rebuilt named quiver and converted relation list immediately before
