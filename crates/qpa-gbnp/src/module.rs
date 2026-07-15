@@ -7,11 +7,13 @@
 use numerica::domains::Field;
 use qpa_core::{
     DenseMatrix, MatrixError, NamedArrowMatrix, PathAlgebraError, PathAlgebraModule,
-    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint,
-    PathError, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct,
-    QuiverProductError, QuotientError, include_in_path_algebra, loewy_length_of_module,
-    project_from_product_quiver, right_module_hom_over_algebra, right_module_over_path_algebra,
-    right_module_over_path_algebra_with_tensor,
+    PathAlgebraModuleElement, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
+    PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra, QuiverAlgebraElement,
+    QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
+    direct_sum_of_qpa_modules, direct_sum_projections, hom_over_algebra, include_in_path_algebra,
+    loewy_length_of_module, minimal_generating_set_of_module, project_from_product_quiver,
+    right_module_hom_over_algebra, right_module_over_path_algebra,
+    right_module_over_path_algebra_with_tensor, top_of_module, zero_module_mapping,
 };
 use thiserror::Error;
 
@@ -156,7 +158,7 @@ pub fn algebra_as_module_of_enveloping_algebra<F: Field>(
 pub fn loewy_length_of_algebra<F: Field>(
     algebra: &QuiverAlgebra<F>,
 ) -> Result<usize, EnvelopingModuleError> {
-    let projectives = projective_matrix_modules(algebra)?;
+    let projectives = indec_projective_modules(algebra)?;
     let mut maximum = 0;
     for projective in projectives {
         maximum = maximum.max(loewy_length_of_module(projective)?);
@@ -164,15 +166,72 @@ pub fn loewy_length_of_algebra<F: Field>(
     Ok(maximum)
 }
 
-fn projective_matrix_modules<F: Field>(
+/// Vertexwise canonical bases returned by QPA's `BasisOfProjectives`.
+///
+/// The outer index is the generating vertex and the inner index is the right
+/// support vertex; elements retain QPA's canonical right-ideal basis order.
+pub type ProjectiveModuleBases<F> = Vec<Vec<Vec<QuiverAlgebraElement<F>>>>;
+
+struct ProjectiveBasisData<F: Field> {
+    basis: Vec<QuiverAlgebraElement<F>>,
+    intervals: Vec<Vec<Vec<usize>>>,
+}
+
+/// Translate QPA's two `BasisOfProjectives(A)` methods.
+///
+/// `Ok(None)` is the printed `fail` result for an infinite path algebra or a
+/// quotient without finitely many nontips.
+///
+/// # Errors
+///
+/// Propagates the configured GBNP finite-basis path.
+pub fn basis_of_projectives<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<ProjectiveModuleBases<F>>, EnvelopingModuleError> {
+    let Some(data) = projective_basis_data(algebra)? else {
+        return Ok(None);
+    };
+    Ok(Some(
+        data.intervals
+            .iter()
+            .map(|projective| {
+                projective
+                    .iter()
+                    .map(|interval| {
+                        interval
+                            .iter()
+                            .map(|&index| data.basis[index].clone())
+                            .collect()
+                    })
+                    .collect()
+            })
+            .collect(),
+    ))
+}
+
+/// Translate QPA's cached `IndecProjectiveModules(A)` attribute.
+///
+/// Modules are returned in vertex order, with the exact canonical-right-ideal
+/// action matrices and QPA's distinguished vertex generator installed.
+///
+/// # Errors
+///
+/// Requires a finite path algebra or finite admissible quotient and propagates
+/// canonical-basis, exact multiplication, coordinate, and checked-module
+/// construction failures.
+pub fn indec_projective_modules<F: Field>(
     algebra: &QuiverAlgebra<F>,
 ) -> Result<Vec<PathAlgebraModule<F>>, EnvelopingModuleError> {
-    let Some(basis) = finite_canonical_basis(algebra)? else {
+    if let Some(cached) = algebra.cached_indec_projective_modules() {
+        return Ok(cached);
+    }
+    let Some(data) = projective_basis_data(algebra)? else {
         return Err(EnvelopingModuleError::InfiniteLoewyAlgebra);
     };
     if matches!(algebra, QuiverAlgebra::Quotient(quotient) if !quotient.is_admissible()?) {
         return Err(EnvelopingModuleError::NonadmissibleLoewyAlgebra);
     }
+    let basis = data.basis;
     let vertex_count = algebra.quiver().number_of_vertices();
     let arrows = algebra
         .quiver()
@@ -182,24 +241,7 @@ fn projective_matrix_modules<F: Field>(
     let mut projectives = Vec::with_capacity(vertex_count);
 
     for projective_vertex in 0..vertex_count {
-        let projective_basis = basis
-            .iter()
-            .enumerate()
-            .filter_map(|(index, element)| {
-                let PathEndpoint::Vertex(source) = element.leading_monomial().source() else {
-                    return None;
-                };
-                (source.index().get() - 1 == projective_vertex).then_some(index)
-            })
-            .collect::<Vec<_>>();
-        let mut intervals = vec![Vec::new(); vertex_count];
-        for &basis_index in &projective_basis {
-            let PathEndpoint::Vertex(target) = basis[basis_index].leading_monomial().target()
-            else {
-                continue;
-            };
-            intervals[target.index().get() - 1].push(basis_index);
-        }
+        let intervals = &data.intervals[projective_vertex];
         let dimensions = intervals.iter().map(Vec::len).collect::<Vec<_>>();
         let mut specification = Vec::new();
         for (arrow, arrow_element) in algebra.quiver().arrows().zip(&arrows) {
@@ -224,12 +266,371 @@ fn projective_matrix_modules<F: Field>(
                 DenseMatrix::from_rows(rows, algebra.field().clone())?,
             ));
         }
-        projectives.push(
-            right_module_over_path_algebra(algebra.clone(), dimensions, &specification)?
-                .ok_or(EnvelopingModuleError::GeneratedProjectiveViolatesRelations)?,
-        );
+        let projective =
+            right_module_over_path_algebra(algebra.clone(), dimensions.clone(), &specification)?
+                .ok_or(EnvelopingModuleError::GeneratedProjectiveViolatesRelations)?;
+        let mut generator_coordinates = dimensions
+            .iter()
+            .map(|&dimension| vec![algebra.field().zero(); dimension])
+            .collect::<Vec<_>>();
+        let generator_coordinate = intervals[projective_vertex]
+            .iter()
+            .position(|&basis_index| basis[basis_index].leading_monomial().length() == Some(0))
+            .ok_or(EnvelopingModuleError::MissingProjectiveVertexGenerator {
+                vertex: projective_vertex + 1,
+            })?;
+        generator_coordinates[projective_vertex][generator_coordinate] = algebra.field().one();
+        let generator = projective.element_from_vertex_coordinates(generator_coordinates)?;
+        projective.cache_minimal_generating_set(std::slice::from_ref(&generator))?;
+        let _ = projective.cache_is_indecomposable_module(true);
+        let _ = projective.cache_is_projective_module(true);
+        projectives.push(projective);
     }
-    Ok(projectives)
+    Ok(algebra.merge_indec_projective_modules(&projectives))
+}
+
+fn projective_basis_data<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<ProjectiveBasisData<F>>, EnvelopingModuleError> {
+    let Some(basis) = finite_canonical_basis(algebra)? else {
+        return Ok(None);
+    };
+    let vertex_count = algebra.quiver().number_of_vertices();
+    let mut intervals = vec![vec![Vec::new(); vertex_count]; vertex_count];
+    for (basis_index, element) in basis.iter().enumerate() {
+        let monomial = element.leading_monomial();
+        let PathEndpoint::Vertex(source) = monomial.source() else {
+            continue;
+        };
+        let PathEndpoint::Vertex(target) = monomial.target() else {
+            continue;
+        };
+        intervals[source.index().get() - 1][target.index().get() - 1].push(basis_index);
+    }
+    Ok(Some(ProjectiveBasisData { basis, intervals }))
+}
+
+/// Translate QPA's cached `IsProjectiveModule(M)` dimension test.
+///
+/// # Errors
+///
+/// Propagates top and indecomposable-projective construction failures and
+/// reports address-size overflow in QPA's dimension sum.
+pub fn is_projective_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<bool, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_is_projective_module() {
+        return Ok(cached);
+    }
+    let top = top_of_module(module.clone())?;
+    let projectives = indec_projective_modules(module.right_acting_algebra())?;
+    let mut expected_dimension = 0_usize;
+    for (projective, &multiplicity) in projectives.iter().zip(top.dimension_vector()) {
+        expected_dimension = expected_dimension
+            .checked_add(
+                projective
+                    .dimension()
+                    .checked_mul(multiplicity)
+                    .ok_or(EnvelopingModuleError::ProjectiveDimensionOverflow)?,
+            )
+            .ok_or(EnvelopingModuleError::ProjectiveDimensionOverflow)?;
+    }
+    Ok(module.cache_is_projective_module(expected_dimension == module.dimension()))
+}
+
+/// Translate QPA's `HomFromProjective(m, M)` construction.
+///
+/// `Ok(None)` is QPA's `fail` when `m` is not supported at exactly one
+/// vertex. The source is the cached indecomposable projective at that vertex,
+/// matching GAP's identity-preserving `ShallowCopy` on these modules.
+///
+/// # Errors
+///
+/// Requires `m` in the identical target module and propagates projective
+/// basis, module action, exact matrix, and checked-map failures.
+pub fn hom_from_projective<F: Field>(
+    element: &PathAlgebraModuleElement<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, EnvelopingModuleError> {
+    if !element.module().is_identical(target) {
+        return Err(EnvelopingModuleError::ProjectiveElementInWrongModule);
+    }
+    let support = element.support_vertices();
+    let [vertex] = support.as_slice() else {
+        return Ok(None);
+    };
+    let bases = basis_of_projectives(target.right_acting_algebra())?
+        .ok_or(EnvelopingModuleError::ProjectiveBasisUnavailable)?;
+    let projectives = indec_projective_modules(target.right_acting_algebra())?;
+    let projective = projectives[*vertex - 1].clone();
+    let field = target.right_acting_algebra().field().clone();
+    let matrices = projective
+        .dimension_vector()
+        .iter()
+        .zip(target.dimension_vector())
+        .enumerate()
+        .map(
+            |(target_vertex, (&source_dimension, &target_dimension))| -> Result<
+                DenseMatrix<F>,
+                EnvelopingModuleError,
+            > {
+                if source_dimension == 0 {
+                    return Ok(DenseMatrix::zero(
+                        1,
+                        target_dimension.max(1),
+                        field.clone(),
+                    ));
+                }
+                let rows = bases[*vertex - 1][target_vertex]
+                    .iter()
+                    .map(|basis_element| {
+                        Ok(element.act(basis_element)?.external_representation()[target_vertex]
+                            .clone())
+                    })
+                    .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+                Ok(DenseMatrix::from_rows(rows, field.clone())?)
+            },
+        )
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Some(right_module_hom_over_algebra(
+        projective,
+        target.clone(),
+        matrices,
+    )?))
+}
+
+/// Translate QPA's cached `ProjectiveCover(M)` attribute.
+///
+/// The nonzero branch constructs one indecomposable projective map per
+/// ordered minimal generator, takes their QPA direct sum, and sums the
+/// projection composites in that same order.
+///
+/// # Errors
+///
+/// Propagates minimal-generator, projective-map, direct-sum, exact map
+/// arithmetic, and checked construction failures.
+pub fn projective_cover<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_projective_cover() {
+        return Ok(cached);
+    }
+    let cover = if module.dimension() == 0 {
+        let zero = right_module_over_path_algebra(
+            module.right_acting_algebra().clone(),
+            vec![0; module.dimension_vector().len()],
+            &[],
+        )?
+        .ok_or(EnvelopingModuleError::GeneratedZeroProjectiveViolatesRelations)?;
+        zero_module_mapping(zero, module.clone())?
+    } else {
+        let generators = minimal_generating_set_of_module(module.clone())?;
+        let maps = generators
+            .iter()
+            .map(|generator| {
+                hom_from_projective(generator, module)?
+                    .ok_or(EnvelopingModuleError::MinimalGeneratorNotVertexUniform)
+            })
+            .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+        let sources = maps
+            .iter()
+            .map(|homomorphism| homomorphism.source().clone())
+            .collect::<Vec<_>>();
+        let direct_sum = direct_sum_of_qpa_modules(&sources)?
+            .ok_or(EnvelopingModuleError::EmptyNonzeroProjectiveCover)?;
+        let projections = direct_sum_projections(&direct_sum)?;
+        let mut composites = projections
+            .iter()
+            .zip(&maps)
+            .map(|(projection, map)| Ok(projection.compose(map)?))
+            .collect::<Result<Vec<_>, EnvelopingModuleError>>()?
+            .into_iter();
+        let mut sum = composites
+            .next()
+            .ok_or(EnvelopingModuleError::EmptyNonzeroProjectiveCover)?;
+        for composite in composites {
+            sum = sum.add(&composite)?;
+        }
+        sum
+    };
+    Ok(module.cache_projective_cover(&cover))
+}
+
+/// Translate QPA's `LiftingMorphismFromProjective(f, g)`.
+///
+/// `Ok(None)` is QPA's `fail` when the projective source was not constructed
+/// with `DirectSumOfQPAModules`; validation errors retain the source method's
+/// order.
+///
+/// # Errors
+///
+/// Requires a projective source for `g`, a surjective `f`, and a common range,
+/// then propagates exact preimage, projective-map, and map arithmetic failures.
+pub fn lifting_morphism_from_projective<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, EnvelopingModuleError> {
+    let projective = second.source();
+    if !is_projective_module(projective)? {
+        return Err(EnvelopingModuleError::LiftingSourceNotProjective);
+    }
+    if !first.is_surjective() {
+        return Err(EnvelopingModuleError::LiftingFirstMapNotSurjective);
+    }
+    if first.range() != second.range() {
+        return Err(EnvelopingModuleError::LiftingMapsDoNotHaveCommonRange);
+    }
+    if projective.dimension() == 0 {
+        return Ok(Some(zero_module_mapping(
+            projective.clone(),
+            first.source().clone(),
+        )?));
+    }
+    if !projective.is_direct_sum_of_modules() {
+        return Ok(None);
+    }
+    let inclusions = qpa_core::direct_sum_inclusions(projective)?;
+    let projections = direct_sum_projections(projective)?;
+    let mut partial_liftings = Vec::with_capacity(inclusions.len());
+    for inclusion in &inclusions {
+        let generator = minimal_generating_set_of_module(inclusion.source().clone())?
+            .into_iter()
+            .next()
+            .ok_or(EnvelopingModuleError::EmptyProjectiveSummandGenerators)?;
+        let projective_element = inclusion.image(&generator)?;
+        let image = second.image(&projective_element)?;
+        let generated = if image.is_zero() {
+            zero_module_mapping(inclusion.source().clone(), first.source().clone())?
+        } else {
+            let preimage = first
+                .preimage_representative(&image)?
+                .ok_or(EnvelopingModuleError::MissingProjectiveLiftPreimage)?;
+            let map = hom_from_projective(&preimage, first.source())?
+                .ok_or(EnvelopingModuleError::ProjectiveLiftNotVertexUniform)?;
+            right_module_hom_over_algebra(
+                inclusion.source().clone(),
+                first.source().clone(),
+                map.vertex_matrices().to_vec(),
+            )?
+        };
+        partial_liftings.push(generated);
+    }
+    let mut composites = projections
+        .iter()
+        .zip(&partial_liftings)
+        .map(|(projection, partial)| Ok(projection.compose(partial)?))
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?
+        .into_iter();
+    let mut lifting = composites
+        .next()
+        .ok_or(EnvelopingModuleError::EmptyProjectiveSummandGenerators)?;
+    for composite in composites {
+        lifting = lifting.add(&composite)?;
+    }
+    Ok(Some(lifting))
+}
+
+/// Translate QPA's `HomFactoringThroughProjOverAlgebra(M, N)`.
+///
+/// The returned basis is GAP's insertion-ordered vector-space basis of raw
+/// physical map lists after composing `Hom(M, P(N))` with the projective
+/// cover of `N` and removing zero rows.
+///
+/// # Errors
+///
+/// Requires a common acting algebra and propagates projective-cover, Hom,
+/// exact matrix, and checked-map construction failures.
+pub fn hom_factoring_through_projectives<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, EnvelopingModuleError> {
+    if source.right_acting_algebra() != range.right_acting_algebra() {
+        return Err(EnvelopingModuleError::FactoringModulesOverDifferentAlgebras);
+    }
+    if source.dimension() == 0 || range.dimension() == 0 {
+        return Ok(Vec::new());
+    }
+    let cover = projective_cover(range)?;
+    let homomorphisms = hom_over_algebra(source, cover.source())?
+        .ok_or(EnvelopingModuleError::InternalProjectiveHomRejected)?;
+    let composites = homomorphisms
+        .iter()
+        .map(|homomorphism| homomorphism.compose(&cover))
+        .collect::<Result<Vec<_>, _>>()?;
+    let nonzero = composites
+        .iter()
+        .filter(|homomorphism| !homomorphism.is_zero())
+        .collect::<Vec<_>>();
+    if nonzero.is_empty() {
+        return Ok(Vec::new());
+    }
+    let field = source.right_acting_algebra().field().clone();
+    let row_length = nonzero[0].flat_vertex_matrix_entries().len();
+    let rows = DenseMatrix::from_flat(
+        nonzero.len(),
+        row_length,
+        nonzero
+            .iter()
+            .flat_map(|homomorphism| homomorphism.flat_vertex_matrix_entries())
+            .collect(),
+        field.clone(),
+    )?;
+    let basis = rows.semi_echelon_transformation().vectors;
+    (0..basis.nrows())
+        .map(|row| module_map_from_physical_flat(source, range, basis.row(row), &field))
+        .collect()
+}
+
+fn module_map_from_physical_flat<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+    entries: &[F::Element],
+    field: &F,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    let expected = source
+        .dimension_vector()
+        .iter()
+        .zip(range.dimension_vector())
+        .try_fold(0_usize, |total, (&source_dimension, &range_dimension)| {
+            total.checked_add(
+                source_dimension
+                    .max(1)
+                    .checked_mul(range_dimension.max(1))?,
+            )
+        })
+        .ok_or(EnvelopingModuleError::PhysicalMapSizeOverflow)?;
+    if entries.len() != expected {
+        return Err(EnvelopingModuleError::PhysicalMapLength {
+            actual: entries.len(),
+            expected,
+        });
+    }
+    let mut offset = 0_usize;
+    let matrices = source
+        .dimension_vector()
+        .iter()
+        .zip(range.dimension_vector())
+        .map(|(&source_dimension, &range_dimension)| {
+            let rows = source_dimension.max(1);
+            let columns = range_dimension.max(1);
+            let length = rows
+                .checked_mul(columns)
+                .ok_or(EnvelopingModuleError::PhysicalMapSizeOverflow)?;
+            let matrix = DenseMatrix::from_flat(
+                rows,
+                columns,
+                entries[offset..offset + length].to_vec(),
+                field.clone(),
+            )?;
+            offset += length;
+            Ok(matrix)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+    Ok(right_module_hom_over_algebra(
+        source.clone(),
+        range.clone(),
+        matrices,
+    )?)
 }
 
 /// Translate QPA's cached `DualOfModule(M)` for path-algebra matrix modules.
@@ -503,6 +904,65 @@ pub enum EnvelopingModuleError {
     /// A projective action generated from canonical basis multiplication must satisfy relations.
     #[error("a generated indecomposable projective does not satisfy the algebra relations")]
     GeneratedProjectiveViolatesRelations,
+    /// Every projective right ideal contains its generating vertex idempotent.
+    #[error("the canonical basis of projective {vertex} has no vertex generator")]
+    MissingProjectiveVertexGenerator {
+        /// One-based projective/vertex position.
+        vertex: usize,
+    },
+    /// QPA's projectivity dimension sum exceeded Rust's addressable size.
+    #[error("the projective dimension test overflows usize")]
+    ProjectiveDimensionOverflow,
+    /// `HomFromProjective` requires an element of the identical target module.
+    #[error("the projective generator element is not in the target module")]
+    ProjectiveElementInWrongModule,
+    /// A projective basis cannot be extracted from infinite-dimensional input.
+    #[error("BasisOfProjectives returned fail")]
+    ProjectiveBasisUnavailable,
+    /// A generated all-zero module must satisfy the acting relations.
+    #[error("the zero projective module does not satisfy the algebra relations")]
+    GeneratedZeroProjectiveViolatesRelations,
+    /// Every nonzero module has at least one top/minimal generator.
+    #[error("a nonzero projective cover has no summands")]
+    EmptyNonzeroProjectiveCover,
+    /// QPA's minimal generators are vertex-uniform.
+    #[error("a minimal generator is not supported at exactly one vertex")]
+    MinimalGeneratorNotVertexUniform,
+    /// Projective lifting validates the source before its other inputs.
+    #[error("the source of the second map is not projective")]
+    LiftingSourceNotProjective,
+    /// Projective lifting requires an epimorphism as its first map.
+    #[error("the first map is not surjective")]
+    LiftingFirstMapNotSurjective,
+    /// Both maps in a projective lifting diagram must end at the same module.
+    #[error("the entered maps do not have a common range")]
+    LiftingMapsDoNotHaveCommonRange,
+    /// Every nonzero direct projective summand has its installed generator.
+    #[error("a nonzero projective summand has no minimal generator")]
+    EmptyProjectiveSummandGenerators,
+    /// Surjectivity guarantees a lift of every projective-generator image.
+    #[error("a projective-generator image unexpectedly has no preimage")]
+    MissingProjectiveLiftPreimage,
+    /// A projective lift preimage must be vertex-uniform.
+    #[error("a projective lifting preimage is not vertex-uniform")]
+    ProjectiveLiftNotVertexUniform,
+    /// Factoring-through computations require a common acting algebra.
+    #[error("the factoring modules are not modules over the same algebra")]
+    FactoringModulesOverDifferentAlgebras,
+    /// A Hom call cannot reject the checked projective-cover algebra.
+    #[error("HomOverAlgebra rejected the projective cover's common algebra")]
+    InternalProjectiveHomRejected,
+    /// Flattened physical map data exceeded Rust's addressable size.
+    #[error("the physical module-map size overflows usize")]
+    PhysicalMapSizeOverflow,
+    /// A raw physical map vector must fill every vertex block exactly.
+    #[error("the physical module-map vector has length {actual}, expected {expected}")]
+    PhysicalMapLength {
+        /// Entered flat-vector length.
+        actual: usize,
+        /// Required total physical block length.
+        expected: usize,
+    },
     /// The configured QPA/GBNP finite-basis path failed.
     #[error(transparent)]
     Backend(#[from] PathalgGbnpError),
@@ -564,16 +1024,19 @@ mod tests {
     use qpa_core::{
         ArrowSpec, DenseMatrix, NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule,
         PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, Quiver, QuiverAlgebra,
-        VertexIndex, minimal_generating_set_of_module, right_fac_approximation,
-        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
-        socle_of_module_inclusion, top_of_module, top_of_module_projection, trace_of_module,
+        VertexIndex, direct_sum_of_qpa_modules, lifting_inclusion_morphisms,
+        minimal_generating_set_of_module, right_fac_approximation, right_module_hom_over_algebra,
+        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion, top_of_module,
+        top_of_module_projection, trace_of_module, zero_module_mapping,
     };
     use serde_json::{Value, json};
 
     use super::{
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
-        dual_of_module_homomorphism,
+        basis_of_projectives, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        dual_of_module_homomorphism, hom_factoring_through_projectives, hom_from_projective,
+        indec_projective_modules, is_projective_module, lifting_morphism_from_projective,
+        projective_cover,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -804,6 +1267,20 @@ mod tests {
         })
     }
 
+    fn projective_module_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!({
+            "dimension": module.dimension_vector(),
+            "matrices": module
+                .arrow_matrices()
+                .iter()
+                .map(|matrix| matrix_json(matrix, coefficient))
+                .collect::<Vec<_>>(),
+        })
+    }
+
     fn module_elements_json<F: Field>(
         elements: &[PathAlgebraModuleElement<F>],
         coefficient: impl Fn(&F::Element) -> String + Copy,
@@ -932,6 +1409,227 @@ mod tests {
                     == nonzero_trace,
             },
         })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_projective_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let projectives = indec_projective_modules(&algebra).unwrap();
+        let bases = basis_of_projectives(&algebra).unwrap().unwrap();
+        let cached_projectives = indec_projective_modules(&algebra).unwrap();
+        let basis_paths = bases
+            .iter()
+            .map(|projective| {
+                projective
+                    .iter()
+                    .map(|vertex_basis| {
+                        vertex_basis
+                            .iter()
+                            .map(|element| element.leading_monomial().to_string())
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![one.clone(), zero.clone()],
+                        vec![zero.clone(), zero.clone()],
+                    ],
+                    field.clone(),
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let generators = minimal_generating_set_of_module(module.clone()).unwrap();
+        let cover = projective_cover(&module).unwrap();
+        let from_generator = hom_from_projective(&generators[0], &module)
+            .unwrap()
+            .unwrap();
+        let projective_sum = direct_sum_of_qpa_modules(&projectives).unwrap().unwrap();
+        let lifting = lifting_morphism_from_projective(&cover, &cover)
+            .unwrap()
+            .unwrap();
+        let nondirect_lifting = lifting_morphism_from_projective(&cover, &from_generator).unwrap();
+        let zero_module = right_module_over_path_algebra(algebra.clone(), vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+        let zero_to_module = zero_module_mapping(zero_module.clone(), module.clone()).unwrap();
+        let zero_lifting = lifting_morphism_from_projective(&cover, &zero_to_module)
+            .unwrap()
+            .unwrap();
+        let factoring = hom_factoring_through_projectives(&module, &module).unwrap();
+        let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let layer = right_module_over_path_algebra(algebra.clone(), vec![1, 1], &[])
+            .unwrap()
+            .unwrap();
+        let first = right_module_hom_over_algebra(
+            layer.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![zero.clone(), one.clone()]], field.clone())
+                    .unwrap(),
+                DenseMatrix::from_rows(vec![vec![one.clone(), zero.clone()]], field.clone())
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        let second = right_module_hom_over_algebra(
+            layer,
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![zero.clone(), one.clone()]], field.clone())
+                    .unwrap(),
+                DenseMatrix::from_rows(vec![vec![zero.clone(), one.clone()]], field.clone())
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        let kernel_module = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let kernel_inclusion = right_module_hom_over_algebra(
+            kernel_module,
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![zero.clone(), one.clone()]], field.clone())
+                    .unwrap(),
+                DenseMatrix::zero(1, 2, field.clone()),
+            ],
+        )
+        .unwrap();
+        let inclusion_lift = lifting_inclusion_morphisms(&first, &kernel_inclusion)
+            .unwrap()
+            .unwrap();
+        let inclusion_fail = lifting_inclusion_morphisms(&first, &second).unwrap();
+
+        let loop_quiver =
+            Quiver::from_named(vec!["w".into()], vec![NamedArrowSpec::named("w", "w", "x")])
+                .unwrap();
+        let path_algebra = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let loop_element = path_algebra
+            .element(path_algebra.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                path_algebra,
+                &[loop_element.multiply(&loop_element).unwrap()],
+            )
+            .unwrap(),
+        );
+        let dual_projective = indec_projective_modules(&dual_numbers).unwrap()[0].clone();
+        let dual_basis = basis_of_projectives(&dual_numbers).unwrap().unwrap();
+        let dual_basis_paths = dual_basis
+            .iter()
+            .map(|projective| {
+                projective
+                    .iter()
+                    .map(|vertex_basis| {
+                        vertex_basis
+                            .iter()
+                            .map(|element| element.leading_monomial().to_string())
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let dual_simple = right_module_over_path_algebra(dual_numbers, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let dual_cover = projective_cover(&dual_simple).unwrap();
+
+        json!({
+            "a2": {
+                "basis_paths": basis_paths,
+                "projectives": projectives
+                    .iter()
+                    .map(|projective| projective_module_json(projective, coefficient))
+                    .collect::<Vec<_>>(),
+                "cache_identity": projectives
+                    .iter()
+                    .zip(&cached_projectives)
+                    .map(|(projective, cached)| projective.is_identical(cached))
+                    .collect::<Vec<_>>(),
+                "installed_properties": [
+                    projectives[0].cached_is_projective_module() == Some(true),
+                    projectives[1].cached_is_projective_module() == Some(true),
+                    projectives[0].cached_is_indecomposable_module() == Some(true),
+                    projectives[1].cached_is_indecomposable_module() == Some(true),
+                ],
+                "projectivity": [
+                    is_projective_module(&projective_sum).unwrap(),
+                    is_projective_module(&simple_one).unwrap(),
+                    is_projective_module(&simple_two).unwrap(),
+                    is_projective_module(&zero_module).unwrap(),
+                ],
+                "minimal_generator_count": generators.len(),
+                "from_generator": module_map_json(&from_generator, coefficient),
+                "cover": module_map_json(&cover, coefficient),
+                "cover_cache_identity": cover.is_identical(&projective_cover(&module).unwrap()),
+                "lifting": module_map_json(&lifting, coefficient),
+                "lifting_triangle": lifting.compose(&cover).unwrap() == cover,
+                "nondirect_lifting_is_fail": nondirect_lifting.is_none(),
+                "zero_lifting": module_map_json(&zero_lifting, coefficient),
+                "factoring_count": factoring.len(),
+                "factoring": factoring
+                    .iter()
+                    .map(|map| module_map_json(map, coefficient))
+                    .collect::<Vec<_>>(),
+                "factoring_zero_counts": [
+                    hom_factoring_through_projectives(&zero_module, &module).unwrap().len(),
+                    hom_factoring_through_projectives(&module, &zero_module).unwrap().len(),
+                ],
+                "inclusion_lift": module_map_json(&inclusion_lift, coefficient),
+                "inclusion_triangle": inclusion_lift.compose(&first).unwrap() == kernel_inclusion,
+                "inclusion_fail": inclusion_fail.is_none(),
+            },
+            "dual_numbers": {
+                "basis_paths": dual_basis_paths,
+                "projective": projective_module_json(&dual_projective, coefficient),
+                "generator_count": minimal_generating_set_of_module(dual_projective.clone())
+                    .unwrap().len(),
+                "is_projective": is_projective_module(&dual_projective).unwrap(),
+                "simple_is_projective": is_projective_module(&dual_simple).unwrap(),
+                "cover": module_map_json(&dual_cover, coefficient),
+            },
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_projective_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_projectives.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = modulehom_projective_case(Q, ToString::to_string);
+        let binary = modulehom_projective_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
     }
 
     #[test]

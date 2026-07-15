@@ -320,6 +320,30 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Return QPA's cached `IndecProjectiveModules` attribute when every
+    /// component is still live.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_indec_projective_modules(&self) -> Option<Vec<PathAlgebraModule<F>>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_indec_projective_modules(),
+            Self::Quotient(algebra) => algebra.cached_indec_projective_modules(),
+        }
+    }
+
+    /// Merge generated projectives with QPA's live weak attribute cache.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn merge_indec_projective_modules(
+        &self,
+        generated: &[PathAlgebraModule<F>],
+    ) -> Vec<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.merge_indec_projective_modules(generated),
+            Self::Quotient(algebra) => algebra.merge_indec_projective_modules(generated),
+        }
+    }
+
     /// Translate QPA's defaulting `TrivialExtensionOfQuiverAlgebraLevel`
     /// method. An unbound attribute has level zero.
     #[must_use]

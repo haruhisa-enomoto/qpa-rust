@@ -10152,9 +10152,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 30
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_projective_module"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10945,9 +10945,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1722
 source_end = 1744
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_projective_module"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12167,9 +12167,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 43
 source_end = 43
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "lifting_morphism_from_projective"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12180,9 +12180,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 44
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "lifting_inclusion_morphisms"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12219,9 +12219,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 47
 source_end = 47
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_factoring_through_projectives"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12401,9 +12401,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 61
 source_end = 61
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_from_projective"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13363,9 +13363,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2355
 source_end = 2407
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "lifting_morphism_from_projective"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13376,9 +13376,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2423
 source_end = 2478
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "lifting_inclusion_morphisms"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13441,9 +13441,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2697
 source_end = 2763
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_factoring_through_projectives"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13623,9 +13623,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3263
 source_end = 3315
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_from_projective"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14065,9 +14065,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_cover"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14793,9 +14793,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 360
 source_end = 381
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_cover"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15612,9 +15612,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "indec_projective_modules"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15664,9 +15664,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "basis_of_projectives"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15716,9 +15716,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 13
 source_end = 131
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "indec_projective_modules"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15768,9 +15768,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 224
 source_end = 261
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "basis_of_projectives"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15781,9 +15781,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 270
 source_end = 305
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "basis_of_projectives"
+tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
 
 [[entries]]

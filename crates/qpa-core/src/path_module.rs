@@ -74,6 +74,11 @@ struct PathAlgebraModuleData<F: Field> {
     top_module: OnceLock<PathAlgebraModule<F>>,
     top_projection_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     direct_sum: OnceLock<DirectSumMetadata<F>>,
+    minimal_generators: OnceLock<Vec<Vec<Vec<F::Element>>>>,
+    is_projective: OnceLock<bool>,
+    is_injective: OnceLock<bool>,
+    is_indecomposable: OnceLock<bool>,
+    projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
 }
 
 #[derive(Debug)]
@@ -220,6 +225,126 @@ impl<F: Field> PathAlgebraModule<F> {
             .direct_sum
             .get()
             .map(|metadata| metadata.summands.as_slice())
+    }
+
+    /// Return QPA's cached `IsProjectiveModule` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_projective_module(&self) -> Option<bool> {
+        self.0.is_projective.get().copied()
+    }
+
+    /// Install QPA's `IsProjectiveModule` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_projective_module(&self, value: bool) -> bool {
+        *self.0.is_projective.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsInjectiveModule` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_injective_module(&self) -> Option<bool> {
+        self.0.is_injective.get().copied()
+    }
+
+    /// Install QPA's `IsInjectiveModule` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_injective_module(&self, value: bool) -> bool {
+        *self.0.is_injective.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsIndecomposableModule` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_indecomposable_module(&self) -> Option<bool> {
+        self.0.is_indecomposable.get().copied()
+    }
+
+    /// Install QPA's `IsIndecomposableModule` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_indecomposable_module(&self, value: bool) -> bool {
+        *self.0.is_indecomposable.get_or_init(|| value)
+    }
+
+    /// Return QPA's installed minimal-generator attribute as module elements.
+    #[doc(hidden)]
+    pub fn cached_minimal_generating_set(
+        &self,
+    ) -> Result<Option<Vec<PathAlgebraModuleElement<F>>>, PathAlgebraModuleError> {
+        self.0
+            .minimal_generators
+            .get()
+            .map(|generators| {
+                generators
+                    .iter()
+                    .map(|coordinates| self.element_from_vertex_coordinates(coordinates.clone()))
+                    .collect()
+            })
+            .transpose()
+    }
+
+    /// Install QPA's minimal-generator attribute without retaining an `Arc`
+    /// cycle through its elements.
+    #[doc(hidden)]
+    pub fn cache_minimal_generating_set(
+        &self,
+        generators: &[PathAlgebraModuleElement<F>],
+    ) -> Result<Vec<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
+        let mut coordinates = Vec::with_capacity(generators.len());
+        for generator in generators {
+            if !generator.module().is_identical(self) {
+                return Err(PathAlgebraModuleError::MinimalGeneratorInWrongModule);
+            }
+            coordinates.push(
+                generator
+                    .external_representation()
+                    .iter()
+                    .zip(self.dimension_vector())
+                    .map(|(row, &dimension)| row[..dimension].to_vec())
+                    .collect(),
+            );
+        }
+        let _ = self.0.minimal_generators.set(coordinates);
+        self.cached_minimal_generating_set()?
+            .ok_or(PathAlgebraModuleError::MinimalGeneratingSetCacheFailed)
+    }
+
+    /// Return an already-live cached `ProjectiveCover` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_projective_cover(&self) -> Option<PathAlgebraModuleHomomorphism<F>> {
+        self.0
+            .projective_cover_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    /// Install QPA's `ProjectiveCover` attribute without creating an `Arc`
+    /// cycle from the range module through the map back to itself.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_projective_cover(
+        &self,
+        cover: &PathAlgebraModuleHomomorphism<F>,
+    ) -> PathAlgebraModuleHomomorphism<F> {
+        let mut slot = self
+            .0
+            .projective_cover_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+        {
+            return cached;
+        }
+        *slot = Some(cover.downgrade());
+        cover.clone()
     }
 
     /// Retain tensor-product metadata when an attribute-created module acts
@@ -771,6 +896,18 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
     #[must_use]
     pub fn vertex_matrices(&self) -> &[DenseMatrix<F>] {
         &self.0.vertex_matrices
+    }
+
+    /// Flatten QPA's internal `f!.maps` list in vertex, row, column order.
+    ///
+    /// Physical zero-space stand-ins are retained, as required by source
+    /// methods that take vector-space spans of raw module-map data.
+    #[must_use]
+    pub fn flat_vertex_matrix_entries(&self) -> Vec<F::Element> {
+        self.vertex_matrices()
+            .iter()
+            .flat_map(|matrix| matrix.as_flat().iter().cloned())
+            .collect()
     }
 
     /// Return whether two handles denote the identical QPA mapping object.
@@ -1853,11 +1990,7 @@ fn module_homomorphism_from_logical_flat<F: Field>(
 fn flatten_module_homomorphism<F: Field>(
     homomorphism: &PathAlgebraModuleHomomorphism<F>,
 ) -> Vec<F::Element> {
-    homomorphism
-        .vertex_matrices()
-        .iter()
-        .flat_map(|matrix| (0..matrix.nrows()).flat_map(move |row| matrix.row(row).iter().cloned()))
-        .collect()
+    homomorphism.flat_vertex_matrix_entries()
 }
 
 fn flatten_matrix<F: Field>(matrix: &DenseMatrix<F>) -> Vec<F::Element> {
@@ -2321,11 +2454,15 @@ pub fn top_of_module_homomorphism<F: Field>(
 ///
 /// Propagates top construction and exact preimage solving. A missing lift is
 /// reported as an internal source-translation failure.
+#[allow(clippy::needless_pass_by_value)]
 pub fn minimal_generating_set_of_module<F: Field>(
     module: PathAlgebraModule<F>,
 ) -> Result<Vec<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
-    let projection = top_of_module_projection(module)?;
-    projection
+    if let Some(cached) = module.cached_minimal_generating_set()? {
+        return Ok(cached);
+    }
+    let projection = top_of_module_projection(module.clone())?;
+    let generators = projection
         .range()
         .basis_elements()
         .iter()
@@ -2334,7 +2471,8 @@ pub fn minimal_generating_set_of_module<F: Field>(
                 .preimage_representative(basis_element)?
                 .ok_or(PathAlgebraModuleError::MissingTopBasisPreimage)
         })
-        .collect()
+        .collect::<Result<Vec<_>, _>>()?;
+    module.cache_minimal_generating_set(&generators)
 }
 
 /// Translate QPA's arrow-kernel `SocleOfModuleInclusion(M)` method.
@@ -2916,6 +3054,45 @@ pub fn morphism_on_cokernel<F: Field>(
     )?))
 }
 
+/// Translate QPA's `LiftingInclusionMorphisms(f, g)`.
+///
+/// QPA first constructs the cokernel of `f`, then returns `fail` unless both
+/// maps are injective with a common structural range and the image of `g`
+/// lies in the image of `f`. `Ok(None)` represents that `fail` result.
+///
+/// # Errors
+///
+/// Propagates cokernel, image, preimage, and checked-map construction
+/// failures. A missing preimage after the containment test is reported as an
+/// internal source-translation failure.
+pub fn lifting_inclusion_morphisms<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    let cokernel = cokernel_projection(first)?;
+    if !first.is_injective()
+        || !second.is_injective()
+        || first.range() != second.range()
+        || !second.compose(&cokernel)?.is_zero()
+    {
+        return Ok(None);
+    }
+    let mut images = Vec::with_capacity(second.source().dimension());
+    for basis_element in second.source().basis_elements() {
+        let image = second.image(&basis_element)?;
+        images.push(
+            first
+                .preimage_representative(&image)?
+                .ok_or(PathAlgebraModuleError::MissingInclusionLiftPreimage)?,
+        );
+    }
+    Ok(Some(module_homomorphism_from_basis_images(
+        second.source(),
+        first.source(),
+        &images,
+    )?))
+}
+
 fn module_homomorphism_from_basis_images<F: Field>(
     source: &PathAlgebraModule<F>,
     range: &PathAlgebraModule<F>,
@@ -3384,6 +3561,11 @@ fn right_module_over_path_algebra_impl<F: Field>(
         top_module: OnceLock::new(),
         top_projection_weak: RwLock::new(None),
         direct_sum: OnceLock::new(),
+        minimal_generators: OnceLock::new(),
+        is_projective: OnceLock::new(),
+        is_injective: OnceLock::new(),
+        is_indecomposable: OnceLock::new(),
+        projective_cover_weak: RwLock::new(None),
     }))))
 }
 
@@ -3488,6 +3670,12 @@ pub enum PathAlgebraModuleError {
     /// Projection and inclusion attributes require a QPA direct sum.
     #[error("the entered module was not built by DirectSumOfQPAModules")]
     NotDirectSumModule,
+    /// An explicitly installed minimal generator must belong to the module.
+    #[error("a minimal generator does not belong to the entered module")]
+    MinimalGeneratorInWrongModule,
+    /// Installing a minimal-generator attribute must make it readable.
+    #[error("the minimal-generating-set cache could not be initialized")]
+    MinimalGeneratingSetCacheFailed,
     /// Every internal use of a direct sum supplies at least one module.
     #[error("an internal nonempty DirectSumOfQPAModules call returned fail")]
     InternalNonemptyDirectSumFailed,
@@ -3500,6 +3688,9 @@ pub enum PathAlgebraModuleError {
     /// The canonical cokernel projection must lift every cokernel-basis vector.
     #[error("a cokernel basis vector unexpectedly has no preimage")]
     MissingInducedCokernelPreimage,
+    /// A successful inclusion-containment test must provide every lift.
+    #[error("an included basis image unexpectedly has no preimage")]
+    MissingInclusionLiftPreimage,
     /// A basis-image map needs one image per source basis vector.
     #[error("basis-image list has length {actual}, expected {expected}")]
     BasisImageCount {

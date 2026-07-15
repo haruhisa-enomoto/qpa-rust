@@ -446,6 +446,8 @@ struct QuotientPathAlgebraData<F: Field> {
     dual_enveloping_module_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     dual_enveloping_module_bound: OnceLock<()>,
     dual_enveloping_module_fail: OnceLock<()>,
+    indec_projective_modules_weak: RwLock<Vec<WeakPathAlgebraModule<F>>>,
+    indec_projective_modules_bound: OnceLock<()>,
     is_enveloping: OnceLock<bool>,
     trivial_extension_level: OnceLock<usize>,
     trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
@@ -554,6 +556,8 @@ impl<F: Field> QuotientPathAlgebra<F> {
             dual_enveloping_module_weak: RwLock::new(None),
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
+            indec_projective_modules_weak: RwLock::new(Vec::new()),
+            indec_projective_modules_bound: OnceLock::new(),
             is_enveloping: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
@@ -590,6 +594,8 @@ impl<F: Field> QuotientPathAlgebra<F> {
             dual_enveloping_module_weak: RwLock::new(None),
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
+            indec_projective_modules_weak: RwLock::new(Vec::new()),
+            indec_projective_modules_bound: OnceLock::new(),
             is_enveloping: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
@@ -982,6 +988,45 @@ impl<F: Field> QuotientPathAlgebra<F> {
             .and_then(WeakPathAlgebraModule::upgrade)
     }
 
+    pub(crate) fn cached_indec_projective_modules(&self) -> Option<Vec<PathAlgebraModule<F>>> {
+        self.0.indec_projective_modules_bound.get()?;
+        self.0
+            .indec_projective_modules_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .iter()
+            .map(WeakPathAlgebraModule::upgrade)
+            .collect()
+    }
+
+    pub(crate) fn merge_indec_projective_modules(
+        &self,
+        generated: &[PathAlgebraModule<F>],
+    ) -> Vec<PathAlgebraModule<F>> {
+        let mut slot = self
+            .0
+            .indec_projective_modules_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if self.0.indec_projective_modules_bound.get().is_none() || slot.len() != generated.len() {
+            *slot = generated.iter().map(PathAlgebraModule::downgrade).collect();
+            let _ = self.0.indec_projective_modules_bound.set(());
+            return generated.to_vec();
+        }
+        generated
+            .iter()
+            .enumerate()
+            .map(|(index, module)| {
+                if let Some(cached) = slot[index].upgrade() {
+                    cached
+                } else {
+                    slot[index] = module.downgrade();
+                    module.clone()
+                }
+            })
+            .collect()
+    }
+
     pub(crate) fn has_dual_enveloping_module_attribute(&self) -> bool {
         self.0.dual_enveloping_module_bound.get().is_some()
     }
@@ -1239,6 +1284,8 @@ impl<F: Field> QuotientPathAlgebra<F> {
             dual_enveloping_module_weak: RwLock::new(None),
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
+            indec_projective_modules_weak: RwLock::new(Vec::new()),
+            indec_projective_modules_bound: OnceLock::new(),
             is_enveloping: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),

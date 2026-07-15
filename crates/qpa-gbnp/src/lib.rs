@@ -30,9 +30,12 @@ pub use invlenlex::{
     tip_reduced_list_inv_len_inv_lex, tip_walk_inv_len_inv_lex, truncate_element,
 };
 pub use module::{
-    EnvelopingModuleError, ModuleFunctorError, algebra_as_module_of_enveloping_algebra,
-    algebra_as_module_over_enveloping_algebra, dual_of_algebra_as_module_over_enveloping_algebra,
-    dual_of_module, dual_of_module_homomorphism, loewy_length_of_algebra,
+    EnvelopingModuleError, ModuleFunctorError, ProjectiveModuleBases,
+    algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
+    basis_of_projectives, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+    dual_of_module_homomorphism, hom_factoring_through_projectives, hom_from_projective,
+    indec_projective_modules, is_projective_module, lifting_morphism_from_projective,
+    loewy_length_of_algebra, projective_cover,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,
