@@ -469,13 +469,20 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
 - [x] Port QPA's componentwise path-vector tip selection, ordered in-place tip
   reduction, and coefficient extraction helpers. The source's documented
   non-span `[basis, vector]` bug is preserved as a typed failure witness.
+- [x] Port `PathRemoval` and element support utilities. Left/right support is
+  computed through QPA's vertex-idempotent multiplication loops for both parent
+  and quotient elements; `PathRemoval` preserves the pinned source failure on
+  trivial-path terms as a typed error.
 - [ ] Port opposite algebras and homomorphisms. Parent and quotient path
   algebras, termwise opposite elements/relations, reciprocal identity caches,
   and the default GBNP quotient backend are implemented; general finite-
   dimensional algebra and module homomorphism opposites remain.
 - [ ] Port primitive-idempotent and lifting algorithms.
 - [ ] Port Cartan/Coxeter, Nakayama, Frobenius, Loewy, global-dimension, and
-  structural property computations.
+  structural property computations. QPA's Schurian test is intentionally
+  queued behind the module layer because its pinned implementation constructs
+  indecomposable projectives and reads their dimension vectors; both
+  semicommutativity methods call that exact test.
 - [ ] Port associated monomial/graded algebras and corner/quotient constructions.
 - [ ] Port tensor products, enveloping algebras, and algebra-as-bimodule.
 - [ ] Port trivial extensions and their structural maps.

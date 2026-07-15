@@ -7,6 +7,7 @@
 pub mod centre;
 pub mod coefficient;
 pub mod dynamic_tree;
+pub mod element_utilities;
 pub mod groebner;
 pub mod matrix;
 pub mod ordering;

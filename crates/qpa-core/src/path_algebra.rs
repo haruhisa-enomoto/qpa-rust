@@ -867,6 +867,12 @@ pub enum PathAlgebraError {
     /// `VertexPosition` requires one trivial-path monomial.
     #[error("the element is not a scalar multiple of one trivial path")]
     NotTrivialPathElement,
+    /// QPA's `PathRemoval` implementation indexes the last arrow of each term.
+    #[error("QPA PathRemoval is undefined on an element containing a vertex term")]
+    VertexTermInPathRemoval,
+    /// A canonical sparse term violated its stored path/quiver invariant.
+    #[error("PathRemoval encountered an invalid stored path term")]
+    InvalidPathTermInPathRemoval,
     /// Concurrent opposite-algebra construction lost its reciprocal cache.
     #[error("concurrent opposite-path-algebra cache initialization failed")]
     OppositeCacheRace,

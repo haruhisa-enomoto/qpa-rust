@@ -75,6 +75,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_vector_reduction.g" \
     "$repo_root/tests/fixtures/pathalg_vector_reduction.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_element_utilities.g" \
+    "$repo_root/tests/fixtures/pathalg_element_utilities.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_vector_empty_error.g" \
     >"$actual" 2>&1
@@ -83,6 +86,15 @@ then
     exit 1
 fi
 grep -Fq "TipMonomialandCoefficientOfVector" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_path_removal_vertex_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a vertex term in PathRemoval" >&2
+    exit 1
+fi
+grep -Fq "PathRemoval for an idempotent in a QuotientOfPathAlgebra" "$actual"
+grep -Fq "no 1st choice method found" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/natural_map_image_error.g" \
     >"$actual" 2>&1

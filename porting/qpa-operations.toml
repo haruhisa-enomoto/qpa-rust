@@ -16821,9 +16821,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 101
 source_end = 101
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraElement::path_removal"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json","tests/gap-reference/pathalg_path_removal_vertex_error.g"]
 deviations = []
 
 [[entries]]
@@ -16860,9 +16860,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 104
 source_end = 104
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::support_of_quiver_algebra_element; QuotientPathAlgebra::support_of_quiver_algebra_element"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16873,9 +16873,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 105
 source_end = 105
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::left_support_of_quiver_algebra_element; QuotientPathAlgebra::left_support_of_quiver_algebra_element"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16886,9 +16886,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 106
 source_end = 106
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::right_support_of_quiver_algebra_element; QuotientPathAlgebra::right_support_of_quiver_algebra_element"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18407,9 +18407,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3110
 source_end = 3134
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraElement::path_removal"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json","tests/gap-reference/pathalg_path_removal_vertex_error.g"]
 deviations = []
 
 [[entries]]
@@ -18446,9 +18446,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3376
 source_end = 3395
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::left_support_of_quiver_algebra_element; QuotientPathAlgebra::left_support_of_quiver_algebra_element"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18459,9 +18459,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3397
 source_end = 3416
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::right_support_of_quiver_algebra_element; QuotientPathAlgebra::right_support_of_quiver_algebra_element"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18472,9 +18472,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3418
 source_end = 3427
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::support_of_quiver_algebra_element; QuotientPathAlgebra::support_of_quiver_algebra_element"
+tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
 
 [[entries]]
