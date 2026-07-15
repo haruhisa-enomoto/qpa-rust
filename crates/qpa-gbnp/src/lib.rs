@@ -56,10 +56,13 @@ pub use persistence::{
 pub use predefined::{
     BrauerConfiguration, BrauerConfigurationAlgebra, BrauerConfigurationAlgebraResult,
     BrauerConfigurationPolygon, BrauerConfigurationValidationError, BrauerConfigurationVertex,
-    INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PosetAlgebra, PredefinedAlgebra,
-    PredefinedAlgebraError, PredefinedAlgebraKind, brauer_configuration_algebra, canonical_algebra,
-    canonical_algebra_two_weights, kronecker_algebra, nakayama_algebra,
+    INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult,
+    PREPROJECTIVE_ORIENTED_CYCLE_DIAGNOSTIC, PosetAlgebra, PredefinedAlgebra,
+    PredefinedAlgebraError, PredefinedAlgebraKind, admissible_sequence_generator,
+    brauer_configuration_algebra, canonical_algebra, canonical_algebra_two_weights,
+    finite_global_dim_green, finite_global_dim_kirk_kuz, kronecker_algebra, nakayama_algebra,
     nakayama_algebra_sequence_first, poset_algebra, poset_algebra_with_string_function,
+    preprojective_algebra,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,

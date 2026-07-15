@@ -19161,9 +19161,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "admissible_sequence_generator"
+tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19174,9 +19174,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "finite_global_dim_green"
+tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19187,9 +19187,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 25
 source_end = 25
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "finite_global_dim_kirk_kuz"
+tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19382,9 +19382,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 924
 source_end = 951
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "preprojective_algebra"
+tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json","tests/gap-reference/pathalg_preprojective_cycle_error.g","tests/gap-reference/pathalg_preprojective_isolated_error.g"]
 deviations = []
 
 [[entries]]
@@ -19395,9 +19395,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 961
 source_end = 991
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "admissible_sequence_generator"
+tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19408,9 +19408,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 1004
 source_end = 1034
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "finite_global_dim_green"
+tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19421,9 +19421,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 1046
 source_end = 1086
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "finite_global_dim_kirk_kuz"
+tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
 
 [[entries]]

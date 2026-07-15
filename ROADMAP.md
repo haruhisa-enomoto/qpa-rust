@@ -534,11 +534,18 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   configuration, the documented rational example, and a repeated-vertex
   `GF(2)` example are pinned against QPA; the raw zero/noncomposable type-one
   entries and repeated polygon occurrences are asserted before completion.
+  The path-algebra overload of `PreprojectiveAlgebra` now uses QPA's doubled
+  quiver, global arrow commutator, vertex-corner relation list, and default
+  GBNP quotient. Its oriented-cycle error and the upstream empty-completed-
+  basis failure for isolated quivers are preserved. `AdmissibleSequenceGenerator`
+  retains QPA's Cartesian enumeration order, while `FiniteGlobalDimGreen` and
+  `FiniteGlobalDimKirkKuz` retain every raw relation loop (including redundant
+  generators); all are pinned over `QQ` and `GF(2)` where field-dependent.
   QPA's special-biserial quiver/path/quotient predicates, string-algebra
   predicates, gentle predicate, and gentle true-method implications are
-  source-translated through the default GBNP ideal backend. Preprojective,
-  admissible-sequence, and finite-global-dimension predefined families and the
-  remaining recognition properties remain.
+  source-translated through the default GBNP ideal backend. The module-and-
+  integer `PreprojectiveAlgebra` overload remains queued behind the module
+  layer, together with the remaining recognition properties.
 - [ ] Port representation-type and finite-global-dimension tests in this layer.
 - [ ] Port save/read using a safe, versioned, language-independent format while
   retaining a QPA-compatible import path.

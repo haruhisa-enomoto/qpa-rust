@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_predefined_remaining",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "sequences": {
+    "one_by_three": [[1], [2], [3]],
+    "three_by_three": [
+      [2, 2, 1], [2, 2, 2], [2, 2, 3], [2, 3, 2], [2, 3, 3],
+      [3, 2, 1], [3, 2, 2], [3, 2, 3], [3, 3, 2], [3, 3, 3]
+    ],
+    "four_by_two": [[2, 2, 2, 1], [2, 2, 2, 2]],
+    "one_by_one": [[1]],
+    "three_by_one": []
+  },
+  "rational": {
+    "preprojective_a2": {
+      "path_algebra": false,
+      "dimension": 4,
+      "vertices": ["v1", "v2"],
+      "arrows": [
+        {"name": "x", "source": 1, "target": 2},
+        {"name": "xbar", "source": 2, "target": 1}
+      ],
+      "relations": [
+        [{"path": [3, 4], "coefficient": [1, 1]}],
+        [{"path": [4, 3], "coefficient": [1, 1]}]
+      ]
+    },
+    "green_2": {
+      "path_algebra": false,
+      "dimension": 13,
+      "vertices": ["v1", "v2"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 1, "target": 2},
+        {"name": "b1", "source": 2, "target": 1},
+        {"name": "b2", "source": 2, "target": 1}
+      ],
+      "relations": [
+        [{"path": [4, 5], "coefficient": [1, 1]}],
+        [{"path": [5, 3], "coefficient": [1, 1]}],
+        [{"path": [6, 3], "coefficient": [1, 1]}],
+        [{"path": [6, 4], "coefficient": [1, 1]}]
+      ]
+    },
+    "kirk_kuz_1": {
+      "path_algebra": false,
+      "dimension": 5,
+      "vertices": ["v1", "v2"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "b1", "source": 2, "target": 1}
+      ],
+      "relations": [
+        [{"path": [4, 3], "coefficient": [1, 1]}]
+      ]
+    }
+  },
+  "f2": {
+    "preprojective_a3": {
+      "path_algebra": false,
+      "dimension": 10,
+      "vertices": ["v1", "v2", "v3"],
+      "arrows": [
+        {"name": "u", "source": 1, "target": 2},
+        {"name": "ubar", "source": 2, "target": 1},
+        {"name": "v", "source": 2, "target": 3},
+        {"name": "vbar", "source": 3, "target": 2}
+      ],
+      "relations": [
+        [{"path": [4, 5], "coefficient": 1}],
+        [
+          {"path": [5, 4], "coefficient": 1},
+          {"path": [6, 7], "coefficient": 1}
+        ],
+        [{"path": [7, 6], "coefficient": 1}],
+        [{"path": [5, 4, 6], "coefficient": 1}],
+        [{"path": [7, 5, 4], "coefficient": 1}]
+      ]
+    },
+    "green_2": {
+      "path_algebra": false,
+      "dimension": 13,
+      "vertices": ["v1", "v2"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 1, "target": 2},
+        {"name": "b1", "source": 2, "target": 1},
+        {"name": "b2", "source": 2, "target": 1}
+      ],
+      "relations": [
+        [{"path": [4, 5], "coefficient": 1}],
+        [{"path": [5, 3], "coefficient": 1}],
+        [{"path": [6, 3], "coefficient": 1}],
+        [{"path": [6, 4], "coefficient": 1}]
+      ]
+    },
+    "kirk_kuz_2": {
+      "path_algebra": false,
+      "dimension": 12,
+      "vertices": ["v1", "v2"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 1, "target": 2},
+        {"name": "b1", "source": 2, "target": 1},
+        {"name": "b2", "source": 2, "target": 1}
+      ],
+      "relations": [
+        [{"path": [4, 5], "coefficient": 1}],
+        [
+          {"path": [3, 6], "coefficient": 1},
+          {"path": [4, 6], "coefficient": 1}
+        ],
+        [{"path": [5, 3], "coefficient": 1}],
+        [{"path": [6, 4], "coefficient": 1}],
+        [{"path": [6, 3, 5], "coefficient": 1}],
+        [{"path": [6, 3, 6], "coefficient": 1}]
+      ]
+    }
+  }
+}

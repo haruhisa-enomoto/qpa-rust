@@ -111,6 +111,26 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_brauer_configuration.g" \
     "$repo_root/tests/fixtures/pathalg_brauer_configuration.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_predefined_remaining.g" \
+    "$repo_root/tests/fixtures/pathalg_predefined_remaining.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_preprojective_cycle_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a cyclic preprojective quiver" >&2
+    exit 1
+fi
+grep -Fq "The entered quiver has an oriented cycle." "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_preprojective_isolated_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted all-zero preprojective relations" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for" "$actual"
+grep -Fq "GroebnerBasis" "$actual"
 "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/pathalg_brauer_configuration_invalid.g" \
     >"$actual"

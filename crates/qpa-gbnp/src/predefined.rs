@@ -24,6 +24,11 @@ use crate::{QpaGbnpError, gbnp_groebner_basis};
 pub const INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC: &str =
     "The admissible sequence is not a valid one.\n";
 
+/// QPA's error text when the path-algebra preprojective constructor receives
+/// an oriented cycle.
+pub const PREPROJECTIVE_ORIENTED_CYCLE_DIAGNOSTIC: &str =
+    "The entered quiver has an oriented cycle.\n";
+
 /// The constructor filter installed on a predefined QPA algebra.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum PredefinedAlgebraKind {
@@ -1023,6 +1028,202 @@ fn brauer_type_three_relations<F: Field>(
     Ok(type_three_relations)
 }
 
+/// Translate QPA's one-argument `PreprojectiveAlgebra(A)` overload for an
+/// acyclic path algebra.
+///
+/// QPA doubles the quiver, forms the global sum of arrow commutators, takes
+/// every vertex corner of that sum, and divides by the resulting relation
+/// list through the default GBNP backend.
+///
+/// # Errors
+///
+/// Returns [`PredefinedAlgebraError::PreprojectiveOrientedCycle`] for QPA's
+/// explicit source error, and otherwise propagates double-quiver, path
+/// arithmetic, GBNP, and quotient failures.
+pub fn preprojective_algebra<F: Field>(
+    path_algebra: &PathAlgebra<F>,
+) -> Result<QuiverAlgebra<F>, PredefinedAlgebraError> {
+    if !path_algebra.quiver().is_acyclic() {
+        return Err(PredefinedAlgebraError::PreprojectiveOrientedCycle);
+    }
+    let (double_path_algebra, relations) = preprojective_algebra_presentation(path_algebra)?;
+    factor_relation_list_presentation(double_path_algebra, &relations)
+}
+
+fn preprojective_algebra_presentation<F: Field>(
+    path_algebra: &PathAlgebra<F>,
+) -> Result<(PathAlgebra<F>, Vec<PathAlgebraElement<F>>), PredefinedAlgebraError> {
+    let doubled = path_algebra.quiver().double()?;
+    let doubled_path_algebra = PathAlgebra::new(path_algebra.field().clone(), doubled)?;
+    let generators = doubled_path_algebra.generators();
+    let number_of_vertices = doubled_path_algebra.quiver().number_of_vertices();
+    let (vertices, arrows) = generators.split_at(number_of_vertices);
+    let mut relation = doubled_path_algebra.zero();
+    for pair in arrows.chunks_exact(2) {
+        relation = relation
+            .add(&pair[0].multiply(&pair[1])?)?
+            .sub(&pair[1].multiply(&pair[0])?)?;
+    }
+    let relations = vertices
+        .iter()
+        .map(|vertex| Ok(vertex.multiply(&relation)?.multiply(vertex)?))
+        .collect::<Result<Vec<_>, PredefinedAlgebraError>>()?;
+    Ok((doubled_path_algebra, relations))
+}
+
+/// Translate `AdmissibleSequenceGenerator(num_vertices, height)` through
+/// QPA's Cartesian-product enumeration and admissibility loop.
+///
+/// # Errors
+///
+/// QPA dispatches this method only for positive integers. Rust reports a
+/// nonpositive or platform-size-inexpressible argument explicitly.
+pub fn admissible_sequence_generator(
+    number_of_vertices: &Integer,
+    height: &Integer,
+) -> Result<Vec<Vec<Integer>>, PredefinedAlgebraError> {
+    let number_of_vertices = positive_size("number of vertices", number_of_vertices)?;
+    let height = positive_size("height", height)?;
+    let common_set = (2..=height).map(Integer::from).collect::<Vec<_>>();
+    let mut sets = vec![common_set; number_of_vertices - 1];
+    sets.push((1..=height).map(Integer::from).collect());
+    Ok(cartesian_product(&sets)
+        .into_iter()
+        .filter(|sequence| is_admissible_sequence(sequence))
+        .collect())
+}
+
+fn cartesian_product(sets: &[Vec<Integer>]) -> Vec<Vec<Integer>> {
+    let mut product = vec![Vec::new()];
+    for set in sets {
+        let mut next = Vec::new();
+        for prefix in product {
+            for value in set {
+                let mut sequence = prefix.clone();
+                sequence.push(value.clone());
+                next.push(sequence);
+            }
+        }
+        product = next;
+    }
+    product
+}
+
+/// Translate QPA's `FiniteGlobalDimGreen(K, n)` presentation.
+///
+/// # Errors
+///
+/// QPA dispatches only for positive `n`. Rust reports an invalid or
+/// inexpressibly large value explicitly and otherwise propagates construction,
+/// arithmetic, GBNP, and quotient failures.
+pub fn finite_global_dim_green<F: Field>(
+    field: F,
+    number: &Integer,
+) -> Result<QuiverAlgebra<F>, PredefinedAlgebraError> {
+    let number = positive_size("Green parameter", number)?;
+    let (path_algebra, relations) = finite_global_dim_green_presentation(field, number)?;
+    factor_relation_list_presentation(path_algebra, &relations)
+}
+
+fn finite_global_dim_green_presentation<F: Field>(
+    field: F,
+    number: usize,
+) -> Result<(PathAlgebra<F>, Vec<PathAlgebraElement<F>>), PredefinedAlgebraError> {
+    let path_algebra = two_vertex_bidirected_path_algebra(field, number)?;
+    let generators = path_algebra.generators();
+    let arrows = &generators[2..];
+    let mut relations = Vec::with_capacity(number.saturating_mul(number));
+    for first in 0..number {
+        for second in 0..=first {
+            relations.push(arrows[number + first].multiply(&arrows[second])?);
+        }
+    }
+    for first in 1..number {
+        for second in 0..first {
+            relations.push(arrows[first].multiply(&arrows[number + second])?);
+        }
+    }
+    Ok((path_algebra, relations))
+}
+
+/// Translate QPA's `FiniteGlobalDimKirkKuz(K, n)` presentation.
+///
+/// # Errors
+///
+/// QPA dispatches only for positive `n`. Rust reports an invalid or
+/// inexpressibly large value explicitly and otherwise propagates construction,
+/// arithmetic, GBNP, and quotient failures.
+pub fn finite_global_dim_kirk_kuz<F: Field>(
+    field: F,
+    number: &Integer,
+) -> Result<QuiverAlgebra<F>, PredefinedAlgebraError> {
+    let number = positive_size("Kirk--Kuzmanovich parameter", number)?;
+    let (path_algebra, relations) = finite_global_dim_kirk_kuz_presentation(field, number)?;
+    factor_relation_list_presentation(path_algebra, &relations)
+}
+
+fn finite_global_dim_kirk_kuz_presentation<F: Field>(
+    field: F,
+    number: usize,
+) -> Result<(PathAlgebra<F>, Vec<PathAlgebraElement<F>>), PredefinedAlgebraError> {
+    let path_algebra = two_vertex_bidirected_path_algebra(field, number)?;
+    let generators = path_algebra.generators();
+    let arrows = &generators[2..];
+    let mut relations = Vec::new();
+    for first in 0..number {
+        for second in 0..number {
+            for third in 0..number {
+                relations.push(
+                    arrows[number + first]
+                        .multiply(&arrows[second])?
+                        .multiply(&arrows[number + third])?,
+                );
+            }
+        }
+    }
+    for first in 0..number.saturating_sub(1) {
+        for offset in 1..number - first {
+            relations.push(
+                arrows[first]
+                    .multiply(&arrows[number + first + offset])?
+                    .sub(&arrows[first + offset].multiply(&arrows[number + first + offset])?)?,
+            );
+        }
+    }
+    for second in 0..number.saturating_sub(1) {
+        for first in second + 1..number {
+            relations.push(arrows[first].multiply(&arrows[number + second])?);
+        }
+    }
+    for first in 0..number {
+        relations.push(arrows[number + first].multiply(&arrows[first])?);
+    }
+    Ok((path_algebra, relations))
+}
+
+fn two_vertex_bidirected_path_algebra<F: Field>(
+    field: F,
+    number: usize,
+) -> Result<PathAlgebra<F>, PredefinedAlgebraError> {
+    let mut arrows = Vec::with_capacity(number.saturating_mul(2));
+    for index in 1..=number {
+        arrows.push(ArrowSpec::named(
+            vertex(1)?,
+            vertex(2)?,
+            format!("a{index}"),
+        ));
+    }
+    for index in 1..=number {
+        arrows.push(ArrowSpec::named(
+            vertex(2)?,
+            vertex(1)?,
+            format!("b{index}"),
+        ));
+    }
+    let quiver = Quiver::from_indexed(2, arrows)?;
+    Ok(PathAlgebra::new(field, quiver)?)
+}
+
 impl<F: Field, Element> PosetAlgebra<F, Element> {
     /// Borrow the constructed path algebra or relation-list quotient.
     #[must_use]
@@ -1372,6 +1573,9 @@ fn factor_relation_list_presentation<F: Field>(
         return Ok(QuiverAlgebra::Path(path_algebra));
     }
     let complete_relations = gbnp_groebner_basis(relations, &path_algebra)?;
+    if complete_relations.is_empty() {
+        return Err(PredefinedAlgebraError::EmptyCompletedRelationList);
+    }
     Ok(QuiverAlgebra::Quotient(
         QuotientPathAlgebra::by_complete_groebner_relations(path_algebra, &complete_relations)?,
     ))
@@ -1392,6 +1596,23 @@ fn factor_predefined_presentation<F: Field>(
     Ok(QuiverAlgebra::Quotient(quotient))
 }
 
+fn positive_size(
+    parameter: &'static str,
+    value: &Integer,
+) -> Result<usize, PredefinedAlgebraError> {
+    if value <= &Integer::from(0) {
+        return Err(PredefinedAlgebraError::PositiveIntegerRequired {
+            parameter,
+            value: value.clone(),
+        });
+    }
+    usize::try_from(value.clone()).map_err(|_| PredefinedAlgebraError::SizeNotRepresentable {
+        parameter,
+        position: 1,
+        value: value.clone(),
+    })
+}
+
 fn vertex(index: usize) -> Result<VertexIndex, PredefinedAlgebraError> {
     VertexIndex::new(index).ok_or(PredefinedAlgebraError::GeneratedIndexOverflow)
 }
@@ -1399,6 +1620,14 @@ fn vertex(index: usize) -> Result<VertexIndex, PredefinedAlgebraError> {
 /// Failure in QPA's predefined algebra constructors.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum PredefinedAlgebraError {
+    /// A Rust call crossed a QPA `IsPosInt` dispatch boundary with another integer.
+    #[error("{parameter} must be a positive integer: {value}")]
+    PositiveIntegerRequired {
+        /// Source parameter name.
+        parameter: &'static str,
+        /// Rejected integer.
+        value: Integer,
+    },
     /// QPA indexes both the first and last entry of an empty list.
     #[error("the admissible sequence must not be empty")]
     EmptyAdmissibleSequence,
@@ -1463,6 +1692,12 @@ pub enum PredefinedAlgebraError {
     /// A validated Brauer configuration did not resolve a generated object.
     #[error("a generated Brauer-configuration lookup unexpectedly failed")]
     GeneratedBrauerLookupMissing,
+    /// The path-algebra preprojective overload rejects oriented cycles.
+    #[error("The entered quiver has an oriented cycle.")]
+    PreprojectiveOrientedCycle,
+    /// QPA cannot attach an empty basis produced from a nonempty relation list.
+    #[error("QPA cannot attach an empty completed Groebner basis to a nonempty relation list")]
+    EmptyCompletedRelationList,
     /// A source-translated poset query failed.
     #[error(transparent)]
     Poset(#[from] PosetError),
@@ -1488,18 +1723,24 @@ mod tests {
         integer::Integer,
         rational::{Q, RationalField},
     };
-    use qpa_core::{AlgebraDimension, PathAlgebraElement, Poset, QuiverAlgebra};
+    use qpa_core::{
+        AlgebraDimension, ArrowSpec, PathAlgebra, PathAlgebraElement, Poset, Quiver, QuiverAlgebra,
+    };
     use serde_json::{Value, json};
 
     use super::{
         BrauerConfiguration, BrauerConfigurationAlgebra, BrauerConfigurationAlgebraResult,
         BrauerConfigurationPolygon, BrauerConfigurationValidationError, BrauerConfigurationVertex,
-        INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PredefinedAlgebra,
-        PredefinedAlgebraError, brauer_configuration_algebra,
+        INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult,
+        PREPROJECTIVE_ORIENTED_CYCLE_DIAGNOSTIC, PredefinedAlgebra, PredefinedAlgebraError,
+        admissible_sequence_generator, brauer_configuration_algebra,
         brauer_configuration_algebra_presentation, canonical_algebra,
-        canonical_algebra_two_weights, kronecker_algebra, nakayama_algebra,
+        canonical_algebra_two_weights, finite_global_dim_green,
+        finite_global_dim_green_presentation, finite_global_dim_kirk_kuz,
+        finite_global_dim_kirk_kuz_presentation, kronecker_algebra, nakayama_algebra,
         nakayama_algebra_sequence_first, poset_algebra, poset_algebra_presentation,
-        poset_algebra_with_string_function,
+        poset_algebra_with_string_function, preprojective_algebra,
+        preprojective_algebra_presentation, vertex,
     };
 
     fn integers(values: &[i64]) -> Vec<Integer> {
@@ -1533,6 +1774,22 @@ mod tests {
                         "path": term.path().external_representation(),
                         "coefficient": coefficient_json(term.coefficient())
                     })
+                })
+                .collect(),
+        )
+    }
+
+    fn integer_sequences_json(sequences: &[Vec<Integer>]) -> Value {
+        Value::Array(
+            sequences
+                .iter()
+                .map(|sequence| {
+                    Value::Array(
+                        sequence
+                            .iter()
+                            .map(|value| Value::from(small_integer(value)))
+                            .collect(),
+                    )
                 })
                 .collect(),
         )
@@ -1664,6 +1921,24 @@ mod tests {
             ],
             orientations: brauer_orientations(&[&["1", "2", "3"], &["2", "4", "3"], &["4"]]),
         }
+    }
+
+    fn indexed_path_algebra<F: Field>(
+        field: F,
+        number_of_vertices: usize,
+        arrows: &[(usize, usize, &str)],
+    ) -> PathAlgebra<F> {
+        let arrows = arrows
+            .iter()
+            .map(|(source, target, name)| {
+                ArrowSpec::named(vertex(*source).unwrap(), vertex(*target).unwrap(), *name)
+            })
+            .collect();
+        PathAlgebra::new(
+            field,
+            Quiver::from_indexed(number_of_vertices, arrows).unwrap(),
+        )
+        .unwrap()
     }
 
     fn constructed_brauer<F: Field>(
@@ -2192,6 +2467,149 @@ mod tests {
             "properties": [repeated.is_symmetric_algebra().unwrap()]
         });
 
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(f2, expected["f2"]);
+    }
+
+    #[test]
+    fn remaining_predefined_dispatch_and_source_errors_follow_qpa() {
+        assert_eq!(
+            admissible_sequence_generator(&Integer::from(0), &Integer::from(2)),
+            Err(PredefinedAlgebraError::PositiveIntegerRequired {
+                parameter: "number of vertices",
+                value: Integer::from(0),
+            })
+        );
+        assert_eq!(
+            admissible_sequence_generator(&Integer::from(2), &Integer::from(-1)),
+            Err(PredefinedAlgebraError::PositiveIntegerRequired {
+                parameter: "height",
+                value: Integer::from(-1),
+            })
+        );
+        assert_eq!(
+            finite_global_dim_green(Q, &Integer::from(0)),
+            Err(PredefinedAlgebraError::PositiveIntegerRequired {
+                parameter: "Green parameter",
+                value: Integer::from(0),
+            })
+        );
+        assert_eq!(
+            finite_global_dim_kirk_kuz(Q, &Integer::from(0)),
+            Err(PredefinedAlgebraError::PositiveIntegerRequired {
+                parameter: "Kirk--Kuzmanovich parameter",
+                value: Integer::from(0),
+            })
+        );
+
+        let cyclic = indexed_path_algebra(Q, 2, &[(1, 2, "a"), (2, 1, "b")]);
+        assert_eq!(
+            preprojective_algebra(&cyclic),
+            Err(PredefinedAlgebraError::PreprojectiveOrientedCycle)
+        );
+        assert_eq!(
+            PREPROJECTIVE_ORIENTED_CYCLE_DIAGNOSTIC,
+            "The entered quiver has an oriented cycle.\n"
+        );
+
+        let isolated = indexed_path_algebra(Q, 2, &[]);
+        let (_, isolated_relations) = preprojective_algebra_presentation(&isolated).unwrap();
+        assert_eq!(isolated_relations.len(), 2);
+        assert!(isolated_relations.iter().all(PathAlgebraElement::is_zero));
+        assert_eq!(
+            preprojective_algebra(&isolated),
+            Err(PredefinedAlgebraError::EmptyCompletedRelationList)
+        );
+    }
+
+    #[test]
+    fn remaining_predefined_raw_loops_follow_qpa() {
+        let a2 = indexed_path_algebra(Q, 2, &[(1, 2, "x")]);
+        let (_, preprojective_relations) = preprojective_algebra_presentation(&a2).unwrap();
+        assert_eq!(preprojective_relations.len(), 2);
+        assert_eq!(
+            element_json(&preprojective_relations[0], &rational_coefficient),
+            json!([{"path": [3, 4], "coefficient": [1, 1]}])
+        );
+        assert_eq!(
+            element_json(&preprojective_relations[1], &rational_coefficient),
+            json!([{"path": [4, 3], "coefficient": [-1, 1]}])
+        );
+
+        let (_, green_relations) = finite_global_dim_green_presentation(Q, 2).unwrap();
+        assert_eq!(green_relations.len(), 4);
+
+        let (_, kirk_one_relations) = finite_global_dim_kirk_kuz_presentation(Q, 1).unwrap();
+        assert_eq!(kirk_one_relations.len(), 2);
+        assert_eq!(
+            element_json(&kirk_one_relations[0], &rational_coefficient),
+            json!([{"path": [4, 3, 4], "coefficient": [1, 1]}])
+        );
+        assert_eq!(
+            element_json(&kirk_one_relations[1], &rational_coefficient),
+            json!([{"path": [4, 3], "coefficient": [1, 1]}])
+        );
+
+        let (_, kirk_two_relations) = finite_global_dim_kirk_kuz_presentation(Q, 2).unwrap();
+        assert_eq!(kirk_two_relations.len(), 12);
+        assert_eq!(
+            element_json(&kirk_two_relations[8], &rational_coefficient),
+            json!([
+                {"path": [3, 6], "coefficient": [1, 1]},
+                {"path": [4, 6], "coefficient": [-1, 1]}
+            ])
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_remaining_predefined_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_predefined_remaining.schema-v1.json"
+        ))
+        .unwrap();
+        let sequences = json!({
+            "one_by_three": integer_sequences_json(
+                &admissible_sequence_generator(&Integer::from(1), &Integer::from(3)).unwrap()
+            ),
+            "three_by_three": integer_sequences_json(
+                &admissible_sequence_generator(&Integer::from(3), &Integer::from(3)).unwrap()
+            ),
+            "four_by_two": integer_sequences_json(
+                &admissible_sequence_generator(&Integer::from(4), &Integer::from(2)).unwrap()
+            ),
+            "one_by_one": integer_sequences_json(
+                &admissible_sequence_generator(&Integer::from(1), &Integer::from(1)).unwrap()
+            ),
+            "three_by_one": integer_sequences_json(
+                &admissible_sequence_generator(&Integer::from(3), &Integer::from(1)).unwrap()
+            )
+        });
+
+        let a2 = indexed_path_algebra(Q, 2, &[(1, 2, "x")]);
+        let preprojective_a2 = preprojective_algebra(&a2).unwrap();
+        let green_2 = finite_global_dim_green(Q, &Integer::from(2)).unwrap();
+        let kirk_kuz_1 = finite_global_dim_kirk_kuz(Q, &Integer::from(1)).unwrap();
+        let rational = json!({
+            "preprojective_a2": quiver_algebra_json(
+                &preprojective_a2,
+                &rational_coefficient
+            ),
+            "green_2": quiver_algebra_json(&green_2, &rational_coefficient),
+            "kirk_kuz_1": quiver_algebra_json(&kirk_kuz_1, &rational_coefficient)
+        });
+
+        let a3_f2 = indexed_path_algebra(Z2, 3, &[(1, 2, "u"), (2, 3, "v")]);
+        let preprojective_a3 = preprojective_algebra(&a3_f2).unwrap();
+        let green_2_f2 = finite_global_dim_green(Z2, &Integer::from(2)).unwrap();
+        let kirk_kuz_2 = finite_global_dim_kirk_kuz(Z2, &Integer::from(2)).unwrap();
+        let z2_coefficient = |coefficient: &u8| Value::from(*coefficient);
+        let f2 = json!({
+            "preprojective_a3": quiver_algebra_json(&preprojective_a3, &z2_coefficient),
+            "green_2": quiver_algebra_json(&green_2_f2, &z2_coefficient),
+            "kirk_kuz_2": quiver_algebra_json(&kirk_kuz_2, &z2_coefficient)
+        });
+
+        assert_eq!(sequences, expected["sequences"]);
         assert_eq!(rational, expected["rational"]);
         assert_eq!(f2, expected["f2"]);
     }
