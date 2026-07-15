@@ -607,12 +607,13 @@ Primary QPA files: `module` and `modulespecial`.
   does.
 - [ ] Port bases, canonical bases, coordinates, dimension vectors, and support.
   The element basis, coordinates, dimension vector, and support required by
-  the translated module-map layer are complete.
+  the translated module-map layer are complete. `MinimalGeneratingSetOfModule`
+  now lifts the cached top basis through QPA's natural quotient map.
 - [ ] Port submodules, restriction, direct sums, generators, radical/socle series,
   Loewy length, annihilators, and module predicates. `SubRepresentation`,
-  radical inclusion/object, and module/algebra Loewy length now follow QPA's
-  repeated-arrow closure and repeated-radical methods; the other operations
-  remain pending.
+  radical inclusion/object, socle inclusion/object, and module/algebra Loewy
+  length now follow QPA's repeated-arrow closure, outgoing-arrow nullspace,
+  and repeated-radical methods; the other operations remain pending.
 - [ ] Port simples, indecomposable projectives/injectives, and zero modules.
 - [ ] Port projective bases and element conversions.
 - [ ] Port rigidity, tau-rigidity, exceptionality, and complexity operations.
@@ -628,7 +629,9 @@ Primary QPA files: `modulehom` and `moduledecomp`.
 - [x] Port matrix-defined module maps and commutativity validation. The
   physical zero-space matrix conventions, checked arrow squares, element
   images/preimages, zero/identity maps, and matrix accessor are pinned against
-  the module/trivial-extension oracle.
+  the module/trivial-extension oracle. `DualOfModuleHomomorphism` now composes
+  QPA's cached module duals with vertexwise transposition and one-way attribute
+  caching.
 - [x] Port map equality, addition, scalar multiplication, and composition.
   QPA's structural hom-set checks, row-order composition, left/right scalar
   multiplication, additive inverse, zero map, and map equality are pinned over
@@ -651,12 +654,15 @@ Primary QPA files: `modulehom` and `moduledecomp`.
 - [ ] Port radical/top/socle maps and direct-sum inclusions/projections. Radical
   inclusion/object, top projection/object, and the top-of-a-homomorphism
   overload are complete over `QQ` and `GF(2)`, including GAP's canonical
-  quotient lifts and zero-module branch.
+  quotient lifts, attribute identity, and zero-module branch. Socle
+  inclusion/object now uses QPA's concatenated outgoing-arrow nullspaces.
 - [ ] Port liftings, split maps, inverses, minimal versions, and factoring through
   projectives.
 - [ ] Port isomorphism/direct-summand/additive-closure computations.
 - [ ] Port traces, rejects, submodule enumeration, and length-bounded module
-  generation.
+  generation. `TraceOfModule` and all three right-`Fac(M)` synonyms preserve
+  QPA's minimal-generator/Hom ordering and zero/error branches; rejects and
+  enumeration remain pending.
 - [ ] Port endomorphism quiver-algebra and ADR-algebra constructions.
 - [ ] Port deterministic and probabilistic module decomposition methods,
   including seed control and idempotent lifting.

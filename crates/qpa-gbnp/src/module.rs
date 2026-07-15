@@ -7,10 +7,11 @@
 use numerica::domains::Field;
 use qpa_core::{
     DenseMatrix, MatrixError, NamedArrowMatrix, PathAlgebraError, PathAlgebraModule,
-    PathAlgebraModuleError, PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra,
-    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct, QuiverProductError,
-    QuotientError, include_in_path_algebra, loewy_length_of_module, project_from_product_quiver,
-    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor,
+    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint,
+    PathError, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct,
+    QuiverProductError, QuotientError, include_in_path_algebra, loewy_length_of_module,
+    project_from_product_quiver, right_module_hom_over_algebra, right_module_over_path_algebra,
+    right_module_over_path_algebra_with_tensor,
 };
 use thiserror::Error;
 
@@ -278,6 +279,33 @@ pub fn dual_of_module<F: Field>(
     }
 }
 
+/// Translate QPA's cached `DualOfModuleHomomorphism(f)` attribute.
+///
+/// The source transposes every vertex map in place, dualizes the source and
+/// range modules, reverses them, and passes the matrices through the checked
+/// module-homomorphism constructor. QPA caches only the entered map's
+/// attribute; it does not install a reciprocal cache on the returned map.
+///
+/// # Errors
+///
+/// Propagates module dualization and checked map construction.
+pub fn dual_of_module_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, ModuleFunctorError> {
+    if let Some(cached) = homomorphism.cached_dual_homomorphism() {
+        return Ok(cached);
+    }
+    let matrices = homomorphism
+        .vertex_matrices()
+        .iter()
+        .map(DenseMatrix::transpose)
+        .collect();
+    let dual_source = dual_of_module(homomorphism.source())?;
+    let dual_range = dual_of_module(homomorphism.range())?;
+    let dual = right_module_hom_over_algebra(dual_range, dual_source, matrices)?;
+    Ok(homomorphism.cache_dual_homomorphism(&dual))
+}
+
 /// Translate QPA's cached
 /// `DualOfAlgebraAsModuleOverEnvelopingAlgebra(A)` attribute.
 ///
@@ -532,15 +560,20 @@ mod tests {
         integer::Integer,
         rational::{Q, Rational},
     };
+    use qpa_core::path_module::right_fac_approximation_via_all_basis_images;
     use qpa_core::{
-        ArrowSpec, DenseMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule, Quiver,
-        QuiverAlgebra, VertexIndex,
+        ArrowSpec, DenseMatrix, NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule,
+        PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, Quiver, QuiverAlgebra,
+        VertexIndex, minimal_generating_set_of_module, right_fac_approximation,
+        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
+        socle_of_module_inclusion, top_of_module, top_of_module_projection, trace_of_module,
     };
     use serde_json::{Value, json};
 
     use super::{
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
         dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        dual_of_module_homomorphism,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -603,6 +636,78 @@ mod tests {
         assert_eq!(
             bimodule_dual.arrow_matrices()[0].as_flat(),
             &[q(0), q(0), q(1), q(0)]
+        );
+    }
+
+    #[test]
+    fn dual_of_module_homomorphism_transposes_reverses_and_caches_like_qpa() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra,
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)], vec![q(0)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let map = right_module_hom_over_algebra(
+            module.clone(),
+            module,
+            vec![
+                DenseMatrix::from_rows(vec![vec![q(1), q(0)], vec![q(0), q(0)]], Q).unwrap(),
+                DenseMatrix::identity(1, Q),
+            ],
+        )
+        .unwrap();
+
+        let dual = dual_of_module_homomorphism(&map).unwrap();
+        assert_eq!(dual.source().dimension_vector(), &[2, 1]);
+        assert_eq!(dual.range().dimension_vector(), &[2, 1]);
+        assert_eq!(
+            dual.vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(vec![vec![q(1), q(0)], vec![q(0), q(0)]], Q).unwrap(),
+                DenseMatrix::identity(1, Q),
+            ]
+        );
+        assert!(dual.is_identical(&dual_of_module_homomorphism(&map).unwrap()));
+        let double_dual = dual_of_module_homomorphism(&dual).unwrap();
+        assert_eq!(double_dual, map);
+        assert!(
+            !double_dual.is_identical(&map),
+            "the QPA source does not install a reciprocal map attribute"
+        );
+
+        let e = |value: i64| Z2.nth(Integer::from(value));
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra,
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![e(1)], vec![e(0)]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let map = right_module_hom_over_algebra(
+            module.clone(),
+            module,
+            vec![
+                DenseMatrix::from_rows(vec![vec![e(1), e(0)], vec![e(0), e(0)]], Z2).unwrap(),
+                DenseMatrix::identity(1, Z2),
+            ],
+        )
+        .unwrap();
+        assert_eq!(
+            dual_of_module_homomorphism(&map).unwrap().vertex_matrices(),
+            map.vertex_matrices()
         );
     }
 
@@ -682,6 +787,169 @@ mod tests {
                 .map(|matrix| matrix_json(matrix, coefficient))
                 .collect::<Vec<_>>(),
         })
+    }
+
+    fn module_map_json<F: Field>(
+        map: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!({
+            "source_dimension": map.source().dimension_vector(),
+            "range_dimension": map.range().dimension_vector(),
+            "matrices": map
+                .vertex_matrices()
+                .iter()
+                .map(|matrix| matrix_json(matrix, coefficient))
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn module_elements_json<F: Field>(
+        elements: &[PathAlgebraModuleElement<F>],
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!(
+            elements
+                .iter()
+                .map(|element| element
+                    .external_representation()
+                    .iter()
+                    .map(|row| row.iter().map(coefficient).collect::<Vec<_>>())
+                    .collect::<Vec<_>>())
+                .collect::<Vec<_>>()
+        )
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_functor_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one.clone()], vec![zero.clone()]], field.clone())
+                    .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let map = right_module_hom_over_algebra(
+            module.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![one.clone(), zero.clone()],
+                        vec![zero.clone(), zero.clone()],
+                    ],
+                    field.clone(),
+                )
+                .unwrap(),
+                DenseMatrix::identity(1, field.clone()),
+            ],
+        )
+        .unwrap();
+        let minimal = minimal_generating_set_of_module(module.clone()).unwrap();
+        let top_projection = top_of_module_projection(module.clone()).unwrap();
+        let top = top_of_module(module.clone()).unwrap();
+        let socle_inclusion = socle_of_module_inclusion(module.clone()).unwrap();
+        let dual_map = dual_of_module_homomorphism(&map).unwrap();
+        let target = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one.clone(), one]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let zero_module = right_module_over_path_algebra(algebra, vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+        let zero_socle = socle_of_module_inclusion(zero_module.clone()).unwrap();
+        let zero_trace = trace_of_module(&simple_one, &target).unwrap();
+        let zero_source_trace = trace_of_module(&zero_module, &target).unwrap();
+        let zero_target_trace = trace_of_module(&simple_two, &zero_module).unwrap();
+        let nonzero_trace = trace_of_module(&simple_two, &target).unwrap();
+        let legacy_trace =
+            right_fac_approximation_via_all_basis_images(&simple_two, &target).unwrap();
+        let ordered_trace = trace_of_module(&module, &module).unwrap();
+        let ordered_legacy =
+            right_fac_approximation_via_all_basis_images(&module, &module).unwrap();
+
+        json!({
+            "minimal_generators": {
+                "count": minimal.len(),
+                "elements": module_elements_json(&minimal, coefficient),
+                "zero_count": minimal_generating_set_of_module(zero_module.clone()).unwrap().len(),
+                "top_projection_cached_identity": top_projection.is_identical(
+                    &top_of_module_projection(module.clone()).unwrap()),
+                "top_cached_identity": top.is_identical(&top_of_module(module).unwrap()),
+                "top_projection_range_identity": top_projection.range().is_identical(&top),
+            },
+            "socle": {
+                "inclusion": module_map_json(&socle_inclusion, coefficient),
+                "object_dimension": socle_of_module(socle_inclusion.range().clone())
+                    .unwrap()
+                    .dimension_vector(),
+                "zero_inclusion": module_map_json(&zero_socle, coefficient),
+                "zero_source_identity": zero_socle.source().is_identical(&zero_module),
+            },
+            "dual_map": {
+                "cached_identity": dual_map.is_identical(
+                    &dual_of_module_homomorphism(&map).unwrap()),
+                "source_dimension": dual_map.source().dimension_vector(),
+                "range_dimension": dual_map.range().dimension_vector(),
+                "matrices": dual_map.vertex_matrices().iter()
+                    .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+            },
+            "trace": {
+                "zero": module_map_json(&zero_trace, coefficient),
+                "zero_source": module_map_json(&zero_source_trace, coefficient),
+                "zero_target": module_map_json(&zero_target_trace, coefficient),
+                "nonzero": module_map_json(&nonzero_trace, coefficient),
+                "legacy": module_map_json(&legacy_trace, coefficient),
+                "legacy_equal": legacy_trace == nonzero_trace,
+                "ordered": module_map_json(&ordered_trace, coefficient),
+                "ordered_legacy": module_map_json(&ordered_legacy, coefficient),
+                "ordered_legacy_equal": ordered_legacy == ordered_trace,
+                "right_fac_equal": right_fac_approximation(&simple_two, &target).unwrap()
+                    == nonzero_trace,
+            },
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_functor_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_functors.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = modulehom_functor_case(Q, ToString::to_string);
+        let binary = modulehom_functor_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
     }
 
     #[test]

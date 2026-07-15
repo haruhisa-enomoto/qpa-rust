@@ -50,10 +50,12 @@ pub use path_module::{
     end_over_algebra, hom_over_algebra, hom_over_algebra_with_basis_function,
     identity_module_mapping, image_inclusion, image_of_module_homomorphism, image_projection,
     image_projection_inclusion, kernel_inclusion, kernel_of_module_homomorphism,
-    loewy_length_of_module, radical_of_module, radical_of_module_inclusion,
-    right_module_hom_over_algebra, right_module_over_path_algebra,
-    right_module_over_path_algebra_with_tensor, subrepresentation, subrepresentation_inclusion,
-    top_of_module, top_of_module_homomorphism, top_of_module_projection, zero_module_mapping,
+    loewy_length_of_module, minimal_generating_set_of_module, minimal_right_fac_m_approximation,
+    radical_of_module, radical_of_module_inclusion, right_fac_approximation,
+    right_fac_m_approximation, right_module_hom_over_algebra, right_module_over_path_algebra,
+    right_module_over_path_algebra_with_tensor, socle_of_module, socle_of_module_inclusion,
+    subrepresentation, subrepresentation_inclusion, top_of_module, top_of_module_homomorphism,
+    top_of_module_projection, trace_of_module, zero_module_mapping,
 };
 pub use poset::{Poset, PosetError};
 pub use quiver::{

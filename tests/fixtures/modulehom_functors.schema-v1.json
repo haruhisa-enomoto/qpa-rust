@@ -1,0 +1,832 @@
+{
+  "schema_version": 1,
+  "kind": "modulehom_functors",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "minimal_generators": {
+      "count": 2,
+      "elements": [
+        [
+          [
+            "1",
+            "0"
+          ],
+          [
+            "0"
+          ]
+        ],
+        [
+          [
+            "0",
+            "1"
+          ],
+          [
+            "0"
+          ]
+        ]
+      ],
+      "zero_count": 0,
+      "top_projection_cached_identity": true,
+      "top_cached_identity": true,
+      "top_projection_range_identity": true
+    },
+    "socle": {
+      "inclusion": {
+        "source_dimension": [
+          1,
+          1
+        ],
+        "range_dimension": [
+          2,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0",
+                "1"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "object_dimension": [
+        1,
+        1
+      ],
+      "zero_inclusion": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          0
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          }
+        ]
+      },
+      "zero_source_identity": true
+    },
+    "dual_map": {
+      "cached_identity": true,
+      "source_dimension": [
+        2,
+        1
+      ],
+      "range_dimension": [
+        2,
+        1
+      ],
+      "matrices": [
+        {
+          "shape": [
+            2,
+            2
+          ],
+          "rows": [
+            [
+              "1",
+              "0"
+            ],
+            [
+              "0",
+              "0"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1,
+            1
+          ],
+          "rows": [
+            [
+              "1"
+            ]
+          ]
+        }
+      ]
+    },
+    "trace": {
+      "zero": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0",
+                "0"
+              ]
+            ]
+          }
+        ]
+      },
+      "zero_source": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0",
+                "0"
+              ]
+            ]
+          }
+        ]
+      },
+      "zero_target": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          0
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          }
+        ]
+      },
+      "nonzero": {
+        "source_dimension": [
+          0,
+          2
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "1",
+                "0"
+              ],
+              [
+                "0",
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "legacy": {
+        "source_dimension": [
+          0,
+          2
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "1",
+                "0"
+              ],
+              [
+                "0",
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "legacy_equal": true,
+      "ordered": {
+        "source_dimension": [
+          2,
+          1
+        ],
+        "range_dimension": [
+          2,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "1",
+                "0"
+              ],
+              [
+                "0",
+                "1"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "ordered_legacy": {
+        "source_dimension": [
+          2,
+          1
+        ],
+        "range_dimension": [
+          2,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "1",
+                "0"
+              ],
+              [
+                "0",
+                "1"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "ordered_legacy_equal": true,
+      "right_fac_equal": true
+    }
+  },
+  "binary": {
+    "minimal_generators": {
+      "count": 2,
+      "elements": [
+        [
+          [
+            "Z(2)^0",
+            "0*Z(2)"
+          ],
+          [
+            "0*Z(2)"
+          ]
+        ],
+        [
+          [
+            "0*Z(2)",
+            "Z(2)^0"
+          ],
+          [
+            "0*Z(2)"
+          ]
+        ]
+      ],
+      "zero_count": 0,
+      "top_projection_cached_identity": true,
+      "top_cached_identity": true,
+      "top_projection_range_identity": true
+    },
+    "socle": {
+      "inclusion": {
+        "source_dimension": [
+          1,
+          1
+        ],
+        "range_dimension": [
+          2,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "object_dimension": [
+        1,
+        1
+      ],
+      "zero_inclusion": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          0
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          }
+        ]
+      },
+      "zero_source_identity": true
+    },
+    "dual_map": {
+      "cached_identity": true,
+      "source_dimension": [
+        2,
+        1
+      ],
+      "range_dimension": [
+        2,
+        1
+      ],
+      "matrices": [
+        {
+          "shape": [
+            2,
+            2
+          ],
+          "rows": [
+            [
+              "Z(2)^0",
+              "0*Z(2)"
+            ],
+            [
+              "0*Z(2)",
+              "0*Z(2)"
+            ]
+          ]
+        },
+        {
+          "shape": [
+            1,
+            1
+          ],
+          "rows": [
+            [
+              "Z(2)^0"
+            ]
+          ]
+        }
+      ]
+    },
+    "trace": {
+      "zero": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0*Z(2)",
+                "0*Z(2)"
+              ]
+            ]
+          }
+        ]
+      },
+      "zero_source": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0*Z(2)",
+                "0*Z(2)"
+              ]
+            ]
+          }
+        ]
+      },
+      "zero_target": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          0
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          }
+        ]
+      },
+      "nonzero": {
+        "source_dimension": [
+          0,
+          2
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "Z(2)^0",
+                "0*Z(2)"
+              ],
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "legacy": {
+        "source_dimension": [
+          0,
+          2
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "Z(2)^0",
+                "0*Z(2)"
+              ],
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "legacy_equal": true,
+      "ordered": {
+        "source_dimension": [
+          2,
+          1
+        ],
+        "range_dimension": [
+          2,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "Z(2)^0",
+                "0*Z(2)"
+              ],
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "ordered_legacy": {
+        "source_dimension": [
+          2,
+          1
+        ],
+        "range_dimension": [
+          2,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "Z(2)^0",
+                "0*Z(2)"
+              ],
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "ordered_legacy_equal": true,
+      "right_fac_equal": true
+    }
+  }
+}

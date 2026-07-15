@@ -10048,9 +10048,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_generating_set_of_module"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10841,9 +10841,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1487
 source_end = 1498
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_generating_set_of_module"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11987,7 +11987,7 @@ source_end = 29
 classification = "declared_surface"
 status = "verified"
 rust_symbol = "top_of_module_projection"
-tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
+tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json","tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12000,7 +12000,7 @@ source_end = 30
 classification = "declared_surface"
 status = "verified"
 rust_symbol = "top_of_module"
-tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
+tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json","tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12024,9 +12024,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 32
 source_end = 32
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dual_of_module_homomorphism"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12037,9 +12037,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 33
 source_end = 33
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "socle_of_module_inclusion"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12050,9 +12050,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 34
 source_end = 34
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "socle_of_module"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12479,9 +12479,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 67
 source_end = 67
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "trace_of_module"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json","tests/gap-reference/modulehom_trace_different_error.g"]
 deviations = []
 
 [[entries]]
@@ -13053,7 +13053,7 @@ source_end = 1245
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "top_of_module_projection"
-tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
+tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json","tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13066,7 +13066,7 @@ source_end = 1261
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "top_of_module"
-tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
+tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json","tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13194,9 +13194,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1735
 source_end = 1750
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_fac_approximation_via_all_basis_images"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13220,9 +13220,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1788
 source_end = 1802
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dual_of_module_homomorphism"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13233,9 +13233,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1811
 source_end = 1866
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "socle_of_module_inclusion"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13246,9 +13246,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1874
 source_end = 1882
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "socle_of_module"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13701,9 +13701,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3661
 source_end = 3692
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "trace_of_module"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json","tests/gap-reference/modulehom_trace_different_error.g"]
 deviations = []
 
 [[entries]]
@@ -14247,9 +14247,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 28
 source_end = 28
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_fac_m_approximation"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14260,9 +14260,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 29
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_fac_approximation"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14273,9 +14273,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 30
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_right_fac_m_approximation"
+tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
 
 [[entries]]

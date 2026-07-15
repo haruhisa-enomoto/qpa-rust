@@ -32,7 +32,7 @@ pub use invlenlex::{
 pub use module::{
     EnvelopingModuleError, ModuleFunctorError, algebra_as_module_of_enveloping_algebra,
     algebra_as_module_over_enveloping_algebra, dual_of_algebra_as_module_over_enveloping_algebra,
-    dual_of_module, loewy_length_of_algebra,
+    dual_of_module, dual_of_module_homomorphism, loewy_length_of_algebra,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,

@@ -71,6 +71,8 @@ struct PathAlgebraModuleData<F: Field> {
     dual_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     dual_strong: OnceLock<PathAlgebraModule<F>>,
     endomorphism_algebra: OnceLock<ModuleEndomorphismAlgebra<F>>,
+    top_module: OnceLock<PathAlgebraModule<F>>,
+    top_projection_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
 }
 
 /// A QPA right path-algebra matrix module.
@@ -271,6 +273,42 @@ impl<F: Field> PathAlgebraModule<F> {
             .endomorphism_algebra
             .get_or_init(|| algebra.clone())
             .clone()
+    }
+
+    fn cached_top_module(&self) -> Option<Self> {
+        self.0.top_module.get().cloned()
+    }
+
+    fn cache_top_module(&self, top: &Self) -> Self {
+        self.0.top_module.get_or_init(|| top.clone()).clone()
+    }
+
+    fn cached_top_projection(&self) -> Option<PathAlgebraModuleHomomorphism<F>> {
+        self.0
+            .top_projection_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    fn cache_top_projection(
+        &self,
+        projection: &PathAlgebraModuleHomomorphism<F>,
+    ) -> PathAlgebraModuleHomomorphism<F> {
+        let mut slot = self
+            .0
+            .top_projection_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+        {
+            return cached;
+        }
+        *slot = Some(projection.downgrade());
+        projection.clone()
     }
 }
 
@@ -530,6 +568,7 @@ struct PathAlgebraModuleHomomorphismData<F: Field> {
         PathAlgebraModuleHomomorphism<F>,
     )>,
     cokernel_projection: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    dual_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     is_injective: OnceLock<bool>,
     is_surjective: OnceLock<bool>,
     kernel_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
@@ -702,6 +741,26 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
     #[must_use]
     pub fn is_identical(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Return QPA's cached `DualOfModuleHomomorphism` attribute, if set.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_dual_homomorphism(&self) -> Option<Self> {
+        self.0.dual_homomorphism.get().cloned()
+    }
+
+    /// Install QPA's one-way `DualOfModuleHomomorphism` attribute cache.
+    ///
+    /// The source method does not install the reciprocal attribute on the
+    /// generated dual map.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_dual_homomorphism(&self, dual: &Self) -> Self {
+        self.0
+            .dual_homomorphism
+            .get_or_init(|| dual.clone())
+            .clone()
     }
 
     /// Apply the mapping to a module element.
@@ -1074,6 +1133,7 @@ pub fn right_module_hom_over_algebra<F: Field>(
             kernel_inclusion: OnceLock::new(),
             image_projection_inclusion: OnceLock::new(),
             cokernel_projection: OnceLock::new(),
+            dual_homomorphism: OnceLock::new(),
             is_injective: OnceLock::new(),
             is_surjective: OnceLock::new(),
             kernel_of_what: RwLock::new(None),
@@ -2114,14 +2174,31 @@ pub fn cokernel_of_module_homomorphism<F: Field>(
 /// # Errors
 ///
 /// Propagates radical and cokernel construction failures.
+#[allow(clippy::needless_pass_by_value)]
 pub fn top_of_module_projection<F: Field>(
     module: PathAlgebraModule<F>,
 ) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
-    if module.dimension() == 0 {
-        zero_module_mapping(module.clone(), module)
-    } else {
-        cokernel_projection(&radical_of_module_inclusion(module)?)
+    if let Some(cached) = module.cached_top_projection() {
+        return Ok(cached);
     }
+    let projection = if module.dimension() == 0 {
+        zero_module_mapping(module.clone(), module.clone())?
+    } else {
+        let generated = cokernel_projection(&radical_of_module_inclusion(module.clone())?)?;
+        let top = module.cache_top_module(generated.range());
+        if top.is_identical(generated.range()) {
+            generated
+        } else {
+            let projection = right_module_hom_over_algebra(
+                module.clone(),
+                top,
+                generated.vertex_matrices().to_vec(),
+            )?;
+            projection.set_is_surjective(true);
+            projection
+        }
+    };
+    Ok(module.cache_top_projection(&projection))
 }
 
 /// Translate QPA's `TopOfModule(M)` convenience method.
@@ -2132,6 +2209,12 @@ pub fn top_of_module_projection<F: Field>(
 pub fn top_of_module<F: Field>(
     module: PathAlgebraModule<F>,
 ) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    if module.dimension() == 0 {
+        return Ok(module);
+    }
+    if let Some(cached) = module.cached_top_module() {
+        return Ok(cached);
+    }
     Ok(top_of_module_projection(module)?.range().clone())
 }
 
@@ -2190,6 +2273,229 @@ pub fn top_of_module_homomorphism<F: Field>(
         )
         .collect::<Result<Vec<_>, _>>()?;
     right_module_hom_over_algebra(source_top.clone(), range_top.clone(), matrices)
+}
+
+/// Translate QPA's cached `MinimalGeneratingSetOfModule(M)` construction.
+///
+/// QPA takes the vertex-major basis of the canonical top and lifts every
+/// basis element through `TopOfModuleProjection` using its chosen natural
+/// quotient representatives.
+///
+/// # Errors
+///
+/// Propagates top construction and exact preimage solving. A missing lift is
+/// reported as an internal source-translation failure.
+pub fn minimal_generating_set_of_module<F: Field>(
+    module: PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
+    let projection = top_of_module_projection(module)?;
+    projection
+        .range()
+        .basis_elements()
+        .iter()
+        .map(|basis_element| {
+            projection
+                .preimage_representative(basis_element)?
+                .ok_or(PathAlgebraModuleError::MissingTopBasisPreimage)
+        })
+        .collect()
+}
+
+/// Translate QPA's arrow-kernel `SocleOfModuleInclusion(M)` method.
+///
+/// At each vertex with outgoing arrows, the source method concatenates their
+/// action rows and takes GAP's left nullspace. Sink spaces are retained in
+/// full, and zero spaces preserve QPA's physical `1 x 1` zero matrix.
+///
+/// # Errors
+///
+/// Propagates exact matrix arithmetic and checked module/map construction.
+pub fn socle_of_module_inclusion<F: Field>(
+    module: PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if module.dimension() == 0 {
+        return zero_module_mapping(module.clone(), module);
+    }
+
+    let algebra = module.right_acting_algebra();
+    let field = algebra.field().clone();
+    let arrows = algebra.quiver().arrows().collect::<Vec<_>>();
+    let mut socle_dimensions = Vec::with_capacity(module.dimension_vector().len());
+    let mut inclusion_matrices = Vec::with_capacity(module.dimension_vector().len());
+
+    for (vertex, &dimension) in module.dimension_vector().iter().enumerate() {
+        let outgoing = arrows
+            .iter()
+            .filter(|arrow| arrow.source().index().zero_based() == vertex)
+            .collect::<Vec<_>>();
+        if dimension == 0 {
+            socle_dimensions.push(0);
+            inclusion_matrices.push(DenseMatrix::zero(1, 1, field.clone()));
+            continue;
+        }
+        if outgoing.is_empty() {
+            socle_dimensions.push(dimension);
+            inclusion_matrices.push(DenseMatrix::identity(dimension, field.clone()));
+            continue;
+        }
+
+        let concatenated_columns = outgoing
+            .iter()
+            .map(|arrow| module.dimension_vector()[arrow.target().index().zero_based()])
+            .sum::<usize>();
+        let mut entries = Vec::with_capacity(dimension * concatenated_columns);
+        for row in 0..dimension {
+            for arrow in &outgoing {
+                let target = arrow.target().index().zero_based();
+                let action = logical_submatrix(
+                    &module.arrow_matrices()[arrow.index().zero_based()],
+                    dimension,
+                    module.dimension_vector()[target],
+                )?;
+                entries.extend_from_slice(action.row(row));
+            }
+        }
+        let concatenated =
+            DenseMatrix::from_flat(dimension, concatenated_columns, entries, field.clone())?;
+        let kernel = concatenated.nullspace_rows();
+        socle_dimensions.push(kernel.nrows());
+        if kernel.nrows() == 0 {
+            inclusion_matrices.push(DenseMatrix::zero(1, dimension, field.clone()));
+        } else {
+            inclusion_matrices.push(kernel);
+        }
+    }
+
+    let socle = right_module_over_path_algebra(
+        module.right_acting_algebra().clone(),
+        socle_dimensions,
+        &[],
+    )?
+    .ok_or(PathAlgebraModuleError::GeneratedSocleViolatesRelations)?;
+    right_module_hom_over_algebra(socle, module, inclusion_matrices)
+}
+
+/// Return QPA's `SocleOfModule(M)` object as the source of its inclusion.
+///
+/// # Errors
+///
+/// Propagates [`socle_of_module_inclusion`].
+pub fn socle_of_module<F: Field>(
+    module: PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    Ok(socle_of_module_inclusion(module)?.source().clone())
+}
+
+/// Translate the earlier, runtime-shadowed QPA `RightFacApproximation`
+/// method from `modulehom.gi:1735-1750`.
+///
+/// QPA later installs a higher-ranked method on the synonymous
+/// `TraceOfModule` operation; user-facing aliases therefore call
+/// [`trace_of_module`]. This helper retains the earlier source algorithm for
+/// the operation ledger and method-level differential tests.
+///
+/// # Errors
+///
+/// Rejects different acting algebras and propagates Hom, image, and
+/// subrepresentation construction failures.
+#[doc(hidden)]
+pub fn right_fac_approximation_via_all_basis_images<F: Field>(
+    module: &PathAlgebraModule<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    let homomorphisms = hom_over_algebra(module, target)?
+        .ok_or(PathAlgebraModuleError::DifferentHomomorphismAlgebras)?;
+    let basis = module.basis_elements();
+    let mut generators = Vec::new();
+    for homomorphism in homomorphisms {
+        generators.extend(homomorphism.images_set(&basis)?);
+    }
+    subrepresentation_inclusion(target.clone(), &generators)
+}
+
+/// Translate QPA's selected `TraceOfModule(M, N)` method.
+///
+/// This is also the operation behind `RightFacMApproximation`,
+/// `RightFacApproximation`, and `MinimalRightFacMApproximation`. QPA orders
+/// the generators first by a minimal top lift of `M`, then by its ordered Hom
+/// basis, before closing their images inside `N`.
+///
+/// # Errors
+///
+/// Rejects modules over different algebras and propagates top, Hom, image,
+/// zero-module, and subrepresentation construction failures.
+pub fn trace_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if module.right_acting_algebra() != target.right_acting_algebra() {
+        return Err(PathAlgebraModuleError::DifferentHomomorphismAlgebras);
+    }
+    if module.dimension() == 0 || target.dimension() == 0 {
+        return zero_submodule_inclusion(target);
+    }
+    let homomorphisms = hom_over_algebra(module, target)?
+        .ok_or(PathAlgebraModuleError::DifferentHomomorphismAlgebras)?;
+    if homomorphisms.is_empty() {
+        return zero_submodule_inclusion(target);
+    }
+    let generators = minimal_generating_set_of_module(module.clone())?;
+    let mut trace_generators = Vec::with_capacity(generators.len() * homomorphisms.len());
+    for generator in &generators {
+        for homomorphism in &homomorphisms {
+            trace_generators.push(homomorphism.image(generator)?);
+        }
+    }
+    subrepresentation_inclusion(target.clone(), &trace_generators)
+}
+
+/// QPA synonym of [`trace_of_module`].
+///
+/// # Errors
+///
+/// Propagates [`trace_of_module`].
+pub fn right_fac_approximation<F: Field>(
+    module: &PathAlgebraModule<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    trace_of_module(module, target)
+}
+
+/// QPA synonym of [`trace_of_module`].
+///
+/// # Errors
+///
+/// Propagates [`trace_of_module`].
+pub fn right_fac_m_approximation<F: Field>(
+    module: &PathAlgebraModule<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    trace_of_module(module, target)
+}
+
+/// QPA synonym of [`trace_of_module`].
+///
+/// # Errors
+///
+/// Propagates [`trace_of_module`].
+pub fn minimal_right_fac_m_approximation<F: Field>(
+    module: &PathAlgebraModule<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    trace_of_module(module, target)
+}
+
+fn zero_submodule_inclusion<F: Field>(
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    let vertex_count = target.dimension_vector().len();
+    let zero = right_module_over_path_algebra(
+        target.right_acting_algebra().clone(),
+        vec![0; vertex_count],
+        &[],
+    )?
+    .ok_or(PathAlgebraModuleError::GeneratedZeroModuleViolatesRelations)?;
+    zero_module_mapping(zero, target.clone())
 }
 
 #[derive(Clone, Debug)]
@@ -2438,6 +2744,8 @@ fn right_module_over_path_algebra_impl<F: Field>(
         dual_weak: RwLock::new(None),
         dual_strong: OnceLock::new(),
         endomorphism_algebra: OnceLock::new(),
+        top_module: OnceLock::new(),
+        top_projection_weak: RwLock::new(None),
     }))))
 }
 
@@ -2524,6 +2832,12 @@ pub enum PathAlgebraModuleError {
     /// GAP's `DirectSumOfAlgebras` rejects the empty list for the zero module.
     #[error("EndOverAlgebra cannot form a direct sum for a zero module")]
     EmptyEndomorphismDirectSum,
+    /// The arrow-kernel construction must define a module satisfying the relations.
+    #[error("the generated socle module does not satisfy the algebra relations")]
+    GeneratedSocleViolatesRelations,
+    /// The all-zero representation must satisfy every supported algebra relation.
+    #[error("the generated zero module does not satisfy the algebra relations")]
+    GeneratedZeroModuleViolatesRelations,
     /// A module element needs one coordinate row per quiver vertex.
     #[error("module element has {actual} vertex rows, expected {expected}")]
     ElementVertexCount {
@@ -2707,8 +3021,10 @@ mod tests {
         NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleMatrix, cokernel_projection,
         end_over_algebra, hom_over_algebra, hom_over_algebra_with_basis_function,
         identity_module_mapping, image_projection_inclusion, kernel_inclusion,
-        radical_of_module_inclusion, right_module_hom_over_algebra, right_module_over_path_algebra,
-        top_of_module_homomorphism, top_of_module_projection, zero_module_mapping,
+        minimal_generating_set_of_module, radical_of_module_inclusion, right_fac_approximation,
+        right_fac_approximation_via_all_basis_images, right_module_hom_over_algebra,
+        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion, top_of_module,
+        top_of_module_homomorphism, top_of_module_projection, trace_of_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -3276,6 +3592,163 @@ mod tests {
             end_over_algebra(&zero_module).unwrap_err(),
             PathAlgebraModuleError::EmptyEndomorphismDirectSum
         );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn rational_minimal_generators_socle_and_trace_match_qpa() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)], vec![q(0)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let minimal = minimal_generating_set_of_module(module.clone()).unwrap();
+        assert_eq!(minimal.len(), 2);
+        assert_eq!(
+            minimal[0].external_representation(),
+            &[vec![q(1), q(0)], vec![q(0)]]
+        );
+        assert_eq!(
+            minimal[1].external_representation(),
+            &[vec![q(0), q(1)], vec![q(0)]]
+        );
+        let top_projection = top_of_module_projection(module.clone()).unwrap();
+        assert!(top_projection.is_identical(&top_of_module_projection(module.clone()).unwrap()));
+        let top = top_of_module(module.clone()).unwrap();
+        assert!(top.is_identical(&top_of_module(module.clone()).unwrap()));
+        assert!(top.is_identical(top_projection.range()));
+
+        let socle = socle_of_module_inclusion(module.clone()).unwrap();
+        assert_eq!(socle.source().dimension_vector(), &[1, 1]);
+        assert_eq!(socle.range(), &module);
+        assert_eq!(
+            socle.vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(vec![vec![q(0), q(1)]], Q).unwrap(),
+                DenseMatrix::identity(1, Q),
+            ]
+        );
+        assert_eq!(
+            socle_of_module(module.clone()).unwrap().dimension_vector(),
+            &[1, 1]
+        );
+
+        let zero_module = right_module_over_path_algebra(algebra.clone(), vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+        let zero_socle = socle_of_module_inclusion(zero_module.clone()).unwrap();
+        assert!(zero_socle.source().is_identical(&zero_module));
+        assert!(zero_socle.range().is_identical(&zero_module));
+        assert!(
+            minimal_generating_set_of_module(zero_module.clone())
+                .unwrap()
+                .is_empty()
+        );
+
+        let target = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1), q(1)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+
+        let zero_trace = trace_of_module(&simple_one, &target).unwrap();
+        assert_eq!(zero_trace.source().dimension_vector(), &[0, 0]);
+        assert_eq!(zero_trace.range(), &target);
+        assert_eq!(
+            zero_trace.vertex_matrices(),
+            &[DenseMatrix::zero(1, 1, Q), DenseMatrix::zero(1, 2, Q),]
+        );
+        assert_eq!(trace_of_module(&zero_module, &target).unwrap(), zero_trace);
+        let zero_target_trace = trace_of_module(&simple_two, &zero_module).unwrap();
+        assert_eq!(zero_target_trace.source().dimension_vector(), &[0, 0]);
+        assert!(zero_target_trace.range().is_identical(&zero_module));
+
+        let trace = trace_of_module(&simple_two, &target).unwrap();
+        assert_eq!(trace.source().dimension_vector(), &[0, 2]);
+        assert_eq!(
+            trace.vertex_matrices(),
+            &[DenseMatrix::zero(1, 1, Q), DenseMatrix::identity(2, Q)]
+        );
+        assert_eq!(
+            right_fac_approximation(&simple_two, &target).unwrap(),
+            trace
+        );
+        assert_eq!(
+            right_fac_approximation_via_all_basis_images(&simple_two, &target).unwrap(),
+            trace
+        );
+
+        let foreign = QuiverAlgebra::Path(
+            PathAlgebra::new(Q, Quiver::from_indexed(1, vec![]).unwrap()).unwrap(),
+        );
+        let foreign_module = right_module_over_path_algebra(foreign, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            trace_of_module(&foreign_module, &target).unwrap_err(),
+            PathAlgebraModuleError::DifferentHomomorphismAlgebras
+        );
+    }
+
+    #[test]
+    fn binary_socle_and_trace_use_the_same_qpa_nullspaces() {
+        let e = |value: i64| Z2.nth(Integer::from(value));
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![e(1)], vec![e(0)]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let socle = socle_of_module_inclusion(module).unwrap();
+        assert_eq!(socle.source().dimension_vector(), &[1, 1]);
+        assert_eq!(
+            socle.vertex_matrices()[0],
+            DenseMatrix::from_rows(vec![vec![e(0), e(1)]], Z2).unwrap()
+        );
+
+        let target = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![e(1), e(1)]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let trace = trace_of_module(&simple_two, &target).unwrap();
+        assert_eq!(trace.source().dimension_vector(), &[0, 2]);
+        assert_eq!(trace.vertex_matrices()[1], DenseMatrix::identity(2, Z2));
     }
 
     #[test]
