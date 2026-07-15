@@ -519,8 +519,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   idempotents, and the exact tip-peeling `PathAlgebraElementTerms` loop are
   also pinned over `QQ` and `GF(2)`. `SimpleTensor` now preserves QPA's zero
   short-circuit, Cartesian tip-record expansion, coefficient products, and
-  target-quotient reduction. Relation-bearing algebra tensor products remain
-  next in this layer.
+  target-quotient reduction. Full tensor products now retain QPA's distinct
+  ordered defining-relation and theorem-supplied Gröbner lists, product and
+  algebra decompositions, quotient normal forms, field check, and empty-ideal
+  source failure. Tensor inclusions and enveloping-algebra methods remain.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.

@@ -17,6 +17,7 @@ pub mod qpa_conversion;
 pub mod reduction;
 pub mod reptype;
 pub mod sgrobner;
+pub mod tensor;
 
 pub use heap::{TodoHeap, TodoHeapError};
 pub use invlenlex::{
@@ -85,4 +86,8 @@ pub use reptype::{
 pub use sgrobner::{
     SgrobnerError, SgrobnerResult, all_obstructions, sgrobner, sgrobner_loops,
     sgrobner_with_options, strong_normal_form_trees,
+};
+pub use tensor::{
+    EMPTY_TENSOR_RELATIONS_ERROR, TensorProductAlgebra, TensorProductError,
+    tensor_product_of_algebras, tensor_product_of_path_algebras,
 };

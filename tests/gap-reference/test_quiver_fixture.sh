@@ -46,6 +46,18 @@ compare_fixture \
     "$repo_root/tests/gap-reference/pathalgtensor_simple.g" \
     "$repo_root/tests/fixtures/pathalgtensor_simple.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/pathalgtensor_full.g" \
+    "$repo_root/tests/fixtures/pathalgtensor_full.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalgtensor_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an empty tensor-product presentation" >&2
+    exit 1
+fi
+grep -Fq "first argument must be a ring" "$actual"
+grep -Fq "second argument must be a list of generators" "$actual"
+compare_fixture \
     "$repo_root/tests/gap-reference/orderings.g" \
     "$repo_root/tests/fixtures/orderings.schema-v1.json"
 compare_fixture \

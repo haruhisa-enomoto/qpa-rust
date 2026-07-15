@@ -19655,9 +19655,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 56
 source_end = 56
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_product_of_algebras"
+tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json","tests/gap-reference/pathalgtensor_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -19668,9 +19668,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 57
 source_end = 57
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_product_of_path_algebras"
+tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json","tests/gap-reference/pathalgtensor_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -19681,9 +19681,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 58
 source_end = 58
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "TensorProductAlgebra::factors"
+tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20032,9 +20032,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 234
 source_end = 240
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_product_of_algebras"
+tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json","tests/gap-reference/pathalgtensor_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -20045,9 +20045,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 255
 source_end = 349
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_product_of_path_algebras"
+tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json","tests/gap-reference/pathalgtensor_empty_error.g"]
 deviations = []
 
 [[entries]]
