@@ -81,6 +81,18 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_split.g" \
     "$repo_root/tests/fixtures/modulehom_split.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_minimal.g" \
+    "$repo_root/tests/fixtures/modulehom_minimal.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_minimal_zero_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted MoreLeftMinimalVersion of a zero endomorphism" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`*' on 2 arguments" "$actual"
+grep -Fq "modulehom.gi:3174" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_stable_zero_error.g" \
     >"$actual" 2>&1

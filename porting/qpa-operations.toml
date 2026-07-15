@@ -12349,9 +12349,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 57
 source_end = 57
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "more_right_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12362,9 +12362,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 58
 source_end = 58
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "more_left_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json","tests/gap-reference/modulehom_minimal_zero_error.g"]
 deviations = []
 
 [[entries]]
@@ -12375,9 +12375,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 59
 source_end = 59
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12388,9 +12388,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 60
 source_end = 60
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json","tests/gap-reference/modulehom_minimal_zero_error.g"]
 deviations = []
 
 [[entries]]
@@ -13571,9 +13571,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3117
 source_end = 3147
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "more_right_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13584,9 +13584,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3149
 source_end = 3181
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "more_left_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json","tests/gap-reference/modulehom_minimal_zero_error.g"]
 deviations = []
 
 [[entries]]
@@ -13597,9 +13597,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3192
 source_end = 3216
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13610,9 +13610,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3227
 source_end = 3251
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_minimal_version"
+tests = ["tests/fixtures/modulehom_minimal.schema-v1.json","tests/gap-reference/modulehom_minimal_zero_error.g"]
 deviations = []
 
 [[entries]]

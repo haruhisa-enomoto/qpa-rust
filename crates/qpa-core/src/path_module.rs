@@ -727,6 +727,8 @@ struct PathAlgebraModuleHomomorphismData<F: Field> {
     left_inverse_fail: OnceLock<()>,
     right_inverse_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     right_inverse_fail: OnceLock<()>,
+    right_minimal_version: OnceLock<MinimalVersionAttribute<F>>,
+    left_minimal_version: OnceLock<MinimalVersionAttribute<F>>,
     kernel_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     image_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     cokernel_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
@@ -754,6 +756,31 @@ pub type PathAlgebraModuleHomomorphismTriple<F> = (
     PathAlgebraModuleHomomorphism<F>,
     PathAlgebraModuleHomomorphism<F>,
 );
+
+/// The heterogeneous result of QPA's one-step minimal-version operations.
+#[derive(Clone, Debug)]
+pub enum MoreMinimalVersionResult<F: Field> {
+    /// QPA returned the identical entered map because no summand was removed.
+    Unchanged(PathAlgebraModuleHomomorphism<F>),
+    /// QPA returned the retained map followed by the removed zero component.
+    Reduced {
+        /// The restriction/corestriction that remains after one step.
+        minimal_part: PathAlgebraModuleHomomorphism<F>,
+        /// The zero component supported on the summand removed in this step.
+        removed_part: PathAlgebraModuleHomomorphism<F>,
+    },
+}
+
+/// QPA's minimal map together with the summands removed in successive steps.
+pub type PathAlgebraModuleMinimalVersion<F> =
+    (PathAlgebraModuleHomomorphism<F>, Vec<PathAlgebraModule<F>>);
+
+#[derive(Debug)]
+struct MinimalVersionAttribute<F: Field> {
+    // `None` denotes the identical owning map and avoids an `Arc` self-cycle.
+    other_homomorphism: Option<PathAlgebraModuleHomomorphism<F>>,
+    removed_modules: Vec<PathAlgebraModule<F>>,
+}
 
 #[derive(Clone, Debug)]
 struct WeakPathAlgebraModuleHomomorphism<F: Field>(Weak<PathAlgebraModuleHomomorphismData<F>>);
@@ -1623,6 +1650,74 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
             .clone()
     }
 
+    fn cached_right_minimal_version(&self) -> Option<PathAlgebraModuleMinimalVersion<F>> {
+        self.0.right_minimal_version.get().map(|attribute| {
+            (
+                attribute
+                    .other_homomorphism
+                    .clone()
+                    .unwrap_or_else(|| self.clone()),
+                attribute.removed_modules.clone(),
+            )
+        })
+    }
+
+    fn cache_right_minimal_version(
+        &self,
+        homomorphism: &Self,
+        removed_modules: &[PathAlgebraModule<F>],
+    ) -> PathAlgebraModuleMinimalVersion<F> {
+        let attribute = self
+            .0
+            .right_minimal_version
+            .get_or_init(|| MinimalVersionAttribute {
+                other_homomorphism: (!self.is_identical(homomorphism))
+                    .then(|| homomorphism.clone()),
+                removed_modules: removed_modules.to_vec(),
+            });
+        (
+            attribute
+                .other_homomorphism
+                .clone()
+                .unwrap_or_else(|| self.clone()),
+            attribute.removed_modules.clone(),
+        )
+    }
+
+    fn cached_left_minimal_version(&self) -> Option<PathAlgebraModuleMinimalVersion<F>> {
+        self.0.left_minimal_version.get().map(|attribute| {
+            (
+                attribute
+                    .other_homomorphism
+                    .clone()
+                    .unwrap_or_else(|| self.clone()),
+                attribute.removed_modules.clone(),
+            )
+        })
+    }
+
+    fn cache_left_minimal_version(
+        &self,
+        homomorphism: &Self,
+        removed_modules: &[PathAlgebraModule<F>],
+    ) -> PathAlgebraModuleMinimalVersion<F> {
+        let attribute = self
+            .0
+            .left_minimal_version
+            .get_or_init(|| MinimalVersionAttribute {
+                other_homomorphism: (!self.is_identical(homomorphism))
+                    .then(|| homomorphism.clone()),
+                removed_modules: removed_modules.to_vec(),
+            });
+        (
+            attribute
+                .other_homomorphism
+                .clone()
+                .unwrap_or_else(|| self.clone()),
+            attribute.removed_modules.clone(),
+        )
+    }
+
     fn set_kernel_of_what(&self, homomorphism: &Self) {
         *self
             .0
@@ -1723,6 +1818,8 @@ pub fn right_module_hom_over_algebra<F: Field>(
             left_inverse_fail: OnceLock::new(),
             right_inverse_weak: RwLock::new(None),
             right_inverse_fail: OnceLock::new(),
+            right_minimal_version: OnceLock::new(),
+            left_minimal_version: OnceLock::new(),
             kernel_of_what: RwLock::new(None),
             image_of_what: RwLock::new(None),
             cokernel_of_what: RwLock::new(None),
@@ -1906,6 +2003,192 @@ pub fn is_split_epimorphism<F: Field>(
     }
     let value = left_inverse_of_homomorphism(homomorphism)?.is_some();
     Ok(homomorphism.cache_is_split_epimorphism(value))
+}
+
+/// Translate QPA's one-step `MoreRightMinimalVersion(f)` operation.
+///
+/// Hom bases, the nested loop order, the Fitting exponent, and the returned
+/// kernel/image restrictions follow `modulehom.gi` literally. `Unchanged`
+/// contains the identical entered map, matching QPA's heterogeneous map-or-list
+/// result.
+///
+/// # Errors
+///
+/// Propagates kernel, Hom-space, composition, power, and image construction
+/// failures.
+pub fn more_right_minimal_version<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<MoreMinimalVersionResult<F>, PathAlgebraModuleError> {
+    let source = homomorphism.source();
+    let kernel = kernel_inclusion(homomorphism)?;
+    let kernel_module = kernel.source();
+    let hom_source_kernel = hom_over_algebra(source, kernel_module)?
+        .ok_or(PathAlgebraModuleError::InternalMinimalHomRejected)?;
+    if hom_source_kernel.is_empty() {
+        return Ok(MoreMinimalVersionResult::Unchanged(homomorphism.clone()));
+    }
+    let hom_kernel_kernel = hom_over_algebra(kernel_module, kernel_module)?
+        .ok_or(PathAlgebraModuleError::InternalMinimalHomRejected)?;
+    let exponent = kernel_module
+        .dimension_vector()
+        .iter()
+        .chain(source.dimension_vector())
+        .copied()
+        .max()
+        .unwrap_or(0);
+
+    for source_to_kernel in &hom_source_kernel {
+        for kernel_endomorphism in &hom_kernel_kernel {
+            let kernel_cycle = kernel
+                .compose(source_to_kernel)?
+                .compose(kernel_endomorphism)?;
+            let fitting_kernel = homomorphism_power(&kernel_cycle, exponent)?;
+            if !fitting_kernel.is_zero() {
+                let source_cycle = source_to_kernel
+                    .compose(kernel_endomorphism)?
+                    .compose(&kernel)?;
+                let fitting_source = homomorphism_power(&source_cycle, exponent)?;
+                return Ok(MoreMinimalVersionResult::Reduced {
+                    minimal_part: kernel_inclusion(&fitting_source)?.compose(homomorphism)?,
+                    removed_part: image_inclusion(&fitting_source)?.compose(homomorphism)?,
+                });
+            }
+        }
+    }
+    Ok(MoreMinimalVersionResult::Unchanged(homomorphism.clone()))
+}
+
+/// Translate QPA's one-step `MoreLeftMinimalVersion(f)` operation.
+///
+/// This preserves QPA's cokernel Hom-basis order, its Fitting powers, and the
+/// right inverse used to corestrict to the retained kernel summand.
+///
+/// # Errors
+///
+/// Propagates cokernel, Hom-space, composition, power, split-inverse, kernel,
+/// and image construction failures. An absent internal Fitting retraction is
+/// QPA's subsequent map-times-`false` error and is reported explicitly.
+pub fn more_left_minimal_version<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<MoreMinimalVersionResult<F>, PathAlgebraModuleError> {
+    let range = homomorphism.range();
+    let cokernel = cokernel_projection(homomorphism)?;
+    let cokernel_module = cokernel.range();
+    let hom_cokernel_range = hom_over_algebra(cokernel_module, range)?
+        .ok_or(PathAlgebraModuleError::InternalMinimalHomRejected)?;
+    if hom_cokernel_range.is_empty() {
+        return Ok(MoreMinimalVersionResult::Unchanged(homomorphism.clone()));
+    }
+    let hom_cokernel_cokernel = hom_over_algebra(cokernel_module, cokernel_module)?
+        .ok_or(PathAlgebraModuleError::InternalMinimalHomRejected)?;
+    let exponent = range
+        .dimension_vector()
+        .iter()
+        .chain(cokernel_module.dimension_vector())
+        .copied()
+        .max()
+        .unwrap_or(0);
+
+    for cokernel_endomorphism in &hom_cokernel_cokernel {
+        for cokernel_to_range in &hom_cokernel_range {
+            let cokernel_cycle = cokernel_endomorphism
+                .compose(cokernel_to_range)?
+                .compose(&cokernel)?;
+            let fitting_cokernel = homomorphism_power(&cokernel_cycle, exponent)?;
+            if !fitting_cokernel.is_zero() {
+                let range_cycle = cokernel
+                    .compose(cokernel_endomorphism)?
+                    .compose(cokernel_to_range)?;
+                let fitting_range = homomorphism_power(&range_cycle, exponent)?;
+                let retained_inclusion = kernel_inclusion(&fitting_range)?;
+                let retraction = right_inverse_of_homomorphism(&retained_inclusion)?
+                    .ok_or(PathAlgebraModuleError::InternalMinimalKernelNotSplit)?;
+                return Ok(MoreMinimalVersionResult::Reduced {
+                    minimal_part: homomorphism.compose(&retraction)?,
+                    removed_part: homomorphism.compose(&image_projection(&fitting_range)?)?,
+                });
+            }
+        }
+    }
+    Ok(MoreMinimalVersionResult::Unchanged(homomorphism.clone()))
+}
+
+/// Translate QPA's cached `RightMinimalVersion(f)` attribute.
+///
+/// One source summand is removed per successful one-step call and recorded in
+/// order. The final map has QPA's `IsRightMinimal` property installed as true.
+///
+/// # Errors
+///
+/// Propagates [`more_right_minimal_version`].
+pub fn right_minimal_version<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleMinimalVersion<F>, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_right_minimal_version() {
+        return Ok(cached);
+    }
+    let mut removed_modules = Vec::new();
+    let mut minimal = homomorphism.clone();
+    loop {
+        match more_right_minimal_version(&minimal)? {
+            MoreMinimalVersionResult::Unchanged(_) => break,
+            MoreMinimalVersionResult::Reduced {
+                minimal_part,
+                removed_part,
+            } => {
+                removed_modules.push(removed_part.source().clone());
+                minimal = minimal_part;
+            }
+        }
+    }
+    let _ = minimal.cache_is_right_minimal(true);
+    Ok(homomorphism.cache_right_minimal_version(&minimal, &removed_modules))
+}
+
+/// Translate QPA's cached `LeftMinimalVersion(f)` attribute.
+///
+/// One range summand is removed per successful one-step call and recorded in
+/// order. The final map has QPA's `IsLeftMinimal` property installed as true.
+///
+/// # Errors
+///
+/// Propagates [`more_left_minimal_version`].
+pub fn left_minimal_version<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleMinimalVersion<F>, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_left_minimal_version() {
+        return Ok(cached);
+    }
+    let mut removed_modules = Vec::new();
+    let mut minimal = homomorphism.clone();
+    loop {
+        match more_left_minimal_version(&minimal)? {
+            MoreMinimalVersionResult::Unchanged(_) => break,
+            MoreMinimalVersionResult::Reduced {
+                minimal_part,
+                removed_part,
+            } => {
+                removed_modules.push(removed_part.range().clone());
+                minimal = minimal_part;
+            }
+        }
+    }
+    let _ = minimal.cache_is_left_minimal(true);
+    Ok(homomorphism.cache_left_minimal_version(&minimal, &removed_modules))
+}
+
+fn homomorphism_power<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+    exponent: usize,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if exponent == 0 {
+        return identity_module_mapping(homomorphism.source().clone());
+    }
+    let mut power = homomorphism.clone();
+    for _ in 1..exponent {
+        power = power.compose(homomorphism)?;
+    }
+    Ok(power)
 }
 
 fn solve_map_linear_combination<F: Field>(
@@ -4397,6 +4680,14 @@ pub enum PathAlgebraModuleError {
     /// acting algebra.
     #[error("HomOverAlgebra unexpectedly rejected a splitting pair")]
     InternalSplittingHomRejected,
+    /// Kernel/cokernel-derived modules necessarily share the entered map's
+    /// acting algebra during a minimal-version computation.
+    #[error("HomOverAlgebra unexpectedly rejected a minimal-version pair")]
+    InternalMinimalHomRejected,
+    /// QPA's Fitting decomposition requires this canonical kernel inclusion
+    /// to have the retraction used by `MoreLeftMinimalVersion`.
+    #[error("the internal Fitting kernel inclusion has no right inverse")]
+    InternalMinimalKernelNotSplit,
     /// GAP's splitting solver returns one coefficient per reverse-Hom basis
     /// vector.
     #[error("splitting combination has {actual} coefficients, expected {expected}")]
@@ -4705,19 +4996,21 @@ mod tests {
     };
 
     use super::{
-        NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
-        PathAlgebraModuleMatrix, cokernel_projection, direct_sum_inclusions,
-        direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, hom_over_algebra,
-        hom_over_algebra_with_basis_function, identity_module_mapping, image_projection_inclusion,
-        intersection_of_submodules, intersection_of_submodules_list, is_split_epimorphism,
-        is_split_monomorphism, kernel_inclusion, left_inverse_of_homomorphism,
-        minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_image,
-        morphism_on_kernel, natural_endomorphism_quotient_by_ideal, pull_back, push_out,
-        radical_of_module_inclusion, reject_of_module, right_fac_approximation,
+        MoreMinimalVersionResult, NamedArrowMatrix, PathAlgebraModuleError,
+        PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, cokernel_projection,
+        direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
+        hom_over_algebra, hom_over_algebra_with_basis_function, identity_module_mapping,
+        image_projection_inclusion, intersection_of_submodules, intersection_of_submodules_list,
+        is_split_epimorphism, is_split_monomorphism, kernel_inclusion,
+        left_inverse_of_homomorphism, left_minimal_version, minimal_generating_set_of_module,
+        more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
+        morphism_on_image, morphism_on_kernel, natural_endomorphism_quotient_by_ideal, pull_back,
+        push_out, radical_of_module_inclusion, reject_of_module, right_fac_approximation,
         right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
-        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
-        socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list, top_of_module,
-        top_of_module_homomorphism, top_of_module_projection, trace_of_module, zero_module_mapping,
+        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
+        socle_of_module, socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list,
+        top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
+        zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -4917,6 +5210,154 @@ mod tests {
                 property_left.compose(&property_projection).unwrap()
                     == identity_module_mapping(simple_one).unwrap(),
             ],
+        })
+    }
+
+    fn more_minimal_json<F: Field>(
+        result: &MoreMinimalVersionResult<F>,
+        original: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        match result {
+            MoreMinimalVersionResult::Unchanged(homomorphism) => json!({
+                "changed": false,
+                "same_object": homomorphism.is_identical(original),
+                "map": module_map_json(homomorphism, coefficient),
+            }),
+            MoreMinimalVersionResult::Reduced {
+                minimal_part,
+                removed_part,
+            } => json!({
+                "changed": true,
+                "minimal_part": module_map_json(minimal_part, coefficient),
+                "removed_part": module_map_json(removed_part, coefficient),
+            }),
+        }
+    }
+
+    fn minimal_version_json<F: Field>(
+        result: &(
+            PathAlgebraModuleHomomorphism<F>,
+            Vec<super::PathAlgebraModule<F>>,
+        ),
+        original: &PathAlgebraModuleHomomorphism<F>,
+        right: bool,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let property = if right {
+            result.0.cached_is_right_minimal()
+        } else {
+            result.0.cached_is_left_minimal()
+        };
+        json!({
+            "map": module_map_json(&result.0, coefficient),
+            "removed_dimensions": result.1.iter()
+                .map(super::PathAlgebraModule::dimension_vector).collect::<Vec<_>>(),
+            "map_is_original": result.0.is_identical(original),
+            "property_bound": property.is_some(),
+            "property_value": property.unwrap_or(false),
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_minimal_case<F: Field>(
+        field: F,
+        integer: impl Fn(i64) -> F::Element + Copy,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let one = right_module_over_path_algebra(algebra.clone(), vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let three = right_module_over_path_algebra(algebra, vec![3], &[])
+            .unwrap()
+            .unwrap();
+        let right_matrix = || {
+            DenseMatrix::from_rows(
+                vec![vec![integer(1)], vec![integer(0)], vec![integer(0)]],
+                field.clone(),
+            )
+            .unwrap()
+        };
+        let left_matrix = || {
+            DenseMatrix::from_rows(
+                vec![vec![integer(1), integer(0), integer(0)]],
+                field.clone(),
+            )
+            .unwrap()
+        };
+        let right_more_map =
+            right_module_hom_over_algebra(three.clone(), one.clone(), vec![right_matrix()])
+                .unwrap();
+        let right_more = more_right_minimal_version(&right_more_map).unwrap();
+        let left_more_map =
+            right_module_hom_over_algebra(one.clone(), three.clone(), vec![left_matrix()]).unwrap();
+        let left_more = more_left_minimal_version(&left_more_map).unwrap();
+
+        let right_map =
+            right_module_hom_over_algebra(three.clone(), one.clone(), vec![right_matrix()])
+                .unwrap();
+        let right_result = right_minimal_version(&right_map).unwrap();
+        let right_again = right_minimal_version(&right_map).unwrap();
+        let left_map =
+            right_module_hom_over_algebra(one.clone(), three, vec![left_matrix()]).unwrap();
+        let left_result = left_minimal_version(&left_map).unwrap();
+        let left_again = left_minimal_version(&left_map).unwrap();
+        let identity = identity_module_mapping(one.clone()).unwrap();
+        let right_more_unchanged = more_right_minimal_version(&identity).unwrap();
+        let left_more_unchanged = more_left_minimal_version(&identity).unwrap();
+        let right_identity = right_minimal_version(&identity).unwrap();
+        let left_identity = left_minimal_version(&identity).unwrap();
+        let zero_map = zero_module_mapping(one.clone(), one).unwrap();
+        let right_zero = right_minimal_version(&zero_map).unwrap();
+
+        let quiver_a2 =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra_a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver_a2).unwrap());
+        let projective_one = right_module_over_path_algebra(
+            algebra_a2.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![integer(1)]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra_a2, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let direct_sum = direct_sum_of_qpa_modules(&[projective_one, simple_two])
+            .unwrap()
+            .unwrap();
+        let projection = direct_sum_projections(&direct_sum).unwrap()[0].clone();
+        let inclusion = direct_sum_inclusions(&direct_sum).unwrap()[0].clone();
+        let a2_right = right_minimal_version(&projection).unwrap();
+        let a2_left = left_minimal_version(&inclusion).unwrap();
+
+        json!({
+            "right_more": more_minimal_json(&right_more, &right_more_map, coefficient),
+            "left_more": more_minimal_json(&left_more, &left_more_map, coefficient),
+            "right_more_unchanged": more_minimal_json(
+                &right_more_unchanged, &identity, coefficient),
+            "left_more_unchanged": more_minimal_json(
+                &left_more_unchanged, &identity, coefficient),
+            "right_minimal": minimal_version_json(&right_result, &right_map, true, coefficient),
+            "left_minimal": minimal_version_json(&left_result, &left_map, false, coefficient),
+            "attribute_cache_identity": [
+                right_result.0.is_identical(&right_again.0),
+                right_result.1.iter().zip(&right_again.1)
+                    .all(|(left, right)| left.is_identical(right)),
+                left_result.0.is_identical(&left_again.0),
+                left_result.1.iter().zip(&left_again.1)
+                    .all(|(left, right)| left.is_identical(right)),
+            ],
+            "right_identity": minimal_version_json(&right_identity, &identity, true, coefficient),
+            "left_identity": minimal_version_json(&left_identity, &identity, false, coefficient),
+            "right_zero": minimal_version_json(&right_zero, &zero_map, true, coefficient),
+            "a2_right": minimal_version_json(&a2_right, &projection, true, coefficient),
+            "a2_left": minimal_version_json(&a2_left, &inclusion, false, coefficient),
         })
     }
 
@@ -5473,6 +5914,49 @@ mod tests {
 
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_minimal_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_minimal.schema-v1.json"
+        ))
+        .unwrap();
+        let rational =
+            modulehom_minimal_case(Q, |value| Q.nth(Integer::from(value)), ToString::to_string);
+        let binary = modulehom_minimal_case(
+            Z2,
+            |value| Z2.nth(Integer::from(value)),
+            |entry| {
+                if Z2.is_zero(entry) {
+                    "0*Z(2)".to_owned()
+                } else {
+                    "Z(2)^0".to_owned()
+                }
+            },
+        );
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn left_minimal_zero_endomorphism_preserves_qpa_f_times_false_failure() {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let one = right_module_over_path_algebra(algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let zero = zero_module_mapping(one.clone(), one).unwrap();
+
+        assert_eq!(
+            more_left_minimal_version(&zero).unwrap_err(),
+            PathAlgebraModuleError::InternalMinimalKernelNotSplit
+        );
+        assert_eq!(
+            left_minimal_version(&zero).unwrap_err(),
+            PathAlgebraModuleError::InternalMinimalKernelNotSplit
+        );
     }
 
     #[test]
