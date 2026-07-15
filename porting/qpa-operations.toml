@@ -12232,9 +12232,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 48
 source_end = 48
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "end_modulo_projectives"
+tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12245,9 +12245,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 49
 source_end = 49
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_hom_mm_to_end_m"
+tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12258,9 +12258,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 50
 source_end = 50
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_end_m_to_hom_mm"
+tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13454,9 +13454,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2774
 source_end = 2794
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "end_modulo_projectives"
+tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13467,9 +13467,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2804
 source_end = 2826
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_hom_mm_to_end_m"
+tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13480,9 +13480,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2835
 source_end = 2860
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_end_m_to_hom_mm"
+tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -6,13 +6,14 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    DenseMatrix, MatrixError, NamedArrowMatrix, PathAlgebraError, PathAlgebraModule,
-    PathAlgebraModuleElement, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
-    PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra, QuiverAlgebraElement,
-    QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
-    direct_sum_of_qpa_modules, direct_sum_projections, hom_over_algebra, include_in_path_algebra,
-    loewy_length_of_module, minimal_generating_set_of_module, project_from_product_quiver,
-    right_module_hom_over_algebra, right_module_over_path_algebra,
+    DenseMatrix, MatrixError, ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix,
+    PathAlgebraError, PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleError,
+    PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra,
+    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct, QuiverProductError,
+    QuotientError, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
+    from_hom_mm_to_end_m, hom_over_algebra, include_in_path_algebra, loewy_length_of_module,
+    minimal_generating_set_of_module, natural_endomorphism_quotient_by_ideal,
+    project_from_product_quiver, right_module_hom_over_algebra, right_module_over_path_algebra,
     right_module_over_path_algebra_with_tensor, top_of_module, zero_module_mapping,
 };
 use thiserror::Error;
@@ -581,6 +582,36 @@ pub fn hom_factoring_through_projectives<F: Field>(
         .collect()
 }
 
+/// Translate QPA's `EndModuloProjOverAlgebra(M)` natural algebra
+/// homomorphism.
+///
+/// This constructs `EndOverAlgebra(M)`, embeds QPA's ordered basis of maps
+/// factoring through projectives as block matrices, forms their two-sided
+/// ideal, and returns the natural quotient map onto the stable endomorphism
+/// algebra.
+///
+/// # Errors
+///
+/// QPA rejects the zero module. Otherwise projective factoring,
+/// endomorphism embedding, ideal closure, and exact quotient failures
+/// propagate.
+pub fn end_modulo_projectives<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<ModuleEndomorphismQuotientHomomorphism<F>, EnvelopingModuleError> {
+    if module.dimension() == 0 {
+        return Err(EnvelopingModuleError::ZeroStableEndomorphismModule);
+    }
+    let endomorphisms = end_over_algebra(module)?;
+    let factor_matrices = hom_factoring_through_projectives(module, module)?
+        .iter()
+        .map(from_hom_mm_to_end_m)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(natural_endomorphism_quotient_by_ideal(
+        &endomorphisms,
+        &factor_matrices,
+    )?)
+}
+
 fn module_map_from_physical_flat<F: Field>(
     source: &PathAlgebraModule<F>,
     range: &PathAlgebraModule<F>,
@@ -949,6 +980,10 @@ pub enum EnvelopingModuleError {
     /// Factoring-through computations require a common acting algebra.
     #[error("the factoring modules are not modules over the same algebra")]
     FactoringModulesOverDifferentAlgebras,
+    /// QPA explicitly rejects the zero module for its stable endomorphism
+    /// quotient operation.
+    #[error("zero module given as input for EndModuleProjOverAlgebra")]
+    ZeroStableEndomorphismModule,
     /// A Hom call cannot reject the checked projective-cover algebra.
     #[error("HomOverAlgebra rejected the projective cover's common algebra")]
     InternalProjectiveHomRejected,
@@ -1024,19 +1059,20 @@ mod tests {
     use qpa_core::{
         ArrowSpec, DenseMatrix, NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule,
         PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, Quiver, QuiverAlgebra,
-        VertexIndex, direct_sum_of_qpa_modules, lifting_inclusion_morphisms,
-        minimal_generating_set_of_module, right_fac_approximation, right_module_hom_over_algebra,
-        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion, top_of_module,
-        top_of_module_projection, trace_of_module, zero_module_mapping,
+        VertexIndex, direct_sum_of_qpa_modules, end_over_algebra, from_end_m_to_hom_mm,
+        from_hom_mm_to_end_m, lifting_inclusion_morphisms, minimal_generating_set_of_module,
+        right_fac_approximation, right_module_hom_over_algebra, right_module_over_path_algebra,
+        socle_of_module, socle_of_module_inclusion, top_of_module, top_of_module_projection,
+        trace_of_module, zero_module_mapping,
     };
     use serde_json::{Value, json};
 
     use super::{
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
         basis_of_projectives, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
-        dual_of_module_homomorphism, hom_factoring_through_projectives, hom_from_projective,
-        indec_projective_modules, is_projective_module, lifting_morphism_from_projective,
-        projective_cover,
+        dual_of_module_homomorphism, end_modulo_projectives, hom_factoring_through_projectives,
+        hom_from_projective, indec_projective_modules, is_projective_module,
+        lifting_morphism_from_projective, projective_cover,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -1614,6 +1650,153 @@ mod tests {
         })
     }
 
+    fn stable_module_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        print_zero_vertex_map: bool,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let natural = end_modulo_projectives(module).unwrap();
+        let factoring = hom_factoring_through_projectives(module, module).unwrap();
+        let factor_matrices = factoring
+            .iter()
+            .map(|map| from_hom_mm_to_end_m(map).unwrap())
+            .collect::<Vec<_>>();
+        let quotient_basis = natural.range().basis_elements();
+        let images = natural
+            .source()
+            .basis_matrices()
+            .iter()
+            .map(|matrix| {
+                natural
+                    .image(matrix)
+                    .unwrap()
+                    .coordinates()
+                    .iter()
+                    .map(coefficient)
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let one = natural.range().one().unwrap().map(|element| {
+            element
+                .coordinates()
+                .iter()
+                .map(coefficient)
+                .collect::<Vec<_>>()
+        });
+        let multiplication = quotient_basis
+            .iter()
+            .map(|left| {
+                quotient_basis
+                    .iter()
+                    .map(|right| {
+                        natural
+                            .range()
+                            .multiply(left, right)
+                            .unwrap()
+                            .coordinates()
+                            .iter()
+                            .map(coefficient)
+                            .collect::<Vec<_>>()
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let roundtrip_matrices = natural
+            .source()
+            .basis_matrices()
+            .iter()
+            .map(|matrix| {
+                from_hom_mm_to_end_m(&from_end_m_to_hom_mm(module, matrix).unwrap()).unwrap()
+            })
+            .collect::<Vec<_>>();
+        let mut value = json!({
+            "end_basis": natural.source().basis_matrices().iter()
+                .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+            "factor_matrices": factor_matrices.iter()
+                .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+            "ideal_basis": natural.range().ideal_basis_matrices().iter()
+                .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+            "kernel_basis": natural.kernel_basis_matrices().iter()
+                .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+            "source_cache_identity": natural.source().is_identical(&end_over_algebra(module).unwrap()),
+            "dimension": natural.range().dimension(),
+            "images": images,
+            "one": one,
+            "multiplication": multiplication,
+            "roundtrip_matrices": roundtrip_matrices.iter()
+                .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+        });
+        if print_zero_vertex_map {
+            value["zero_vertex_map"] = module_map_json(
+                &from_end_m_to_hom_mm(module, &natural.source().basis_matrices()[0]).unwrap(),
+                coefficient,
+            );
+        }
+        value
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
+    fn modulehom_stable_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![one.clone(), zero.clone()],
+                        vec![zero.clone(), zero.clone()],
+                    ],
+                    field.clone(),
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+
+        let loop_quiver =
+            Quiver::from_named(vec!["w".into()], vec![NamedArrowSpec::named("w", "w", "x")])
+                .unwrap();
+        let path_algebra = PathAlgebra::new(field, loop_quiver).unwrap();
+        let loop_element = path_algebra
+            .element(path_algebra.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                path_algebra,
+                &[loop_element.multiply(&loop_element).unwrap()],
+            )
+            .unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(dual_numbers.clone(), vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let dual_projective = indec_projective_modules(&dual_numbers).unwrap()[0].clone();
+
+        json!({
+            "a2_module": stable_module_json(&module, false, coefficient),
+            "a2_simple_one": stable_module_json(&simple_one, true, coefficient),
+            "a2_simple_two": stable_module_json(&simple_two, true, coefficient),
+            "dual_simple": stable_module_json(&dual_simple, false, coefficient),
+            "dual_projective": stable_module_json(&dual_projective, false, coefficient),
+        })
+    }
+
     #[test]
     fn pinned_qpa_modulehom_projective_fixture_matches() {
         let expected: Value = serde_json::from_str(include_str!(
@@ -1630,6 +1813,39 @@ mod tests {
         });
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_stable_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_stable.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = modulehom_stable_case(Q, ToString::to_string);
+        let binary = modulehom_stable_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn stable_endomorphism_quotient_rejects_the_zero_module_like_qpa() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let zero = right_module_over_path_algebra(algebra, vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(
+            end_modulo_projectives(&zero).unwrap_err(),
+            super::EnvelopingModuleError::ZeroStableEndomorphismModule
+        );
     }
 
     #[test]

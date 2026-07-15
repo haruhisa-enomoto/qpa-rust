@@ -75,6 +75,17 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_projectives.g" \
     "$repo_root/tests/fixtures/modulehom_projectives.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_stable.g" \
+    "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_stable_zero_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted stable End of the zero module" >&2
+    exit 1
+fi
+grep -Fq "zero module given as input for EndModuleProjOverAlgebra" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_trace_different_error.g" \
     >"$actual" 2>&1

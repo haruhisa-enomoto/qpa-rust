@@ -823,6 +823,12 @@ impl<F: Field> ModuleEndomorphismAlgebra<F> {
         self.0.basis_matrices.len()
     }
 
+    /// Return the exact coefficient field.
+    #[must_use]
+    pub fn field(&self) -> &F {
+        &self.0.field
+    }
+
     /// Return GAP's ordered semi-echelon matrix basis.
     #[must_use]
     pub fn basis_matrices(&self) -> &[DenseMatrix<F>] {
@@ -852,7 +858,47 @@ impl<F: Field> ModuleEndomorphismAlgebra<F> {
         &self,
         matrix: &DenseMatrix<F>,
     ) -> Result<Option<Vec<F::Element>>, MatrixError> {
+        if matrix.field() != &self.0.field {
+            return Err(MatrixError::DifferentFields);
+        }
+        if (matrix.nrows(), matrix.ncols()) != (self.0.one.nrows(), self.0.one.ncols()) {
+            return Err(MatrixError::DifferentShapes {
+                left: (matrix.nrows(), matrix.ncols()),
+                right: (self.0.one.nrows(), self.0.one.ncols()),
+            });
+        }
         self.0.flattened_basis.solution_row(&flatten_matrix(matrix))
+    }
+
+    /// Reconstruct a represented matrix from its ordered basis coefficients.
+    ///
+    /// # Errors
+    ///
+    /// Requires one coefficient per basis matrix and propagates exact matrix
+    /// multiplication failures.
+    pub fn matrix_from_coefficients(
+        &self,
+        coefficients: &[F::Element],
+    ) -> Result<DenseMatrix<F>, MatrixError> {
+        if coefficients.len() != self.dimension() {
+            return Err(MatrixError::TargetLength {
+                actual: coefficients.len(),
+                expected: self.dimension(),
+            });
+        }
+        let coefficient_row = DenseMatrix::from_flat(
+            1,
+            coefficients.len(),
+            coefficients.to_vec(),
+            self.0.field.clone(),
+        )?;
+        let flattened = coefficient_row.multiply(&self.0.flattened_basis)?;
+        DenseMatrix::from_flat(
+            self.0.one.nrows(),
+            self.0.one.ncols(),
+            flattened.row(0).to_vec(),
+            self.0.field.clone(),
+        )
     }
 
     /// Multiply two represented endomorphism matrices in QPA order.
@@ -866,6 +912,221 @@ impl<F: Field> ModuleEndomorphismAlgebra<F> {
         right: &DenseMatrix<F>,
     ) -> Result<DenseMatrix<F>, MatrixError> {
         left.multiply(right)
+    }
+}
+
+#[derive(Debug)]
+struct ModuleEndomorphismQuotientAlgebraData<F: Field> {
+    parent: ModuleEndomorphismAlgebra<F>,
+    ideal_basis_matrices: Vec<DenseMatrix<F>>,
+    projection: DenseMatrix<F>,
+    lifts: DenseMatrix<F>,
+}
+
+/// QPA's quotient algebra `End(M) / P(M,M)` represented in natural-quotient
+/// coordinates.
+///
+/// Its ordered basis is the basis returned for GAP's quotient algebra. A
+/// zero-dimensional quotient deliberately has no multiplicative-one element,
+/// matching GAP's result when the ideal is the whole endomorphism algebra.
+#[derive(Clone, Debug)]
+pub struct ModuleEndomorphismQuotientAlgebra<F: Field>(
+    Arc<ModuleEndomorphismQuotientAlgebraData<F>>,
+);
+
+/// An element of [`ModuleEndomorphismQuotientAlgebra`] in its GAP basis.
+#[derive(Clone, Debug)]
+pub struct ModuleEndomorphismQuotientElement<F: Field> {
+    algebra: ModuleEndomorphismQuotientAlgebra<F>,
+    coordinates: Vec<F::Element>,
+}
+
+/// QPA's `NaturalHomomorphismByIdeal(End(M), P(M,M))` return value.
+#[derive(Clone, Debug)]
+pub struct ModuleEndomorphismQuotientHomomorphism<F: Field> {
+    source: ModuleEndomorphismAlgebra<F>,
+    range: ModuleEndomorphismQuotientAlgebra<F>,
+}
+
+impl<F: Field> ModuleEndomorphismQuotientAlgebra<F> {
+    /// Return whether two handles denote the identical quotient algebra.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Return the vector-space dimension of the quotient.
+    #[must_use]
+    pub fn dimension(&self) -> usize {
+        self.0.lifts.nrows()
+    }
+
+    /// Return GAP's ordered basis of the kernel ideal as parent matrices.
+    #[must_use]
+    pub fn ideal_basis_matrices(&self) -> &[DenseMatrix<F>] {
+        &self.0.ideal_basis_matrices
+    }
+
+    /// Return the quotient basis as coordinate elements.
+    #[must_use]
+    pub fn basis_elements(&self) -> Vec<ModuleEndomorphismQuotientElement<F>> {
+        (0..self.dimension())
+            .map(|coordinate| {
+                let mut coordinates = vec![self.0.parent.field().zero(); self.dimension()];
+                coordinates[coordinate] = self.0.parent.field().one();
+                ModuleEndomorphismQuotientElement {
+                    algebra: self.clone(),
+                    coordinates,
+                }
+            })
+            .collect()
+    }
+
+    /// Return the quotient zero element.
+    #[must_use]
+    pub fn zero(&self) -> ModuleEndomorphismQuotientElement<F> {
+        ModuleEndomorphismQuotientElement {
+            algebra: self.clone(),
+            coordinates: vec![self.0.parent.field().zero(); self.dimension()],
+        }
+    }
+
+    /// Return the quotient one, or `None` for GAP's zero-dimensional quotient
+    /// algebra where `One` has no applicable method.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the exact natural projection of the parent identity.
+    pub fn one(
+        &self,
+    ) -> Result<Option<ModuleEndomorphismQuotientElement<F>>, PathAlgebraModuleError> {
+        if self.dimension() == 0 {
+            return Ok(None);
+        }
+        Ok(Some(self.project_parent_matrix(self.0.parent.one())?))
+    }
+
+    /// Multiply quotient elements using lifted representatives and the parent
+    /// endomorphism algebra.
+    ///
+    /// # Errors
+    ///
+    /// Both elements must belong to this identical quotient family; exact
+    /// lift, multiplication, coordinate, and projection failures propagate.
+    pub fn multiply(
+        &self,
+        left: &ModuleEndomorphismQuotientElement<F>,
+        right: &ModuleEndomorphismQuotientElement<F>,
+    ) -> Result<ModuleEndomorphismQuotientElement<F>, PathAlgebraModuleError> {
+        if !self.is_identical(left.algebra()) || !self.is_identical(right.algebra()) {
+            return Err(PathAlgebraModuleError::ForeignEndomorphismQuotientElement);
+        }
+        let left = self.lift_element(left)?;
+        let right = self.lift_element(right)?;
+        let product = self.0.parent.multiply(&left, &right)?;
+        self.project_parent_matrix(&product)
+    }
+
+    fn project_parent_matrix(
+        &self,
+        matrix: &DenseMatrix<F>,
+    ) -> Result<ModuleEndomorphismQuotientElement<F>, PathAlgebraModuleError> {
+        let coordinates = self
+            .0
+            .parent
+            .coefficients(matrix)?
+            .ok_or(PathAlgebraModuleError::MatrixOutsideEndomorphismAlgebra)?;
+        let row = DenseMatrix::from_flat(
+            1,
+            coordinates.len(),
+            coordinates,
+            self.0.parent.field().clone(),
+        )?;
+        let projected = row.multiply(&self.0.projection)?;
+        Ok(ModuleEndomorphismQuotientElement {
+            algebra: self.clone(),
+            coordinates: projected.row(0).to_vec(),
+        })
+    }
+
+    fn lift_element(
+        &self,
+        element: &ModuleEndomorphismQuotientElement<F>,
+    ) -> Result<DenseMatrix<F>, PathAlgebraModuleError> {
+        if element.coordinates.len() != self.dimension() {
+            return Err(
+                PathAlgebraModuleError::EndomorphismQuotientElementCoordinateCount {
+                    actual: element.coordinates.len(),
+                    expected: self.dimension(),
+                },
+            );
+        }
+        let row = DenseMatrix::from_flat(
+            1,
+            element.coordinates.len(),
+            element.coordinates.clone(),
+            self.0.parent.field().clone(),
+        )?;
+        let parent_coordinates = row.multiply(&self.0.lifts)?;
+        Ok(self
+            .0
+            .parent
+            .matrix_from_coefficients(parent_coordinates.row(0))?)
+    }
+}
+
+impl<F: Field> ModuleEndomorphismQuotientElement<F> {
+    /// Return the identical quotient algebra family.
+    #[must_use]
+    pub fn algebra(&self) -> &ModuleEndomorphismQuotientAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return coefficients in GAP's quotient basis.
+    #[must_use]
+    pub fn coordinates(&self) -> &[F::Element] {
+        &self.coordinates
+    }
+
+    /// Return whether all quotient coordinates vanish.
+    #[must_use]
+    pub fn is_zero(&self) -> bool {
+        self.coordinates
+            .iter()
+            .all(|entry| self.algebra.0.parent.field().is_zero(entry))
+    }
+}
+
+impl<F: Field> ModuleEndomorphismQuotientHomomorphism<F> {
+    /// Return QPA's source `EndOverAlgebra(M)`.
+    #[must_use]
+    pub fn source(&self) -> &ModuleEndomorphismAlgebra<F> {
+        &self.source
+    }
+
+    /// Return QPA's stable endomorphism quotient algebra.
+    #[must_use]
+    pub fn range(&self) -> &ModuleEndomorphismQuotientAlgebra<F> {
+        &self.range
+    }
+
+    /// Return the natural image of a represented parent matrix.
+    ///
+    /// # Errors
+    ///
+    /// The matrix must belong to the represented source algebra; exact
+    /// coordinate and quotient projection failures propagate.
+    pub fn image(
+        &self,
+        matrix: &DenseMatrix<F>,
+    ) -> Result<ModuleEndomorphismQuotientElement<F>, PathAlgebraModuleError> {
+        self.range.project_parent_matrix(matrix)
+    }
+
+    /// Return GAP's ordered basis for the kernel ideal.
+    #[must_use]
+    pub fn kernel_basis_matrices(&self) -> &[DenseMatrix<F>] {
+        self.range.ideal_basis_matrices()
     }
 }
 
@@ -1901,8 +2162,8 @@ pub fn end_over_algebra<F: Field>(
     let field = module.right_acting_algebra().field().clone();
     let embedded = homomorphisms
         .iter()
-        .map(block_diagonal_homomorphism)
-        .collect::<Vec<_>>();
+        .map(from_hom_mm_to_end_m)
+        .collect::<Result<Vec<_>, _>>()?;
     let generator_rows = DenseMatrix::from_flat(
         embedded.len(),
         flattened_dimension,
@@ -1929,9 +2190,18 @@ pub fn end_over_algebra<F: Field>(
     Ok(module.cache_endomorphism_algebra(&algebra))
 }
 
-fn block_diagonal_homomorphism<F: Field>(
+/// Translate QPA's `FromHomMMToEndM(f)` block-diagonal embedding.
+///
+/// # Errors
+///
+/// The source and range must be structurally equal modules; exact matrix
+/// construction failures propagate.
+pub fn from_hom_mm_to_end_m<F: Field>(
     homomorphism: &PathAlgebraModuleHomomorphism<F>,
-) -> DenseMatrix<F> {
+) -> Result<DenseMatrix<F>, PathAlgebraModuleError> {
+    if homomorphism.source() != homomorphism.range() {
+        return Err(PathAlgebraModuleError::NonEndomorphismConversion);
+    }
     let dimensions = homomorphism.source().dimension_vector();
     let total = homomorphism.source().dimension();
     let field = homomorphism.source().right_acting_algebra().field().clone();
@@ -1949,7 +2219,163 @@ fn block_diagonal_homomorphism<F: Field>(
             }
         }
     }
-    matrix
+    Ok(matrix)
+}
+
+/// Translate QPA's `FromEndMToHomMM(M, mat)` diagonal-block extraction.
+///
+/// Entries outside the vertex-diagonal blocks are ignored, just as in QPA.
+/// A matrix larger than the underlying module dimension is therefore
+/// accepted, while a smaller or wrong-field matrix is rejected explicitly.
+///
+/// # Errors
+///
+/// Propagates field/size validation and QPA's checked module-map constructor.
+pub fn from_end_m_to_hom_mm<F: Field>(
+    module: &PathAlgebraModule<F>,
+    matrix: &DenseMatrix<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    let field = module.right_acting_algebra().field().clone();
+    if matrix.field() != &field {
+        return Err(PathAlgebraModuleError::EndomorphismMatrixField);
+    }
+    let total = module.dimension();
+    if matrix.nrows() < total || matrix.ncols() < total {
+        return Err(PathAlgebraModuleError::EndomorphismMatrixTooSmall {
+            actual: (matrix.nrows(), matrix.ncols()),
+            minimum: (total, total),
+        });
+    }
+    let offsets = dimension_offsets(module.dimension_vector());
+    let matrices = module
+        .dimension_vector()
+        .iter()
+        .enumerate()
+        .map(|(vertex, &dimension)| {
+            if dimension == 0 {
+                return Ok(DenseMatrix::zero(1, 1, field.clone()));
+            }
+            let offset = offsets[vertex];
+            let mut entries = Vec::with_capacity(dimension * dimension);
+            for row in offset..offset + dimension {
+                entries.extend_from_slice(&matrix.row(row)[offset..offset + dimension]);
+            }
+            Ok(DenseMatrix::from_flat(
+                dimension,
+                dimension,
+                entries,
+                field.clone(),
+            )?)
+        })
+        .collect::<Result<Vec<_>, PathAlgebraModuleError>>()?;
+    right_module_hom_over_algebra(module.clone(), module.clone(), matrices)
+}
+
+/// Construct QPA's natural quotient homomorphism by the two-sided ideal
+/// generated by represented endomorphism matrices.
+///
+/// Generator order is retained through GAP's insertion-ordered semi-echelon
+/// basis algorithm. The ideal is closed under left and right multiplication
+/// by the parent basis before the natural row-space quotient is formed.
+///
+/// # Errors
+///
+/// Every generator and generated product must lie in the parent algebra;
+/// exact multiplication, coordinate, ideal-closure, and quotient failures
+/// propagate.
+pub fn natural_endomorphism_quotient_by_ideal<F: Field>(
+    parent: &ModuleEndomorphismAlgebra<F>,
+    generators: &[DenseMatrix<F>],
+) -> Result<ModuleEndomorphismQuotientHomomorphism<F>, PathAlgebraModuleError> {
+    let ideal_coordinates = endomorphism_ideal_basis_coordinates(parent, generators)?;
+    let ideal_basis_matrices = (0..ideal_coordinates.nrows())
+        .map(|row| parent.matrix_from_coefficients(ideal_coordinates.row(row)))
+        .collect::<Result<Vec<_>, _>>()?;
+    let quotient = natural_quotient_by_row_space(&ideal_coordinates)?;
+    let range =
+        ModuleEndomorphismQuotientAlgebra(Arc::new(ModuleEndomorphismQuotientAlgebraData {
+            parent: parent.clone(),
+            ideal_basis_matrices,
+            projection: quotient.projection,
+            lifts: quotient.lifts,
+        }));
+    Ok(ModuleEndomorphismQuotientHomomorphism {
+        source: parent.clone(),
+        range,
+    })
+}
+
+fn endomorphism_ideal_basis_coordinates<F: Field>(
+    parent: &ModuleEndomorphismAlgebra<F>,
+    generators: &[DenseMatrix<F>],
+) -> Result<DenseMatrix<F>, PathAlgebraModuleError> {
+    let dimension = parent.dimension();
+    let capacity = generators
+        .len()
+        .checked_mul(dimension)
+        .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+    let mut generator_coordinates = Vec::with_capacity(capacity);
+    for generator in generators {
+        generator_coordinates.extend(
+            parent
+                .coefficients(generator)?
+                .ok_or(PathAlgebraModuleError::EndomorphismIdealGeneratorOutsideAlgebra)?,
+        );
+    }
+    let mut basis = DenseMatrix::from_flat(
+        generators.len(),
+        dimension,
+        generator_coordinates,
+        parent.field().clone(),
+    )?
+    .semi_echelon_transformation()
+    .vectors;
+
+    loop {
+        let ideal_matrices = (0..basis.nrows())
+            .map(|row| parent.matrix_from_coefficients(basis.row(row)))
+            .collect::<Result<Vec<_>, _>>()?;
+        let product_rows = ideal_matrices
+            .len()
+            .checked_mul(parent.basis_matrices().len())
+            .and_then(|count| count.checked_mul(2))
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let expanded_rows = basis
+            .nrows()
+            .checked_add(product_rows)
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let expanded_capacity = expanded_rows
+            .checked_mul(dimension)
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let mut expanded_coordinates = Vec::with_capacity(expanded_capacity);
+        expanded_coordinates.extend_from_slice(basis.as_flat());
+        for ideal_element in &ideal_matrices {
+            for algebra_element in parent.basis_matrices() {
+                for product in [
+                    parent.multiply(algebra_element, ideal_element)?,
+                    parent.multiply(ideal_element, algebra_element)?,
+                ] {
+                    expanded_coordinates.extend(
+                        parent.coefficients(&product)?.ok_or(
+                            PathAlgebraModuleError::EndomorphismIdealProductOutsideAlgebra,
+                        )?,
+                    );
+                }
+            }
+        }
+        let expanded = DenseMatrix::from_flat(
+            expanded_rows,
+            dimension,
+            expanded_coordinates,
+            parent.field().clone(),
+        )?
+        .semi_echelon_transformation()
+        .vectors;
+        if expanded.nrows() == basis.nrows() {
+            return Ok(basis);
+        }
+        basis = expanded;
+    }
 }
 
 fn module_homomorphism_from_logical_flat<F: Field>(
@@ -3652,6 +4078,40 @@ pub enum PathAlgebraModuleError {
     /// GAP's `DirectSumOfAlgebras` rejects the empty list for the zero module.
     #[error("EndOverAlgebra cannot form a direct sum for a zero module")]
     EmptyEndomorphismDirectSum,
+    /// `FromHomMMToEndM` is defined for an endomorphism of one module.
+    #[error("FromHomMMToEndM requires structurally equal source and range modules")]
+    NonEndomorphismConversion,
+    /// `FromEndMToHomMM` requires the module's coefficient field.
+    #[error("the endomorphism matrix is over a different coefficient field")]
+    EndomorphismMatrixField,
+    /// QPA's diagonal-block extraction indexes the full underlying module.
+    #[error("endomorphism matrix has shape {actual:?}, but must be at least {minimum:?}")]
+    EndomorphismMatrixTooSmall {
+        /// Entered matrix shape.
+        actual: (usize, usize),
+        /// Minimum row and column counts.
+        minimum: (usize, usize),
+    },
+    /// A natural quotient accepts only matrices represented in its source.
+    #[error("the matrix is not an element of the represented endomorphism algebra")]
+    MatrixOutsideEndomorphismAlgebra,
+    /// Every generator of an endomorphism ideal belongs to the parent algebra.
+    #[error("an ideal generator is outside the represented endomorphism algebra")]
+    EndomorphismIdealGeneratorOutsideAlgebra,
+    /// Products of parent and ideal elements must remain in the parent.
+    #[error("an endomorphism-ideal product left the represented parent algebra")]
+    EndomorphismIdealProductOutsideAlgebra,
+    /// Quotient multiplication requires one identical quotient family.
+    #[error("the quotient elements belong to different endomorphism quotient families")]
+    ForeignEndomorphismQuotientElement,
+    /// Quotient elements carry one coefficient per quotient basis element.
+    #[error("endomorphism quotient element has {actual} coordinates, expected {expected}")]
+    EndomorphismQuotientElementCoordinateCount {
+        /// Entered coordinate count.
+        actual: usize,
+        /// Quotient dimension.
+        expected: usize,
+    },
     /// The arrow-kernel construction must define a module satisfying the relations.
     #[error("the generated socle module does not satisfy the algebra relations")]
     GeneratedSocleViolatesRelations,
@@ -3916,11 +4376,12 @@ mod tests {
         hom_over_algebra_with_basis_function, identity_module_mapping, image_projection_inclusion,
         intersection_of_submodules, intersection_of_submodules_list, kernel_inclusion,
         minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_image,
-        morphism_on_kernel, pull_back, push_out, radical_of_module_inclusion, reject_of_module,
-        right_fac_approximation, right_fac_approximation_via_all_basis_images,
-        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
-        socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list, top_of_module,
-        top_of_module_homomorphism, top_of_module_projection, trace_of_module, zero_module_mapping,
+        morphism_on_kernel, natural_endomorphism_quotient_by_ideal, pull_back, push_out,
+        radical_of_module_inclusion, reject_of_module, right_fac_approximation,
+        right_fac_approximation_via_all_basis_images, right_module_hom_over_algebra,
+        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
+        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
+        top_of_module_projection, trace_of_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -5225,6 +5686,31 @@ mod tests {
         assert_eq!(
             top.vertex_matrices(),
             &[DenseMatrix::zero(1, 1, Q), DenseMatrix::zero(1, 1, Q)]
+        );
+    }
+
+    #[test]
+    fn endomorphism_ideal_closure_is_two_sided_before_quotienting() {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let module = right_module_over_path_algebra(algebra, vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let endomorphisms = end_over_algebra(&module).unwrap();
+        let matrix_unit =
+            DenseMatrix::from_rows(vec![vec![q(0), q(1)], vec![q(0), q(0)]], Q).unwrap();
+        let natural =
+            natural_endomorphism_quotient_by_ideal(&endomorphisms, &[matrix_unit]).unwrap();
+
+        assert_eq!(endomorphisms.dimension(), 4);
+        assert_eq!(natural.kernel_basis_matrices().len(), 4);
+        assert_eq!(natural.range().dimension(), 0);
+        assert!(natural.range().one().unwrap().is_none());
+        assert!(
+            endomorphisms
+                .basis_matrices()
+                .iter()
+                .all(|matrix| natural.image(matrix).unwrap().is_zero())
         );
     }
 }
