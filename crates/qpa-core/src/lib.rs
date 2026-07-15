@@ -7,6 +7,7 @@
 pub mod centre;
 pub mod coefficient;
 pub mod dynamic_tree;
+pub mod element_inverse;
 pub mod element_utilities;
 pub mod groebner;
 pub mod matrix;
@@ -22,6 +23,7 @@ pub mod vector_reduction;
 pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
+pub use element_inverse::ElementInverseError;
 pub use element_utilities::{QuiverAlgebra, VertexQuotientPresentation};
 pub use groebner::{
     GroebnerBasis, GroebnerBasisKind, GroebnerError, high_level_groebner_basis,

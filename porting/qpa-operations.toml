@@ -18485,9 +18485,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3437
 source_end = 3486
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebraElement::inverse; inverse_quotient_element"
+tests = ["tests/fixtures/pathalg_inverse.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18498,9 +18498,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3489
 source_end = 3501
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebraElement::pow_integer; power_quotient_element"
+tests = ["tests/fixtures/pathalg_inverse.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18511,9 +18511,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3503
 source_end = 3507
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebraElement::pow_integer; power_quotient_element"
+tests = ["tests/fixtures/pathalg_inverse.schema-v1.json"]
 deviations = []
 
 [[entries]]

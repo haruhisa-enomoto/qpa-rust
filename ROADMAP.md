@@ -469,6 +469,11 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
 - [x] Port QPA's componentwise path-vector tip selection, ordered in-place tip
   reduction, and coefficient extraction helpers. The source's documented
   non-span `[basis, vector]` bug is preserved as a typed failure witness.
+- [x] Port finite-dimensional quotient-element inversion and signed powers.
+  The vertex-coordinate unit test, diagonal inverse, nilpotence loop, and
+  binomial polynomial are source-translated over exact `QQ`/prime-field
+  arithmetic, including QPA's `fail` and zero-power branches. The later
+  `Units` group construction remains queued behind `RadicalOfAlgebra`.
 - [x] Port `PathRemoval` and element support utilities. Left/right support is
   computed through QPA's vertex-idempotent multiplication loops for both parent
   and quotient elements; `PathRemoval` preserves the pinned source failure on

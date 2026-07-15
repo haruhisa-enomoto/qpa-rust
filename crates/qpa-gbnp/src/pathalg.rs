@@ -5,9 +5,10 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    AlgebraDimension, CentreError, GroebnerBasis, PathAlgebra, PathAlgebraElement,
-    PathAlgebraError, Quiver, QuiverAlgebra, QuotientError, QuotientPathAlgebra,
-    QuotientPathAlgebraCentre, QuotientPathAlgebraElement, VertexQuotientPresentation,
+    AlgebraDimension, CentreError, ElementInverseError, GroebnerBasis, PathAlgebra,
+    PathAlgebraElement, PathAlgebraError, Quiver, QuiverAlgebra, QuotientError,
+    QuotientPathAlgebra, QuotientPathAlgebraCentre, QuotientPathAlgebraElement,
+    VertexQuotientPresentation,
 };
 use thiserror::Error;
 
@@ -123,6 +124,38 @@ pub fn quotient_dimension<F: Field>(
     Ok(quotient.dimension()?)
 }
 
+/// Translate QPA's `Inverse(elm)` through its lazy default GBNP
+/// finite-dimensionality call and source polynomial.
+///
+/// `Ok(None)` is QPA's `fail` result for a nonunit.
+///
+/// # Errors
+///
+/// Propagates default GBNP, basis-coordinate, and quotient-arithmetic failures.
+pub fn inverse_quotient_element<F: Field>(
+    element: &QuotientPathAlgebraElement<F>,
+) -> Result<Option<QuotientPathAlgebraElement<F>>, PathalgGbnpError> {
+    ensure_quotient_groebner_basis(element.algebra())?;
+    Ok(element.inverse()?)
+}
+
+/// Translate QPA's negative and zero powers for quotient elements.
+///
+/// `Ok(None)` is QPA's `fail` for a negative power of a nonunit.
+///
+/// # Errors
+///
+/// Propagates default GBNP, inversion, and quotient-arithmetic failures.
+pub fn power_quotient_element<F: Field>(
+    element: &QuotientPathAlgebraElement<F>,
+    exponent: i64,
+) -> Result<Option<QuotientPathAlgebraElement<F>>, PathalgGbnpError> {
+    if exponent < 0 {
+        ensure_quotient_groebner_basis(element.algebra())?;
+    }
+    Ok(element.pow_integer(exponent)?)
+}
+
 /// Translate QPA's quotient `Centre` method through its lazy default GBNP
 /// dimensionality call.
 ///
@@ -196,6 +229,9 @@ pub enum PathalgGbnpError {
     /// QPA's source-translated center construction failed.
     #[error(transparent)]
     Centre(#[from] CentreError),
+    /// QPA's finite-dimensional inverse polynomial failed.
+    #[error(transparent)]
+    ElementInverse(#[from] ElementInverseError),
     /// Parent or opposite path-algebra construction failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
@@ -210,6 +246,7 @@ pub enum PathalgGbnpError {
 #[cfg(test)]
 mod tests {
     use numerica::domains::{
+        Ring,
         finite_field::Z2,
         integer::Integer,
         rational::{Q, RationalField},
@@ -221,7 +258,8 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        opposite_path_algebra, opposite_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
+        inverse_quotient_element, opposite_path_algebra, opposite_quotient_element,
+        power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
         quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
         quotient_dimension, quotient_is_finite_dimensional, truncated_path_algebra,
     };
@@ -309,6 +347,81 @@ mod tests {
             panic!("the oracle vertex quotient must be finite");
         };
         small_integer(&dimension)
+    }
+
+    #[test]
+    #[allow(clippy::many_single_char_names, clippy::too_many_lines)]
+    fn pinned_qpa_inverse_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_inverse.schema-v1.json"
+        ))
+        .unwrap();
+        let quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "x"),
+                ArrowSpec::named(vertex(2), vertex(2), "y"),
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+            ],
+        )
+        .unwrap();
+        let algebra = truncated_path_algebra(Q, quiver.clone(), 2).unwrap();
+        let generators = algebra.generators().unwrap();
+        let q2 = Q.nth(Integer::from(2));
+        let q3 = Q.nth(Integer::from(3));
+        let unit = generators[0]
+            .scale_left(&q2)
+            .unwrap()
+            .add(&generators[1].scale_left(&q3).unwrap())
+            .unwrap()
+            .add(&generators[2])
+            .unwrap()
+            .add(&generators[3])
+            .unwrap()
+            .add(&generators[4])
+            .unwrap();
+        let nonunit = generators[0].add(&generators[4]).unwrap();
+        let inverse = inverse_quotient_element(&unit).unwrap().unwrap();
+        let negative_two = power_quotient_element(&unit, -2).unwrap().unwrap();
+        let zero_power = power_quotient_element(&nonunit, 0).unwrap().unwrap();
+
+        assert_eq!(
+            json!({
+                "inverse": rational_element_json(inverse.representative()),
+                "product": rational_element_json(unit.multiply(&inverse).unwrap().representative()),
+                "negative_two": rational_element_json(negative_two.representative()),
+                "nonunit_inverse_fail": inverse_quotient_element(&nonunit).unwrap().is_none(),
+                "nonunit_negative_fail": power_quotient_element(&nonunit, -1).unwrap().is_none(),
+                "zero_power": rational_element_json(zero_power.representative())
+            }),
+            expected["rational"]
+        );
+
+        let algebra2 = truncated_path_algebra(Z2, quiver, 2).unwrap();
+        let generators2 = algebra2.generators().unwrap();
+        let unit2 = generators2[0]
+            .add(&generators2[1])
+            .unwrap()
+            .add(&generators2[2])
+            .unwrap()
+            .add(&generators2[3])
+            .unwrap()
+            .add(&generators2[4])
+            .unwrap();
+        let nonunit2 = generators2[2].clone();
+        let inverse2 = inverse_quotient_element(&unit2).unwrap().unwrap();
+        let negative_two2 = power_quotient_element(&unit2, -2).unwrap().unwrap();
+        let zero_power2 = power_quotient_element(&nonunit2, 0).unwrap().unwrap();
+        assert_eq!(
+            json!({
+                "inverse": z2_element_json(inverse2.representative()),
+                "product": z2_element_json(unit2.multiply(&inverse2).unwrap().representative()),
+                "negative_two": z2_element_json(negative_two2.representative()),
+                "nonunit_inverse_fail": inverse_quotient_element(&nonunit2).unwrap().is_none(),
+                "zero_power": z2_element_json(zero_power2.representative())
+            }),
+            expected["f2"]
+        );
     }
 
     #[test]
