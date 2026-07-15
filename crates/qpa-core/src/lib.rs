@@ -34,7 +34,7 @@ pub use quiver::{
 };
 pub use quotient::{
     AlgebraDimension, PathAlgebraIdeal, QuotientError, QuotientPathAlgebra,
-    QuotientPathAlgebraElement,
+    QuotientPathAlgebraElement, is_homogeneous_list_of_elements,
 };
 pub use static_dictionary::{DictionaryMatch, QuiverStaticDictionary, StaticDictionaryError};
 pub use suffix_tree::{

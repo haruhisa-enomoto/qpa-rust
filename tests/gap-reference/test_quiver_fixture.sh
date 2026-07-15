@@ -63,6 +63,13 @@ grep -Fq "The 1st argument is 'fail'" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/path_algebra.g" \
     "$repo_root/tests/fixtures/path_algebra.schema-v1.json"
+# `IsHomogeneousListOfElements([], n)` deliberately prints one source line.
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/pathalg_ideal.g" |
+    tail -n 1 | jq --sort-keys . >"$actual"
+jq --sort-keys . \
+    "$repo_root/tests/fixtures/pathalg_ideal.schema-v1.json" >"$expected"
+diff --unified "$expected" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/groebner_high_level.g" \
     "$repo_root/tests/fixtures/groebner_high_level.schema-v1.json"

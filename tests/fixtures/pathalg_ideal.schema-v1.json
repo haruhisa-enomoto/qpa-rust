@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_ideal",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "regression": {
+    "admissible": true,
+    "monomial": false,
+    "quotient_admissible": true,
+    "minimal_generators": [
+      [{"path": [6, 6], "coefficient": [1, 1]}],
+      [{"path": [7, 8], "coefficient": [1, 1]}],
+      [{"path": [8, 4], "coefficient": [1, 1]}],
+      [
+        {"path": [5, 7], "coefficient": [1, 1]},
+        {"path": [4, 6, 7], "coefficient": [-1, 1]}
+      ]
+    ]
+  },
+  "boundary": {
+    "trivial_loop_admissible": false,
+    "trivial_acyclic_admissible": true,
+    "linear_admissible": false,
+    "monomial_is_monomial": true,
+    "derived_monomial": true
+  },
+  "homogeneous": {
+    "empty_degree_2": true,
+    "degree_2": true,
+    "mixed_degree_2": false
+  },
+  "product_generators": [
+    [{"path": [2, 2, 2], "coefficient": [1, 1]}]
+  ],
+  "minimal_generators": [
+    [{"path": [2, 2], "coefficient": [1, 1]}]
+  ],
+  "f2": {
+    "admissible": true,
+    "monomial": true,
+    "minimal_generators": [
+      [{"path": [2, 2], "coefficient": 1}]
+    ]
+  }
+}

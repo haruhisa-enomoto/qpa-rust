@@ -391,12 +391,17 @@ properties that depend on modules or specialized algebra constructions.
 - [x] Implement left/right uniformity and source/target decomposition.
 - [ ] Implement ideals, relation lists, quotient construction, and natural maps.
   Two-sided ideal construction, membership, high-level relation quotients, and
-  eager normal-form arithmetic are implemented; natural maps remain.
+  eager normal-form arithmetic are implemented. Ideal products and QPA's
+  minimal generating set through `I/(JI+IJ)` are also source-translated;
+  natural maps remain.
 - [ ] Implement quotient elements with lazy/eager normal-form state.
 - [ ] Implement basis, coefficient, membership, and element conversion hooks.
   Finite canonical nontip bases, dimension, and membership are implemented;
   general basis/coefficient conversion remains.
 - [ ] Implement admissibility, monomial, quadratic, and arrow-ideal operations.
+  Ideal/quotient admissibility, full monomial-ideal detection, and homogeneous
+  list checking are implemented; quadratic-dual and arrow-power operations
+  remain in their later source files.
 - [ ] Preserve QPA external representation and serialization semantics.
 
 Exit gate: non-Gröbner path-algebra operations are source mapped and verified;
