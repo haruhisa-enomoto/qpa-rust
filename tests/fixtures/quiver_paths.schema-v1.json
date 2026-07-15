@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "kind": "quiver_paths",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "quiver": {
+    "vertices": ["v1", "v2", "v3"],
+    "arrows": [
+      {"name": "a", "index": 1, "generator_index": 4, "source": 1, "target": 2},
+      {"name": "b", "index": 2, "generator_index": 5, "source": 2, "target": 3},
+      {"name": "c", "index": 3, "generator_index": 6, "source": 3, "target": 2}
+    ],
+    "adjacency": [[0, 1, 0], [0, 0, 1], [0, 1, 0]],
+    "special_arrow_names": true,
+    "acyclic": false
+  },
+  "paths": [
+    {"label": "zero", "display": "0", "external_representation": [0], "length": null, "walk": null, "source": "0", "target": "0"},
+    {"label": "v2", "display": "v2", "external_representation": [2], "length": 0, "walk": [], "source": "v2", "target": "v2"},
+    {"label": "a", "display": "a", "external_representation": [4], "length": 1, "walk": [1], "source": "v1", "target": "v2"},
+    {"label": "ab", "display": "a*b", "external_representation": [4, 5], "length": 2, "walk": [1, 2], "source": "v1", "target": "v3"},
+    {"label": "abc", "display": "a*b*c", "external_representation": [4, 5, 6], "length": 3, "walk": [1, 2, 3], "source": "v1", "target": "v2"}
+  ],
+  "products": {
+    "a_b": [4, 5],
+    "b_a": [0],
+    "v1_a": [4],
+    "v2_a": [0],
+    "a_v2": [4],
+    "a_v1": [0]
+  },
+  "ordering": {
+    "zero_lt_v1": true,
+    "v1_lt_v2": true,
+    "v2_lt_a": true,
+    "a_lt_ab": true
+  },
+  "iterator_first": ["x", "y", "a", "b", "b*a", "b^2", "b^2*a", "b^3"],
+  "opposite": {
+    "vertices": ["v1_op", "v2_op", "v3_op"],
+    "arrows": ["a_op", "b_op", "c_op"],
+    "ab_display": "b_op*a_op",
+    "ab_external_representation": [5, 4],
+    "double_opposite_is_identical": true
+  }
+}

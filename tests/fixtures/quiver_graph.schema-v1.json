@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "quiver_graph",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "properties": {
+    "line": {"size": 7, "connected": true, "unoriented_acyclic": true, "tree": true},
+    "parallel": {"size": 9, "connected": true, "unoriented_acyclic": false, "tree": false},
+    "cyclic": {"size": "infinity", "connected": true, "unoriented_acyclic": false, "tree": false}
+  },
+  "components": [
+    {"vertices": ["q", "p"], "arrows": [{"name": "x", "source": "p", "target": "q"}]},
+    {"vertices": ["r"], "arrows": []}
+  ],
+  "full_subquiver": {
+    "vertices": ["v3", "v2"],
+    "arrows": [
+      {"name": "b", "source": "v2", "target": "v3"},
+      {"name": "c", "source": "v3", "target": "v2"}
+    ]
+  },
+  "dynkin": {
+    "a4": {
+      "vertices": ["1", "2", "3", "4"],
+      "arrows": [
+        {"name": "a_1", "source": "1", "target": "2"},
+        {"name": "a_2", "source": "3", "target": "2"},
+        {"name": "a_3", "source": "3", "target": "4"}
+      ]
+    },
+    "d5": {
+      "vertices": ["1", "2", "3", "4", "5"],
+      "arrows": [
+        {"name": "a_1", "source": "1", "target": "3"},
+        {"name": "a_2", "source": "3", "target": "2"},
+        {"name": "a_3", "source": "3", "target": "4"},
+        {"name": "a_4", "source": "5", "target": "4"}
+      ]
+    },
+    "e6": {
+      "vertices": ["1", "2", "3", "4", "5", "6"],
+      "arrows": [
+        {"name": "a_1", "source": "1", "target": "2"},
+        {"name": "a_2", "source": "3", "target": "2"},
+        {"name": "a_3", "source": "3", "target": "4"},
+        {"name": "a_4", "source": "5", "target": "4"},
+        {"name": "a_5", "source": "6", "target": "3"}
+      ]
+    }
+  },
+  "separated": {
+    "vertices": ["v1", "v2", "v3", "v1'", "v2'", "v3'"],
+    "arrows": [
+      {"name": "a", "source": "v1", "target": "v2'"},
+      {"name": "b", "source": "v2", "target": "v3'"},
+      {"name": "c", "source": "v3", "target": "v2'"}
+    ]
+  },
+  "double": {
+    "vertices": ["v1", "v2", "v3"],
+    "arrows": [
+      {"name": "a", "source": "v1", "target": "v2"},
+      {"name": "abar", "source": "v2", "target": "v1"},
+      {"name": "b", "source": "v2", "target": "v3"},
+      {"name": "bbar", "source": "v3", "target": "v2"},
+      {"name": "c", "source": "v3", "target": "v2"},
+      {"name": "cbar", "source": "v2", "target": "v3"}
+    ]
+  }
+}

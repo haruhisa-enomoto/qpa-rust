@@ -1,0 +1,25 @@
+[package]
+name = "qpa-core"
+description = "Core exact algebra structures for the source-faithful Rust port of QPA"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+default = ["numerica-no-gmp"]
+numerica-no-gmp = ["numerica/no_gmp"]
+numerica-gmp = ["numerica/gmp"]
+
+[dependencies]
+numerica.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true
+

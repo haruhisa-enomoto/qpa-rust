@@ -1,0 +1,15 @@
+[package]
+name = "qpa-gbnp"
+description = "Source-faithful Rust translation of the GBNP machinery used by QPA"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+qpa-core = { path = "../qpa-core" }
+
+[lints]
+workspace = true
+

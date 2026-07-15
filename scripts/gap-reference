@@ -1,0 +1,36 @@
+#!/bin/sh
+
+set -eu
+
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+repo_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
+
+gap_bin="$repo_root/upstream/gap/gap"
+
+if [ ! -x "$gap_bin" ]; then
+    echo "error: build the pinned GAP source at upstream/gap before running the oracle" >&2
+    exit 127
+fi
+
+gap_revision=$(git -C "$repo_root/upstream/gap" rev-parse HEAD)
+qpa_revision=$(git -C "$repo_root/upstream/qpa" rev-parse HEAD)
+gbnp_revision=$(git -C "$repo_root/upstream/gbnp" rev-parse HEAD)
+
+export QPA_ORACLE_GAP_REVISION="$gap_revision"
+export QPA_ORACLE_QPA_REVISION="$qpa_revision"
+export QPA_ORACLE_GBNP_REVISION="$gbnp_revision"
+
+package_root=$(mktemp -d "${TMPDIR:-/tmp}/qpa-rust-gap-root.XXXXXX")
+cleanup() {
+    rm -rf -- "$package_root"
+}
+trap cleanup EXIT HUP INT TERM
+
+mkdir -p "$package_root/pkg"
+ln -s "$repo_root/upstream/qpa" "$package_root/pkg/qpa"
+ln -s "$repo_root/upstream/gbnp" "$package_root/pkg/GBNP"
+
+# The pinned GAP binary obtains its own library and four required packages from
+# upstream/gap.  -r removes the per-user root; the temporary root exposes only
+# the pinned QPA/GBNP clones.  -A suppresses unrelated suggested packages.
+"$gap_bin" -A -r -l "$package_root;" -q -x 4096 --quitonbreak "$@"

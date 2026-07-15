@@ -1,0 +1,15 @@
+[package]
+name = "qpa-porting"
+description = "Reproducible source-ledger tooling for the QPA Rust port"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+serde_json.workspace = true
+
+[lints]
+workspace = true

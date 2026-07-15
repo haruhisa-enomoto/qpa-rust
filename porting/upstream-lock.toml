@@ -1,0 +1,75 @@
+schema_version = 1
+
+[qpa]
+kind = "git"
+url = "https://github.com/gap-packages/qpa.git"
+revision = "8d5f847258d4853700ce3a5d947db2a1441109f1"
+version = "1.37"
+license = "GPL-2.0-or-later"
+path = "upstream/qpa"
+
+[gbnp]
+kind = "git"
+url = "https://github.com/gap-packages/gbnp.git"
+revision = "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+version = "1.1.0"
+license = "LGPL-2.1-or-later"
+path = "upstream/gbnp"
+
+[gap]
+kind = "git"
+url = "https://github.com/gap-system/gap.git"
+revision = "4efe877859ab0bc0ac041bf635a996fb897ee0c9"
+version = "4.17dev"
+license = "GPL-2.0-or-later"
+path = "upstream/gap"
+
+[gap.required_package_archive]
+kind = "gap-package-distribution"
+url = "https://github.com/gap-system/PackageDistro/releases/download/latest/packages-required.tar.gz"
+sha256 = "5bdc3710fc1793bfe7067d6b6b22a7feadc4fab113ba60d9d7d5fe63639e686e"
+path = "upstream/gap/packages-required.tar.gz"
+
+[[gap.required_packages]]
+name = "GAPDoc"
+version = "1.6.10"
+license = "GPL-2.0-or-later"
+path = "upstream/gap/pkg/gapdoc"
+
+[[gap.required_packages]]
+name = "PrimGrp"
+version = "4.0.2"
+license = "GPL-2.0-or-later"
+path = "upstream/gap/pkg/primgrp"
+
+[[gap.required_packages]]
+name = "SmallGrp"
+version = "1.5.4"
+license = "Artistic-2.0"
+path = "upstream/gap/pkg/smallgrp"
+
+[[gap.required_packages]]
+name = "TransGrp"
+version = "3.6.5"
+license = "Artistic-2.0 AND (GPL-2.0-only OR GPL-3.0-only)"
+path = "upstream/gap/pkg/transgrp"
+
+[numerica]
+kind = "crates.io"
+url = "https://github.com/symbolica-dev/numerica.git"
+crate_version = "2.1.0"
+inspected_revision = "da17228d1d2a154da06efbfcda1c739770192f25"
+license = "MIT"
+default_features = false
+features = ["no_gmp"]
+minimum_rust = "1.88"
+path = "upstream/numerica"
+
+[rust]
+toolchain = "1.89.0"
+reason = "Numerica 2.1.0 declares Rust 1.88, but its current locked wide 1.x dependency requires Rust 1.89"
+
+[oracle]
+canonical_gap = "4.17dev"
+qpa_path = "upstream/qpa"
+gbnp_path = "upstream/gbnp"

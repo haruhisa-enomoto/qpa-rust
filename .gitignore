@@ -1,0 +1,25 @@
+# Pinned computational references are cloned locally and recorded by revision.
+/upstream/
+
+# Rust build output.
+/target/
+
+# Python environments and generated artifacts.
+/.venv/
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.dylib
+/.pytest_cache/
+/.mypy_cache/
+/.ruff_cache/
+/dist/
+/build/
+*.egg-info/
+
+# Platform/editor noise.
+.DS_Store
+Thumbs.db
+*.swp
+*~
