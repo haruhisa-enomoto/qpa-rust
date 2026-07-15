@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "groebner_objects",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "initial": [
+      [{"path": [2], "coefficient": [1, 1]}],
+      [{"path": [2, 2], "coefficient": [1, 1]}]
+    ],
+    "initial_flags": [false, false, true],
+    "tip_reduced": [
+      [{"path": [2], "coefficient": [1, 1]}]
+    ],
+    "tip_reduction": [
+      {"path": [1], "coefficient": [1, 1]}
+    ],
+    "complete_reduction": [
+      {"path": [1], "coefficient": [1, 1]}
+    ],
+    "completely_reduced": [
+      [{"path": [2], "coefficient": [1, 1]}]
+    ],
+    "final_flags": [true, true, true],
+    "nontips": [[1], [2], [2, 2]],
+    "nontip_size": 3,
+    "prefix": [false, false, true],
+    "right_relations": [
+      [{"path": [2, 2, 2], "coefficient": [1, 1]}]
+    ],
+    "right_reduction": [
+      {"path": [2], "coefficient": [1, 1]}
+    ]
+  },
+  "f5": {
+    "tip_reduced": [
+      [{"path": [2], "coefficient": 1}]
+    ],
+    "tip_reduction": [
+      {"path": [1], "coefficient": 1}
+    ]
+  },
+  "f2": {
+    "tip_reduced": [
+      [{"path": [2], "coefficient": 1}]
+    ],
+    "tip_reduction": [
+      {"path": [1], "coefficient": 1}
+    ]
+  }
+}

@@ -15,8 +15,9 @@ pub mod static_dictionary;
 
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
 pub use groebner::{
-    GroebnerBasis, GroebnerError, high_level_groebner_basis, leftmost_occurrence, make_uniform,
-    qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division, tip_reduced_list,
+    GroebnerBasis, GroebnerBasisKind, GroebnerError, high_level_groebner_basis,
+    leftmost_occurrence, make_uniform, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,
+    tip_reduced_list,
 };
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
 pub use ordering::{OrderingError, QuiverOrdering};

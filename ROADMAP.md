@@ -411,8 +411,13 @@ options, and the Gröbner loop. Extra GBNP APIs are not automatically in scope.
 - [x] Port the four phases of `SGrobner`, including resumable iteration bounds.
 - [x] Port QPA conversion back from GBNP and path-algebra structure relations.
 - [ ] Port QPA Gröbner objects, tip reduction, complete reduction, and properties.
+  Complete-basis construction, QPA's cached complete/tip-reduced/completely-
+  reduced states, two-sided tip and complete reduction, nontip access, and
+  `IsPrefixOfTipInTipIdeal` are source-translated and pinned. The declared
+  homogeneous-property cache and remaining GAP collection/printing semantics
+  still need their Rust boundary.
 - [x] Port nontip enumeration and finite-dimensionality detection.
-- [ ] Port QPA right Gröbner bases.
+- [x] Port QPA right Gröbner bases.
 - [x] Port `HighLevelGroebnerBasis` and its reduction operations.
 - [ ] Port inverse-length/inverse-lexicographic Gröbner operations.
 - [x] Port the quiver static dictionary used for tip search, nontips, dimension,

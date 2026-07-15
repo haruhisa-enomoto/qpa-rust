@@ -98,10 +98,46 @@ impl<F: Field> PathAlgebraIdeal<F> {
         })))
     }
 
+    /// Attach QPA `GroebnerBasis(I, relations)` to this ideal.
+    ///
+    /// The returned handle is a new immutable Rust ideal object carrying the
+    /// complete basis; the original generator list is preserved.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for foreign relations or QPA comparison failures.
+    pub fn with_complete_groebner_basis(
+        &self,
+        relations: &[PathAlgebraElement<F>],
+    ) -> Result<Self, QuotientError> {
+        let basis = GroebnerBasis::from_complete_relations(self.algebra(), relations)?;
+        Ok(Self(Arc::new(PathAlgebraIdealData {
+            algebra: self.algebra().clone(),
+            generators: self.generators().to_vec(),
+            groebner_basis: Some(basis),
+        })))
+    }
+
     /// Return an attached Groebner basis, if one has been computed.
     #[must_use]
     pub fn groebner_basis(&self) -> Option<&GroebnerBasis<F>> {
         self.0.groebner_basis.as_ref()
+    }
+
+    /// Translate ideal-level QPA `RightGroebnerBasis(I)`.
+    ///
+    /// QPA installs this method only when `GroebnerBasisOfIdeal(I)` is already
+    /// known; Rust reports that missing dispatch precondition explicitly.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if no basis is attached, the quotient has infinitely
+    /// many nontips, or source-translated reduction fails.
+    pub fn right_groebner_basis(&self) -> Result<GroebnerBasis<F>, QuotientError> {
+        Ok(self
+            .groebner_basis()
+            .ok_or(QuotientError::MissingGroebnerBasis)?
+            .right_basis()?)
     }
 
     /// Translate QPA ideal membership as complete Groebner reduction to zero.
@@ -558,8 +594,8 @@ pub enum QuotientError {
     /// Quotient arithmetic requires identical quotient families.
     #[error("the elements belong to different quotient path algebras")]
     DifferentQuotients,
-    /// An internal quotient construction invariant did not supply a basis.
-    #[error("the quotient ideal has no Groebner basis")]
+    /// An ideal-level method requiring an attached basis did not receive one.
+    #[error("the path-algebra ideal has no attached Groebner basis")]
     MissingGroebnerBasis,
     /// QPA Groebner computation or reduction failed.
     #[error(transparent)]
@@ -581,7 +617,7 @@ mod tests {
 
     use crate::{ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
 
-    use super::{AlgebraDimension, PathAlgebraIdeal, QuotientPathAlgebra};
+    use super::{AlgebraDimension, PathAlgebraIdeal, QuotientError, QuotientPathAlgebra};
 
     fn vertex(index: usize) -> VertexIndex {
         VertexIndex::new(index).unwrap()
@@ -670,6 +706,27 @@ mod tests {
         assert!(ideal.contains(x.pow(3).unwrap()).unwrap());
         assert!(!ideal.contains(x).unwrap());
         assert!(ideal.generators_are_monomial());
+    }
+
+    #[test]
+    fn ideal_level_right_basis_requires_and_uses_an_attached_complete_basis() {
+        let quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let algebra = PathAlgebra::new(Q, quiver).unwrap();
+        let x = algebra
+            .element(algebra.quiver().arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        let cubic = x.pow(3).unwrap();
+        let ideal = PathAlgebraIdeal::new(algebra, vec![cubic.clone()]).unwrap();
+        assert_eq!(
+            ideal.right_groebner_basis().unwrap_err(),
+            QuotientError::MissingGroebnerBasis
+        );
+        let attached = ideal
+            .with_complete_groebner_basis(std::slice::from_ref(&cubic))
+            .unwrap();
+        let right = attached.right_groebner_basis().unwrap();
+        assert_eq!(right.relations(), [cubic]);
     }
 
     #[test]
