@@ -87,6 +87,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_map_utils.g" \
     "$repo_root/tests/fixtures/modulehom_map_utils.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_isomorphism.g" \
+    "$repo_root/tests/fixtures/modulehom_isomorphism.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_inverse_noniso_error.g" \
     >"$actual" 2>&1

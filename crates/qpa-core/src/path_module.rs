@@ -4281,6 +4281,154 @@ pub fn multiply_lists_of_maps<F: Field>(
     Ok(sum)
 }
 
+/// Translate QPA's recursive `IsomorphismOfModules(M, N)` operation.
+///
+/// `Ok(None)` is QPA's `false`. After the same algebra, dimension-vector,
+/// zero, and structural-equality branches, this follows QPA's ordered Hom-basis
+/// search for a common Fitting summand and recursively identifies the two
+/// complements.
+///
+/// # Errors
+///
+/// Propagates exact Hom, composition, kernel/image, split-inverse, preimage,
+/// basis-image, and checked map construction failures. Failures of the
+/// theoretically split internal inclusions are reported explicitly.
+#[allow(clippy::too_many_lines)]
+pub fn isomorphism_of_modules<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    if source.right_acting_algebra() != range.right_acting_algebra()
+        || source.dimension_vector() != range.dimension_vector()
+    {
+        return Ok(None);
+    }
+    if source.dimension() == 0 && range.dimension() == 0 {
+        return Ok(Some(zero_module_mapping(source.clone(), range.clone())?));
+    }
+    if source == range {
+        let field = source.right_acting_algebra().field().clone();
+        let matrices = source
+            .dimension_vector()
+            .iter()
+            .map(|&dimension| {
+                if dimension == 0 {
+                    DenseMatrix::zero(1, 1, field.clone())
+                } else {
+                    DenseMatrix::identity(dimension, field.clone())
+                }
+            })
+            .collect();
+        return Ok(Some(right_module_hom_over_algebra(
+            source.clone(),
+            range.clone(),
+            matrices,
+        )?));
+    }
+
+    let Some((source_endomorphism, range_endomorphism, source_to_range)) =
+        common_splitting_maps(source, range)?
+    else {
+        return Ok(None);
+    };
+    let source_summand_inclusion = image_inclusion(&source_endomorphism)?;
+    let source_summand_retraction = right_inverse_of_homomorphism(&source_summand_inclusion)?
+        .ok_or(PathAlgebraModuleError::InternalIsomorphismSummandNotSplit)?;
+    let range_summand_inclusion = image_inclusion(&range_endomorphism)?;
+    let range_summand_retraction = right_inverse_of_homomorphism(&range_summand_inclusion)?
+        .ok_or(PathAlgebraModuleError::InternalIsomorphismSummandNotSplit)?;
+
+    let source_idempotent = source_summand_retraction.compose(&source_summand_inclusion)?;
+    let source_common_inclusion = image_inclusion(&source_idempotent)?;
+    let source_complement_inclusion = kernel_inclusion(&source_idempotent)?;
+    let range_idempotent = range_summand_retraction.compose(&range_summand_inclusion)?;
+    let range_common_inclusion = image_inclusion(&range_idempotent)?;
+    let range_complement_inclusion = kernel_inclusion(&range_idempotent)?;
+
+    if source_complement_inclusion.source().dimension() == 0
+        && range_complement_inclusion.source().dimension() == 0
+    {
+        return Ok(Some(source_endomorphism.compose(&source_to_range)?));
+    }
+
+    let common_route = source_common_inclusion
+        .compose(&source_endomorphism)?
+        .compose(&source_to_range)?;
+    let mut common_images = Vec::with_capacity(common_route.source().dimension());
+    for basis_element in common_route.source().basis_elements() {
+        let image = common_route.image(&basis_element)?;
+        common_images.push(
+            range_common_inclusion
+                .preimage_representative(&image)?
+                .ok_or(PathAlgebraModuleError::MissingIsomorphismSummandPreimage)?,
+        );
+    }
+    let common_isomorphism = homomorphism_from_images(
+        source_common_inclusion.source(),
+        range_common_inclusion.source(),
+        &common_images,
+    )?;
+    let Some(complement_isomorphism) = isomorphism_of_modules(
+        source_complement_inclusion.source(),
+        range_complement_inclusion.source(),
+    )?
+    else {
+        return Ok(None);
+    };
+
+    let source_common_retraction = right_inverse_of_homomorphism(&source_common_inclusion)?
+        .ok_or(PathAlgebraModuleError::InternalIsomorphismSummandNotSplit)?;
+    let source_complement_retraction = right_inverse_of_homomorphism(&source_complement_inclusion)?
+        .ok_or(PathAlgebraModuleError::InternalIsomorphismSummandNotSplit)?;
+    let common_map = source_common_retraction
+        .compose(&common_isomorphism)?
+        .compose(&range_common_inclusion)?;
+    let complement_map = source_complement_retraction
+        .compose(&complement_isomorphism)?
+        .compose(&range_complement_inclusion)?;
+    Ok(Some(common_map.add(&complement_map)?))
+}
+
+fn common_splitting_maps<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphismTriple<F>>, PathAlgebraModuleError> {
+    let source_to_range = hom_over_algebra(source, range)?
+        .ok_or(PathAlgebraModuleError::InternalIsomorphismHomRejected)?;
+    let range_to_source = hom_over_algebra(range, source)?
+        .ok_or(PathAlgebraModuleError::InternalIsomorphismHomRejected)?;
+    if source_to_range.is_empty() || range_to_source.is_empty() {
+        return Ok(None);
+    }
+    let source_maximum = source.dimension_vector().iter().copied().max().unwrap_or(0);
+    let range_maximum = range.dimension_vector().iter().copied().max().unwrap_or(0);
+    let fitting_length = if source_maximum == range_maximum {
+        range_maximum
+    } else {
+        source_maximum.min(range_maximum) + 1
+    };
+
+    for range_map in &range_to_source {
+        for source_map in &source_to_range {
+            let fitting_map = if fitting_length > 1 {
+                homomorphism_power(&source_map.compose(range_map)?, fitting_length - 1)?
+                    .compose(source_map)?
+            } else {
+                source_map.clone()
+            };
+            let source_endomorphism = fitting_map.compose(range_map)?;
+            if !source_endomorphism.is_zero() {
+                return Ok(Some((
+                    source_endomorphism,
+                    range_map.compose(&fitting_map)?,
+                    source_map.clone(),
+                )));
+            }
+        }
+    }
+    Ok(None)
+}
+
 /// Translate QPA's binary `IntersectionOfSubmodules(f, g)`.
 ///
 /// The tuple contains the maps into the second and first source followed by
@@ -4809,6 +4957,16 @@ pub enum PathAlgebraModuleError {
     /// Every nonzero component matrix of a module isomorphism is invertible.
     #[error("an isomorphism has a singular nonzero vertex matrix")]
     InternalIsomorphismMatrixSingular,
+    /// The two modules in QPA's recursive isomorphism search have already
+    /// passed their common-algebra check.
+    #[error("HomOverAlgebra unexpectedly rejected an isomorphism-search pair")]
+    InternalIsomorphismHomRejected,
+    /// QPA's Fitting summands and complements must have canonical retractions.
+    #[error("an internal isomorphism-search summand inclusion has no right inverse")]
+    InternalIsomorphismSummandNotSplit,
+    /// QPA's common-summand route must land in the chosen range summand.
+    #[error("a common-summand image has no preimage in the range summand")]
+    MissingIsomorphismSummandPreimage,
     /// GAP's splitting solver returns one coefficient per reverse-Hom basis
     /// vector.
     #[error("splitting combination has {actual} coefficients, expected {expected}")]
@@ -5150,16 +5308,16 @@ mod tests {
         hom_over_algebra, hom_over_algebra_with_basis_function, homomorphism_from_images,
         identity_module_mapping, image_projection_inclusion, intersection_of_submodules,
         intersection_of_submodules_list, inverse_of_isomorphism, is_split_epimorphism,
-        is_split_monomorphism, kernel_inclusion, left_inverse_of_homomorphism,
-        left_minimal_version, minimal_generating_set_of_module, more_left_minimal_version,
-        more_right_minimal_version, morphism_on_cokernel, morphism_on_image, morphism_on_kernel,
-        multiply_lists_of_maps, natural_endomorphism_quotient_by_ideal, pull_back, push_out,
-        radical_of_module_inclusion, reject_of_module, right_fac_approximation,
-        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
-        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
-        socle_of_module, socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list,
-        top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
-        zero_module_mapping,
+        is_split_monomorphism, isomorphism_of_modules, kernel_inclusion,
+        left_inverse_of_homomorphism, left_minimal_version, minimal_generating_set_of_module,
+        more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
+        morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
+        natural_endomorphism_quotient_by_ideal, pull_back, push_out, radical_of_module_inclusion,
+        reject_of_module, right_fac_approximation, right_fac_approximation_via_all_basis_images,
+        right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
+        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
+        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
+        top_of_module_projection, trace_of_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -5481,6 +5639,100 @@ mod tests {
             "extra_image_ignored": reconstructed_extra == source_map,
             "list_product": module_map_json(&product, coefficient),
             "extra_row_ignored": product_extra == product,
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_isomorphism_case<F: Field>(
+        field: F,
+        integer: impl Fn(i64) -> F::Element + Copy,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let one = right_module_over_path_algebra(algebra.clone(), vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let two = right_module_over_path_algebra(algebra.clone(), vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let equal_one = right_module_over_path_algebra(algebra.clone(), vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let equal_two = right_module_over_path_algebra(algebra.clone(), vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let zero_module = right_module_over_path_algebra(algebra, vec![0], &[])
+            .unwrap()
+            .unwrap();
+        let zero_isomorphism = isomorphism_of_modules(&zero_module, &zero_module)
+            .unwrap()
+            .unwrap();
+        let equal_isomorphism = isomorphism_of_modules(&equal_one, &equal_two)
+            .unwrap()
+            .unwrap();
+        let different_dimension = isomorphism_of_modules(&one, &two).unwrap();
+
+        let other_quiver = Quiver::from_indexed(2, Vec::<ArrowSpec>::new()).unwrap();
+        let other_algebra =
+            QuiverAlgebra::Path(PathAlgebra::new(field.clone(), other_quiver).unwrap());
+        let other_module = right_module_over_path_algebra(other_algebra, vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let different_algebra = isomorphism_of_modules(&one, &other_module).unwrap();
+
+        let quiver_a2 =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra_a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver_a2).unwrap());
+        let make_representation = |rows: [[i64; 2]; 2]| {
+            right_module_over_path_algebra(
+                algebra_a2.clone(),
+                vec![2, 2],
+                &[NamedArrowMatrix::new(
+                    "a",
+                    DenseMatrix::from_rows(
+                        rows.into_iter()
+                            .map(|row| row.into_iter().map(integer).collect())
+                            .collect(),
+                        field.clone(),
+                    )
+                    .unwrap(),
+                )],
+            )
+            .unwrap()
+            .unwrap()
+        };
+        let rank_one = make_representation([[1, 0], [0, 0]]);
+        let conjugate_rank_one = make_representation([[1, 1], [1, 1]]);
+        let rank_two = make_representation([[1, 0], [0, 1]]);
+        let recursive = isomorphism_of_modules(&rank_one, &conjugate_rank_one)
+            .unwrap()
+            .unwrap();
+        let reverse = isomorphism_of_modules(&conjugate_rank_one, &rank_one)
+            .unwrap()
+            .unwrap();
+        let recursive_inverse = inverse_of_isomorphism(&recursive).unwrap();
+        let nonisomorphic = isomorphism_of_modules(&rank_one, &rank_two).unwrap();
+
+        json!({
+            "zero": module_map_json(&zero_isomorphism, coefficient),
+            "equal": module_map_json(&equal_isomorphism, coefficient),
+            "equal_endpoints_identical": [
+                equal_isomorphism.source().is_identical(&equal_one),
+                equal_isomorphism.range().is_identical(&equal_two),
+            ],
+            "different_dimension": different_dimension.is_none(),
+            "different_algebra": different_algebra.is_none(),
+            "recursive": module_map_json(&recursive, coefficient),
+            "recursive_isomorphism": recursive.is_isomorphism(),
+            "recursive_triangles": [
+                recursive.compose(&recursive_inverse).unwrap()
+                    == identity_module_mapping(rank_one.clone()).unwrap(),
+                recursive_inverse.compose(&recursive).unwrap()
+                    == identity_module_mapping(conjugate_rank_one.clone()).unwrap(),
+            ],
+            "reverse": module_map_json(&reverse, coefficient),
+            "nonisomorphic": nonisomorphic.is_none(),
         })
     }
 
@@ -6196,6 +6448,30 @@ mod tests {
         let rational =
             modulehom_map_utils_case(Q, |value| Q.nth(Integer::from(value)), ToString::to_string);
         let binary = modulehom_map_utils_case(
+            Z2,
+            |value| Z2.nth(Integer::from(value)),
+            |entry| {
+                if Z2.is_zero(entry) {
+                    "0*Z(2)".to_owned()
+                } else {
+                    "Z(2)^0".to_owned()
+                }
+            },
+        );
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_isomorphism_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_isomorphism.schema-v1.json"
+        ))
+        .unwrap();
+        let rational =
+            modulehom_isomorphism_case(Q, |value| Q.nth(Integer::from(value)), ToString::to_string);
+        let binary = modulehom_isomorphism_case(
             Z2,
             |value| Z2.nth(Integer::from(value)),
             |entry| {

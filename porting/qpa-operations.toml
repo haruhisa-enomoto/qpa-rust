@@ -12453,9 +12453,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 65
 source_end = 65
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "isomorphism_of_modules"
+tests = ["tests/fixtures/modulehom_isomorphism.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13675,9 +13675,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3467
 source_end = 3620
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "isomorphism_of_modules"
+tests = ["tests/fixtures/modulehom_isomorphism.schema-v1.json"]
 deviations = []
 
 [[entries]]
