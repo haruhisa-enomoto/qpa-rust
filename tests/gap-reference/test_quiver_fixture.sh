@@ -41,6 +41,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/groebner_objects.g" \
     "$repo_root/tests/fixtures/groebner_objects.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/invlenlex.g" \
+    "$repo_root/tests/fixtures/invlenlex.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/quotient_path_algebra.g" \
     "$repo_root/tests/fixtures/quotient_path_algebra.schema-v1.json"
 compare_fixture \

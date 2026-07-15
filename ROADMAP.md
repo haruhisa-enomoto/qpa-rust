@@ -419,7 +419,7 @@ options, and the Gröbner loop. Extra GBNP APIs are not automatically in scope.
 - [x] Port nontip enumeration and finite-dimensionality detection.
 - [x] Port QPA right Gröbner bases.
 - [x] Port `HighLevelGroebnerBasis` and its reduction operations.
-- [ ] Port inverse-length/inverse-lexicographic Gröbner operations.
+- [x] Port inverse-length/inverse-lexicographic Gröbner operations.
 - [x] Port the quiver static dictionary used for tip search, nontips, dimension,
   and canonical quotient bases.
 - [ ] Port the remaining generic static/dynamic dictionaries, suffix trees, and

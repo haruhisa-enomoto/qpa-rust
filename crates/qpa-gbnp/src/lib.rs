@@ -4,6 +4,7 @@
 //! algorithm is substituted here.
 
 pub mod heap;
+pub mod invlenlex;
 pub mod np;
 pub mod obstruction;
 pub mod occur_tree;
@@ -14,6 +15,13 @@ pub mod reduction;
 pub mod sgrobner;
 
 pub use heap::{TodoHeap, TodoHeapError};
+pub use invlenlex::{
+    InvLenLexError, biggest_homogeneous_part_inv_len_inv_lex,
+    biggest_homogeneous_parts_inv_len_inv_lex, groebner_basis_inv_len_inv_lex,
+    reduced_list_inv_len_inv_lex, remainder_of_division_inv_len_inv_lex,
+    tip_coefficient_inv_len_inv_lex, tip_inv_len_inv_lex, tip_monomial_inv_len_inv_lex,
+    tip_reduced_list_inv_len_inv_lex, tip_walk_inv_len_inv_lex, truncate_element,
+};
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,
     mk_monic_np, mul_np,

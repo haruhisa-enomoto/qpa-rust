@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "invlenlex",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "tip": [
+      {"path": [1], "coefficient": [1, 1]}
+    ],
+    "tip_coefficient": [1, 1],
+    "tip_monomial": [1],
+    "tip_walk": [],
+    "truncate_1": [
+      {"path": [1], "coefficient": [1, 1]}
+    ],
+    "truncate_2": [
+      {"path": [1], "coefficient": [1, 1]},
+      {"path": [2], "coefficient": [2, 1]}
+    ],
+    "biggest_homogeneous": [
+      {"path": [2], "coefficient": [2, 1]}
+    ],
+    "biggest_homogeneous_list": [
+      [{"path": [1], "coefficient": [1, 1]}],
+      [{"path": [2], "coefficient": [2, 1]}]
+    ],
+    "remainder": [
+      {"path": [2], "coefficient": [1, 1]}
+    ],
+    "reduced_list": [
+      [{"path": [2, 2], "coefficient": [1, 1]}]
+    ],
+    "tip_reduced_list": [
+      [{"path": [2, 2], "coefficient": [1, 1]}]
+    ],
+    "leftmost_occurrence": [1, 2],
+    "basis": [
+      [{"path": [2, 2, 2], "coefficient": [1, 1]}]
+    ]
+  },
+  "f5": {
+    "tip": [
+      {"path": [1], "coefficient": 1}
+    ],
+    "truncate_2": [
+      {"path": [1], "coefficient": 1},
+      {"path": [2], "coefficient": 2}
+    ],
+    "basis": [
+      [{"path": [2, 2, 2], "coefficient": 1}]
+    ]
+  },
+  "f2": {
+    "tip": [
+      {"path": [1], "coefficient": 1}
+    ],
+    "truncate_2": [
+      {"path": [1], "coefficient": 1},
+      {"path": [2], "coefficient": 1}
+    ],
+    "basis": [
+      [{"path": [2, 2, 2], "coefficient": 1}]
+    ]
+  }
+}
