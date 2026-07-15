@@ -73,6 +73,14 @@ struct PathAlgebraModuleData<F: Field> {
     endomorphism_algebra: OnceLock<ModuleEndomorphismAlgebra<F>>,
     top_module: OnceLock<PathAlgebraModule<F>>,
     top_projection_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    direct_sum: OnceLock<DirectSumMetadata<F>>,
+}
+
+#[derive(Debug)]
+struct DirectSumMetadata<F: Field> {
+    summands: Vec<PathAlgebraModule<F>>,
+    projections: RwLock<Vec<WeakPathAlgebraModuleHomomorphism<F>>>,
+    inclusions: RwLock<Vec<WeakPathAlgebraModuleHomomorphism<F>>>,
 }
 
 /// A QPA right path-algebra matrix module.
@@ -197,6 +205,21 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn is_identical(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Return QPA's installed `IsDirectSumOfModules` filter.
+    #[must_use]
+    pub fn is_direct_sum_of_modules(&self) -> bool {
+        self.0.direct_sum.get().is_some()
+    }
+
+    /// Return the ordered summands retained by `DirectSumOfQPAModules`.
+    #[must_use]
+    pub fn direct_sum_summands(&self) -> Option<&[Self]> {
+        self.0
+            .direct_sum
+            .get()
+            .map(|metadata| metadata.summands.as_slice())
     }
 
     /// Retain tensor-product metadata when an attribute-created module acts
@@ -585,6 +608,19 @@ struct PathAlgebraModuleHomomorphismData<F: Field> {
 /// attributes can return the identical map object.
 #[derive(Clone, Debug)]
 pub struct PathAlgebraModuleHomomorphism<F: Field>(Arc<PathAlgebraModuleHomomorphismData<F>>);
+
+/// An ordered pair of QPA module homomorphisms returned by categorical constructions.
+pub type PathAlgebraModuleHomomorphismPair<F> = (
+    PathAlgebraModuleHomomorphism<F>,
+    PathAlgebraModuleHomomorphism<F>,
+);
+
+/// An ordered triple of QPA module homomorphisms returned by submodule constructions.
+pub type PathAlgebraModuleHomomorphismTriple<F> = (
+    PathAlgebraModuleHomomorphism<F>,
+    PathAlgebraModuleHomomorphism<F>,
+    PathAlgebraModuleHomomorphism<F>,
+);
 
 #[derive(Clone, Debug)]
 struct WeakPathAlgebraModuleHomomorphism<F: Field>(Weak<PathAlgebraModuleHomomorphismData<F>>);
@@ -2498,6 +2534,607 @@ fn zero_submodule_inclusion<F: Field>(
     zero_module_mapping(zero, target.clone())
 }
 
+/// Translate QPA's `DirectSumOfQPAModules` block-matrix construction.
+///
+/// Summands and every vertex block retain their entered order. The returned
+/// module carries QPA's direct-sum filter together with lazily recoverable
+/// projection and inclusion attributes. `Ok(None)` is QPA's `fail` for an
+/// empty list.
+///
+/// # Errors
+///
+/// Rejects different acting algebras, reports dimension overflow, and
+/// propagates checked module/map construction failures.
+pub fn direct_sum_of_qpa_modules<F: Field>(
+    modules: &[PathAlgebraModule<F>],
+) -> Result<Option<PathAlgebraModule<F>>, PathAlgebraModuleError> {
+    let Some(first) = modules.first() else {
+        return Ok(None);
+    };
+    if modules
+        .iter()
+        .any(|module| module.right_acting_algebra() != first.right_acting_algebra())
+    {
+        return Err(PathAlgebraModuleError::DirectSumDifferentAlgebras);
+    }
+
+    let vertex_count = first.dimension_vector().len();
+    let mut dimensions = vec![0_usize; vertex_count];
+    for module in modules {
+        for (total, &dimension) in dimensions.iter_mut().zip(module.dimension_vector()) {
+            *total = total
+                .checked_add(dimension)
+                .ok_or(PathAlgebraModuleError::DimensionOverflow)?;
+        }
+    }
+
+    let field = first.right_acting_algebra().field().clone();
+    let mut specification = Vec::new();
+    for arrow in first.right_acting_algebra().quiver().arrows() {
+        let source = arrow.source().index().zero_based();
+        let target = arrow.target().index().zero_based();
+        if dimensions[source] == 0 || dimensions[target] == 0 {
+            continue;
+        }
+        let mut matrix = DenseMatrix::zero(dimensions[source], dimensions[target], field.clone());
+        let mut row_offset = 0;
+        let mut column_offset = 0;
+        for module in modules {
+            let source_dimension = module.dimension_vector()[source];
+            let target_dimension = module.dimension_vector()[target];
+            if source_dimension != 0 && target_dimension != 0 {
+                let block = logical_submatrix(
+                    &module.arrow_matrices()[arrow.index().zero_based()],
+                    source_dimension,
+                    target_dimension,
+                )?;
+                for row in 0..source_dimension {
+                    for column in 0..target_dimension {
+                        matrix[(row_offset + row, column_offset + column)] =
+                            block[(row, column)].clone();
+                    }
+                }
+            }
+            row_offset += source_dimension;
+            column_offset += target_dimension;
+        }
+        specification.push(NamedArrowMatrix::new(arrow.name(), matrix));
+    }
+
+    let direct_sum = right_module_over_path_algebra(
+        first.right_acting_algebra().clone(),
+        dimensions,
+        &specification,
+    )?
+    .ok_or(PathAlgebraModuleError::GeneratedDirectSumViolatesRelations)?;
+    let projections = construct_direct_sum_component_maps(&direct_sum, modules, true)?;
+    let inclusions = construct_direct_sum_component_maps(&direct_sum, modules, false)?;
+    direct_sum
+        .0
+        .direct_sum
+        .set(DirectSumMetadata {
+            summands: modules.to_vec(),
+            projections: RwLock::new(
+                projections
+                    .iter()
+                    .map(PathAlgebraModuleHomomorphism::downgrade)
+                    .collect(),
+            ),
+            inclusions: RwLock::new(
+                inclusions
+                    .iter()
+                    .map(PathAlgebraModuleHomomorphism::downgrade)
+                    .collect(),
+            ),
+        })
+        .map_err(|_| PathAlgebraModuleError::DirectSumMetadataAlreadySet)?;
+    Ok(Some(direct_sum))
+}
+
+/// Return QPA's cached direct-sum projections in summand order.
+///
+/// # Errors
+///
+/// Rejects a module not built by [`direct_sum_of_qpa_modules`] and propagates
+/// checked map reconstruction failures.
+pub fn direct_sum_projections<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    direct_sum_component_maps(module, true)
+}
+
+/// Return QPA's cached direct-sum inclusions in summand order.
+///
+/// # Errors
+///
+/// Rejects a module not built by [`direct_sum_of_qpa_modules`] and propagates
+/// checked map reconstruction failures.
+pub fn direct_sum_inclusions<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    direct_sum_component_maps(module, false)
+}
+
+fn direct_sum_component_maps<F: Field>(
+    module: &PathAlgebraModule<F>,
+    projections: bool,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    let metadata = module
+        .0
+        .direct_sum
+        .get()
+        .ok_or(PathAlgebraModuleError::NotDirectSumModule)?;
+    let cache = if projections {
+        &metadata.projections
+    } else {
+        &metadata.inclusions
+    };
+    let mut slot = cache
+        .write()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let mut result = Vec::with_capacity(metadata.summands.len());
+    for summand_index in 0..metadata.summands.len() {
+        if let Some(cached) = slot[summand_index].upgrade() {
+            result.push(cached);
+            continue;
+        }
+        let generated = construct_direct_sum_component_map(
+            module,
+            &metadata.summands,
+            summand_index,
+            projections,
+        )?;
+        slot[summand_index] = generated.downgrade();
+        result.push(generated);
+    }
+    Ok(result)
+}
+
+fn construct_direct_sum_component_maps<F: Field>(
+    direct_sum: &PathAlgebraModule<F>,
+    summands: &[PathAlgebraModule<F>],
+    projections: bool,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    let mut result = Vec::with_capacity(summands.len());
+    for summand_index in 0..summands.len() {
+        result.push(construct_direct_sum_component_map(
+            direct_sum,
+            summands,
+            summand_index,
+            projections,
+        )?);
+    }
+    Ok(result)
+}
+
+fn construct_direct_sum_component_map<F: Field>(
+    direct_sum: &PathAlgebraModule<F>,
+    summands: &[PathAlgebraModule<F>],
+    summand_index: usize,
+    projections: bool,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    let summand = &summands[summand_index];
+    let field = direct_sum.right_acting_algebra().field().clone();
+    let matrices = direct_sum
+        .dimension_vector()
+        .iter()
+        .zip(summand.dimension_vector())
+        .enumerate()
+        .map(|(vertex, (&total, &component))| {
+            let offset = summands[..summand_index]
+                .iter()
+                .map(|previous| previous.dimension_vector()[vertex])
+                .sum::<usize>();
+            let (rows, columns) = if projections {
+                (physical_dimension(total), physical_dimension(component))
+            } else {
+                (physical_dimension(component), physical_dimension(total))
+            };
+            let mut matrix = DenseMatrix::zero(rows, columns, field.clone());
+            if total != 0 && component != 0 {
+                for coordinate in 0..component {
+                    if projections {
+                        matrix[(offset + coordinate, coordinate)] = field.one();
+                    } else {
+                        matrix[(coordinate, offset + coordinate)] = field.one();
+                    }
+                }
+            }
+            matrix
+        })
+        .collect::<Vec<_>>();
+    if projections {
+        let map = right_module_hom_over_algebra(direct_sum.clone(), summand.clone(), matrices)?;
+        map.set_is_surjective(true);
+        Ok(map)
+    } else {
+        let map = right_module_hom_over_algebra(summand.clone(), direct_sum.clone(), matrices)?;
+        map.set_is_injective(true);
+        Ok(map)
+    }
+}
+
+/// Translate QPA's `PushOut(f, g)` construction.
+///
+/// The returned maps are ordered from `Range(g)` and `Range(f)` into the
+/// pushout, matching QPA's `[f', g']`. `Ok(None)` is QPA's printed `fail`
+/// result when the maps do not have structurally equal sources.
+///
+/// # Errors
+///
+/// Propagates direct-sum, map arithmetic, and cokernel construction failures.
+pub fn push_out<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphismPair<F>>, PathAlgebraModuleError> {
+    if first.source() != second.source() {
+        return Ok(None);
+    }
+    let direct_sum = direct_sum_of_qpa_modules(&[second.range().clone(), first.range().clone()])?
+        .ok_or(PathAlgebraModuleError::InternalNonemptyDirectSumFailed)?;
+    let inclusions = direct_sum_inclusions(&direct_sum)?;
+    let difference = first
+        .compose(&inclusions[1])?
+        .add(&second.compose(&inclusions[0])?.negate()?)?;
+    let cokernel = cokernel_projection(&difference)?;
+    Ok(Some((
+        inclusions[0].compose(&cokernel)?,
+        inclusions[1].compose(&cokernel)?,
+    )))
+}
+
+/// Translate QPA's `PullBack(f, g)` construction.
+///
+/// The returned maps are ordered into `Source(g)` and `Source(f)`, matching
+/// QPA's `[f', g']`. `Ok(None)` is QPA's printed `fail` result when the maps
+/// do not have structurally equal ranges.
+///
+/// # Errors
+///
+/// Propagates direct-sum, map arithmetic, and kernel construction failures.
+pub fn pull_back<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphismPair<F>>, PathAlgebraModuleError> {
+    if first.range() != second.range() {
+        return Ok(None);
+    }
+    let direct_sum = direct_sum_of_qpa_modules(&[first.source().clone(), second.source().clone()])?
+        .ok_or(PathAlgebraModuleError::InternalNonemptyDirectSumFailed)?;
+    let projections = direct_sum_projections(&direct_sum)?;
+    let difference = projections[0]
+        .compose(first)?
+        .add(&projections[1].compose(second)?.negate()?)?;
+    let kernel = kernel_inclusion(&difference)?;
+    Ok(Some((
+        kernel.compose(&projections[1])?,
+        kernel.compose(&projections[0])?,
+    )))
+}
+
+/// Translate QPA's `MorphismOnKernel(f, g, beta, alpha)`.
+///
+/// `Ok(None)` is QPA's `fail` for a noncommutative square.
+///
+/// # Errors
+///
+/// Rejects malformed diagram compositions and propagates exact kernel,
+/// preimage, image, and checked-map construction failures.
+pub fn morphism_on_kernel<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+    beta: &PathAlgebraModuleHomomorphism<F>,
+    alpha: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    if first.compose(alpha)? != beta.compose(second)? {
+        return Ok(None);
+    }
+    let first_kernel = kernel_inclusion(first)?;
+    let second_kernel = kernel_inclusion(second)?;
+    let route = first_kernel.compose(beta)?;
+    let mut images = Vec::with_capacity(first_kernel.source().dimension());
+    for basis_element in first_kernel.source().basis_elements() {
+        let image = route.image(&basis_element)?;
+        images.push(
+            second_kernel
+                .preimage_representative(&image)?
+                .ok_or(PathAlgebraModuleError::MissingInducedKernelPreimage)?,
+        );
+    }
+    Ok(Some(module_homomorphism_from_basis_images(
+        first_kernel.source(),
+        second_kernel.source(),
+        &images,
+    )?))
+}
+
+/// Translate QPA's `MorphismOnImage(f, g, beta, alpha)`.
+///
+/// `Ok(None)` is QPA's `fail` for a noncommutative square.
+///
+/// # Errors
+///
+/// Rejects malformed diagram compositions and propagates exact image,
+/// preimage, and checked-map construction failures.
+pub fn morphism_on_image<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+    beta: &PathAlgebraModuleHomomorphism<F>,
+    alpha: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    if first.compose(alpha)? != beta.compose(second)? {
+        return Ok(None);
+    }
+    let first_image = image_projection(first)?;
+    let second_image = image_projection(second)?;
+    let route = beta.compose(&second_image)?;
+    let mut images = Vec::with_capacity(first_image.range().dimension());
+    for basis_element in first_image.range().basis_elements() {
+        let lift = first_image
+            .preimage_representative(&basis_element)?
+            .ok_or(PathAlgebraModuleError::MissingInducedImagePreimage)?;
+        images.push(route.image(&lift)?);
+    }
+    Ok(Some(module_homomorphism_from_basis_images(
+        first_image.range(),
+        second_image.range(),
+        &images,
+    )?))
+}
+
+/// Translate QPA's `MorphismOnCoKernel(f, g, beta, alpha)`.
+///
+/// `Ok(None)` is QPA's `fail` for a noncommutative square.
+///
+/// # Errors
+///
+/// Rejects malformed diagram compositions and propagates exact cokernel,
+/// preimage, image, and checked-map construction failures.
+pub fn morphism_on_cokernel<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+    beta: &PathAlgebraModuleHomomorphism<F>,
+    alpha: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    if first.compose(alpha)? != beta.compose(second)? {
+        return Ok(None);
+    }
+    let first_cokernel = cokernel_projection(first)?;
+    let second_cokernel = cokernel_projection(second)?;
+    let route = alpha.compose(&second_cokernel)?;
+    let mut images = Vec::with_capacity(first_cokernel.range().dimension());
+    for basis_element in first_cokernel.range().basis_elements() {
+        let lift = first_cokernel
+            .preimage_representative(&basis_element)?
+            .ok_or(PathAlgebraModuleError::MissingInducedCokernelPreimage)?;
+        images.push(route.image(&lift)?);
+    }
+    Ok(Some(module_homomorphism_from_basis_images(
+        first_cokernel.range(),
+        second_cokernel.range(),
+        &images,
+    )?))
+}
+
+fn module_homomorphism_from_basis_images<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+    images: &[PathAlgebraModuleElement<F>],
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if images.len() != source.dimension() {
+        return Err(PathAlgebraModuleError::BasisImageCount {
+            actual: images.len(),
+            expected: source.dimension(),
+        });
+    }
+    let field = source.right_acting_algebra().field().clone();
+    let mut offset = 0_usize;
+    let matrices = source
+        .dimension_vector()
+        .iter()
+        .zip(range.dimension_vector())
+        .enumerate()
+        .map(|(vertex, (&source_dimension, &range_dimension))| {
+            if source_dimension == 0 {
+                return Ok(DenseMatrix::zero(
+                    1,
+                    physical_dimension(range_dimension),
+                    field.clone(),
+                ));
+            }
+            let mut entries =
+                Vec::with_capacity(source_dimension * physical_dimension(range_dimension));
+            for image in &images[offset..offset + source_dimension] {
+                if !image.module().is_identical(range) {
+                    return Err(PathAlgebraModuleError::BasisImageInWrongModule);
+                }
+                entries.extend_from_slice(&image.external_representation()[vertex]);
+            }
+            offset += source_dimension;
+            Ok(DenseMatrix::from_flat(
+                source_dimension,
+                physical_dimension(range_dimension),
+                entries,
+                field.clone(),
+            )?)
+        })
+        .collect::<Result<Vec<_>, PathAlgebraModuleError>>()?;
+    right_module_hom_over_algebra(source.clone(), range.clone(), matrices)
+}
+
+/// Translate QPA's binary `IntersectionOfSubmodules(f, g)`.
+///
+/// The tuple contains the maps into the second and first source followed by
+/// the canonical inclusion of their intersection into the common range.
+///
+/// # Errors
+///
+/// Requires two monomorphisms with structurally equal ranges and propagates
+/// QPA's pullback construction failures.
+pub fn intersection_of_submodules<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphismTriple<F>, PathAlgebraModuleError> {
+    validate_submodule_pair(first, second)?;
+    let (to_second, to_first) = pull_back(first, second)?
+        .ok_or(PathAlgebraModuleError::InternalCommonRangePullbackFailed)?;
+    let inclusion = to_first.compose(first)?;
+    Ok((to_second, to_first, inclusion))
+}
+
+/// Translate QPA's list `IntersectionOfSubmodules` method.
+///
+/// A singleton list returns the identical entered map, while longer lists
+/// fold binary pullbacks in entered order.
+///
+/// # Errors
+///
+/// Preserves QPA's validation order for an empty list, source algebras,
+/// injectivity, and common ranges, then propagates binary construction errors.
+pub fn intersection_of_submodules_list<F: Field>(
+    homomorphisms: &[PathAlgebraModuleHomomorphism<F>],
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    validate_submodule_list(homomorphisms, true)?;
+    let mut intersection = homomorphisms[0].clone();
+    for homomorphism in &homomorphisms[1..] {
+        intersection = intersection_of_submodules(&intersection, homomorphism)?.2;
+    }
+    Ok(intersection)
+}
+
+/// Translate QPA's binary `SumOfSubmodules(f, g)`.
+///
+/// The tuple is the inclusion of the sum into the common range followed by
+/// the maps from the first and second source into that sum.
+///
+/// # Errors
+///
+/// Requires two monomorphisms with structurally equal ranges and propagates
+/// QPA's direct-sum and image-factorization construction failures.
+pub fn sum_of_submodules<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphismTriple<F>, PathAlgebraModuleError> {
+    validate_submodule_pair(first, second)?;
+    let direct_sum = direct_sum_of_qpa_modules(&[first.source().clone(), second.source().clone()])?
+        .ok_or(PathAlgebraModuleError::InternalNonemptyDirectSumFailed)?;
+    let inclusions = direct_sum_inclusions(&direct_sum)?;
+    let projections = direct_sum_projections(&direct_sum)?;
+    let combined = projections[0]
+        .compose(first)?
+        .add(&projections[1].compose(second)?)?;
+    let (projection, inclusion) = image_projection_inclusion(&combined)?;
+    Ok((
+        inclusion,
+        inclusions[0].compose(&projection)?,
+        inclusions[1].compose(&projection)?,
+    ))
+}
+
+/// Translate QPA's list `SumOfSubmodules` method.
+///
+/// A singleton list returns the identical entered map, while longer lists
+/// fold binary image sums in entered order.
+///
+/// # Errors
+///
+/// Preserves QPA's validation order for an empty list, source algebras,
+/// common ranges, and injectivity, then propagates binary construction errors.
+pub fn sum_of_submodules_list<F: Field>(
+    homomorphisms: &[PathAlgebraModuleHomomorphism<F>],
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    validate_submodule_list(homomorphisms, false)?;
+    let mut sum = homomorphisms[0].clone();
+    for homomorphism in &homomorphisms[1..] {
+        sum = sum_of_submodules(&sum, homomorphism)?.0;
+    }
+    Ok(sum)
+}
+
+fn validate_submodule_pair<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<(), PathAlgebraModuleError> {
+    if !first.is_injective() {
+        return Err(PathAlgebraModuleError::FirstSubmoduleMapNotInjective);
+    }
+    if !second.is_injective() {
+        return Err(PathAlgebraModuleError::SecondSubmoduleMapNotInjective);
+    }
+    if first.range() != second.range() {
+        return Err(PathAlgebraModuleError::SubmoduleRangesDiffer);
+    }
+    Ok(())
+}
+
+fn validate_submodule_list<F: Field>(
+    homomorphisms: &[PathAlgebraModuleHomomorphism<F>],
+    injectivity_before_range: bool,
+) -> Result<(), PathAlgebraModuleError> {
+    let Some(first) = homomorphisms.first() else {
+        return Err(PathAlgebraModuleError::EmptySubmoduleList);
+    };
+    if homomorphisms.iter().any(|homomorphism| {
+        homomorphism.source().right_acting_algebra() != first.source().right_acting_algebra()
+    }) {
+        return Err(PathAlgebraModuleError::SubmoduleListDifferentAlgebras);
+    }
+    let injective = || {
+        homomorphisms
+            .iter()
+            .all(PathAlgebraModuleHomomorphism::is_injective)
+    };
+    let common_range = || {
+        homomorphisms
+            .iter()
+            .all(|homomorphism| homomorphism.range() == first.range())
+    };
+    if injectivity_before_range {
+        if !injective() {
+            return Err(PathAlgebraModuleError::SomeSubmoduleMapNotInjective);
+        }
+        if !common_range() {
+            return Err(PathAlgebraModuleError::SubmoduleRangesDiffer);
+        }
+    } else {
+        if !common_range() {
+            return Err(PathAlgebraModuleError::SubmoduleRangesDiffer);
+        }
+        if !injective() {
+            return Err(PathAlgebraModuleError::SomeSubmoduleMapNotInjective);
+        }
+    }
+    Ok(())
+}
+
+/// Translate QPA's `RejectOfModule(N, M)` intersection-of-kernels method.
+///
+/// # Errors
+///
+/// Requires both modules over the same algebra and propagates exact Hom,
+/// kernel, and submodule-intersection failures.
+pub fn reject_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+    rejected_by: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if module.right_acting_algebra() != rejected_by.right_acting_algebra() {
+        return Err(PathAlgebraModuleError::RejectModulesOverDifferentAlgebras);
+    }
+    let homomorphisms = hom_over_algebra(module, rejected_by)?
+        .ok_or(PathAlgebraModuleError::InternalCommonAlgebraHomFailed)?;
+    match homomorphisms.as_slice() {
+        [] => identity_module_mapping(module.clone()),
+        [homomorphism] => kernel_inclusion(homomorphism),
+        _ => {
+            let kernels = homomorphisms
+                .iter()
+                .map(kernel_inclusion)
+                .collect::<Result<Vec<_>, _>>()?;
+            intersection_of_submodules_list(&kernels)
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct NaturalRowQuotient<F: Field> {
     projection: DenseMatrix<F>,
@@ -2746,6 +3383,7 @@ fn right_module_over_path_algebra_impl<F: Field>(
         endomorphism_algebra: OnceLock::new(),
         top_module: OnceLock::new(),
         top_projection_weak: RwLock::new(None),
+        direct_sum: OnceLock::new(),
     }))))
 }
 
@@ -2838,6 +3476,68 @@ pub enum PathAlgebraModuleError {
     /// The all-zero representation must satisfy every supported algebra relation.
     #[error("the generated zero module does not satisfy the algebra relations")]
     GeneratedZeroModuleViolatesRelations,
+    /// Every direct summand must act over the same algebra.
+    #[error("all direct summands must be modules over the same algebra")]
+    DirectSumDifferentAlgebras,
+    /// The source block-diagonal action must satisfy the common relations.
+    #[error("the generated direct sum does not satisfy the algebra relations")]
+    GeneratedDirectSumViolatesRelations,
+    /// Direct-sum metadata can be installed only on its fresh module object.
+    #[error("direct-sum metadata was already installed")]
+    DirectSumMetadataAlreadySet,
+    /// Projection and inclusion attributes require a QPA direct sum.
+    #[error("the entered module was not built by DirectSumOfQPAModules")]
+    NotDirectSumModule,
+    /// Every internal use of a direct sum supplies at least one module.
+    #[error("an internal nonempty DirectSumOfQPAModules call returned fail")]
+    InternalNonemptyDirectSumFailed,
+    /// A commutative square must carry the first kernel into the second.
+    #[error("the induced kernel image unexpectedly has no preimage")]
+    MissingInducedKernelPreimage,
+    /// The canonical image projection must lift every image-basis vector.
+    #[error("an image basis vector unexpectedly has no preimage")]
+    MissingInducedImagePreimage,
+    /// The canonical cokernel projection must lift every cokernel-basis vector.
+    #[error("a cokernel basis vector unexpectedly has no preimage")]
+    MissingInducedCokernelPreimage,
+    /// A basis-image map needs one image per source basis vector.
+    #[error("basis-image list has length {actual}, expected {expected}")]
+    BasisImageCount {
+        /// Entered image count.
+        actual: usize,
+        /// Required source dimension.
+        expected: usize,
+    },
+    /// Every entered basis image must belong to the identical range family.
+    #[error("a basis image does not belong to the entered range module")]
+    BasisImageInWrongModule,
+    /// The first binary submodule argument must be a monomorphism.
+    #[error("the first submodule argument is not a monomorphism")]
+    FirstSubmoduleMapNotInjective,
+    /// The second binary submodule argument must be a monomorphism.
+    #[error("the second submodule argument is not a monomorphism")]
+    SecondSubmoduleMapNotInjective,
+    /// Submodule inclusions must have the same structural range.
+    #[error("submodule homomorphisms must have the same range")]
+    SubmoduleRangesDiffer,
+    /// QPA requires a nonempty list of submodule inclusions.
+    #[error("the submodule homomorphism list must be nonempty")]
+    EmptySubmoduleList,
+    /// Every source in a submodule list must act over the same algebra.
+    #[error("all submodule-list sources must be modules over the same algebra")]
+    SubmoduleListDifferentAlgebras,
+    /// Every map in a submodule list must be a monomorphism.
+    #[error("not all submodule-list arguments are monomorphisms")]
+    SomeSubmoduleMapNotInjective,
+    /// Equal ranges make QPA's internal pullback branch infallible.
+    #[error("an internal pullback of maps with a common range returned fail")]
+    InternalCommonRangePullbackFailed,
+    /// `RejectOfModule` requires a common acting algebra.
+    #[error("the reject modules are not modules over the same algebra")]
+    RejectModulesOverDifferentAlgebras,
+    /// A Hom query cannot reject modules after their algebras were checked.
+    #[error("an internal HomOverAlgebra call rejected a common algebra")]
+    InternalCommonAlgebraHomFailed,
     /// A module element needs one coordinate row per quiver vertex.
     #[error("module element has {actual} vertex rows, expected {expected}")]
     ElementVertexCount {
@@ -3006,11 +3706,12 @@ mod tests {
     use std::sync::Arc;
 
     use numerica::domains::{
-        Ring,
+        Field, Ring,
         finite_field::{Z2, Zp},
         integer::Integer,
         rational::{Q, Rational},
     };
+    use serde_json::{Value, json};
 
     use crate::{
         ArrowSpec, DenseMatrix, PathAlgebra, Quiver, QuiverAlgebra, QuotientPathAlgebra,
@@ -3018,12 +3719,16 @@ mod tests {
     };
 
     use super::{
-        NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleMatrix, cokernel_projection,
-        end_over_algebra, hom_over_algebra, hom_over_algebra_with_basis_function,
-        identity_module_mapping, image_projection_inclusion, kernel_inclusion,
-        minimal_generating_set_of_module, radical_of_module_inclusion, right_fac_approximation,
-        right_fac_approximation_via_all_basis_images, right_module_hom_over_algebra,
-        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion, top_of_module,
+        NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
+        PathAlgebraModuleMatrix, cokernel_projection, direct_sum_inclusions,
+        direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, hom_over_algebra,
+        hom_over_algebra_with_basis_function, identity_module_mapping, image_projection_inclusion,
+        intersection_of_submodules, intersection_of_submodules_list, kernel_inclusion,
+        minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_image,
+        morphism_on_kernel, pull_back, push_out, radical_of_module_inclusion, reject_of_module,
+        right_fac_approximation, right_fac_approximation_via_all_basis_images,
+        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
+        socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list, top_of_module,
         top_of_module_homomorphism, top_of_module_projection, trace_of_module, zero_module_mapping,
     };
 
@@ -3033,6 +3738,211 @@ mod tests {
 
     fn q(value: i64) -> Rational {
         Q.nth(value.into())
+    }
+
+    fn matrix_json<F: Field>(
+        matrix: &DenseMatrix<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!({
+            "shape": [matrix.nrows(), matrix.ncols()],
+            "rows": (0..matrix.nrows())
+                .map(|row| matrix.row(row).iter().map(coefficient).collect::<Vec<_>>())
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn module_map_json<F: Field>(
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!({
+            "source_dimension": homomorphism.source().dimension_vector(),
+            "range_dimension": homomorphism.range().dimension_vector(),
+            "matrices": homomorphism.vertex_matrices().iter()
+                .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+        })
+    }
+
+    fn module_map_list_json<F: Field>(
+        homomorphisms: &[&PathAlgebraModuleHomomorphism<F>],
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!(
+            homomorphisms
+                .iter()
+                .map(|homomorphism| module_map_json(homomorphism, coefficient))
+                .collect::<Vec<_>>()
+        )
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_categorical_case<F: Field>(
+        field: F,
+        integer: impl Fn(i64) -> F::Element + Copy,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(
+                    vec![vec![integer(1), integer(1)], vec![integer(0), integer(0)]],
+                    field.clone(),
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let f = right_module_hom_over_algebra(
+            module.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(
+                    vec![vec![integer(1), integer(0)], vec![integer(0), integer(0)]],
+                    field.clone(),
+                )
+                .unwrap(),
+                DenseMatrix::identity(2, field.clone()),
+            ],
+        )
+        .unwrap();
+        let t = right_module_hom_over_algebra(
+            module.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(
+                    vec![vec![integer(2), integer(0)], vec![integer(0), integer(3)]],
+                    field.clone(),
+                )
+                .unwrap(),
+                DenseMatrix::identity(2, field.clone()).scale_left(&integer(2)),
+            ],
+        )
+        .unwrap();
+        let identity = identity_module_mapping(module.clone()).unwrap();
+        let layer = right_module_over_path_algebra(algebra.clone(), vec![1, 1], &[])
+            .unwrap()
+            .unwrap();
+        let first = right_module_hom_over_algebra(
+            layer.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![integer(0), integer(1)]], field.clone()).unwrap(),
+                DenseMatrix::from_rows(vec![vec![integer(1), integer(0)]], field.clone()).unwrap(),
+            ],
+        )
+        .unwrap();
+        let second = right_module_hom_over_algebra(
+            layer.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![integer(0), integer(1)]], field.clone()).unwrap(),
+                DenseMatrix::from_rows(vec![vec![integer(0), integer(1)]], field.clone()).unwrap(),
+            ],
+        )
+        .unwrap();
+        let kernel_module = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let kernel_to_module = right_module_hom_over_algebra(
+            kernel_module.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![integer(0), integer(1)]], field.clone()).unwrap(),
+                DenseMatrix::zero(1, 2, field.clone()),
+            ],
+        )
+        .unwrap();
+        let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+
+        let direct_sum =
+            direct_sum_of_qpa_modules(&[layer.clone(), kernel_module, simple_two.clone()])
+                .unwrap()
+                .unwrap();
+        let projections = direct_sum_projections(&direct_sum).unwrap();
+        let inclusions = direct_sum_inclusions(&direct_sum).unwrap();
+        let singleton = direct_sum_of_qpa_modules(std::slice::from_ref(&layer))
+            .unwrap()
+            .unwrap();
+        let induced_kernel = morphism_on_kernel(&f, &f, &t, &t).unwrap().unwrap();
+        let induced_image = morphism_on_image(&f, &f, &t, &t).unwrap().unwrap();
+        let induced_cokernel = morphism_on_cokernel(&f, &f, &t, &t).unwrap().unwrap();
+        let intersection = intersection_of_submodules(&first, &second).unwrap();
+        let intersection_list = intersection_of_submodules_list(&[
+            first.clone(),
+            second.clone(),
+            kernel_to_module.clone(),
+        ])
+        .unwrap();
+        let sum = sum_of_submodules(&first, &second).unwrap();
+        let sum_list =
+            sum_of_submodules_list(&[first.clone(), second.clone(), kernel_to_module]).unwrap();
+        let pullback = pull_back(&first, &second).unwrap().unwrap();
+        let pushout = push_out(&intersection.0, &intersection.1).unwrap().unwrap();
+        let reject_zero = reject_of_module(&simple_one, &simple_two).unwrap();
+        let reject_one = reject_of_module(&module, &simple_two).unwrap();
+        let reject_many = reject_of_module(&module, &simple_one).unwrap();
+
+        json!({
+            "direct_sum": {
+                "empty_is_fail": direct_sum_of_qpa_modules::<F>(&[]).unwrap().is_none(),
+                "filter": direct_sum.is_direct_sum_of_modules(),
+                "dimension": direct_sum.dimension_vector(),
+                "matrices": direct_sum.arrow_matrices().iter()
+                    .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+                "projections": projections.iter()
+                    .map(|map| module_map_json(map, coefficient)).collect::<Vec<_>>(),
+                "inclusions": inclusions.iter()
+                    .map(|map| module_map_json(map, coefficient)).collect::<Vec<_>>(),
+                "projection_cache_identity": projections[0]
+                    .is_identical(&direct_sum_projections(&direct_sum).unwrap()[0]),
+                "inclusion_cache_identity": inclusions[0]
+                    .is_identical(&direct_sum_inclusions(&direct_sum).unwrap()[0]),
+                "singleton_equal": singleton == layer,
+                "singleton_identical": singleton.is_identical(&layer),
+            },
+            "induced": {
+                "kernel": module_map_json(&induced_kernel, coefficient),
+                "image": module_map_json(&induced_image, coefficient),
+                "cokernel": module_map_json(&induced_cokernel, coefficient),
+                "noncommuting_fails": [
+                    morphism_on_kernel(&f, &f, &identity, &t).unwrap().is_none(),
+                    morphism_on_image(&f, &f, &identity, &t).unwrap().is_none(),
+                    morphism_on_cokernel(&f, &f, &identity, &t).unwrap().is_none(),
+                ],
+            },
+            "pullback": module_map_list_json(&[&pullback.0, &pullback.1], coefficient),
+            "pushout": module_map_list_json(&[&pushout.0, &pushout.1], coefficient),
+            "intersection": {
+                "pair": module_map_list_json(
+                    &[&intersection.0, &intersection.1, &intersection.2], coefficient),
+                "list": module_map_json(&intersection_list, coefficient),
+                "singleton_identity": intersection_of_submodules_list(
+                    std::slice::from_ref(&first)).unwrap().is_identical(&first),
+            },
+            "sum": {
+                "pair": module_map_list_json(&[&sum.0, &sum.1, &sum.2], coefficient),
+                "list": module_map_json(&sum_list, coefficient),
+                "singleton_identity": sum_of_submodules_list(
+                    std::slice::from_ref(&first)).unwrap().is_identical(&first),
+            },
+            "reject": {
+                "hom_zero": module_map_json(&reject_zero, coefficient),
+                "hom_one": module_map_json(&reject_one, coefficient),
+                "hom_many": module_map_json(&reject_many, coefficient),
+            },
+        })
     }
 
     #[test]
@@ -3211,6 +4121,288 @@ mod tests {
         assert!(first.is_identical(&clone));
         assert!(!first.is_identical(&second));
         assert_eq!(first, second);
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn direct_sum_uses_qpa_block_order_component_maps_and_live_identity_cache() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let first = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let second = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)], vec![q(0)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let third = right_module_over_path_algebra(algebra.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+
+        assert!(
+            direct_sum_of_qpa_modules::<numerica::domains::rational::RationalField>(&[])
+                .unwrap()
+                .is_none()
+        );
+        let direct_sum = direct_sum_of_qpa_modules(&[first.clone(), second.clone(), third.clone()])
+            .unwrap()
+            .unwrap();
+        assert!(direct_sum.is_direct_sum_of_modules());
+        assert_eq!(direct_sum.dimension_vector(), &[3, 3]);
+        assert_eq!(
+            direct_sum.arrow_matrices()[0],
+            DenseMatrix::from_rows(
+                vec![
+                    vec![q(1), q(0), q(0)],
+                    vec![q(0), q(1), q(0)],
+                    vec![q(0), q(0), q(0)],
+                ],
+                Q,
+            )
+            .unwrap()
+        );
+        let summands = direct_sum.direct_sum_summands().unwrap();
+        assert!(summands[0].is_identical(&first));
+        assert!(summands[1].is_identical(&second));
+        assert!(summands[2].is_identical(&third));
+
+        let projections = direct_sum_projections(&direct_sum).unwrap();
+        let inclusions = direct_sum_inclusions(&direct_sum).unwrap();
+        assert_eq!(
+            projections[1].vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(
+                    vec![vec![q(0), q(0)], vec![q(1), q(0)], vec![q(0), q(1)]],
+                    Q,
+                )
+                .unwrap(),
+                DenseMatrix::from_rows(vec![vec![q(0)], vec![q(1)], vec![q(0)]], Q).unwrap(),
+            ]
+        );
+        assert_eq!(
+            inclusions[2].vertex_matrices(),
+            &[
+                DenseMatrix::zero(1, 3, Q),
+                DenseMatrix::from_rows(vec![vec![q(0), q(0), q(1)]], Q).unwrap(),
+            ]
+        );
+        for index in 0..3 {
+            assert!(projections[index].is_surjective());
+            assert!(inclusions[index].is_injective());
+            assert_eq!(
+                inclusions[index].compose(&projections[index]).unwrap(),
+                identity_module_mapping(summands[index].clone()).unwrap()
+            );
+            for (other, projection) in projections.iter().enumerate() {
+                if index != other {
+                    assert!(inclusions[index].compose(projection).unwrap().is_zero());
+                }
+            }
+        }
+        let identity_decomposition = projections
+            .iter()
+            .zip(&inclusions)
+            .map(|(projection, inclusion)| projection.compose(inclusion).unwrap())
+            .reduce(|left, right| left.add(&right).unwrap())
+            .unwrap();
+        assert_eq!(
+            identity_decomposition,
+            identity_module_mapping(direct_sum.clone()).unwrap()
+        );
+
+        let retained_projection = projections[0].clone();
+        drop(projections);
+        let regenerated = direct_sum_projections(&direct_sum).unwrap();
+        assert!(retained_projection.is_identical(&regenerated[0]));
+        let repeated = direct_sum_projections(&direct_sum).unwrap();
+        assert!(
+            regenerated
+                .iter()
+                .zip(repeated)
+                .all(|(left, right)| left.is_identical(&right))
+        );
+
+        let singleton = direct_sum_of_qpa_modules(std::slice::from_ref(&first))
+            .unwrap()
+            .unwrap();
+        assert!(!singleton.is_identical(&first));
+        assert_eq!(singleton, first);
+        assert!(direct_sum_projections(&first).is_err());
+    }
+
+    #[test]
+    fn characteristic_two_direct_sum_uses_the_same_qpa_block_algorithm() {
+        let e = |value: i64| Z2.nth(Integer::from(value));
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let first = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![e(1)]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let second = right_module_over_path_algebra(algebra, vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let direct_sum = direct_sum_of_qpa_modules(&[first, second])
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(direct_sum.dimension_vector(), &[2, 1]);
+        assert_eq!(
+            direct_sum.arrow_matrices()[0],
+            DenseMatrix::from_rows(vec![vec![e(1)], vec![e(0)]], Z2).unwrap()
+        );
+        let projections = direct_sum_projections(&direct_sum).unwrap();
+        let inclusions = direct_sum_inclusions(&direct_sum).unwrap();
+        assert!(
+            inclusions[0]
+                .compose(&projections[0])
+                .unwrap()
+                .is_isomorphism()
+        );
+        assert!(
+            inclusions[1]
+                .compose(&projections[1])
+                .unwrap()
+                .is_isomorphism()
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_categorical_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_categorical.schema-v1.json"
+        ))
+        .unwrap();
+        let rational =
+            modulehom_categorical_case(Q, |value| Q.nth(Integer::from(value)), ToString::to_string);
+        let binary = modulehom_categorical_case(
+            Z2,
+            |value| Z2.nth(Integer::from(value)),
+            |entry| {
+                if Z2.is_zero(entry) {
+                    "0*Z(2)".to_owned()
+                } else {
+                    "Z(2)^0".to_owned()
+                }
+            },
+        );
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn categorical_validation_preserves_qpa_fail_and_error_precedence() {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let one = right_module_over_path_algebra(algebra.clone(), vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let two = right_module_over_path_algebra(algebra.clone(), vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let three = right_module_over_path_algebra(algebra.clone(), vec![3], &[])
+            .unwrap()
+            .unwrap();
+        let inclusion = right_module_hom_over_algebra(
+            one.clone(),
+            two.clone(),
+            vec![DenseMatrix::from_rows(vec![vec![q(1), q(0)]], Q).unwrap()],
+        )
+        .unwrap();
+        let zero = zero_module_mapping(one.clone(), two.clone()).unwrap();
+        let different_range = right_module_hom_over_algebra(
+            one.clone(),
+            three,
+            vec![DenseMatrix::from_rows(vec![vec![q(1), q(0), q(0)]], Q).unwrap()],
+        )
+        .unwrap();
+
+        assert!(
+            push_out(&inclusion, &identity_module_mapping(two.clone()).unwrap())
+                .unwrap()
+                .is_none()
+        );
+        assert!(pull_back(&inclusion, &different_range).unwrap().is_none());
+        assert_eq!(
+            intersection_of_submodules(&zero, &inclusion).unwrap_err(),
+            PathAlgebraModuleError::FirstSubmoduleMapNotInjective
+        );
+        assert_eq!(
+            sum_of_submodules(&inclusion, &zero).unwrap_err(),
+            PathAlgebraModuleError::SecondSubmoduleMapNotInjective
+        );
+        assert_eq!(
+            intersection_of_submodules(&inclusion, &different_range).unwrap_err(),
+            PathAlgebraModuleError::SubmoduleRangesDiffer
+        );
+        assert_eq!(
+            intersection_of_submodules_list::<numerica::domains::rational::RationalField>(&[])
+                .unwrap_err(),
+            PathAlgebraModuleError::EmptySubmoduleList
+        );
+        assert_eq!(
+            sum_of_submodules_list::<numerica::domains::rational::RationalField>(&[]).unwrap_err(),
+            PathAlgebraModuleError::EmptySubmoduleList
+        );
+        assert_eq!(
+            intersection_of_submodules_list(&[
+                inclusion.clone(),
+                zero.clone(),
+                different_range.clone(),
+            ])
+            .unwrap_err(),
+            PathAlgebraModuleError::SomeSubmoduleMapNotInjective
+        );
+        assert_eq!(
+            sum_of_submodules_list(&[inclusion.clone(), zero, different_range]).unwrap_err(),
+            PathAlgebraModuleError::SubmoduleRangesDiffer
+        );
+
+        let foreign_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let foreign_algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, foreign_quiver).unwrap());
+        let foreign = right_module_over_path_algebra(
+            foreign_algebra,
+            vec![1],
+            &[NamedArrowMatrix::new("x", DenseMatrix::zero(1, 1, Q))],
+        )
+        .unwrap()
+        .unwrap();
+        let foreign_identity = identity_module_mapping(foreign.clone()).unwrap();
+        assert_eq!(
+            direct_sum_of_qpa_modules(&[one.clone(), foreign.clone()]).unwrap_err(),
+            PathAlgebraModuleError::DirectSumDifferentAlgebras
+        );
+        assert_eq!(
+            intersection_of_submodules_list(&[inclusion, foreign_identity]).unwrap_err(),
+            PathAlgebraModuleError::SubmoduleListDifferentAlgebras
+        );
+        assert_eq!(
+            reject_of_module(&one, &foreign).unwrap_err(),
+            PathAlgebraModuleError::RejectModulesOverDifferentAlgebras
+        );
     }
 
     #[test]

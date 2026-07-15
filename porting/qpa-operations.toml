@@ -10230,9 +10230,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "direct_sum_of_qpa_modules"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10243,9 +10243,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 37
 source_end = 37
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::is_direct_sum_of_modules"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10256,9 +10256,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "direct_sum_projections"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10269,9 +10269,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 39
 source_end = 39
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "direct_sum_inclusions"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10997,9 +10997,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1808
 source_end = 1919
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "direct_sum_of_qpa_modules"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12128,9 +12128,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 40
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "morphism_on_kernel"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12141,9 +12141,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 41
 source_end = 41
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "morphism_on_image"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12154,9 +12154,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 42
 source_end = 42
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "morphism_on_cokernel"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12193,9 +12193,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 45
 source_end = 45
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "intersection_of_submodules; intersection_of_submodules_list"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12206,9 +12206,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 46
 source_end = 46
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "sum_of_submodules; sum_of_submodules_list"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12492,9 +12492,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 68
 source_end = 68
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reject_of_module"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13324,9 +13324,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2128
 source_end = 2188
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "morphism_on_kernel"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13337,9 +13337,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2203
 source_end = 2263
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "morphism_on_image"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13350,9 +13350,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2278
 source_end = 2338
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "morphism_on_cokernel"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13389,9 +13389,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2499
 source_end = 2526
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "intersection_of_submodules"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13402,9 +13402,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2547
 source_end = 2584
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "intersection_of_submodules_list"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13415,9 +13415,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2598
 source_end = 2629
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "sum_of_submodules"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13428,9 +13428,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2650
 source_end = 2687
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "sum_of_submodules_list"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13714,9 +13714,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3702
 source_end = 3734
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reject_of_module"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13909,9 +13909,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "push_out"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13922,9 +13922,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "pull_back"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14663,9 +14663,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 15
 source_end = 36
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "push_out"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14676,9 +14676,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 52
 source_end = 73
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "pull_back"
+tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
 
 [[entries]]

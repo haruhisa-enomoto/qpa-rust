@@ -69,6 +69,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_functors.g" \
     "$repo_root/tests/fixtures/modulehom_functors.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_categorical.g" \
+    "$repo_root/tests/fixtures/modulehom_categorical.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_trace_different_error.g" \
     >"$actual" 2>&1
