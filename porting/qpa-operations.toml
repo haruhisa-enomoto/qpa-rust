@@ -18914,9 +18914,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json","tests/gap-reference/pathalg_predefined_invalid.g","tests/gap-reference/pathalg_predefined_empty_error.g","tests/gap-reference/pathalg_predefined_nonpositive_singleton_error.g"]
 deviations = []
 
 [[entries]]
@@ -18927,9 +18927,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "canonical_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18940,9 +18940,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "kronecker_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18953,9 +18953,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PredefinedAlgebra::is_nakayama_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18966,9 +18966,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PredefinedAlgebra::is_canonical_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18979,9 +18979,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PredefinedAlgebra::is_kronecker_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18992,9 +18992,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 10
 source_end = 10
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PredefinedAlgebra::is_finite_global_dimension_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19005,9 +19005,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 11
 source_end = 11
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PredefinedAlgebra::is_finite_global_dimension_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19018,9 +19018,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gd"
 source_start = 12
 source_end = 12
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PredefinedAlgebra::is_hereditary_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19200,9 +19200,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 4
 source_end = 4
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PredefinedAlgebra::is_finite_type_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19213,9 +19213,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 13
 source_end = 169
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json","tests/gap-reference/pathalg_predefined_invalid.g","tests/gap-reference/pathalg_predefined_empty_error.g","tests/gap-reference/pathalg_predefined_nonpositive_singleton_error.g"]
 deviations = []
 
 [[entries]]
@@ -19226,9 +19226,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 171
 source_end = 178
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_algebra_sequence_first"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json","tests/gap-reference/pathalg_predefined_invalid.g"]
 deviations = []
 
 [[entries]]
@@ -19239,9 +19239,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 190
 source_end = 287
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "canonical_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19252,9 +19252,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 296
 source_end = 307
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "canonical_algebra_two_weights"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19265,9 +19265,9 @@ source_file = "upstream/qpa/lib/pathalgpredef.gi"
 source_start = 316
 source_end = 335
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "kronecker_algebra"
+tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
 
 [[entries]]

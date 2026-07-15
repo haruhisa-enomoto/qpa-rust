@@ -11,6 +11,7 @@ pub mod occur_tree;
 pub mod options;
 pub mod pathalg;
 pub mod persistence;
+pub mod predefined;
 pub mod preprocessing;
 pub mod qpa_conversion;
 pub mod reduction;
@@ -51,6 +52,12 @@ pub use pathalg::{
 pub use persistence::{
     LoadedQpaAlgebra, QpaPersistenceError, QpaTextField, parse_qpa_algebra_text, qpa_algebra_text,
     read_qpa_algebra_file, save_qpa_algebra_file,
+};
+pub use predefined::{
+    INVALID_ADMISSIBLE_SEQUENCE_DIAGNOSTIC, NakayamaAlgebraResult, PredefinedAlgebra,
+    PredefinedAlgebraError, PredefinedAlgebraKind, canonical_algebra,
+    canonical_algebra_two_weights, kronecker_algebra, nakayama_algebra,
+    nakayama_algebra_sequence_first,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,

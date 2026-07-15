@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_predefined",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "nakayama_singleton": {
+      "path_algebra": true,
+      "admissible_quotient": false,
+      "dimension": 1,
+      "vertices": ["v1"],
+      "arrows": [],
+      "relations": []
+    },
+    "nakayama_singleton_quotient": {
+      "path_algebra": false,
+      "admissible_quotient": true,
+      "dimension": 2,
+      "vertices": ["v1"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 1}
+      ],
+      "relations": [
+        [
+          {"path": [2, 2], "coefficient": [1, 1]}
+        ]
+      ]
+    },
+    "nakayama_linear_path": {
+      "path_algebra": true,
+      "admissible_quotient": false,
+      "dimension": 6,
+      "vertices": ["v1", "v2", "v3"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 2, "target": 3}
+      ],
+      "relations": []
+    },
+    "nakayama_linear_quotient": {
+      "path_algebra": false,
+      "admissible_quotient": true,
+      "dimension": 9,
+      "vertices": ["v1", "v2", "v3", "v4"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 2, "target": 3},
+        {"name": "a3", "source": 3, "target": 4}
+      ],
+      "relations": [
+        [
+          {"path": [5, 6, 7], "coefficient": [1, 1]}
+        ]
+      ]
+    },
+    "nakayama_cyclic": {
+      "path_algebra": false,
+      "admissible_quotient": true,
+      "dimension": 9,
+      "vertices": ["v1", "v2", "v3"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 2, "target": 3},
+        {"name": "a3", "source": 3, "target": 1}
+      ],
+      "relations": [
+        [
+          {"path": [4, 5, 6], "coefficient": [1, 1]}
+        ],
+        [
+          {"path": [5, 6, 4], "coefficient": [1, 1]}
+        ],
+        [
+          {"path": [6, 4, 5], "coefficient": [1, 1]}
+        ]
+      ]
+    },
+    "nakayama_long_cyclic": {
+      "path_algebra": false,
+      "admissible_quotient": true,
+      "dimension": 27,
+      "vertices": ["v1", "v2", "v3", "v4"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 2, "target": 3},
+        {"name": "a3", "source": 3, "target": 4},
+        {"name": "a4", "source": 4, "target": 1}
+      ],
+      "relations": [
+        [
+          {"path": [6, 7, 8, 5, 6, 7], "coefficient": [1, 1]}
+        ],
+        [
+          {"path": [7, 8, 5, 6, 7, 8, 5], "coefficient": [1, 1]}
+        ],
+        [
+          {"path": [8, 5, 6, 7, 8, 5, 6], "coefficient": [1, 1]}
+        ]
+      ]
+    },
+    "canonical_two": {
+      "path_algebra": true,
+      "admissible_quotient": false,
+      "dimension": 14,
+      "vertices": ["v", "v12", "v22", "v23", "w"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "b1", "source": 2, "target": 5},
+        {"name": "a2", "source": 1, "target": 3},
+        {"name": "a22", "source": 3, "target": 4},
+        {"name": "b2", "source": 4, "target": 5}
+      ],
+      "relations": []
+    },
+    "canonical_four": {
+      "path_algebra": false,
+      "admissible_quotient": true,
+      "dimension": 29,
+      "vertices": ["v", "v12", "v22", "v32", "v33", "v42", "v43", "v44", "w"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "b1", "source": 2, "target": 9},
+        {"name": "a2", "source": 1, "target": 3},
+        {"name": "b2", "source": 3, "target": 9},
+        {"name": "a3", "source": 1, "target": 4},
+        {"name": "a32", "source": 4, "target": 5},
+        {"name": "b3", "source": 5, "target": 9},
+        {"name": "a4", "source": 1, "target": 6},
+        {"name": "a42", "source": 6, "target": 7},
+        {"name": "a43", "source": 7, "target": 8},
+        {"name": "b4", "source": 8, "target": 9}
+      ],
+      "relations": [
+        [
+          {"path": [10, 11], "coefficient": [2, 1]},
+          {"path": [12, 13], "coefficient": [-1, 1]},
+          {"path": [14, 15, 16], "coefficient": [1, 1]}
+        ],
+        [
+          {"path": [10, 11], "coefficient": [-3, 1]},
+          {"path": [12, 13], "coefficient": [-1, 1]},
+          {"path": [17, 18, 19, 20], "coefficient": [1, 1]}
+        ]
+      ]
+    },
+    "properties": {
+      "nakayama": [true, true],
+      "canonical": [true, true]
+    }
+  },
+  "f2": {
+    "nakayama_cyclic": {
+      "path_algebra": false,
+      "admissible_quotient": true,
+      "dimension": 9,
+      "vertices": ["v1", "v2", "v3"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 2, "target": 3},
+        {"name": "a3", "source": 3, "target": 1}
+      ],
+      "relations": [
+        [{"path": [4, 5, 6], "coefficient": 1}],
+        [{"path": [5, 6, 4], "coefficient": 1}],
+        [{"path": [6, 4, 5], "coefficient": 1}]
+      ]
+    },
+    "canonical": {
+      "path_algebra": false,
+      "admissible_quotient": true,
+      "dimension": 26,
+      "vertices": ["v", "v12", "v22", "v23", "v32", "v33", "v34", "w"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "b1", "source": 2, "target": 8},
+        {"name": "a2", "source": 1, "target": 3},
+        {"name": "a22", "source": 3, "target": 4},
+        {"name": "b2", "source": 4, "target": 8},
+        {"name": "a3", "source": 1, "target": 5},
+        {"name": "a32", "source": 5, "target": 6},
+        {"name": "a33", "source": 6, "target": 7},
+        {"name": "b3", "source": 7, "target": 8}
+      ],
+      "relations": [
+        [
+          {"path": [9, 10], "coefficient": 1},
+          {"path": [11, 12, 13], "coefficient": 1},
+          {"path": [14, 15, 16, 17], "coefficient": 1}
+        ]
+      ]
+    },
+    "kronecker": {
+      "path_algebra": true,
+      "admissible_quotient": false,
+      "dimension": 5,
+      "vertices": ["v1", "v2"],
+      "arrows": [
+        {"name": "a1", "source": 1, "target": 2},
+        {"name": "a2", "source": 1, "target": 2},
+        {"name": "a3", "source": 1, "target": 2}
+      ],
+      "relations": []
+    },
+    "properties": {
+      "nakayama": [true, true],
+      "canonical": [true, true],
+      "kronecker": [true, true, true]
+    }
+  }
+}

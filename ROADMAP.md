@@ -514,10 +514,19 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.
+  `NakayamaAlgebra`, both `CanonicalAlgebra` overloads, and
+  `KroneckerAlgebra` now preserve QPA's quiver naming, relation-generation
+  loops, relation-free path-algebra identity, original-generator ideal
+  factoring through default GBNP, constructor filters, and installed property
+  implications. The invalid Nakayama list-return branch, empty-list source
+  error, and QPA's nonpositive-singleton Gröbner failure are pinned explicitly
+  over `QQ` and `GF(2)`.
   QPA's special-biserial quiver/path/quotient predicates, string-algebra
   predicates, gentle predicate, and gentle true-method implications are
-  source-translated through the default GBNP ideal backend; predefined
-  constructors and the remaining recognition properties remain.
+  source-translated through the default GBNP ideal backend. Poset, Brauer
+  configuration, preprojective, admissible-sequence, and finite-global-
+  dimension predefined families and the remaining recognition properties
+  remain.
 - [ ] Port representation-type and finite-global-dimension tests in this layer.
 - [ ] Port save/read using a safe, versioned, language-independent format while
   retaining a QPA-compatible import path.

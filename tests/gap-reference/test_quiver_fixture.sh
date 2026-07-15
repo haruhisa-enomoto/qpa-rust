@@ -102,6 +102,32 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_special_biserial.g" \
     "$repo_root/tests/fixtures/pathalg_special_biserial.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_predefined.g" \
+    "$repo_root/tests/fixtures/pathalg_predefined.schema-v1.json"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/pathalg_predefined_invalid.g" \
+    >"$actual"
+grep -Fq "The admissible sequence is not a valid one." "$actual"
+grep -Fq "INVALID_RETURN=[ 1, 1 ]" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_predefined_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an empty Nakayama admissible sequence" >&2
+    exit 1
+fi
+grep -Fq "List Element: <list>[1] must have an assigned value" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_predefined_nonpositive_singleton_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a nonpositive singleton Nakayama sequence" >&2
+    exit 1
+fi
+grep -Fq "each summand of each element is not (only) a constant" "$actual"
+grep -Fq "no 1st choice method found for" "$actual"
+grep -Fq "GroebnerBasis" "$actual"
 "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/pathalg_save_keep.g" \
     >"$actual"
