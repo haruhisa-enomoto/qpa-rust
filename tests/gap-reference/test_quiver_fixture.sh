@@ -84,6 +84,27 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_minimal.g" \
     "$repo_root/tests/fixtures/modulehom_minimal.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_map_utils.g" \
+    "$repo_root/tests/fixtures/modulehom_map_utils.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_inverse_noniso_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly inverted a non-isomorphism" >&2
+    exit 1
+fi
+grep -Fq "entered map is not an isomorphism" "$actual"
+grep -Fq "modulehom.gi:3330" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_images_support_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a basis image with wrong support" >&2
+    exit 1
+fi
+grep -Fq "does not give a homomorphism -- wrong support" "$actual"
+grep -Fq "modulehom.gi:3376" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_minimal_zero_error.g" \
     >"$actual" 2>&1

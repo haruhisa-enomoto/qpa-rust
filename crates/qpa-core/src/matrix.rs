@@ -419,6 +419,39 @@ impl<F: Field> DenseMatrix<F> {
             .then_some(solution))
     }
 
+    /// Return the exact two-sided inverse of a square matrix, if it exists.
+    ///
+    /// Rows are obtained by GAP-compatible solutions of `x * self = e_i`, so
+    /// the result uses the same row-action convention as QPA module maps.
+    /// `Ok(None)` represents a singular square matrix.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MatrixError::NonSquareInverse`] for a nonsquare matrix and
+    /// propagates checked matrix construction failures.
+    pub fn inverse(&self) -> Result<Option<Self>, MatrixError> {
+        if self.nrows != self.ncols {
+            return Err(MatrixError::NonSquareInverse {
+                shape: (self.nrows, self.ncols),
+            });
+        }
+        let mut entries = Vec::with_capacity(self.data.len());
+        for row in 0..self.nrows {
+            let mut target = vec![self.field.zero(); self.ncols];
+            target[row] = self.field.one();
+            let Some(solution) = self.solution_row(&target)? else {
+                return Ok(None);
+            };
+            entries.extend(solution);
+        }
+        Ok(Some(Self::from_flat(
+            self.nrows,
+            self.ncols,
+            entries,
+            self.field.clone(),
+        )?))
+    }
+
     /// Return the row rank computed by GAP's generic semi-echelon algorithm.
     #[must_use]
     pub fn rank(&self) -> usize {
@@ -478,6 +511,12 @@ pub enum MatrixError {
         left: (usize, usize),
         /// Right matrix shape.
         right: (usize, usize),
+    },
+    /// Only square matrices can have a two-sided inverse.
+    #[error("cannot invert a nonsquare matrix of shape {shape:?}")]
+    NonSquareInverse {
+        /// Entered row and column counts.
+        shape: (usize, usize),
     },
     /// The requested dimensions overflow `usize` storage.
     #[error("matrix shape {nrows} x {ncols} overflows addressable storage")]
@@ -694,6 +733,29 @@ mod tests {
             first.transpose(),
             DenseMatrix::from_rows(vec![vec![q(1, 1), q(0, 1)], vec![q(2, 1), q(1, 1)]], Q,)
                 .unwrap()
+        );
+    }
+
+    #[test]
+    fn exact_inverse_uses_gap_row_solutions() {
+        let matrix =
+            DenseMatrix::from_rows(vec![vec![q(1, 1), q(2, 1)], vec![q(3, 1), q(5, 1)]], Q)
+                .unwrap();
+        let inverse = matrix.inverse().unwrap().unwrap();
+
+        assert_eq!(
+            inverse,
+            DenseMatrix::from_rows(vec![vec![q(-5, 1), q(2, 1)], vec![q(3, 1), q(-1, 1)]], Q,)
+                .unwrap()
+        );
+        assert_eq!(
+            matrix.multiply(&inverse).unwrap(),
+            DenseMatrix::identity(2, Q)
+        );
+        assert!(DenseMatrix::zero(2, 2, Q).inverse().unwrap().is_none());
+        assert_eq!(
+            DenseMatrix::zero(1, 2, Q).inverse().unwrap_err(),
+            MatrixError::NonSquareInverse { shape: (1, 2) }
         );
     }
 

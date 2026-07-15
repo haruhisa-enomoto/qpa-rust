@@ -12414,9 +12414,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 62
 source_end = 62
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "inverse_of_isomorphism"
+tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json","tests/gap-reference/modulehom_inverse_noniso_error.g"]
 deviations = []
 
 [[entries]]
@@ -12427,9 +12427,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 63
 source_end = 63
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "homomorphism_from_images"
+tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json","tests/gap-reference/modulehom_images_support_error.g"]
 deviations = []
 
 [[entries]]
@@ -12440,9 +12440,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 64
 source_end = 64
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "multiply_lists_of_maps"
+tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13636,9 +13636,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3325
 source_end = 3344
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "inverse_of_isomorphism"
+tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json","tests/gap-reference/modulehom_inverse_noniso_error.g"]
 deviations = []
 
 [[entries]]
@@ -13649,9 +13649,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3359
 source_end = 3423
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "homomorphism_from_images"
+tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json","tests/gap-reference/modulehom_images_support_error.g"]
 deviations = []
 
 [[entries]]
@@ -13662,9 +13662,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3441
 source_end = 3457
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "multiply_lists_of_maps"
+tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json"]
 deviations = []
 
 [[entries]]

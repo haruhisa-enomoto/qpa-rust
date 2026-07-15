@@ -1881,6 +1881,41 @@ pub fn identity_module_mapping<F: Field>(
     right_module_hom_over_algebra(module.clone(), module, matrices)
 }
 
+/// Translate QPA's `InverseOfIsomorphism(f)` operation.
+///
+/// QPA retains physical zero matrices at zero-dimensional vertices and takes
+/// the ordinary exact inverse of every other vertex matrix.
+///
+/// # Errors
+///
+/// Rejects a map that is not an isomorphism and propagates exact matrix or
+/// checked module-map construction failures.
+pub fn inverse_of_isomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if !homomorphism.is_isomorphism() {
+        return Err(PathAlgebraModuleError::EnteredMapNotIsomorphism);
+    }
+    let inverse_matrices = homomorphism
+        .vertex_matrices()
+        .iter()
+        .map(|matrix| {
+            if matrix.is_zero() {
+                Ok(matrix.clone())
+            } else {
+                matrix
+                    .inverse()?
+                    .ok_or(PathAlgebraModuleError::InternalIsomorphismMatrixSingular)
+            }
+        })
+        .collect::<Result<Vec<_>, PathAlgebraModuleError>>()?;
+    right_module_hom_over_algebra(
+        homomorphism.range().clone(),
+        homomorphism.source().clone(),
+        inverse_matrices,
+    )
+}
+
 /// Translate QPA's cached `RightInverseOfHomomorphism(f)` attribute.
 ///
 /// `Ok(None)` is QPA's returned `false`: either `f` is not injective, the
@@ -4006,7 +4041,7 @@ pub fn morphism_on_kernel<F: Field>(
                 .ok_or(PathAlgebraModuleError::MissingInducedKernelPreimage)?,
         );
     }
-    Ok(Some(module_homomorphism_from_basis_images(
+    Ok(Some(homomorphism_from_images(
         first_kernel.source(),
         second_kernel.source(),
         &images,
@@ -4040,7 +4075,7 @@ pub fn morphism_on_image<F: Field>(
             .ok_or(PathAlgebraModuleError::MissingInducedImagePreimage)?;
         images.push(route.image(&lift)?);
     }
-    Ok(Some(module_homomorphism_from_basis_images(
+    Ok(Some(homomorphism_from_images(
         first_image.range(),
         second_image.range(),
         &images,
@@ -4074,7 +4109,7 @@ pub fn morphism_on_cokernel<F: Field>(
             .ok_or(PathAlgebraModuleError::MissingInducedCokernelPreimage)?;
         images.push(route.image(&lift)?);
     }
-    Ok(Some(module_homomorphism_from_basis_images(
+    Ok(Some(homomorphism_from_images(
         first_cokernel.range(),
         second_cokernel.range(),
         &images,
@@ -4113,23 +4148,46 @@ pub fn lifting_inclusion_morphisms<F: Field>(
                 .ok_or(PathAlgebraModuleError::MissingInclusionLiftPreimage)?,
         );
     }
-    Ok(Some(module_homomorphism_from_basis_images(
+    Ok(Some(homomorphism_from_images(
         second.source(),
         first.source(),
         &images,
     )?))
 }
 
-fn module_homomorphism_from_basis_images<F: Field>(
+/// Translate QPA's `HomomorphismFromImages(M, N, genImages)` operation.
+///
+/// Images correspond to QPA's standard basis in vertex-major order. A
+/// nonzero image must be supported at the same vertex as its basis vector;
+/// additional images are ignored exactly as in the source loop.
+///
+/// # Errors
+///
+/// Reports a short image list or wrong support and propagates exact matrix and
+/// checked module-map construction failures.
+pub fn homomorphism_from_images<F: Field>(
     source: &PathAlgebraModule<F>,
     range: &PathAlgebraModule<F>,
     images: &[PathAlgebraModuleElement<F>],
 ) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
-    if images.len() != source.dimension() {
+    if images.len() < source.dimension() {
         return Err(PathAlgebraModuleError::BasisImageCount {
             actual: images.len(),
             expected: source.dimension(),
         });
+    }
+    let mut image_position = 0;
+    for (vertex, &dimension) in source.dimension_vector().iter().enumerate() {
+        for _ in 0..dimension {
+            let image = &images[image_position];
+            let support = image.support_vertices();
+            if !support.is_empty() && support != [vertex + 1] {
+                return Err(PathAlgebraModuleError::WrongBasisImageSupport {
+                    position: image_position + 1,
+                });
+            }
+            image_position += 1;
+        }
     }
     let field = source.right_acting_algebra().field().clone();
     let mut offset = 0_usize;
@@ -4149,9 +4207,6 @@ fn module_homomorphism_from_basis_images<F: Field>(
             let mut entries =
                 Vec::with_capacity(source_dimension * physical_dimension(range_dimension));
             for image in &images[offset..offset + source_dimension] {
-                if !image.module().is_identical(range) {
-                    return Err(PathAlgebraModuleError::BasisImageInWrongModule);
-                }
                 entries.extend_from_slice(&image.external_representation()[vertex]);
             }
             offset += source_dimension;
@@ -4164,6 +4219,66 @@ fn module_homomorphism_from_basis_images<F: Field>(
         })
         .collect::<Result<Vec<_>, PathAlgebraModuleError>>()?;
     right_module_hom_over_algebra(source.clone(), range.clone(), matrices)
+}
+
+/// Translate QPA's `MultiplyListsOfMaps(projections, matrix, inclusions)`.
+///
+/// The computation is the literal row-by-matrix-by-column product in QPA's
+/// left-to-right map-composition convention. Extra matrix rows are ignored by
+/// the source loop.
+///
+/// # Errors
+///
+/// The intended QPA domain requires nonempty outer lists, at least one matrix
+/// row per inclusion, and one entry per projection in each consumed row.
+/// Composition, addition, and checked map failures propagate.
+pub fn multiply_lists_of_maps<F: Field>(
+    projections: &[PathAlgebraModuleHomomorphism<F>],
+    matrix: &[Vec<PathAlgebraModuleHomomorphism<F>>],
+    inclusions: &[PathAlgebraModuleHomomorphism<F>],
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if projections.is_empty() {
+        return Err(PathAlgebraModuleError::EmptyMapProjectionList);
+    }
+    if inclusions.is_empty() {
+        return Err(PathAlgebraModuleError::EmptyMapInclusionList);
+    }
+    if matrix.len() < inclusions.len() {
+        return Err(PathAlgebraModuleError::MapMatrixRowCount {
+            actual: matrix.len(),
+            expected: inclusions.len(),
+        });
+    }
+    let mut outer_terms = Vec::with_capacity(inclusions.len());
+    for (row_position, (row, inclusion)) in matrix.iter().zip(inclusions).enumerate() {
+        if row.len() != projections.len() {
+            return Err(PathAlgebraModuleError::MapMatrixColumnCount {
+                row: row_position + 1,
+                actual: row.len(),
+                expected: projections.len(),
+            });
+        }
+        let mut row_terms = projections
+            .iter()
+            .zip(row)
+            .map(|(projection, entry)| projection.compose(entry));
+        let Some(first_term) = row_terms.next() else {
+            return Err(PathAlgebraModuleError::EmptyMapProjectionList);
+        };
+        let mut row_sum = first_term?;
+        for term in row_terms {
+            row_sum = row_sum.add(&term?)?;
+        }
+        outer_terms.push(row_sum.compose(inclusion)?);
+    }
+    let mut outer_terms = outer_terms.into_iter();
+    let Some(mut sum) = outer_terms.next() else {
+        return Err(PathAlgebraModuleError::EmptyMapInclusionList);
+    };
+    for term in outer_terms {
+        sum = sum.add(&term)?;
+    }
+    Ok(sum)
 }
 
 /// Translate QPA's binary `IntersectionOfSubmodules(f, g)`.
@@ -4688,6 +4803,12 @@ pub enum PathAlgebraModuleError {
     /// to have the retraction used by `MoreLeftMinimalVersion`.
     #[error("the internal Fitting kernel inclusion has no right inverse")]
     InternalMinimalKernelNotSplit,
+    /// `InverseOfIsomorphism` rejects a map before inspecting its matrices.
+    #[error("entered map is not an isomorphism")]
+    EnteredMapNotIsomorphism,
+    /// Every nonzero component matrix of a module isomorphism is invertible.
+    #[error("an isomorphism has a singular nonzero vertex matrix")]
+    InternalIsomorphismMatrixSingular,
     /// GAP's splitting solver returns one coefficient per reverse-Hom basis
     /// vector.
     #[error("splitting combination has {actual} coefficients, expected {expected}")]
@@ -4777,17 +4898,44 @@ pub enum PathAlgebraModuleError {
     /// A successful inclusion-containment test must provide every lift.
     #[error("an included basis image unexpectedly has no preimage")]
     MissingInclusionLiftPreimage,
-    /// A basis-image map needs one image per source basis vector.
-    #[error("basis-image list has length {actual}, expected {expected}")]
+    /// A basis-image map needs at least one image per source basis vector.
+    #[error("basis-image list has length {actual}, expected at least {expected}")]
     BasisImageCount {
         /// Entered image count.
         actual: usize,
         /// Required source dimension.
         expected: usize,
     },
-    /// Every entered basis image must belong to the identical range family.
-    #[error("a basis image does not belong to the entered range module")]
-    BasisImageInWrongModule,
+    /// QPA requires a nonzero basis image at the source basis vector's vertex.
+    #[error("basis image {position} has the wrong vertex support")]
+    WrongBasisImageSupport {
+        /// One-based position in the entered image list.
+        position: usize,
+    },
+    /// The map-matrix utility cannot infer a map family from no projections.
+    #[error("MultiplyListsOfMaps requires a nonempty projection list")]
+    EmptyMapProjectionList,
+    /// The map-matrix utility cannot return a map from no inclusions.
+    #[error("MultiplyListsOfMaps requires a nonempty inclusion list")]
+    EmptyMapInclusionList,
+    /// QPA indexes one matrix row for every inclusion.
+    #[error("map matrix has {actual} rows, expected at least {expected}")]
+    MapMatrixRowCount {
+        /// Entered row count.
+        actual: usize,
+        /// Required row count.
+        expected: usize,
+    },
+    /// Each consumed matrix row is dotted with the whole projection list.
+    #[error("map matrix row {row} has {actual} columns, expected {expected}")]
+    MapMatrixColumnCount {
+        /// One-based row position.
+        row: usize,
+        /// Entered column count.
+        actual: usize,
+        /// Required projection count.
+        expected: usize,
+    },
     /// The first binary submodule argument must be a monomorphism.
     #[error("the first submodule argument is not a monomorphism")]
     FirstSubmoduleMapNotInjective,
@@ -4999,13 +5147,14 @@ mod tests {
         MoreMinimalVersionResult, NamedArrowMatrix, PathAlgebraModuleError,
         PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, cokernel_projection,
         direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
-        hom_over_algebra, hom_over_algebra_with_basis_function, identity_module_mapping,
-        image_projection_inclusion, intersection_of_submodules, intersection_of_submodules_list,
-        is_split_epimorphism, is_split_monomorphism, kernel_inclusion,
-        left_inverse_of_homomorphism, left_minimal_version, minimal_generating_set_of_module,
-        more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
-        morphism_on_image, morphism_on_kernel, natural_endomorphism_quotient_by_ideal, pull_back,
-        push_out, radical_of_module_inclusion, reject_of_module, right_fac_approximation,
+        hom_over_algebra, hom_over_algebra_with_basis_function, homomorphism_from_images,
+        identity_module_mapping, image_projection_inclusion, intersection_of_submodules,
+        intersection_of_submodules_list, inverse_of_isomorphism, is_split_epimorphism,
+        is_split_monomorphism, kernel_inclusion, left_inverse_of_homomorphism,
+        left_minimal_version, minimal_generating_set_of_module, more_left_minimal_version,
+        more_right_minimal_version, morphism_on_cokernel, morphism_on_image, morphism_on_kernel,
+        multiply_lists_of_maps, natural_endomorphism_quotient_by_ideal, pull_back, push_out,
+        radical_of_module_inclusion, reject_of_module, right_fac_approximation,
         right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
         right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
         socle_of_module, socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list,
@@ -5210,6 +5359,128 @@ mod tests {
                 property_left.compose(&property_projection).unwrap()
                     == identity_module_mapping(simple_one).unwrap(),
             ],
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_map_utils_case<F: Field>(
+        field: F,
+        integer: impl Fn(i64) -> F::Element + Copy,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let two = right_module_over_path_algebra(algebra.clone(), vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let automorphism = right_module_hom_over_algebra(
+            two.clone(),
+            two.clone(),
+            vec![
+                DenseMatrix::from_rows(
+                    vec![vec![integer(1), integer(1)], vec![integer(0), integer(1)]],
+                    field.clone(),
+                )
+                .unwrap(),
+            ],
+        )
+        .unwrap();
+        let inverse = inverse_of_isomorphism(&automorphism).unwrap();
+        let zero_module = right_module_over_path_algebra(algebra, vec![0], &[])
+            .unwrap()
+            .unwrap();
+        let zero_inverse =
+            inverse_of_isomorphism(&zero_module_mapping(zero_module.clone(), zero_module).unwrap())
+                .unwrap();
+
+        let quiver_a2 =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra_a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver_a2).unwrap());
+        let representation = right_module_over_path_algebra(
+            algebra_a2,
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![integer(1)], vec![integer(0)]], field.clone())
+                    .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let source_map = right_module_hom_over_algebra(
+            representation.clone(),
+            representation.clone(),
+            vec![
+                DenseMatrix::from_rows(
+                    vec![vec![integer(1), integer(1)], vec![integer(0), integer(1)]],
+                    field.clone(),
+                )
+                .unwrap(),
+                DenseMatrix::identity(1, field.clone()),
+            ],
+        )
+        .unwrap();
+        let basis = representation.basis_elements();
+        let images = basis
+            .iter()
+            .map(|element| source_map.image(element).unwrap())
+            .collect::<Vec<_>>();
+        let reconstructed =
+            homomorphism_from_images(&representation, &representation, &images).unwrap();
+        let mut images_with_extra = images;
+        images_with_extra.push(representation.zero_element());
+        let reconstructed_extra =
+            homomorphism_from_images(&representation, &representation, &images_with_extra).unwrap();
+
+        let make_map = |rows: [[i64; 2]; 2]| {
+            right_module_hom_over_algebra(
+                two.clone(),
+                two.clone(),
+                vec![
+                    DenseMatrix::from_rows(
+                        rows.into_iter()
+                            .map(|row| row.into_iter().map(integer).collect())
+                            .collect(),
+                        field.clone(),
+                    )
+                    .unwrap(),
+                ],
+            )
+            .unwrap()
+        };
+        let p1 = make_map([[1, 1], [0, 1]]);
+        let p2 = make_map([[1, 0], [1, 1]]);
+        let map_matrix = vec![
+            vec![make_map([[1, 0], [0, 0]]), make_map([[1, 0], [0, 1]])],
+            vec![make_map([[0, 1], [1, 0]]), make_map([[1, 1], [1, 0]])],
+        ];
+        let i1 = make_map([[1, 0], [1, 1]]);
+        let i2 = make_map([[0, 1], [1, 0]]);
+        let product = multiply_lists_of_maps(
+            &[p1.clone(), p2.clone()],
+            &map_matrix,
+            &[i1.clone(), i2.clone()],
+        )
+        .unwrap();
+        let mut map_matrix_extra = map_matrix;
+        map_matrix_extra.push(vec![p1.clone(), p2.clone()]);
+        let product_extra =
+            multiply_lists_of_maps(&[p1, p2], &map_matrix_extra, &[i1, i2]).unwrap();
+
+        json!({
+            "inverse": module_map_json(&inverse, coefficient),
+            "inverse_triangles": [
+                automorphism.compose(&inverse).unwrap()
+                    == identity_module_mapping(two.clone()).unwrap(),
+                inverse.compose(&automorphism).unwrap()
+                    == identity_module_mapping(two).unwrap(),
+            ],
+            "zero_inverse": module_map_json(&zero_inverse, coefficient),
+            "from_images": module_map_json(&reconstructed, coefficient),
+            "from_images_equal": reconstructed == source_map,
+            "extra_image_ignored": reconstructed_extra == source_map,
+            "list_product": module_map_json(&product, coefficient),
+            "extra_row_ignored": product_extra == product,
         })
     }
 
@@ -5914,6 +6185,71 @@ mod tests {
 
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_map_utils_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_map_utils.schema-v1.json"
+        ))
+        .unwrap();
+        let rational =
+            modulehom_map_utils_case(Q, |value| Q.nth(Integer::from(value)), ToString::to_string);
+        let binary = modulehom_map_utils_case(
+            Z2,
+            |value| Z2.nth(Integer::from(value)),
+            |entry| {
+                if Z2.is_zero(entry) {
+                    "0*Z(2)".to_owned()
+                } else {
+                    "Z(2)^0".to_owned()
+                }
+            },
+        );
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn map_utility_failures_preserve_qpa_validation_boundaries() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra,
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)], vec![q(0)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let zero = zero_module_mapping(module.clone(), module.clone()).unwrap();
+        assert_eq!(
+            inverse_of_isomorphism(&zero).unwrap_err(),
+            PathAlgebraModuleError::EnteredMapNotIsomorphism
+        );
+
+        let basis = module.basis_elements();
+        let mut wrong_support = basis.clone();
+        wrong_support[0] = basis[2].clone();
+        assert_eq!(
+            homomorphism_from_images(&module, &module, &wrong_support).unwrap_err(),
+            PathAlgebraModuleError::WrongBasisImageSupport { position: 1 }
+        );
+        assert_eq!(
+            homomorphism_from_images(&module, &module, &basis[..2]).unwrap_err(),
+            PathAlgebraModuleError::BasisImageCount {
+                actual: 2,
+                expected: 3,
+            }
+        );
+        assert_eq!(
+            multiply_lists_of_maps::<numerica::domains::rational::Q>(&[], &[], &[]).unwrap_err(),
+            PathAlgebraModuleError::EmptyMapProjectionList
+        );
     }
 
     #[test]
