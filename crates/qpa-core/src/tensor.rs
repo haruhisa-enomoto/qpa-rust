@@ -387,6 +387,58 @@ pub fn path_algebra_element_terms<F: Field>(
     Ok(terms)
 }
 
+/// Translate QPA's bilinear `SimpleTensor([x, y], target)` expansion.
+///
+/// QPA first returns target zero if either factor is zero. Otherwise it peels
+/// both elements into descending tip records, traverses their Cartesian
+/// product in GAP order, includes each monomial pair through the product
+/// quiver, multiplies the two coefficients, and sums the resulting target
+/// elements in that order.
+///
+/// Rust receives the retained [`QuiverProduct`] explicitly because product
+/// decomposition is structured metadata rather than a dynamically attached
+/// GAP attribute.
+///
+/// # Errors
+///
+/// Nonzero factors and the target must use the same exact Numerica field, and
+/// the supplied product metadata must belong to the target quiver. All
+/// source-translated term, inclusion, and arithmetic failures are propagated.
+pub fn simple_tensor<F: Field>(
+    factors: [&QuiverAlgebraElement<F>; 2],
+    target: &QuiverAlgebra<F>,
+    product: &QuiverProduct,
+) -> Result<QuiverAlgebraElement<F>, PathAlgebraTensorError> {
+    if factors[0].is_zero() || factors[1].is_zero() {
+        return Ok(target.zero());
+    }
+    if factors
+        .iter()
+        .any(|factor| factor.field() != target.field())
+    {
+        return Err(PathAlgebraTensorError::DifferentCoefficientFields);
+    }
+    if !target.quiver().is_identical(product.quiver()) {
+        return Err(PathAlgebraTensorError::TargetProductQuiverMismatch);
+    }
+
+    let parts = [
+        path_algebra_element_terms(factors[0])?,
+        path_algebra_element_terms(factors[1])?,
+    ];
+    let mut summands = Vec::with_capacity(parts[0].len().saturating_mul(parts[1].len()));
+    for left in &parts[0] {
+        for right in &parts[1] {
+            let included_path =
+                include_in_product_quiver([left.monomial(), right.monomial()], product)?;
+            let included = include_in_path_algebra(&included_path, target)?;
+            let coefficient = target.field().mul(left.coefficient(), right.coefficient());
+            summands.push(included.scale_left(&coefficient)?);
+        }
+    }
+    sum_algebra_elements(&summands).map_err(Into::into)
+}
+
 fn product_of_algebra_elements<F: Field>(
     elements: &[QuiverAlgebraElement<F>],
 ) -> Result<QuiverAlgebraElement<F>, QuiverAlgebraElementError> {
@@ -398,6 +450,19 @@ fn product_of_algebra_elements<F: Field>(
         product = product.multiply(element)?;
     }
     Ok(product)
+}
+
+fn sum_algebra_elements<F: Field>(
+    elements: &[QuiverAlgebraElement<F>],
+) -> Result<QuiverAlgebraElement<F>, QuiverAlgebraElementError> {
+    let Some((first, rest)) = elements.split_first() else {
+        return Err(QuiverAlgebraElementError::EmptySum);
+    };
+    let mut sum = first.clone();
+    for element in rest {
+        sum = sum.add(element)?;
+    }
+    Ok(sum)
 }
 
 fn product_of_paths(paths: &[Path]) -> Result<Path, PathError> {
@@ -492,12 +557,21 @@ pub enum PathAlgebraTensorError {
         /// Missing source generator name.
         name: Box<str>,
     },
+    /// Factor coefficients cannot act on the requested target algebra.
+    #[error("simple-tensor factors and target use different coefficient fields")]
+    DifferentCoefficientFields,
+    /// The explicit Rust decomposition metadata belongs to another quiver.
+    #[error("the target algebra does not use the supplied product quiver")]
+    TargetProductQuiverMismatch,
     /// A source path operation failed.
     #[error(transparent)]
     Path(#[from] PathError),
     /// Quiver-algebra element arithmetic or reduction failed.
     #[error(transparent)]
     Element(#[from] QuiverAlgebraElementError),
+    /// Product-quiver inclusion failed.
+    #[error(transparent)]
+    Product(#[from] QuiverProductError),
 }
 
 #[cfg(test)]
@@ -517,7 +591,8 @@ mod tests {
     use super::{
         PathAlgebraElementTermRecord, QuiverProductError, include_in_path_algebra,
         include_in_product_quiver, path_algebra_element_terms, project_from_product_quiver,
-        quiver_product, reverse_path, vertices_of_path_algebra, walk_of_path_or_vertex,
+        quiver_product, reverse_path, simple_tensor, vertices_of_path_algebra,
+        walk_of_path_or_vertex,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -824,6 +899,111 @@ mod tests {
             "include": binary_element_json(&include_in_path_algebra(&c, &binary_algebra).unwrap()),
             "vertices": binary_vertices.iter().map(binary_element_json).collect::<Vec<_>>(),
             "terms": binary_element_json(&binary_element),
+        });
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_simple_tensor_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalgtensor_simple.schema-v1.json"
+        ))
+        .unwrap();
+        let q1 = Quiver::from_named(
+            vec!["u1".into(), "u2".into()],
+            vec![NamedArrowSpec::named("u1", "u2", "a")],
+        )
+        .unwrap();
+        let q2 = Quiver::from_named(vec!["v".into()], vec![NamedArrowSpec::named("v", "v", "b")])
+            .unwrap();
+        let product = quiver_product(&q1, &q2).unwrap();
+
+        let left_parent = PathAlgebra::new(Q, q1.clone()).unwrap();
+        let right_parent = PathAlgebra::new(Q, q2.clone()).unwrap();
+        let b_path = q2.generator_by_name("b").unwrap().path();
+        let bb_relation = right_parent
+            .element(b_path.multiply(&b_path).unwrap())
+            .unwrap();
+        let right_quotient = QuotientPathAlgebra::by_relations_high_level(
+            right_parent.clone(),
+            std::slice::from_ref(&bb_relation),
+        )
+        .unwrap();
+        let target_parent = PathAlgebra::new(Q, product.quiver().clone()).unwrap();
+        let a_v = product.quiver().generator_by_name("a_v").unwrap().path();
+        let u2_b = product.quiver().generator_by_name("u2_b").unwrap().path();
+        let killed = target_parent.element(a_v.multiply(&u2_b).unwrap()).unwrap();
+        let target_quotient = QuotientPathAlgebra::by_relations_high_level(
+            target_parent.clone(),
+            std::slice::from_ref(&killed),
+        )
+        .unwrap();
+
+        let u1 = q1.generator_by_name("u1").unwrap().path();
+        let a_path = q1.generator_by_name("a").unwrap().path();
+        let vertex_v = q2.generator_by_name("v").unwrap().path();
+        let left_element = QuiverAlgebraElement::Path(
+            left_parent
+                .from_terms([(u1, q(2)), (a_path, q(3))])
+                .unwrap(),
+        );
+        let right_representative = right_parent
+            .from_terms([(vertex_v, q(5)), (b_path, q(7))])
+            .unwrap();
+        let right_element =
+            QuiverAlgebraElement::Quotient(right_quotient.element(right_representative).unwrap());
+        let left_algebra = QuiverAlgebra::Path(left_parent.clone());
+        let target_algebra = QuiverAlgebra::Path(target_parent);
+        let quotient_target_algebra = QuiverAlgebra::Quotient(target_quotient);
+        let zero = left_algebra.zero();
+        let a_element = left_algebra
+            .generator_element_by_name("a")
+            .unwrap()
+            .unwrap();
+        let b_element = QuiverAlgebra::Quotient(right_quotient)
+            .generator_element_by_name("b")
+            .unwrap()
+            .unwrap();
+        let rational = json!({
+            "quotient_factor": rational_element_json(
+                &simple_tensor([&left_element, &right_element], &target_algebra, &product).unwrap()
+            ),
+            "zero_short_circuit": rational_element_json(
+                &simple_tensor([&zero, &right_element], &target_algebra, &product).unwrap()
+            ),
+            "quotient_target_reduction": rational_element_json(
+                &simple_tensor([&a_element, &b_element], &quotient_target_algebra, &product).unwrap()
+            ),
+        });
+        assert_eq!(rational, expected["rational"]);
+
+        let binary_left_parent = PathAlgebra::new(Z2, q1).unwrap();
+        let binary_right_parent = PathAlgebra::new(Z2, q2).unwrap();
+        let binary_target_parent = PathAlgebra::new(Z2, product.quiver().clone()).unwrap();
+        let binary_left = QuiverAlgebra::Path(binary_left_parent);
+        let binary_right = QuiverAlgebra::Path(binary_right_parent);
+        let binary_target = QuiverAlgebra::Path(binary_target_parent);
+        let binary_x = binary_left
+            .generator_element_by_name("u1")
+            .unwrap()
+            .unwrap()
+            .add(&binary_left.generator_element_by_name("a").unwrap().unwrap())
+            .unwrap();
+        let binary_y = binary_right
+            .generator_element_by_name("v")
+            .unwrap()
+            .unwrap()
+            .add(
+                &binary_right
+                    .generator_element_by_name("b")
+                    .unwrap()
+                    .unwrap(),
+            )
+            .unwrap();
+        let binary = json!({
+            "expansion": binary_element_json(
+                &simple_tensor([&binary_x, &binary_y], &binary_target, &product).unwrap()
+            ),
         });
         assert_eq!(binary, expected["binary"]);
     }

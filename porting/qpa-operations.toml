@@ -19642,9 +19642,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 54
 source_end = 54
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "simple_tensor"
+tests = ["tests/fixtures/pathalgtensor_simple.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20019,9 +20019,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 206
 source_end = 232
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "simple_tensor"
+tests = ["tests/fixtures/pathalgtensor_simple.schema-v1.json"]
 deviations = []
 
 [[entries]]

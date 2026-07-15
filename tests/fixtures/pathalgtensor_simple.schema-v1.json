@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "kind": "pathalgtensor_simple",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "quotient_factor": [
+      {"monomial": "a_v*u2_b", "coefficient": "21"},
+      {"monomial": "a_v", "coefficient": "15"},
+      {"monomial": "u1_b", "coefficient": "14"},
+      {"monomial": "u1_v", "coefficient": "10"}
+    ],
+    "zero_short_circuit": [],
+    "quotient_target_reduction": []
+  },
+  "binary": {
+    "expansion": [
+      {"monomial": "a_v*u2_b", "coefficient": "Z(2)^0"},
+      {"monomial": "a_v", "coefficient": "Z(2)^0"},
+      {"monomial": "u1_b", "coefficient": "Z(2)^0"},
+      {"monomial": "u1_v", "coefficient": "Z(2)^0"}
+    ]
+  }
+}

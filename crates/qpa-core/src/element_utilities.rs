@@ -254,6 +254,10 @@ pub enum QuiverAlgebraElementError {
     /// this method family.
     #[error("an empty quiver-algebra element product is undefined")]
     EmptyProduct,
+    /// GAP's generic `Sum` has no additive identity supplied for an empty
+    /// element list in this method family.
+    #[error("an empty quiver-algebra element sum is undefined")]
+    EmptySum,
     /// Path-algebra arithmetic failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
