@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "kind": "path_algebra",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "zero": [],
+    "one": [
+      {"path": "v1", "path_external_representation": [1], "coefficient": [1, 1]},
+      {"path": "v2", "path_external_representation": [2], "coefficient": [1, 1]}
+    ],
+    "x": [
+      {"path": "v1", "path_external_representation": [1], "coefficient": [1, 1]},
+      {"path": "a", "path_external_representation": [3], "coefficient": [1, 1]}
+    ],
+    "x_squared": [
+      {"path": "v1", "path_external_representation": [1], "coefficient": [1, 1]},
+      {"path": "a", "path_external_representation": [3], "coefficient": [2, 1]},
+      {"path": "a^2", "path_external_representation": [3, 3], "coefficient": [1, 1]}
+    ],
+    "mixed": [
+      {"path": "a", "path_external_representation": [3], "coefficient": [5, 1]},
+      {"path": "a^2", "path_external_representation": [3, 3], "coefficient": [3, 2]}
+    ],
+    "zero_path_embedding": [],
+    "noncomposable_product": [],
+    "leading": {
+      "term": [
+        {"path": "a^2", "path_external_representation": [3, 3], "coefficient": [3, 2]}
+      ],
+      "coefficient": [3, 2],
+      "monomial": "a^2",
+      "zero_coefficient": [0, 1],
+      "zero_monomial": "0"
+    },
+    "uniformity": {
+      "zero": [true, true, true],
+      "a_plus_b": [true, false, false]
+    },
+    "generator_terms": [
+      [{"path": "v1", "path_external_representation": [1], "coefficient": [1, 1]}],
+      [{"path": "v2", "path_external_representation": [2], "coefficient": [1, 1]}],
+      [{"path": "a", "path_external_representation": [3], "coefficient": [1, 1]}],
+      [{"path": "b", "path_external_representation": [4], "coefficient": [1, 1]}]
+    ],
+    "global_dimension": 1,
+    "is_hereditary": true
+  },
+  "prime_fields": {
+    "f5_square": [
+      {"path": "v1", "path_external_representation": [1], "coefficient": 1},
+      {"path": "a", "path_external_representation": [3], "coefficient": 2},
+      {"path": "a^2", "path_external_representation": [3, 3], "coefficient": 1}
+    ],
+    "f5_reduced": [
+      {"path": "a^2", "path_external_representation": [3, 3], "coefficient": 2}
+    ],
+    "f5_cancelled": [],
+    "f2_square": [
+      {"path": "v1", "path_external_representation": [1], "coefficient": 1},
+      {"path": "a^2", "path_external_representation": [3, 3], "coefficient": 1}
+    ],
+    "f2_cancelled": []
+  },
+  "acyclic_basis": {
+    "paths": ["v1", "v2", "v3", "c", "d", "c*d"],
+    "dimension": 6,
+    "global_dimension": 1
+  }
+}

@@ -7,11 +7,13 @@
 pub mod coefficient;
 pub mod matrix;
 pub mod ordering;
+pub mod path_algebra;
 pub mod quiver;
 
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
 pub use ordering::{OrderingError, QuiverOrdering};
+pub use path_algebra::{PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraTerm};
 pub use quiver::{
     Arrow, ArrowIndex, ArrowSpec, DynkinFamily, DynkinOrientation, DynkinType, Generator,
     NamedArrowSpec, Path, PathEndpoint, PathError, PathIterator, Quiver, QuiverCardinality,
