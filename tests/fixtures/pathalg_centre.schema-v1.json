@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_centre",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "parent_cycle": {
+    "generators": [
+      [
+        { "path": [1], "coefficient": [1, 1] },
+        { "path": [2], "coefficient": [1, 1] }
+      ],
+      [
+        { "path": [3, 4], "coefficient": [1, 1] },
+        { "path": [4, 3], "coefficient": [1, 1] }
+      ]
+    ]
+  },
+  "parent_acyclic": {
+    "generators": [
+      [
+        { "path": [1], "coefficient": [1, 1] },
+        { "path": [2], "coefficient": [1, 1] },
+        { "path": [3], "coefficient": [1, 1] }
+      ]
+    ]
+  },
+  "parent_discrete": {
+    "generators": [
+      [{ "path": [1], "coefficient": [1, 1] }],
+      [{ "path": [2], "coefficient": [1, 1] }]
+    ]
+  },
+  "quotient": {
+    "ambient_dimension": 8,
+    "basis": [
+      [
+        { "path": [1], "coefficient": [1, 1] },
+        { "path": [2], "coefficient": [1, 1] }
+      ],
+      [
+        { "path": [3, 4], "coefficient": [1, 1] },
+        { "path": [4, 3], "coefficient": [1, 1] }
+      ]
+    ],
+    "dimension": 2,
+    "central_member": true,
+    "arrow_member": false
+  },
+  "f2": {
+    "basis": [
+      [
+        { "path": [1], "coefficient": 1 },
+        { "path": [2], "coefficient": 1 }
+      ],
+      [
+        { "path": [3, 4], "coefficient": 1 },
+        { "path": [4, 3], "coefficient": 1 }
+      ]
+    ],
+    "dimension": 2
+  }
+}

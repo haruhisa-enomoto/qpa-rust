@@ -17939,9 +17939,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1577
 source_end = 1633
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::quotient_centre; QuotientPathAlgebra::centre"
+tests = ["tests/fixtures/pathalg_centre.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17952,9 +17952,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1635
 source_end = 1703
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::centre"
+tests = ["tests/fixtures/pathalg_centre.schema-v1.json"]
 deviations = []
 
 [[entries]]

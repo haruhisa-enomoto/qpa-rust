@@ -5,8 +5,9 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    AlgebraDimension, GroebnerBasis, PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver,
-    QuotientError, QuotientPathAlgebra, QuotientPathAlgebraElement,
+    AlgebraDimension, CentreError, GroebnerBasis, PathAlgebra, PathAlgebraElement,
+    PathAlgebraError, Quiver, QuotientError, QuotientPathAlgebra, QuotientPathAlgebraCentre,
+    QuotientPathAlgebraElement,
 };
 use thiserror::Error;
 
@@ -78,6 +79,20 @@ pub fn quotient_dimension<F: Field>(
     Ok(quotient.dimension()?)
 }
 
+/// Translate QPA's quotient `Centre` method through its lazy default GBNP
+/// dimensionality call.
+///
+/// # Errors
+///
+/// Propagates default GBNP, canonical-basis, commutator, and nullspace
+/// failures.
+pub fn quotient_centre<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<QuotientPathAlgebraCentre<F>, PathalgGbnpError> {
+    ensure_quotient_groebner_basis(quotient)?;
+    Ok(quotient.centre()?)
+}
+
 /// Translate QPA's public `TruncatedPathAlgebra(K, Q, n)` through its default
 /// GBNP backend.
 ///
@@ -134,6 +149,9 @@ pub enum PathalgGbnpError {
     /// An attached basis disappeared after the identity-preserving update.
     #[error("the quotient ideal did not retain its computed Groebner basis")]
     MissingAttachedBasis,
+    /// QPA's source-translated center construction failed.
+    #[error(transparent)]
+    Centre(#[from] CentreError),
     /// Parent or opposite path-algebra construction failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
@@ -159,7 +177,7 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        opposite_path_algebra, opposite_quotient_element, quotient_dimension,
+        opposite_path_algebra, opposite_quotient_element, quotient_centre, quotient_dimension,
         quotient_is_finite_dimensional, truncated_path_algebra,
     };
 
@@ -204,6 +222,21 @@ mod tests {
                             small_integer(term.coefficient().numerator_ref()),
                             small_integer(term.coefficient().denominator_ref())
                         ]
+                    })
+                })
+                .collect(),
+        )
+    }
+
+    fn z2_element_json(element: &PathAlgebraElement<Z2>) -> Value {
+        Value::Array(
+            element
+                .terms()
+                .iter()
+                .map(|term| {
+                    json!({
+                        "path": term.path().external_representation(),
+                        "coefficient": term.coefficient()
                     })
                 })
                 .collect(),
@@ -340,5 +373,123 @@ mod tests {
             AlgebraDimension::Finite(Integer::from(2))
         );
         assert!(!quotient2.has_normal_form_function());
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_pathalg_centre_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_centre.schema-v1.json"
+        ))
+        .unwrap();
+        let quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(1), "b"),
+            ],
+        )
+        .unwrap();
+        let parent = PathAlgebra::new(Q, quiver.clone()).unwrap();
+        let parent_centre = parent.centre().unwrap();
+        assert_eq!(parent_centre.dimension(), &AlgebraDimension::Infinite);
+        assert!(
+            parent_centre
+                .contains(&parent_centre.generators()[1])
+                .unwrap()
+        );
+        assert!(!parent_centre.contains(&parent.generators()[2]).unwrap());
+        assert_eq!(
+            json!({
+                "generators": parent_centre
+                    .generators()
+                    .iter()
+                    .map(rational_element_json)
+                    .collect::<Vec<_>>()
+            }),
+            expected["parent_cycle"]
+        );
+
+        let acyclic_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "u"),
+                ArrowSpec::named(vertex(2), vertex(3), "v"),
+            ],
+        )
+        .unwrap();
+        let acyclic = PathAlgebra::new(Q, acyclic_quiver).unwrap();
+        let acyclic_centre = acyclic.centre().unwrap();
+        assert_eq!(
+            acyclic_centre.dimension(),
+            &AlgebraDimension::Finite(Integer::from(1))
+        );
+        assert_eq!(
+            json!({
+                "generators": acyclic_centre
+                    .generators()
+                    .iter()
+                    .map(rational_element_json)
+                    .collect::<Vec<_>>()
+            }),
+            expected["parent_acyclic"]
+        );
+
+        let discrete = PathAlgebra::new(Q, Quiver::from_indexed(2, Vec::new()).unwrap()).unwrap();
+        let discrete_centre = discrete.centre().unwrap();
+        assert_eq!(
+            discrete_centre.dimension(),
+            &AlgebraDimension::Finite(Integer::from(2))
+        );
+        assert_eq!(
+            json!({
+                "generators": discrete_centre
+                    .generators()
+                    .iter()
+                    .map(rational_element_json)
+                    .collect::<Vec<_>>()
+            }),
+            expected["parent_discrete"]
+        );
+
+        let quotient = truncated_path_algebra(Q, quiver.clone(), 4).unwrap();
+        let centre = quotient_centre(&quotient).unwrap();
+        let generators = quotient.generators().unwrap();
+        let central = generators[2]
+            .multiply(&generators[3])
+            .unwrap()
+            .add(&generators[3].multiply(&generators[2]).unwrap())
+            .unwrap();
+        let AlgebraDimension::Finite(ambient_dimension) = quotient.dimension().unwrap() else {
+            panic!("oracle quotient must be finite");
+        };
+        assert_eq!(
+            json!({
+                "ambient_dimension": small_integer(&ambient_dimension),
+                "basis": centre
+                    .basis()
+                    .iter()
+                    .map(|element| rational_element_json(element.representative()))
+                    .collect::<Vec<_>>(),
+                "dimension": centre.dimension(),
+                "central_member": centre.contains(&central).unwrap(),
+                "arrow_member": centre.contains(&generators[2]).unwrap()
+            }),
+            expected["quotient"]
+        );
+
+        let quotient2 = truncated_path_algebra(Z2, quiver, 4).unwrap();
+        let centre2 = quotient_centre(&quotient2).unwrap();
+        assert_eq!(
+            json!({
+                "basis": centre2
+                    .basis()
+                    .iter()
+                    .map(|element| z2_element_json(element.representative()))
+                    .collect::<Vec<_>>(),
+                "dimension": centre2.dimension()
+            }),
+            expected["f2"]
+        );
     }
 }

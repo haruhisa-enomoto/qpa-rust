@@ -462,6 +462,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
 `pathalgpredef`, `pathalgtensor`, `pathalgkoszul`, and `pathalgreptype`.
 
 - [ ] Complete quotient bases, dimensions, multiplication, radicals, and centers.
+  Both `Centre` overloads are source-translated: parent path algebras use QPA's
+  connected-component/oriented-cycle generators, and finite quotients use its
+  canonical-basis arrow-commutator matrix and GAP-compatible left nullspace.
+  The remaining radical and general finite-algebra surface keeps this item open.
 - [ ] Port opposite algebras and homomorphisms. Parent and quotient path
   algebras, termwise opposite elements/relations, reciprocal identity caches,
   and the default GBNP quotient backend are implemented; general finite-

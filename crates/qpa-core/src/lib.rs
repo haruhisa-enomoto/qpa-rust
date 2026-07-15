@@ -4,6 +4,7 @@
 //! crates provide exact arithmetic and storage primitives, not replacement QPA
 //! algorithms.
 
+pub mod centre;
 pub mod coefficient;
 pub mod dynamic_tree;
 pub mod groebner;
@@ -16,6 +17,7 @@ pub mod quotient;
 pub mod static_dictionary;
 pub mod suffix_tree;
 
+pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use groebner::{
