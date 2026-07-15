@@ -395,6 +395,7 @@ struct QuotientPathAlgebraData<F: Field> {
     parent: PathAlgebra<F>,
     ideal: PathAlgebraIdeal<F>,
     groebner_basis: Option<GroebnerBasis<F>>,
+    admissible: OnceLock<bool>,
     canonical_basis: OnceLock<QuotientCanonicalBasisState<F>>,
     opposite_weak: OnceLock<Weak<QuotientPathAlgebraData<F>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
@@ -481,6 +482,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             parent: ideal.algebra().clone(),
             ideal: ideal.clone(),
             groebner_basis,
+            admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
             opposite_weak: OnceLock::new(),
             opposite_strong: OnceLock::new(),
@@ -504,6 +506,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             parent,
             ideal,
             groebner_basis: Some(groebner_basis),
+            admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
             opposite_weak: OnceLock::new(),
             opposite_strong: OnceLock::new(),
@@ -743,7 +746,20 @@ impl<F: Field> QuotientPathAlgebra<F> {
     ///
     /// Propagates the defining ideal's admissibility computation.
     pub fn is_admissible(&self) -> Result<bool, QuotientError> {
-        self.ideal().is_admissible()
+        if let Some(admissible) = self.0.admissible.get() {
+            return Ok(*admissible);
+        }
+        let admissible = self.ideal().is_admissible()?;
+        let _ = self.0.admissible.set(admissible);
+        Ok(admissible)
+    }
+
+    /// Return QPA's cached `IsAdmissibleQuotientOfPathAlgebra` property.
+    ///
+    /// `None` corresponds to `HasIsAdmissibleQuotientOfPathAlgebra(A) = false`.
+    #[must_use]
+    pub fn cached_admissibility(&self) -> Option<bool> {
+        self.0.admissible.get().copied()
     }
 
     /// Translate QPA's cached `OppositePathAlgebra` for a quotient.
@@ -955,14 +971,19 @@ impl<F: Field> QuotientPathAlgebra<F> {
             relators.to_vec(),
             groebner_basis.clone(),
         );
-        Ok(Self(Arc::new(QuotientPathAlgebraData {
+        let quotient = Self(Arc::new(QuotientPathAlgebraData {
             parent,
             ideal,
             groebner_basis: Some(groebner_basis),
+            admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
             opposite_weak: OnceLock::new(),
             opposite_strong: OnceLock::new(),
-        })))
+        }));
+        if quotient.ideal().is_admissible()? {
+            let _ = quotient.0.admissible.set(true);
+        }
+        Ok(quotient)
     }
 }
 

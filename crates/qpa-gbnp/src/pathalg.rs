@@ -214,6 +214,74 @@ pub fn quotient_is_monomial<F: Field>(
     Ok(quotient.ideal().is_monomial()?)
 }
 
+/// Translate QPA's lazy `IsAdmissibleQuotientOfPathAlgebra` property through
+/// the configured default GBNP backend.
+///
+/// # Errors
+///
+/// Propagates default GBNP and the source-translated admissible-ideal test.
+pub fn quotient_is_admissible<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    ensure_quotient_groebner_basis(quotient)?;
+    Ok(quotient.is_admissible()?)
+}
+
+fn require_admissible_quotient<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<(), PathalgGbnpError> {
+    if quotient_is_admissible(quotient)? {
+        Ok(())
+    } else {
+        Err(PathalgGbnpError::NonAdmissibleQuotientProperty)
+    }
+}
+
+/// Translate QPA's specialized `IsSemisimpleAlgebra` method selected by the
+/// `IsAdmissibleQuotientOfPathAlgebra` filter.
+///
+/// Once that dispatch filter is established, QPA returns whether the original
+/// quiver has no arrows. This entry point validates the filter before applying
+/// the same test; QPA's separate radical-based generic overload is not used.
+///
+/// # Errors
+///
+/// Returns a typed dispatch error for a nonadmissible quotient and propagates
+/// the default admissibility computation.
+pub fn admissible_quotient_is_semisimple<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    require_admissible_quotient(quotient)?;
+    Ok(quotient.original_path_algebra().quiver().number_of_arrows() == 0)
+}
+
+/// Translate QPA's true-method implication from an admissible path-algebra
+/// quotient to `IsElementaryAlgebra`.
+///
+/// # Errors
+///
+/// Returns a typed dispatch error for a nonadmissible quotient and propagates
+/// the default admissibility computation.
+pub fn admissible_quotient_is_elementary<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    require_admissible_quotient(quotient)?;
+    Ok(true)
+}
+
+/// Translate QPA's true-method implication `IsElementaryAlgebra` to
+/// `IsBasicAlgebra` for an admissible path-algebra quotient.
+///
+/// # Errors
+///
+/// Returns a typed dispatch error for a nonadmissible quotient and propagates
+/// the default admissibility computation.
+pub fn admissible_quotient_is_basic<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    admissible_quotient_is_elementary(quotient)
+}
+
 /// Translate `AssociatedMonomialAlgebra(A)` for a path algebra.
 ///
 /// QPA returns the identical path-algebra object.
@@ -273,7 +341,9 @@ pub fn associated_graded_path_algebra<F: Field>(
 /// QPA requires a finite-dimensional admissible quotient, computes
 /// `GroebnerBasisInvLenInvLex` from `RelationsOfAlgebra(A)`, retains the first
 /// homogeneous block of every resulting relation, and factors the original
-/// path algebra by that list.
+/// path algebra by that list. The source's cached-false admissibility bug is
+/// retained: a bound property skips the rejection branch regardless of its
+/// value and proceeds to the inverse-length backend.
 ///
 /// # Errors
 ///
@@ -286,7 +356,7 @@ pub fn associated_graded_quotient<F: Field>(
     if !quotient.is_finite_dimensional()? {
         return Err(PathalgGbnpError::InfiniteDimensionalAssociatedAlgebra);
     }
-    if !quotient.is_admissible()? {
+    if quotient.cached_admissibility().is_none() && !quotient.is_admissible()? {
         return Err(PathalgGbnpError::NonAdmissibleAssociatedAlgebra);
     }
     let parent = quotient.original_path_algebra();
@@ -360,6 +430,10 @@ pub enum PathalgGbnpError {
     /// `AssociatedGradedAlgebra` rejects a nonadmissible quotient.
     #[error("the entered algebra is not an admissible quotient of a path algebra")]
     NonAdmissibleAssociatedAlgebra,
+    /// An admissible-quotient-only property received a quotient outside that
+    /// GAP dispatch filter.
+    #[error("the quotient is not an admissible quotient of a path algebra")]
+    NonAdmissibleQuotientProperty,
     /// QPA's source-translated center construction failed.
     #[error(transparent)]
     Centre(#[from] CentreError),
@@ -398,13 +472,14 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        PathalgGbnpError, associated_graded_path_algebra, associated_graded_quotient,
-        associated_monomial_path_algebra, associated_monomial_quotient, inverse_quotient_element,
-        opposite_path_algebra, opposite_quotient_element, path_algebra_is_monomial,
-        power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
+        PathalgGbnpError, admissible_quotient_is_basic, admissible_quotient_is_elementary,
+        admissible_quotient_is_semisimple, associated_graded_path_algebra,
+        associated_graded_quotient, associated_monomial_path_algebra, associated_monomial_quotient,
+        inverse_quotient_element, opposite_path_algebra, opposite_quotient_element,
+        path_algebra_is_monomial, power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
         quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
-        quotient_dimension, quotient_is_finite_dimensional, quotient_is_monomial,
-        quotient_is_triangular_reduced, truncated_path_algebra,
+        quotient_dimension, quotient_is_admissible, quotient_is_finite_dimensional,
+        quotient_is_monomial, quotient_is_triangular_reduced, truncated_path_algebra,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -490,6 +565,104 @@ mod tests {
             panic!("the oracle vertex quotient must be finite");
         };
         small_integer(&dimension)
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_admissible_property_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_admissible_properties.schema-v1.json"
+        ))
+        .unwrap();
+        let chain_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        )
+        .unwrap();
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+
+        let chain_parent = PathAlgebra::new(Q, chain_quiver.clone()).unwrap();
+        let chain_generators = chain_parent.generators();
+        let chain_relation = chain_generators[3].multiply(&chain_generators[4]).unwrap();
+        let chain = quotient_by_relations(chain_parent, &[chain_relation]).unwrap();
+        let loop_algebra = truncated_path_algebra(Q, loop_quiver.clone(), 3).unwrap();
+        let nonadmissible_parent = PathAlgebra::new(Q, loop_quiver.clone()).unwrap();
+        let linear_relation = nonadmissible_parent.generators()[1].clone();
+        let nonadmissible =
+            quotient_by_relations(nonadmissible_parent, &[linear_relation]).unwrap();
+        let nonadmissible_cached_before = nonadmissible.cached_admissibility().is_some();
+        let nonadmissible_value = quotient_is_admissible(&nonadmissible).unwrap();
+        let nonadmissible_cached_after = nonadmissible.cached_admissibility().is_some();
+
+        assert_eq!(
+            json!({
+                "chain": {
+                    "admissible": quotient_is_admissible(&chain).unwrap(),
+                    "cached": chain.cached_admissibility().is_some(),
+                    "semisimple": admissible_quotient_is_semisimple(&chain).unwrap(),
+                    "elementary": admissible_quotient_is_elementary(&chain).unwrap(),
+                    "basic": admissible_quotient_is_basic(&chain).unwrap()
+                },
+                "truncated_loop": {
+                    "admissible": quotient_is_admissible(&loop_algebra).unwrap(),
+                    "semisimple": admissible_quotient_is_semisimple(&loop_algebra).unwrap(),
+                    "elementary": admissible_quotient_is_elementary(&loop_algebra).unwrap(),
+                    "basic": admissible_quotient_is_basic(&loop_algebra).unwrap()
+                },
+                "nonadmissible": {
+                    "value": nonadmissible_value,
+                    "cached_before": nonadmissible_cached_before,
+                    "cached_after": nonadmissible_cached_after
+                }
+            }),
+            expected["rational"]
+        );
+        assert_eq!(
+            admissible_quotient_is_semisimple(&nonadmissible),
+            Err(PathalgGbnpError::NonAdmissibleQuotientProperty)
+        );
+        assert_eq!(
+            associated_graded_quotient(&nonadmissible),
+            Err(PathalgGbnpError::InvLenLex(
+                crate::InvLenLexError::NonAdmissibleDefaultQuotient
+            ))
+        );
+
+        let chain_parent2 = PathAlgebra::new(Z2, chain_quiver).unwrap();
+        let chain_generators2 = chain_parent2.generators();
+        let chain_relation2 = chain_generators2[3]
+            .multiply(&chain_generators2[4])
+            .unwrap();
+        let chain2 = quotient_by_relations(chain_parent2, &[chain_relation2]).unwrap();
+        let loop_algebra2 = truncated_path_algebra(Z2, loop_quiver, 3).unwrap();
+        assert_eq!(
+            json!({
+                "chain": {
+                    "admissible": quotient_is_admissible(&chain2).unwrap(),
+                    "cached": chain2.cached_admissibility().is_some(),
+                    "semisimple": admissible_quotient_is_semisimple(&chain2).unwrap(),
+                    "elementary": admissible_quotient_is_elementary(&chain2).unwrap(),
+                    "basic": admissible_quotient_is_basic(&chain2).unwrap()
+                },
+                "truncated_loop": {
+                    "admissible": quotient_is_admissible(&loop_algebra2).unwrap(),
+                    "semisimple": admissible_quotient_is_semisimple(&loop_algebra2).unwrap(),
+                    "elementary": admissible_quotient_is_elementary(&loop_algebra2).unwrap(),
+                    "basic": admissible_quotient_is_basic(&loop_algebra2).unwrap()
+                }
+            }),
+            expected["f2"]
+        );
+
+        let discrete_parent =
+            PathAlgebra::new(Q, Quiver::from_indexed(2, Vec::new()).unwrap()).unwrap();
+        let discrete_ideal = PathAlgebraIdeal::new(discrete_parent, Vec::new()).unwrap();
+        let discrete = QuotientPathAlgebra::by_ideal(&discrete_ideal).unwrap();
+        assert!(admissible_quotient_is_semisimple(&discrete).unwrap());
     }
 
     #[test]

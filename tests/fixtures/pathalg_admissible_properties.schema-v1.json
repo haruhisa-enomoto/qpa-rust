@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_admissible_properties",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "chain": {
+      "admissible": true,
+      "cached": true,
+      "semisimple": false,
+      "elementary": true,
+      "basic": true
+    },
+    "truncated_loop": {
+      "admissible": true,
+      "semisimple": false,
+      "elementary": true,
+      "basic": true
+    },
+    "nonadmissible": {
+      "value": false,
+      "cached_before": false,
+      "cached_after": true
+    }
+  },
+  "f2": {
+    "chain": {
+      "admissible": true,
+      "cached": true,
+      "semisimple": false,
+      "elementary": true,
+      "basic": true
+    },
+    "truncated_loop": {
+      "admissible": true,
+      "semisimple": false,
+      "elementary": true,
+      "basic": true
+    }
+  }
+}

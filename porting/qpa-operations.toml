@@ -246,9 +246,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 23
 source_end = 23
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "admissible_quotient_is_basic"
+tests = ["tests/fixtures/pathalg_admissible_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16758,7 +16758,7 @@ source_end = 96
 classification = "declared_surface"
 status = "verified"
 rust_symbol = "associated_graded_path_algebra; associated_graded_quotient"
-tests = ["tests/fixtures/pathalg_associated.schema-v1.json","tests/gap-reference/pathalg_associated_infinite_error.g","tests/gap-reference/pathalg_associated_nonadmissible_error.g"]
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json","tests/gap-reference/pathalg_associated_infinite_error.g","tests/gap-reference/pathalg_associated_nonadmissible_error.g","tests/gap-reference/pathalg_associated_cached_false.g"]
 deviations = []
 
 [[entries]]
@@ -18305,7 +18305,7 @@ source_end = 2665
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "associated_graded_path_algebra; associated_graded_quotient"
-tests = ["tests/fixtures/pathalg_associated.schema-v1.json","tests/gap-reference/pathalg_associated_infinite_error.g","tests/gap-reference/pathalg_associated_nonadmissible_error.g"]
+tests = ["tests/fixtures/pathalg_associated.schema-v1.json","tests/gap-reference/pathalg_associated_infinite_error.g","tests/gap-reference/pathalg_associated_nonadmissible_error.g","tests/gap-reference/pathalg_associated_cached_false.g"]
 deviations = []
 
 [[entries]]
@@ -18342,9 +18342,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2732
 source_end = 2746
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "admissible_quotient_is_semisimple"
+tests = ["tests/fixtures/pathalg_admissible_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18537,9 +18537,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18550,9 +18550,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::is_admissible"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18563,9 +18563,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::is_monomial"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18576,9 +18576,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::product"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18589,9 +18589,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebra::is_admissible; quotient_is_admissible"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json","tests/fixtures/pathalg_admissible_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18602,9 +18602,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 10
 source_end = 10
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebra"
+tests = ["tests/fixtures/quotient_path_algebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18667,9 +18667,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 15
 source_end = 15
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "admissible_quotient_is_elementary"
+tests = ["tests/fixtures/pathalg_admissible_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18680,9 +18680,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::minimal_generating_set"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18693,9 +18693,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_homogeneous_list_of_elements"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18706,9 +18706,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 21
 source_end = 46
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::new"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18719,9 +18719,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 56
 source_end = 57
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18732,9 +18732,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 77
 source_end = 122
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::contains"
+tests = ["tests/fixtures/quotient_path_algebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18745,9 +18745,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 134
 source_end = 189
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::is_admissible"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18758,9 +18758,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 204
 source_end = 239
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::is_monomial"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18771,9 +18771,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 249
 source_end = 282
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::product"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18784,9 +18784,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 284
 source_end = 295
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebra::is_admissible; quotient_is_admissible"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json","tests/fixtures/pathalg_admissible_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18797,9 +18797,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 305
 source_end = 342
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::minimal_generating_set"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18823,9 +18823,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gi"
 source_start = 423
 source_end = 452
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_homogeneous_list_of_elements"
+tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
 
 [[entries]]

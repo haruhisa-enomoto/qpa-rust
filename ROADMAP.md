@@ -442,6 +442,10 @@ options, and the Gröbner loop. Extra GBNP APIs are not automatically in scope.
 - [x] Port nontip enumeration and finite-dimensionality detection.
 - [x] Port QPA right Gröbner bases.
 - [x] Port `HighLevelGroebnerBasis` and its reduction operations.
+- [x] Port QPA's path-algebra ideal core. Construction and filter identity,
+  membership, admissibility, monomiality, ideal products, admissible minimal
+  generators, homogeneous-list checks, and quotient admissibility follow the
+  pinned methods and their lazy property/basis caches.
 - [x] Port inverse-length/inverse-lexicographic Gröbner operations.
 - [x] Port the quiver static dictionary used for tip search, nontips, dimension,
   and canonical quotient bases.
@@ -489,7 +493,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   indecomposable projectives and reads their dimension vectors; both
   semicommutativity methods call that exact test. `IsTriangularReduced` is
   complete using QPA's vertex-subset enumeration and canonical-basis product
-  test for parent and quotient algebras.
+  test for parent and quotient algebras. The admissible-quotient dispatch chain
+  for `IsSemisimpleAlgebra`, `IsElementaryAlgebra`, and `IsBasicAlgebra` is
+  source-translated separately from the still-pending generic radical/simple-
+  module overloads.
 - [ ] Port associated monomial/graded algebras and corner/quotient constructions.
   `IsMonomialAlgebra`, `AssociatedMonomialAlgebra`, and
   `AssociatedGradedAlgebra` are source-translated through QPA's lazy default
