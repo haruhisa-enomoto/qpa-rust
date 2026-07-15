@@ -14,6 +14,7 @@ pub mod poset;
 pub mod quiver;
 pub mod quotient;
 pub mod static_dictionary;
+pub mod suffix_tree;
 
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
@@ -36,3 +37,7 @@ pub use quotient::{
     QuotientPathAlgebraElement,
 };
 pub use static_dictionary::{DictionaryMatch, QuiverStaticDictionary, StaticDictionaryError};
+pub use suffix_tree::{
+    SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,
+    SuffixTreeOccurrence, SuffixTreeToken,
+};

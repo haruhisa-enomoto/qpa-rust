@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "suffix_tree",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "indices": [1, 2, 3, 4],
+  "patterns": [[1, 2, 1], [2, 1], [1, 2], [3]],
+  "before_delete": {
+    "all_in": [[1, 2], [3, 2], [2, 3], [1, 4], [3, 4], [2, 5], [4, 7]],
+    "containing_12": [[1, 1], [3, 1]],
+    "containing_21": [[1, 2], [2, 1]],
+    "containing_empty": [[1, 1], [3, 1], [1, 3], [2, 2], [1, 2], [2, 1], [3, 2], [1, 4], [2, 3], [3, 3], [4, 2], [4, 1]]
+  },
+  "tree_before_delete": {
+    "kind": "internal",
+    "label": [],
+    "marked": false,
+    "suffix": null,
+    "edges": [
+      {
+        "label": [1],
+        "child": {
+          "kind": "internal",
+          "label": [1],
+          "marked": false,
+          "suffix": [],
+          "edges": [
+            {
+              "label": [2],
+              "child": {
+                "kind": "internal",
+                "label": [1, 2],
+                "marked": true,
+                "suffix": [2],
+                "edges": [
+                  {"label": [1, []], "child": {"kind": "external", "label": [1, 2, 1, []], "occurrences": [[1, 1]]}},
+                  {"label": [[]], "child": {"kind": "external", "label": [1, 2, []], "occurrences": [[3, 1]]}}
+                ]
+              }
+            },
+            {"label": [[]], "child": {"kind": "external", "label": [1, []], "occurrences": [[1, 3], [2, 2]]}}
+          ]
+        }
+      },
+      {
+        "label": [2],
+        "child": {
+          "kind": "internal",
+          "label": [2],
+          "marked": false,
+          "suffix": [],
+          "edges": [
+            {"label": [1, []], "child": {"kind": "external", "label": [2, 1, []], "occurrences": [[1, 2], [2, 1]]}},
+            {"label": [[]], "child": {"kind": "external", "label": [2, []], "occurrences": [[3, 2]]}}
+          ]
+        }
+      },
+      {"label": [[]], "child": {"kind": "external", "label": [[]], "occurrences": [[1, 4], [2, 3], [3, 3], [4, 2]]}},
+      {"label": [3, []], "child": {"kind": "external", "label": [3, []], "occurrences": [[4, 1]]}}
+    ]
+  },
+  "after_delete_2": {
+    "all_in": [[1, 2], [3, 2], [1, 4], [3, 4], [4, 7]],
+    "containing_12": [[1, 1], [3, 1]],
+    "containing_21": [[1, 2]],
+    "containing_empty": [[1, 1], [3, 1], [1, 3], [1, 2], [3, 2], [1, 4], [3, 3], [4, 2], [4, 1]]
+  },
+  "after_delete_1": {
+    "all_in": [[3, 2], [3, 4], [4, 7]],
+    "containing_12": [[3, 1]],
+    "containing_21": [],
+    "containing_empty": [[3, 1], [3, 2], [3, 3], [4, 2], [4, 1]]
+  },
+  "after_delete_3": {
+    "all_in": [[4, 7]],
+    "containing_12": [],
+    "containing_21": [],
+    "containing_empty": [[4, 2], [4, 1]]
+  },
+  "tree_after_delete": {
+    "kind": "internal",
+    "label": [],
+    "marked": false,
+    "suffix": null,
+    "edges": [
+      {"label": [[]], "child": {"kind": "external", "label": [[]], "occurrences": [[4, 2]]}},
+      {"label": [3, []], "child": {"kind": "external", "label": [3, []], "occurrences": [[4, 1]]}}
+    ]
+  }
+}

@@ -41,6 +41,26 @@ compare_fixture \
     "$repo_root/tests/gap-reference/dynamic_tree.g" \
     "$repo_root/tests/fixtures/dynamic_tree.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/suffix_tree.g" \
+    "$repo_root/tests/fixtures/suffix_tree.schema-v1.json"
+if "$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/suffix_tree_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an empty suffix-tree pattern" >&2
+    exit 1
+fi
+grep -Fq "Variable: 'currentEdge' must have an assigned value" "$actual"
+if "$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/suffix_tree_duplicate_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly retained a valid duplicate-pattern suffix tree" >&2
+    exit 1
+fi
+grep -Fq "LabelOfSuffixTreeEdge" "$actual"
+grep -Fq "The 1st argument is 'fail'" "$actual"
+compare_fixture \
     "$repo_root/tests/gap-reference/path_algebra.g" \
     "$repo_root/tests/fixtures/path_algebra.schema-v1.json"
 compare_fixture \

@@ -9,7 +9,7 @@ use thiserror::Error;
 
 use crate::{
     ArrowIndex, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathEndpoint,
-    QuiverStaticDictionary, StaticDictionaryError,
+    QuiverStaticDictionary, StaticDictionaryError, SuffixTree, SuffixTreeError,
 };
 
 /// Whether QPA treats a basis as two-sided or right-sided.
@@ -121,8 +121,8 @@ impl<F: Field> GroebnerBasis<F> {
     /// Translate QPA `TipReduceGroebnerBasis` for a complete two-sided basis.
     ///
     /// Rust returns a transformed clone instead of mutating the original GAP
-    /// object. The pending-set and append-only pattern-slot behavior follows
-    /// QPA's dynamic-suffix-tree method.
+    /// object. Pattern insertion, deletion, occurrence order, sparse slots, and
+    /// pending-set updates use QPA's translated dynamic suffix tree.
     ///
     /// # Errors
     ///
@@ -143,6 +143,7 @@ impl<F: Field> GroebnerBasis<F> {
             add_set(&mut pending, relation.clone())?;
         }
         let mut slots: Vec<Option<PathAlgebraElement<F>>> = Vec::new();
+        let mut suffix_tree = SuffixTree::new();
 
         while !pending.is_empty() {
             let mut relation = pending.remove(0);
@@ -150,9 +151,14 @@ impl<F: Field> GroebnerBasis<F> {
                 continue;
             }
             let relation_walk = tip_walk(&relation)?;
-            if let Some((slot, start, end)) = first_tip_slot_occurrence(&slots, &relation_walk)? {
-                let reducer = slots[slot]
-                    .as_ref()
+            let patterns = suffix_tree.all_patterns_in_sequence(&relation_walk)?;
+            if let Some(pattern) = patterns.first() {
+                let slot = pattern.pattern_number - 1;
+                let start = pattern.position - 1;
+                let end = start + suffix_tree.pattern(pattern.pattern_number)?.len();
+                let reducer = slots
+                    .get(slot)
+                    .and_then(Option::as_ref)
                     .ok_or(GroebnerError::InvalidBasisState)?;
                 relation = reduce_relation_at(&relation, reducer, start, end)?;
                 if !relation.is_zero() {
@@ -161,17 +167,24 @@ impl<F: Field> GroebnerBasis<F> {
                 continue;
             }
 
-            for slot in &mut slots {
-                let Some(existing) = slot.as_ref() else {
+            let extras = suffix_tree.sequence_in_patterns(&relation_walk)?;
+            for extra in extras {
+                let slot_index = extra.pattern_number - 1;
+                let Some(slot) = slots.get_mut(slot_index) else {
+                    return Err(GroebnerError::InvalidBasisState);
+                };
+                let Some(displaced) = slot.take() else {
                     continue;
                 };
-                let existing_walk = tip_walk(existing)?;
-                if leftmost_occurrence(&existing_walk, &relation_walk).is_some() {
-                    let displaced = slot.take().ok_or(GroebnerError::InvalidBasisState)?;
-                    add_set(&mut pending, displaced)?;
-                }
+                add_set(&mut pending, displaced)?;
+                suffix_tree.delete_pattern(extra.pattern_number)?;
             }
-            slots.push(Some(relation));
+
+            let pattern_number = suffix_tree.insert_pattern(relation_walk)?;
+            if slots.len() < pattern_number {
+                slots.resize_with(pattern_number, || None);
+            }
+            slots[pattern_number - 1] = Some(relation);
         }
 
         if slots.iter().any(Option::is_none) {
@@ -744,25 +757,6 @@ fn tip_walk<F: Field>(element: &PathAlgebraElement<F>) -> Result<Vec<ArrowIndex>
         .ok_or(GroebnerError::InvalidTipWalk)
 }
 
-fn first_tip_slot_occurrence<F: Field>(
-    slots: &[Option<PathAlgebraElement<F>>],
-    sequence: &[ArrowIndex],
-) -> Result<Option<(usize, usize, usize)>, GroebnerError> {
-    for start in 0..sequence.len() {
-        for (slot_index, slot) in slots.iter().enumerate() {
-            let Some(relation) = slot else {
-                continue;
-            };
-            let pattern = tip_walk(relation)?;
-            let end = start + pattern.len();
-            if !pattern.is_empty() && end <= sequence.len() && sequence[start..end] == pattern {
-                return Ok(Some((slot_index, start, end)));
-            }
-        }
-    }
-    Ok(None)
-}
-
 fn reduce_relation_at<F: Field>(
     relation: &PathAlgebraElement<F>,
     reducer: &PathAlgebraElement<F>,
@@ -884,6 +878,9 @@ pub enum GroebnerError {
     /// QPA path construction failed.
     #[error(transparent)]
     Path(#[from] crate::PathError),
+    /// QPA's dynamic suffix-tree dictionary failed.
+    #[error(transparent)]
+    SuffixTree(#[from] SuffixTreeError),
     /// QPA static-dictionary construction failed.
     #[error(transparent)]
     StaticDictionary(#[from] StaticDictionaryError),

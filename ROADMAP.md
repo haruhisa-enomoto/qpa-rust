@@ -432,8 +432,9 @@ options, and the Gröbner loop. Extra GBNP APIs are not automatically in scope.
   and canonical quotient bases.
 - [x] Port QPA's dynamic trees with identity-preserving link, cut, root, splay,
   splice, and rotation operations.
-- [ ] Port the remaining dynamic dictionary and suffix-tree operations used by
-  QPA's implementations.
+- [x] Port QPA's dynamic dictionary and suffix tree, including online
+  insertion, deletion/compression, suffix links, marked-node dynamic forests,
+  and both ordered occurrence queries.
 - [ ] Define cancellation, progress, iteration, memory, and user-interrupt APIs
   for computations that may not terminate.
 
