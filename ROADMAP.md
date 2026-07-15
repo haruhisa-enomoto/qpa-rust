@@ -403,19 +403,13 @@ GBNP closure begins with `SGrobner` and includes NP arithmetic/format,
 strong-normal-form reduction, obstruction generation, occurrence trees, heaps,
 options, and the Gröbner loop. Extra GBNP APIs are not automatically in scope.
 
-- [ ] Port QPA-to-Cohen/NP conversion and uniform decomposition exactly.
+- [x] Port QPA-to-Cohen/NP conversion and uniform decomposition exactly.
 - [x] Port GBNP noncommutative polynomial representation and arithmetic.
-- [ ] Port leading monomials/terms, cleaning, monic normalization, and reduction.
-  Leading data, cleaning, monic normalization, occurrence search, and both
-  ordinary and strong normal forms are implemented; `ReducePol` and its
-  occurrence-tree variant remain.
-- [ ] Port occurrence trees and the k-ary todo heap.
-- [ ] Port obstruction/overlap construction and strong normal forms.
-  The list-based `SelfObs`, `LeftObs`, `RightObs`, `Spoly`, and strong normal
-  forms are source-translated and pinned over `QQ`, `GF(5)`, and `GF(2)`; the
-  tree-accelerated obstruction and normal-form variants remain.
-- [ ] Port the four phases of `SGrobner`, including resumable iteration bounds.
-- [ ] Port QPA conversion back from GBNP and path-algebra structure relations.
+- [x] Port leading monomials/terms, cleaning, monic normalization, and reduction.
+- [x] Port occurrence trees and the k-ary todo heap.
+- [x] Port obstruction/overlap construction and strong normal forms.
+- [x] Port the four phases of `SGrobner`, including resumable iteration bounds.
+- [x] Port QPA conversion back from GBNP and path-algebra structure relations.
 - [ ] Port QPA Gröbner objects, tip reduction, complete reduction, and properties.
 - [x] Port nontip enumeration and finite-dimensionality detection.
 - [ ] Port QPA right Gröbner bases.

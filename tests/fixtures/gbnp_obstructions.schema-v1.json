@@ -21,6 +21,18 @@
     [[1], 2, [], [], 1, [2]],
     [[2, 1], 2, [], [], 2, [1, 2]]
   ],
+  "left_tree_second": {
+    "obstructions": [
+      [[], 2, [1], [2], 1, []]
+    ],
+    "self_index": 0
+  },
+  "right_tree_second": {
+    "obstructions": [
+      [[1], 2, [], [], 1, [2]]
+    ],
+    "self_index": 0
+  },
   "rational_spolynomial": [
     {"monomial": [2, 1], "coefficient": [3, 1]}
   ],

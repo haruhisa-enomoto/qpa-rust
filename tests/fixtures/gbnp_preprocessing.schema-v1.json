@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "kind": "gbnp_preprocessing",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "occurrence_tree": {
+    "first_lookup": [3, 1],
+    "all_lookup": [[1, 2], [2, 2], [3, 1]],
+    "after_insert": [[1, 1], [2, 1], [3, 2]],
+    "after_remove": [[1, 1], [2, 2]]
+  },
+  "rational": {
+    "reduced": [
+      [
+        {"monomial": [2], "coefficient": [1, 1]},
+        {"monomial": [1], "coefficient": [-1, 1]}
+      ],
+      [
+        {"monomial": [1, 1], "coefficient": [1, 1]},
+        {"monomial": [1], "coefficient": [1, 1]}
+      ]
+    ],
+    "duplicate_reduced": [
+      [
+        {"monomial": [1, 2], "coefficient": [1, 1]},
+        {"monomial": [1], "coefficient": [1, 1]}
+      ]
+    ],
+    "cancellation": [
+      {"monomial": [2], "coefficient": [1, 1]},
+      {"monomial": [1], "coefficient": [-1, 1]}
+    ]
+  },
+  "f5": {
+    "reduced": [
+      [
+        {"monomial": [2], "coefficient": 1},
+        {"monomial": [1], "coefficient": 4}
+      ],
+      [
+        {"monomial": [1, 1], "coefficient": 1},
+        {"monomial": [1], "coefficient": 1}
+      ]
+    ]
+  },
+  "f2": {
+    "reduced": [
+      [
+        {"monomial": [2], "coefficient": 1},
+        {"monomial": [1], "coefficient": 1}
+      ],
+      [
+        {"monomial": [1, 1], "coefficient": 1},
+        {"monomial": [1], "coefficient": 1}
+      ]
+    ]
+  }
+}

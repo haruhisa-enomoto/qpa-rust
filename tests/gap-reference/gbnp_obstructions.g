@@ -41,6 +41,10 @@ self_first := GBNP.SelfObs(1, leading);;
 self_second := GBNP.SelfObs(2, leading);;
 left_second := GBNP.LeftObs(2, leading, self_second);;
 right_second := GBNP.RightObs(2, leading, self_second);;
+left_tree := GBNP.CreateOccurTreePTSLR(leading, 0, true);;
+right_tree := GBNP.CreateOccurTreePTSLR(leading, 0, false);;
+left_tree_second := GBNP.LeftObsT(2, leading, left_tree);;
+right_tree_second := GBNP.RightObsT(2, leading, right_tree);;
 
 rational_basis := [
     [[[1, 2, 1], [1]], [1, -1]],
@@ -76,6 +80,10 @@ Print(",\"self_first\":", self_first);
 Print(",\"self_second\":", self_second);
 Print(",\"left_second\":", left_second);
 Print(",\"right_second\":", right_second);
+Print(",\"left_tree_second\":{\"obstructions\":", left_tree_second.obs,
+      ",\"self_index\":", left_tree_second.sobnr, "}");
+Print(",\"right_tree_second\":{\"obstructions\":", right_tree_second.obs,
+      ",\"self_index\":", right_tree_second.sobnr, "}");
 Print(",\"rational_spolynomial\":");
 PrintRationalNP(rational_spoly);
 Print(",\"f5_spolynomial\":");

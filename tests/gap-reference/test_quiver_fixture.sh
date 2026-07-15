@@ -46,3 +46,18 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/gbnp_obstructions.g" \
     "$repo_root/tests/fixtures/gbnp_obstructions.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/gbnp_preprocessing.g" \
+    "$repo_root/tests/fixtures/gbnp_preprocessing.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/gbnp_sgrobner.g" \
+    "$repo_root/tests/fixtures/gbnp_sgrobner.schema-v1.json"
+
+# QPA's public unchecked GBNP adapter deliberately prints informational lines.
+# Its fixture is the final line emitted by the reference script.
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/qpa_gbnp.g" |
+    tail -n 1 | jq --sort-keys . >"$actual"
+jq --sort-keys . \
+    "$repo_root/tests/fixtures/qpa_gbnp.schema-v1.json" >"$expected"
+diff --unified "$expected" "$actual"

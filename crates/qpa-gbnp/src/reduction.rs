@@ -164,7 +164,7 @@ pub fn strong_normal_form_np<F: Field>(
     Ok(reduced.scale(&leading_coefficient))
 }
 
-fn reduce_indexed_term<F: Field>(
+pub(crate) fn reduce_indexed_term<F: Field>(
     polynomial: &NpPolynomial<F>,
     term_index: usize,
     reducer: &NpPolynomial<F>,

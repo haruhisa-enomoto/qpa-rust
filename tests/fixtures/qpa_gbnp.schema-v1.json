@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "kind": "qpa_gbnp",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "raw": [
+      [
+        {"monomial": [1], "coefficient": [-1, 1]},
+        {"monomial": [2, 2, 3], "coefficient": [1, 1]}
+      ],
+      [
+        {"monomial": [1], "coefficient": [-1, 1]},
+        {"monomial": [2, 3, 3], "coefficient": [1, 1]}
+      ]
+    ],
+    "free": [
+      [
+        {"monomial": [], "coefficient": [-1, 1]},
+        {"monomial": [2, 2, 3], "coefficient": [1, 1]}
+      ],
+      [
+        {"monomial": [], "coefficient": [-1, 1]},
+        {"monomial": [2, 3, 3], "coefficient": [1, 1]}
+      ]
+    ],
+    "nc_basis": [
+      [
+        {"path": [2], "coefficient": [-1, 1]},
+        {"path": [3], "coefficient": [1, 1]}
+      ],
+      [
+        {"path": [1], "coefficient": [-1, 1]},
+        {"path": [2, 2, 2], "coefficient": [1, 1]}
+      ]
+    ],
+    "checked_basis": [
+      [{"path": [2, 2], "coefficient": [1, 1]}],
+      [{"path": [2, 3], "coefficient": [1, 1]}]
+    ],
+    "vertex_is_in_arrow_ideal": false
+  },
+  "f5": {
+    "free": [
+      [
+        {"monomial": [], "coefficient": 4},
+        {"monomial": [2, 2, 3], "coefficient": 1}
+      ],
+      [
+        {"monomial": [], "coefficient": 4},
+        {"monomial": [2, 3, 3], "coefficient": 1}
+      ]
+    ],
+    "nc_basis": [
+      [
+        {"path": [2], "coefficient": 4},
+        {"path": [3], "coefficient": 1}
+      ],
+      [
+        {"path": [1], "coefficient": 4},
+        {"path": [2, 2, 2], "coefficient": 1}
+      ]
+    ]
+  },
+  "f2": {
+    "free": [
+      [
+        {"monomial": [], "coefficient": 1},
+        {"monomial": [2, 2, 3], "coefficient": 1}
+      ],
+      [
+        {"monomial": [], "coefficient": 1},
+        {"monomial": [2, 3, 3], "coefficient": 1}
+      ]
+    ],
+    "nc_basis": [
+      [
+        {"path": [2], "coefficient": 1},
+        {"path": [3], "coefficient": 1}
+      ],
+      [
+        {"path": [1], "coefficient": 1},
+        {"path": [2, 2, 2], "coefficient": 1}
+      ]
+    ]
+  },
+  "multi_vertex": {
+    "structure_relations": [
+      [
+        {"monomial": [1], "coefficient": [1, 1]},
+        {"monomial": [2], "coefficient": [1, 1]},
+        {"monomial": [], "coefficient": [-1, 1]}
+      ],
+      [
+        {"monomial": [1, 1], "coefficient": [1, 1]},
+        {"monomial": [1], "coefficient": [-1, 1]}
+      ],
+      [
+        {"monomial": [2, 2], "coefficient": [1, 1]},
+        {"monomial": [2], "coefficient": [-1, 1]}
+      ],
+      [{"monomial": [1, 2], "coefficient": [1, 1]}],
+      [{"monomial": [2, 1], "coefficient": [1, 1]}],
+      [
+        {"monomial": [1, 3], "coefficient": [1, 1]},
+        {"monomial": [3], "coefficient": [-1, 1]}
+      ],
+      [
+        {"monomial": [3, 2], "coefficient": [1, 1]},
+        {"monomial": [3], "coefficient": [-1, 1]}
+      ],
+      [{"monomial": [3, 3], "coefficient": [1, 1]}]
+    ],
+    "structure_as_paths": [[], [], [], [], [], [], [], []],
+    "nc_basis": [
+      [{"path": [3], "coefficient": [1, 1]}]
+    ]
+  }
+}

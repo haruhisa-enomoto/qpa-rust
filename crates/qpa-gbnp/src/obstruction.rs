@@ -10,7 +10,10 @@ use std::cmp::Ordering;
 use numerica::domains::Field;
 use thiserror::Error;
 
-use crate::{NpError, NpMonomial, NpPolynomial, add_np, bimul_np, left_occurrence};
+use crate::{
+    NpError, NpMonomial, NpPolynomial, OccurTree, OccurTreeError, TreeDirection, add_np, bimul_np,
+    left_occurrence,
+};
 
 /// GBNP's six-part overlap record
 /// `[left_1, index_1, right_1, left_2, index_2, right_2]`.
@@ -261,6 +264,147 @@ pub fn right_obstructions(
     Ok(answer)
 }
 
+/// Result record returned by the tree variants `LeftObsT` and `RightObsT`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TreeObstructions {
+    obstructions: Vec<Obstruction>,
+    self_obstruction_index: Option<usize>,
+}
+
+impl TreeObstructions {
+    /// Nonredundant obstruction list.
+    #[must_use]
+    pub fn obstructions(&self) -> &[Obstruction] {
+        &self.obstructions
+    }
+
+    /// Zero-based position of the retained self-obstruction, if present.
+    #[must_use]
+    pub const fn self_obstruction_index(&self) -> Option<usize> {
+        self.self_obstruction_index
+    }
+
+    pub(crate) fn into_parts(self) -> (Vec<Obstruction>, Option<usize>) {
+        (self.obstructions, self.self_obstruction_index)
+    }
+}
+
+/// Translate `GBNP.LeftObsT` using a forward occurrence tree.
+///
+/// # Errors
+///
+/// Returns an error for an invalid basis index or tree mutation failure.
+pub fn left_obstructions_tree(
+    basis_index: usize,
+    leading_monomials: &[NpMonomial],
+    tree: &OccurTree,
+) -> Result<TreeObstructions, ObstructionError> {
+    let word =
+        leading_monomials
+            .get(basis_index)
+            .ok_or(ObstructionError::BasisIndexOutOfRange {
+                index: basis_index,
+                basis_length: leading_monomials.len(),
+            })?;
+    let mut answer = tree
+        .obstruction_matches(word, Some(basis_index), TreeDirection::Forward)
+        .into_iter()
+        .map(|(other_index, start_position)| {
+            let other = &leading_monomials[other_index];
+            let overlap_length = word.degree() - start_position;
+            Obstruction::new(
+                empty_monomial(),
+                basis_index,
+                NpMonomial::from(&other.generators()[overlap_length..]),
+                NpMonomial::from(&word.generators()[..word.degree() - overlap_length]),
+                other_index,
+                empty_monomial(),
+            )
+        })
+        .collect::<Vec<_>>();
+    answer.sort_by(|left, right| left.right_first.cmp(&right.right_first));
+    prune_tree_obstructions(
+        answer,
+        tree.prefix_generators(),
+        TreeDirection::Forward,
+        |item| item.right_first(),
+        basis_index,
+    )
+}
+
+/// Translate `GBNP.RightObsT` using a reverse occurrence tree.
+///
+/// # Errors
+///
+/// Returns an error for an invalid basis index or tree mutation failure.
+pub fn right_obstructions_tree(
+    basis_index: usize,
+    leading_monomials: &[NpMonomial],
+    tree: &OccurTree,
+) -> Result<TreeObstructions, ObstructionError> {
+    let word =
+        leading_monomials
+            .get(basis_index)
+            .ok_or(ObstructionError::BasisIndexOutOfRange {
+                index: basis_index,
+                basis_length: leading_monomials.len(),
+            })?;
+    let mut answer = tree
+        .obstruction_matches(word, Some(basis_index), TreeDirection::Reverse)
+        .into_iter()
+        .map(|(other_index, start_position)| {
+            let other = &leading_monomials[other_index];
+            let overlap_length = word.degree() - start_position;
+            Obstruction::new(
+                NpMonomial::from(&other.generators()[..other.degree() - overlap_length]),
+                basis_index,
+                empty_monomial(),
+                empty_monomial(),
+                other_index,
+                NpMonomial::from(&word.generators()[overlap_length..]),
+            )
+        })
+        .collect::<Vec<_>>();
+    answer.sort_by(|left, right| left.left_first.cmp(&right.left_first));
+    prune_tree_obstructions(
+        answer,
+        tree.prefix_generators(),
+        TreeDirection::Reverse,
+        |item| item.left_first(),
+        basis_index,
+    )
+}
+
+fn prune_tree_obstructions(
+    mut answer: Vec<Obstruction>,
+    prefix_generators: usize,
+    direction: TreeDirection,
+    word: impl Fn(&Obstruction) -> &NpMonomial,
+    basis_index: usize,
+) -> Result<TreeObstructions, ObstructionError> {
+    let mut accepted_tree = OccurTree::new(&[], prefix_generators, direction)?;
+    let mut self_index = None;
+    let mut index = 0;
+    while index < answer.len() {
+        if accepted_tree
+            .lookup_at(word(&answer[index]), direction, 0)
+            .is_none()
+        {
+            if answer[index].second_basis_index() == basis_index {
+                self_index = Some(index);
+            }
+            accepted_tree.add(word(&answer[index]), index, direction)?;
+            index += 1;
+        } else {
+            answer.remove(index);
+        }
+    }
+    Ok(TreeObstructions {
+        obstructions: answer,
+        self_obstruction_index: self_index,
+    })
+}
+
 /// Translate `GBNP.Spoly` for one obstruction and polynomial basis.
 ///
 /// # Errors
@@ -360,6 +504,9 @@ pub enum ObstructionError {
     /// NP scaled addition failed, normally because fields differ.
     #[error(transparent)]
     Np(#[from] NpError),
+    /// Occurrence-tree lookup or mutation failed.
+    #[error(transparent)]
+    OccurTree(#[from] OccurTreeError),
 }
 
 #[cfg(test)]
@@ -375,7 +522,8 @@ mod tests {
     use crate::{NpMonomial, NpPolynomial, clean_np};
 
     use super::{
-        Obstruction, left_obstructions, right_obstructions, self_obstruction, spolynomial,
+        Obstruction, left_obstructions, left_obstructions_tree, right_obstructions,
+        right_obstructions_tree, self_obstruction, spolynomial,
     };
 
     fn polynomial(
@@ -493,6 +641,24 @@ mod tests {
     }
 
     #[test]
+    fn tree_obstructions_apply_gbnp_prefix_pruning() {
+        let leading = vec![
+            NpMonomial::from(&[1, 2, 1][..]),
+            NpMonomial::from(&[2, 1, 2][..]),
+        ];
+        let left_tree = crate::OccurTree::new(&leading, 0, crate::TreeDirection::Forward).unwrap();
+        let right_tree = crate::OccurTree::new(&leading, 0, crate::TreeDirection::Reverse).unwrap();
+        let left = left_obstructions_tree(1, &leading, &left_tree).unwrap();
+        let right = right_obstructions_tree(1, &leading, &right_tree).unwrap();
+        assert_eq!(left.obstructions().len(), 1);
+        assert_eq!(right.obstructions().len(), 1);
+        assert_eq!(left.self_obstruction_index(), None);
+        assert_eq!(right.self_obstruction_index(), None);
+        assert_eq!(left.obstructions()[0].right_first().generators(), [1]);
+        assert_eq!(right.obstructions()[0].left_first().generators(), [1]);
+    }
+
+    #[test]
     #[allow(clippy::too_many_lines)]
     fn pinned_gbnp_obstruction_fixture_matches() {
         let expected: Value = serde_json::from_str(include_str!(
@@ -517,6 +683,10 @@ mod tests {
         let self_second = self_obstruction(1, &leading).unwrap().unwrap();
         let left_second = left_obstructions(1, &leading, Some(&self_second)).unwrap();
         let right_second = right_obstructions(1, &leading, Some(&self_second)).unwrap();
+        let left_tree = crate::OccurTree::new(&leading, 0, crate::TreeDirection::Forward).unwrap();
+        let right_tree = crate::OccurTree::new(&leading, 0, crate::TreeDirection::Reverse).unwrap();
+        let left_tree_second = left_obstructions_tree(1, &leading, &left_tree).unwrap();
+        let right_tree_second = right_obstructions_tree(1, &leading, &right_tree).unwrap();
 
         let rational_basis = [
             polynomial(&[&[1, 2, 1], &[1]], &[1, -1]),
@@ -571,6 +741,18 @@ mod tests {
                 "self_second": obstructions_json(std::slice::from_ref(&self_second)),
                 "left_second": obstructions_json(&left_second),
                 "right_second": obstructions_json(&right_second),
+                "left_tree_second": {
+                    "obstructions": obstructions_json(left_tree_second.obstructions()),
+                    "self_index": left_tree_second
+                        .self_obstruction_index()
+                        .map_or(0, |index| index + 1)
+                },
+                "right_tree_second": {
+                    "obstructions": obstructions_json(right_tree_second.obstructions()),
+                    "self_index": right_tree_second
+                        .self_obstruction_index()
+                        .map_or(0, |index| index + 1)
+                },
                 "rational_spolynomial": rational_json(&rational_spolynomial),
                 "f5_spolynomial": zp_json(&f5_spolynomial, &field5),
                 "f2_spolynomial": z2_json(&f2_spolynomial)

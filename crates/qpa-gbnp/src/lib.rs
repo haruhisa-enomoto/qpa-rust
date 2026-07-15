@@ -3,19 +3,40 @@
 //! The translation is rooted at GBNP's `SGrobner`; no independent Gröbner
 //! algorithm is substituted here.
 
+pub mod heap;
 pub mod np;
 pub mod obstruction;
+pub mod occur_tree;
+pub mod options;
+pub mod preprocessing;
+pub mod qpa_conversion;
 pub mod reduction;
+pub mod sgrobner;
 
+pub use heap::{TodoHeap, TodoHeapError};
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,
     mk_monic_np, mul_np,
 };
 pub use obstruction::{
-    Obstruction, ObstructionError, left_obstructions, right_obstructions, self_obstruction,
-    spolynomial,
+    Obstruction, ObstructionError, TreeObstructions, left_obstructions, left_obstructions_tree,
+    right_obstructions, right_obstructions_tree, self_obstruction, spolynomial,
+};
+pub use occur_tree::{OccurTree, OccurTreeError, TreeDirection};
+pub use options::GbnpOptions;
+pub use preprocessing::{
+    PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,
+    reduce_polynomials_in_place, reduce_polynomials_with_options, strong_normal_form_except,
+};
+pub use qpa_conversion::{
+    CohenPolynomial, CohenRepresentation, QpaGbnpError, cohen_to_path, gbnp_groebner_basis,
+    gbnp_groebner_basis_nc, path_to_cohen, path_to_cohen_free, relations_for_path_algebra,
 };
 pub use reduction::{
     ReductionError, left_occurrence, normal_form_np, occur, occur_in_list, right_occurrence,
     strong_normal_form_np, strong_normal_form_two,
+};
+pub use sgrobner::{
+    SgrobnerError, SgrobnerResult, all_obstructions, sgrobner, sgrobner_loops,
+    sgrobner_with_options, strong_normal_form_trees,
 };
