@@ -16782,9 +16782,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 98
 source_end = 98
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_algebra_text; save_qpa_algebra_file"
+tests = ["tests/fixtures/pathalg_persistence.schema-v1.json","tests/fixtures/pathalg_prime_field_logs.schema-v1.json","tests/gap-reference/pathalg_save_keep.g","tests/gap-reference/pathalg_save_query_new_error.g","tests/gap-reference/pathalg_save_invalid_option_error.g"]
 deviations = []
 
 [[entries]]
@@ -16795,9 +16795,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 99
 source_end = 99
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "parse_qpa_algebra_text; read_qpa_algebra_file"
+tests = ["tests/fixtures/pathalg_persistence.schema-v1.json","tests/gap-reference/pathalg_read_prefix_empty.g"]
 deviations = []
 
 [[entries]]
@@ -18368,9 +18368,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2779
 source_end = 2918
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_algebra_text; save_qpa_algebra_file"
+tests = ["tests/fixtures/pathalg_persistence.schema-v1.json","tests/fixtures/pathalg_prime_field_logs.schema-v1.json","tests/gap-reference/pathalg_save_keep.g","tests/gap-reference/pathalg_save_query_new_error.g","tests/gap-reference/pathalg_save_invalid_option_error.g"]
 deviations = []
 
 [[entries]]
@@ -18381,9 +18381,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2929
 source_end = 3067
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "parse_qpa_algebra_text; read_qpa_algebra_file"
+tests = ["tests/fixtures/pathalg_persistence.schema-v1.json","tests/gap-reference/pathalg_read_prefix_empty.g"]
 deviations = []
 
 [[entries]]

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_persistence",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "path": {
+    "saved": true,
+    "text": "IsPathAlgebra\nVertices:\n1, 2, 3, 4, 5, 6, 7, 8, 9, 10,\n11\nArrows:\na_1:1->2, a_2:2->3, a_3:3->4, a_4:4->5, a_5:5->6, a_6:6->7,\na_7:7->8, a_8:8->9, a_9:9->10, a_10:10->11\nField:\nRationals\n",
+    "read_is_path": true,
+    "read_vertices": 11,
+    "read_arrows": 10
+  },
+  "rational": {
+    "text": "IsQuotientOfPathAlgebra\nVertices:\nv1, v2, v3\nArrows:\na:v1->v2, b:v2->v3, c:v1->v3\nField:\nRationals\nRelations:\n(-1/2)*c + (1)*a*b\n",
+    "read_is_quotient": true,
+    "read_dimension": 6
+  },
+  "f2": {
+    "text": "IsQuotientOfPathAlgebra\nVertices:\nv1, v2, v3\nArrows:\na:v1->v2, b:v2->v3, c:v1->v3\nField:\nGF(2)\nRelations:\n(z^0)*c + (z^0)*a*b\n",
+    "read_is_quotient": true,
+    "read_dimension": 6
+  },
+  "f5": {
+    "text": "IsQuotientOfPathAlgebra\nVertices:\nv1, v2, v3\nArrows:\na:v1->v2, b:v2->v3, c:v1->v3\nField:\nGF(5)\nRelations:\n(z^1)*c + (z^0)*a*b\n",
+    "read_is_quotient": true,
+    "read_dimension": 6
+  }
+}

@@ -93,6 +93,38 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_admissible_properties.g" \
     "$repo_root/tests/fixtures/pathalg_admissible_properties.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_persistence.g" \
+    "$repo_root/tests/fixtures/pathalg_persistence.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_prime_field_logs.g" \
+    "$repo_root/tests/fixtures/pathalg_prime_field_logs.schema-v1.json"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/pathalg_save_keep.g" \
+    >"$actual"
+grep -Fq "A file with the same name exists already." "$actual"
+grep -Fq "KEEP_RESULT=false" "$actual"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/pathalg_read_prefix_empty.g" \
+    >"$actual"
+grep -Fq "PREFIX_EMPTY_IS_QUOTIENT=false" "$actual"
+grep -Fq "PREFIX_EMPTY_RELATIONS=0" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_save_query_new_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly initialized the query-new output stream" >&2
+    exit 1
+fi
+grep -Fq "Variable: 'output' must have an assigned value" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_save_invalid_option_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an invalid SaveAlgebra option" >&2
+    exit 1
+fi
+grep -Fq "Invalid overwrite option has been entered" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_triangular_infinite_error.g" \
     >"$actual" 2>&1

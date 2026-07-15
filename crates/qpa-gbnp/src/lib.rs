@@ -10,6 +10,7 @@ pub mod obstruction;
 pub mod occur_tree;
 pub mod options;
 pub mod pathalg;
+pub mod persistence;
 pub mod preprocessing;
 pub mod qpa_conversion;
 pub mod reduction;
@@ -42,6 +43,10 @@ pub use pathalg::{
     quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre, quotient_dimension,
     quotient_is_admissible, quotient_is_finite_dimensional, quotient_is_monomial,
     quotient_is_triangular_reduced, truncated_path_algebra,
+};
+pub use persistence::{
+    LoadedQpaAlgebra, QpaPersistenceError, QpaTextField, parse_qpa_algebra_text, qpa_algebra_text,
+    read_qpa_algebra_file, save_qpa_algebra_file,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,

@@ -411,8 +411,9 @@ properties that depend on modules or specialized algebra constructions.
   their later source files.
 - [ ] Preserve QPA external representation and serialization semantics. The
   two-part GAP path-algebra descriptor and quotient `ExtRepOfObj`/`ObjByExtRep`
-  round trip are implemented; the later save/read and versioned persistence
-  surface remains.
+  round trip and QPA-compatible `SaveAlgebra`/`ReadAlgebra` text persistence
+  are implemented over the admitted rational and prime fields. A separate
+  versioned native persistence surface remains.
 
 Exit gate: non-Gröbner path-algebra operations are source mapped and verified;
 normal-form-dependent operations are connected to an explicit pending backend.
