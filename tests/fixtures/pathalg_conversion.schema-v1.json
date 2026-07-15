@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_conversion",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "parent_relations": [],
+    "quotient_relations": [
+      [
+        { "path": [6], "coefficient": [-1, 1] },
+        { "path": [4, 5], "coefficient": [1, 1] }
+      ]
+    ],
+    "ideal_identical": true,
+    "finite": true,
+    "dimension": 6,
+    "basis": [
+      [{ "path": [1], "coefficient": [1, 1] }],
+      [{ "path": [2], "coefficient": [1, 1] }],
+      [{ "path": [3], "coefficient": [1, 1] }],
+      [{ "path": [4], "coefficient": [1, 1] }],
+      [{ "path": [5], "coefficient": [1, 1] }],
+      [{ "path": [6], "coefficient": [1, 1] }]
+    ],
+    "element": [
+      { "path": [1], "coefficient": [2, 1] },
+      { "path": [4], "coefficient": [3, 1] },
+      { "path": [6], "coefficient": [5, 1] }
+    ],
+    "coefficients": [[2, 1], [0, 1], [0, 1], [3, 1], [0, 1], [5, 1]],
+    "rebuilt": [
+      { "path": [4], "coefficient": [2, 1] },
+      { "path": [6], "coefficient": [3, 1] }
+    ],
+    "rebuilt_is_normal_form": true,
+    "nice": [[2, 1], [3, 1], [5, 1]],
+    "ugly": [
+      { "path": [1], "coefficient": [2, 1] },
+      { "path": [4], "coefficient": [3, 1] },
+      { "path": [6], "coefficient": [5, 1] }
+    ],
+    "vertex_positions": [2, 2]
+  },
+  "f2": {
+    "basis": [
+      [{ "path": [1], "coefficient": 1 }],
+      [{ "path": [2], "coefficient": 1 }],
+      [{ "path": [3], "coefficient": 1 }],
+      [{ "path": [4], "coefficient": 1 }],
+      [{ "path": [5], "coefficient": 1 }],
+      [{ "path": [6], "coefficient": 1 }]
+    ],
+    "coefficients": [1, 0, 0, 1, 0, 1],
+    "rebuilt": [
+      { "path": [4], "coefficient": 1 },
+      { "path": [6], "coefficient": 1 }
+    ],
+    "rebuilt_is_normal_form": true
+  },
+  "lazy_default": {
+    "before_basis": false,
+    "before_normal_function": false,
+    "before_element": [
+      { "path": [2], "coefficient": [1, 1] },
+      { "path": [2, 2], "coefficient": [1, 1] }
+    ],
+    "before_element_is_normal": false,
+    "cached_basis_before": false,
+    "cached_basis_after": false,
+    "dimension": 2,
+    "after_basis": true,
+    "tip_reduced": true,
+    "after_normal_function": false,
+    "after_element": [
+      { "path": [2], "coefficient": [1, 1] },
+      { "path": [2, 2], "coefficient": [1, 1] }
+    ],
+    "after_element_is_normal": false,
+    "basis": [
+      [{ "path": [1], "coefficient": [1, 1] }],
+      [{ "path": [2], "coefficient": [1, 1] }]
+    ],
+    "basis_normal_flags": [false, false]
+  }
+}

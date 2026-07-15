@@ -34,8 +34,9 @@ pub use obstruction::{
 pub use occur_tree::{OccurTree, OccurTreeError, TreeDirection};
 pub use options::GbnpOptions;
 pub use pathalg::{
-    PathalgGbnpError, opposite_path_algebra, opposite_quotient_element, quotient_by_relations,
-    truncated_path_algebra,
+    PathalgGbnpError, ensure_quotient_groebner_basis, opposite_path_algebra,
+    opposite_quotient_element, quotient_by_relations, quotient_dimension,
+    quotient_is_finite_dimensional, truncated_path_algebra,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,

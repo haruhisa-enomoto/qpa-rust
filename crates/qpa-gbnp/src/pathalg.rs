@@ -5,8 +5,8 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver, QuotientError, QuotientPathAlgebra,
-    QuotientPathAlgebraElement,
+    AlgebraDimension, GroebnerBasis, PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver,
+    QuotientError, QuotientPathAlgebra, QuotientPathAlgebraElement,
 };
 use thiserror::Error;
 
@@ -28,6 +28,54 @@ pub fn quotient_by_relations<F: Field>(
         parent,
         &complete_relations,
     )?)
+}
+
+/// Compute and attach QPA's configured default Gröbner basis when the
+/// quotient's defining ideal does not already carry one.
+///
+/// The attachment mutates the identity-preserving ideal cache. It deliberately
+/// does not retrofit a normal-form function onto the quotient family, matching
+/// QPA's lazy `Dimension` and `IsFiniteDimensional` methods.
+///
+/// # Errors
+///
+/// Propagates the checked QPA-to-GBNP conversion and basis construction.
+pub fn ensure_quotient_groebner_basis<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<GroebnerBasis<F>, PathalgGbnpError> {
+    if let Some(basis) = quotient.ideal().groebner_basis() {
+        return Ok(basis);
+    }
+    let relations = gbnp_groebner_basis(quotient.relations(), quotient.original_path_algebra())?;
+    quotient.ideal().with_complete_groebner_basis(&relations)?;
+    quotient
+        .ideal()
+        .groebner_basis()
+        .ok_or(PathalgGbnpError::MissingAttachedBasis)
+}
+
+/// Translate QPA's lazy default `IsFiniteDimensional` method.
+///
+/// # Errors
+///
+/// Propagates default GBNP and nontip-dictionary failures.
+pub fn quotient_is_finite_dimensional<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    ensure_quotient_groebner_basis(quotient)?;
+    Ok(quotient.is_finite_dimensional()?)
+}
+
+/// Translate QPA's lazy default `Dimension` method.
+///
+/// # Errors
+///
+/// Propagates default GBNP and nontip-dictionary failures.
+pub fn quotient_dimension<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<AlgebraDimension, PathalgGbnpError> {
+    ensure_quotient_groebner_basis(quotient)?;
+    Ok(quotient.dimension()?)
 }
 
 /// Translate QPA's public `TruncatedPathAlgebra(K, Q, n)` through its default
@@ -83,6 +131,9 @@ pub fn opposite_quotient_element<F: Field>(
 /// Failure in QPA path-algebra constructors backed by the GBNP translation.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum PathalgGbnpError {
+    /// An attached basis disappeared after the identity-preserving update.
+    #[error("the quotient ideal did not retain its computed Groebner basis")]
+    MissingAttachedBasis,
     /// Parent or opposite path-algebra construction failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
@@ -96,10 +147,21 @@ pub enum PathalgGbnpError {
 
 #[cfg(test)]
 mod tests {
-    use numerica::domains::{finite_field::Z2, integer::Integer, rational::Q};
-    use qpa_core::{AlgebraDimension, ArrowIndex, ArrowSpec, Quiver, VertexIndex};
+    use numerica::domains::{
+        finite_field::Z2,
+        integer::Integer,
+        rational::{Q, RationalField},
+    };
+    use qpa_core::{
+        AlgebraDimension, ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal,
+        Quiver, QuotientPathAlgebra, VertexIndex,
+    };
+    use serde_json::{Value, json};
 
-    use super::{opposite_path_algebra, opposite_quotient_element, truncated_path_algebra};
+    use super::{
+        opposite_path_algebra, opposite_quotient_element, quotient_dimension,
+        quotient_is_finite_dimensional, truncated_path_algebra,
+    };
 
     fn vertex(index: usize) -> VertexIndex {
         VertexIndex::new(index).unwrap()
@@ -121,6 +183,31 @@ mod tests {
             ],
         )
         .unwrap()
+    }
+
+    fn small_integer(value: &Integer) -> i64 {
+        value
+            .to_string()
+            .parse()
+            .expect("the pathalg fixture uses only small integers")
+    }
+
+    fn rational_element_json(element: &PathAlgebraElement<RationalField>) -> Value {
+        Value::Array(
+            element
+                .terms()
+                .iter()
+                .map(|term| {
+                    json!({
+                        "path": term.path().external_representation(),
+                        "coefficient": [
+                            small_integer(term.coefficient().numerator_ref()),
+                            small_integer(term.coefficient().denominator_ref())
+                        ]
+                    })
+                })
+                .collect(),
+        )
     }
 
     #[test]
@@ -172,5 +259,86 @@ mod tests {
             binary.dimension().unwrap(),
             AlgebraDimension::Finite(Integer::from(17))
         );
+    }
+
+    #[test]
+    fn lazy_dimension_attaches_default_gbnp_basis_without_changing_the_family() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_conversion.schema-v1.json"
+        ))
+        .unwrap();
+        let quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let algebra = PathAlgebra::new(Q, quiver.clone()).unwrap();
+        let x = algebra
+            .element(quiver.arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        let square = x.pow(2).unwrap();
+        let cached_ideal = PathAlgebraIdeal::new(algebra.clone(), vec![square.clone()]).unwrap();
+        let cached_quotient = QuotientPathAlgebra::by_ideal(&cached_ideal).unwrap();
+        let cached_basis_before = cached_quotient
+            .canonical_basis_object()
+            .unwrap()
+            .has_basis_vectors();
+        quotient_dimension(&cached_quotient).unwrap();
+        let cached_basis_after = cached_quotient
+            .canonical_basis_object()
+            .unwrap()
+            .has_basis_vectors();
+
+        let ideal = PathAlgebraIdeal::new(algebra, vec![square.clone()]).unwrap();
+        let quotient = QuotientPathAlgebra::by_ideal(&ideal).unwrap();
+        let before = quotient.element(x.add(&square).unwrap()).unwrap();
+        let before_basis = ideal.groebner_basis().is_some();
+        let before_normal_function = quotient.has_normal_form_function();
+        let dimension = quotient_dimension(&quotient).unwrap();
+        assert!(quotient_is_finite_dimensional(&quotient).unwrap());
+        let after = quotient.element(x.add(&square).unwrap()).unwrap();
+        let basis = quotient.canonical_basis().unwrap().unwrap();
+
+        assert_eq!(
+            json!({
+                "before_basis": before_basis,
+                "before_normal_function": before_normal_function,
+                "before_element": rational_element_json(before.representative()),
+                "before_element_is_normal": before.is_normal_form(),
+                "cached_basis_before": cached_basis_before,
+                "cached_basis_after": cached_basis_after,
+                "dimension": match dimension {
+                    AlgebraDimension::Finite(value) => small_integer(&value),
+                    AlgebraDimension::Infinite => panic!("oracle quotient must be finite"),
+                },
+                "after_basis": ideal.groebner_basis().is_some(),
+                "tip_reduced": ideal
+                    .groebner_basis()
+                    .unwrap()
+                    .tip_reduced_property()
+                    == Some(true),
+                "after_normal_function": quotient.has_normal_form_function(),
+                "after_element": rational_element_json(after.representative()),
+                "after_element_is_normal": after.is_normal_form(),
+                "basis": basis
+                    .iter()
+                    .map(|element| rational_element_json(element.representative()))
+                    .collect::<Vec<_>>(),
+                "basis_normal_flags": basis
+                    .iter()
+                    .map(qpa_core::QuotientPathAlgebraElement::is_normal_form)
+                    .collect::<Vec<_>>()
+            }),
+            expected["lazy_default"]
+        );
+
+        let algebra2 = PathAlgebra::new(Z2, quiver).unwrap();
+        let x2 = algebra2
+            .element(algebra2.quiver().arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        let ideal2 = PathAlgebraIdeal::new(algebra2, vec![x2.pow(2).unwrap()]).unwrap();
+        let quotient2 = QuotientPathAlgebra::by_ideal(&ideal2).unwrap();
+        assert_eq!(
+            quotient_dimension(&quotient2).unwrap(),
+            AlgebraDimension::Finite(Integer::from(2))
+        );
+        assert!(!quotient2.has_normal_form_function());
     }
 }

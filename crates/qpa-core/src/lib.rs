@@ -26,7 +26,8 @@ pub use groebner::{
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
 pub use ordering::{OrderingError, QuiverOrdering, check_quiver_subset_for_cycles};
 pub use path_algebra::{
-    PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraTerm, opposite_relations,
+    PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraExternalRepresentation,
+    PathAlgebraTerm, opposite_relations,
 };
 pub use poset::{Poset, PosetError};
 pub use quiver::{
@@ -35,8 +36,9 @@ pub use quiver::{
     QuiverError, Vertex, VertexIndex,
 };
 pub use quotient::{
-    AlgebraDimension, NaturalQuotientMap, PathAlgebraIdeal, QuotientError, QuotientPathAlgebra,
-    QuotientPathAlgebraElement, is_homogeneous_list_of_elements,
+    AlgebraDimension, NaturalQuotientMap, PathAlgebraIdeal, QuotientCanonicalBasis, QuotientError,
+    QuotientNiceBasis, QuotientPathAlgebra, QuotientPathAlgebraElement,
+    is_homogeneous_list_of_elements,
 };
 pub use static_dictionary::{DictionaryMatch, QuiverStaticDictionary, StaticDictionaryError};
 pub use suffix_tree::{

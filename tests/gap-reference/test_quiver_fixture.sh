@@ -66,6 +66,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_foundational.g" \
     "$repo_root/tests/fixtures/pathalg_foundational.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_conversion.g" \
+    "$repo_root/tests/fixtures/pathalg_conversion.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/natural_map_image_error.g" \
     >"$actual" 2>&1

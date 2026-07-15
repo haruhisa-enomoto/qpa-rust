@@ -27,6 +27,46 @@ struct PathAlgebraData<F: Field> {
     opposite_strong: OnceLock<PathAlgebra<F>>,
 }
 
+/// QPA's external representation of a path-algebra element.
+///
+/// GAP stores this as a two-entry list containing the coefficient zero and a
+/// flattened alternating list of path external representations and
+/// coefficients. Rust gives the alternating entries a typed pair shape.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PathAlgebraExternalRepresentation<C> {
+    zero_coefficient: C,
+    terms: Vec<(Vec<usize>, C)>,
+}
+
+impl<C> PathAlgebraExternalRepresentation<C> {
+    /// Construct the typed form of GAP's two-entry external representation.
+    #[must_use]
+    pub const fn new(zero_coefficient: C, terms: Vec<(Vec<usize>, C)>) -> Self {
+        Self {
+            zero_coefficient,
+            terms,
+        }
+    }
+
+    /// Return the stored zero coefficient.
+    #[must_use]
+    pub const fn zero_coefficient(&self) -> &C {
+        &self.zero_coefficient
+    }
+
+    /// Return path external representations paired with their coefficients.
+    #[must_use]
+    pub fn terms(&self) -> &[(Vec<usize>, C)] {
+        &self.terms
+    }
+
+    /// Consume the descriptor into its two GAP representation components.
+    #[must_use]
+    pub fn into_parts(self) -> (C, Vec<(Vec<usize>, C)>) {
+        (self.zero_coefficient, self.terms)
+    }
+}
+
 /// A QPA path algebra over an exact Numerica field.
 ///
 /// Cloning this handle preserves algebra/family identity. Calling a constructor
@@ -151,6 +191,40 @@ impl<F: Field> PathAlgebra<F> {
         })
     }
 
+    /// Translate GAP's path-algebra `ObjByExtRep` method.
+    ///
+    /// QPA documents that the supplied descriptor must already be normalized.
+    /// Rust verifies that precondition so that its canonical sparse element
+    /// invariant cannot be bypassed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a nonzero zero-coefficient slot, an invalid path
+    /// descriptor, or terms that are not already in canonical sparse order.
+    pub fn element_from_external_representation(
+        &self,
+        representation: &PathAlgebraExternalRepresentation<F::Element>,
+    ) -> Result<PathAlgebraElement<F>, PathAlgebraError> {
+        if !self.field().is_zero(representation.zero_coefficient()) {
+            return Err(PathAlgebraError::InvalidExternalZeroCoefficient);
+        }
+        let terms = representation
+            .terms()
+            .iter()
+            .map(|(path, coefficient)| {
+                Ok((
+                    Path::from_external_representation(self.quiver(), path)?,
+                    coefficient.clone(),
+                ))
+            })
+            .collect::<Result<Vec<_>, PathAlgebraError>>()?;
+        let element = self.from_terms(terms)?;
+        if &element.external_representation() != representation {
+            return Err(PathAlgebraError::ExternalRepresentationNotNormalized);
+        }
+        Ok(element)
+    }
+
     /// Return path-algebra generators in QPA quiver generator order: vertices
     /// followed by arrows.
     #[must_use]
@@ -161,6 +235,12 @@ impl<F: Field> PathAlgebra<F> {
             .chain(self.quiver().arrows().map(|arrow| arrow.path()))
             .map(|path| self.monomial_element(path))
             .collect()
+    }
+
+    /// Return QPA's `RelationsOfAlgebra` value for a path algebra.
+    #[must_use]
+    pub const fn relations(&self) -> Vec<PathAlgebraElement<F>> {
+        Vec::new()
     }
 
     /// Return QPA's path-algebra global-dimension value set by the constructor.
@@ -404,6 +484,39 @@ impl<F: Field> PathAlgebraElement<F> {
     #[must_use]
     pub fn is_zero(&self) -> bool {
         self.terms.is_empty()
+    }
+
+    /// Translate GAP's two-entry `ExtRepOfObj` representation.
+    #[must_use]
+    pub fn external_representation(&self) -> PathAlgebraExternalRepresentation<F::Element> {
+        PathAlgebraExternalRepresentation::new(
+            self.algebra().field().zero(),
+            self.terms()
+                .iter()
+                .map(|term| {
+                    (
+                        term.path().external_representation(),
+                        term.coefficient().clone(),
+                    )
+                })
+                .collect(),
+        )
+    }
+
+    /// Translate QPA's `VertexPosition` on a trivial-path element.
+    ///
+    /// # Errors
+    ///
+    /// QPA documents a trivial-path precondition but otherwise indexes its
+    /// representation unchecked. Rust reports violations explicitly.
+    pub fn vertex_position(&self) -> Result<usize, PathAlgebraError> {
+        let [term] = self.terms() else {
+            return Err(PathAlgebraError::NotTrivialPathElement);
+        };
+        match (term.path().length(), term.path().source()) {
+            (Some(0), PathEndpoint::Vertex(vertex)) => Ok(vertex.index().get()),
+            _ => Err(PathAlgebraError::NotTrivialPathElement),
+        }
     }
 
     /// Translate QPA's path-algebra element comparison from `pathalg.gi`.
@@ -745,6 +858,15 @@ pub enum PathAlgebraError {
     /// Field-scalar division is undefined for zero.
     #[error("cannot divide a path-algebra element by zero")]
     DivisionByZero,
+    /// The zero slot in a GAP external representation was not field zero.
+    #[error("the external representation has an invalid zero coefficient")]
+    InvalidExternalZeroCoefficient,
+    /// GAP's documented normalized-descriptor precondition was violated.
+    #[error("the path-algebra external representation is not normalized")]
+    ExternalRepresentationNotNormalized,
+    /// `VertexPosition` requires one trivial-path monomial.
+    #[error("the element is not a scalar multiple of one trivial path")]
+    NotTrivialPathElement,
     /// Concurrent opposite-algebra construction lost its reciprocal cache.
     #[error("concurrent opposite-path-algebra cache initialization failed")]
     OppositeCacheRace,

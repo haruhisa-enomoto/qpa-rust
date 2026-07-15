@@ -397,16 +397,22 @@ properties that depend on modules or specialized algebra constructions.
 - [x] Implement quotient elements with lazy/eager normal-form state. Quotients
   by ideals without attached Gröbner bases retain unreduced representatives;
   attached-basis and relation-list quotients install QPA's normal-form path.
-- [ ] Implement basis, coefficient, membership, and element conversion hooks.
-  Finite canonical nontip bases, dimension, and membership are implemented;
-  general basis/coefficient conversion remains.
+- [x] Implement basis, coefficient, membership, and element conversion hooks.
+  Canonical quotient basis objects preserve QPA's cached vectorless state,
+  sorted nontip vectors, and coordinate extraction. Parent/quotient external
+  representations, normality-aware construction, nice/ugly vectors, vertex
+  positions, dimensions, and membership are source-translated over the field
+  matrix.
 - [ ] Implement admissibility, monomial, quadratic, and arrow-ideal operations.
   Ideal/quotient admissibility, full monomial-ideal detection, and homogeneous
   list checking are implemented. `MakeUniformOnRight`, right arrow extension,
   `NthPowerOfArrowIdeal`, relation-list extension, and default-GBNP truncated
   path algebras are source-translated; quadratic-dual operations remain in
   their later source files.
-- [ ] Preserve QPA external representation and serialization semantics.
+- [ ] Preserve QPA external representation and serialization semantics. The
+  two-part GAP path-algebra descriptor and quotient `ExtRepOfObj`/`ObjByExtRep`
+  round trip are implemented; the later save/read and versioned persistence
+  surface remains.
 
 Exit gate: non-Gröbner path-algebra operations are source mapped and verified;
 normal-form-dependent operations are connected to an explicit pending backend.
