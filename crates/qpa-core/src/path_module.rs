@@ -4281,6 +4281,55 @@ pub fn multiply_lists_of_maps<F: Field>(
     Ok(sum)
 }
 
+/// Translate QPA's `UnderlyingLinearMap(f)` block-diagonal construction.
+///
+/// Vertex spaces occur in quiver order and the stored row-action matrix at
+/// each vertex is copied into the corresponding diagonal block. QPA retains
+/// one physical zero row or column for every zero-dimensional vertex space;
+/// consequently the returned dimensions are the sums of the physical vertex
+/// dimensions rather than the logical module dimensions.
+///
+/// # Errors
+///
+/// Reports address-size overflow while summing physical dimensions.
+pub fn underlying_linear_map<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<DenseMatrix<F>, PathAlgebraModuleError> {
+    let source_dimension =
+        homomorphism
+            .vertex_matrices()
+            .iter()
+            .try_fold(0_usize, |total, matrix| {
+                total
+                    .checked_add(matrix.nrows())
+                    .ok_or(PathAlgebraModuleError::DimensionOverflow)
+            })?;
+    let range_dimension =
+        homomorphism
+            .vertex_matrices()
+            .iter()
+            .try_fold(0_usize, |total, matrix| {
+                total
+                    .checked_add(matrix.ncols())
+                    .ok_or(PathAlgebraModuleError::DimensionOverflow)
+            })?;
+    let field = homomorphism.source().right_acting_algebra().field().clone();
+    let mut result = DenseMatrix::zero(source_dimension, range_dimension, field);
+    let mut source_offset = 0;
+    let mut range_offset = 0;
+    for matrix in homomorphism.vertex_matrices() {
+        for row in 0..matrix.nrows() {
+            for column in 0..matrix.ncols() {
+                result[(source_offset + row, range_offset + column)] =
+                    matrix[(row, column)].clone();
+            }
+        }
+        source_offset += matrix.nrows();
+        range_offset += matrix.ncols();
+    }
+    Ok(result)
+}
+
 /// Translate QPA's recursive `IsomorphismOfModules(M, N)` operation.
 ///
 /// `Ok(None)` is QPA's `false`. After the same algebra, dimension-vector,

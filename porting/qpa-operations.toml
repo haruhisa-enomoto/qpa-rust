@@ -10282,9 +10282,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 40
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::support_vertices"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11010,9 +11010,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1930
 source_end = 1961
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::support_vertices"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12596,9 +12596,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 76
 source_end = 76
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "matrix_of_homomorphism_between_projectives"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12609,9 +12609,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 77
 source_end = 77
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_matrix_to_homomorphism_of_projectives"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json","tests/gap-reference/modulehom_projective_support_error.g"]
 deviations = []
 
 [[entries]]
@@ -12622,9 +12622,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 78
 source_end = 78
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "underlying_linear_map"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13818,9 +13818,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4206
 source_end = 4245
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "matrix_of_homomorphism_between_projectives"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13831,9 +13831,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4247
 source_end = 4355
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_matrix_to_homomorphism_of_projectives"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json","tests/gap-reference/modulehom_projective_support_error.g"]
 deviations = []
 
 [[entries]]
@@ -13844,9 +13844,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4364
 source_end = 4395
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "underlying_linear_map"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15677,9 +15677,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "element_in_indec_projective"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15690,9 +15690,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "element_in_v_a_as_element_in_indec_proj"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json","tests/gap-reference/modulehom_projective_zero_element_error.g","tests/gap-reference/modulehom_projective_scaled_tip_error.g"]
 deviations = []
 
 [[entries]]
@@ -15794,9 +15794,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 316
 source_end = 342
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "element_in_indec_projective"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15807,9 +15807,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 353
 source_end = 377
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "element_in_indec_projective"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15820,9 +15820,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 388
 source_end = 434
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "element_in_v_a_as_element_in_indec_proj"
+tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json","tests/gap-reference/modulehom_projective_zero_element_error.g","tests/gap-reference/modulehom_projective_scaled_tip_error.g"]
 deviations = []
 
 [[entries]]

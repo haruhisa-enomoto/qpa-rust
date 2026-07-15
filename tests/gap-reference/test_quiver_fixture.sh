@@ -76,6 +76,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_projectives.g" \
     "$repo_root/tests/fixtures/modulehom_projectives.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_projective_matrices.g" \
+    "$repo_root/tests/fixtures/modulehom_projective_matrices.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
 compare_fixture \
@@ -108,6 +111,34 @@ then
 fi
 grep -Fq "does not give a homomorphism -- wrong support" "$actual"
 grep -Fq "modulehom.gi:3376" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_projective_support_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a projective matrix with discrepant support" >&2
+    exit 1
+fi
+grep -Fq "Discrepancy between entered list of vertices and support" "$actual"
+grep -Fq "modulehom.gi:4318" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_projective_zero_element_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly converted a zero algebra element to a projective element" >&2
+    exit 1
+fi
+grep -Fq "The entered element is zero" "$actual"
+grep -Fq "modulespecial.gi:403" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_projective_scaled_tip_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly converted a projective element with a scaled tip" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`+' on 2 arguments" "$actual"
+grep -Fq "The 2nd argument is 'fail'" "$actual"
+grep -Fq "modulespecial.gi:428" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_minimal_zero_error.g" \
     >"$actual" 2>&1
