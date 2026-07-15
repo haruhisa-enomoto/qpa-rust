@@ -20,7 +20,7 @@ pub use groebner::{
     tip_reduced_list,
 };
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
-pub use ordering::{OrderingError, QuiverOrdering};
+pub use ordering::{OrderingError, QuiverOrdering, check_quiver_subset_for_cycles};
 pub use path_algebra::{PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraTerm};
 pub use quiver::{
     Arrow, ArrowIndex, ArrowSpec, DynkinFamily, DynkinOrientation, DynkinType, Generator,

@@ -275,7 +275,7 @@ canonical mathematical structures rather than fragile pretty-printed text.
 - [ ] Compare stable error categories and enforce explicit resource limits for
   cases that may fail, time out, or not terminate.
 
-- [ ] Quivers, paths, and orderings.
+- [x] Quivers, paths, and orderings.
 - [ ] Sparse elements, relations, Gröbner bases, tips, nontips, and normal forms.
 - [ ] Bases, dimensions, matrices, modules, and morphisms.
 - [ ] Resolutions, complexes, invariants, and specialized outputs.
@@ -365,10 +365,14 @@ Primary QPA files: `quiver`, `groebnerordering`, `qpaposet`, and
 - [x] Port path multiplication, equality, enumeration, and external forms.
 - [x] Port incoming/outgoing arrows, adjacency, components, and graph properties.
 - [x] Port opposite, double, separated, full-subquiver, and Dynkin constructions.
-- [ ] Port all QPA monomial/path orderings and ordering composition.
+- [x] Port all QPA monomial/path orderings and ordering composition. Length,
+  left/right lexicographic, reverse, left/right vector, exact rational weight,
+  block, and wreath comparisons are source-translated, including formal
+  non-composable arrow lists. Ordering properties use QPA's cycle DFS methods
+  and preserve the pinned source's observable failure branches as typed errors.
 - [x] Port quiver enumerators without materializing infinite path sets.
 - [ ] Port QPA posets and remaining quiver graph algorithms.
-- [ ] Provide Rust constructors that preserve every QPA ordering composition.
+- [x] Provide Rust constructors that preserve every QPA ordering composition.
 
 Exit gate: all quiver/path/ordering declarations and examples are complete over
 the ledger, including cyclic quivers and zero/non-composable paths.
