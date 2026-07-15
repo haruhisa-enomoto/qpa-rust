@@ -511,6 +511,12 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   preserved explicitly; the general idempotent-corner `QuiverAlgebraOfeAe`
   remains module/radical dependent.
 - [ ] Port tensor products, enveloping algebras, and algebra-as-bimodule.
+  The dependency-free `pathalgtensor` substrate is source-translated:
+  `QuiverProduct` retains QPA's Cartesian generator order, composed names, and
+  two-factor decomposition; list-like factor access, display, path-or-vertex
+  walks, `ReversePath`, inclusion, and projection are pinned against QPA. The
+  path-algebra embedding and element-term helpers are the next tensor-layer
+  block before `SimpleTensor` and relation-bearing algebra tensor products.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.

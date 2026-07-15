@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "pathalgtensor_quiver",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "product": {
+    "vertices": ["u1_v1", "u1_v2", "u1_v3", "u2_v1", "u2_v2", "u2_v3"],
+    "arrows": ["u1_b", "u1_c", "u2_b", "u2_c", "a_v1", "a_v2", "a_v3"],
+    "arrow_endpoints": [
+      ["u1_v1", "u1_v2"],
+      ["u1_v2", "u1_v3"],
+      ["u2_v1", "u2_v2"],
+      ["u2_v2", "u2_v3"],
+      ["u1_v1", "u2_v1"],
+      ["u1_v2", "u2_v2"],
+      ["u1_v3", "u2_v3"]
+    ]
+  },
+  "decomposition": {
+    "length": 2,
+    "bound": [true, true, false],
+    "factor_identity": [true, true]
+  },
+  "walks": {
+    "vertex": ["u1"],
+    "arrow": ["a"],
+    "path": ["b", "c"]
+  },
+  "include": {
+    "path": "a_v1*u2_b*u2_c",
+    "vertices": "u1_v2"
+  },
+  "project": {
+    "first": "a",
+    "second": "b*c"
+  },
+  "reverse": {
+    "arrow": "x",
+    "line_path": "0",
+    "loop_path": "t*s"
+  }
+}

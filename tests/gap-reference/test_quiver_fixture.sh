@@ -37,6 +37,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/quiver_graph.g" \
     "$repo_root/tests/fixtures/quiver_graph.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/pathalgtensor_quiver.g" \
+    "$repo_root/tests/fixtures/pathalgtensor_quiver.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/orderings.g" \
     "$repo_root/tests/fixtures/orderings.schema-v1.json"
 compare_fixture \

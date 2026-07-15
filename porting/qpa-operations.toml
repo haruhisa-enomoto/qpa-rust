@@ -19512,9 +19512,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 41
 source_end = 41
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quiver_product"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19525,9 +19525,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 42
 source_end = 42
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProduct::decomposition"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19538,9 +19538,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 43
 source_end = 43
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "include_in_product_quiver"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19551,9 +19551,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 44
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "project_from_product_quiver"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19564,9 +19564,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 46
 source_end = 46
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProductDecomposition"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19577,9 +19577,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 48
 source_end = 48
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "walk_of_path_or_vertex"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19590,9 +19590,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 49
 source_end = 49
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reverse_path"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19824,9 +19824,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 4
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProductDecomposition"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19837,9 +19837,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 10
 source_end = 60
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quiver_product"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19850,9 +19850,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 62
 source_end = 66
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProductDecomposition::is_bound"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19863,9 +19863,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 68
 source_end = 73
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProductDecomposition::fmt"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19876,9 +19876,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 75
 source_end = 80
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProductDecomposition::fmt"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19889,9 +19889,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 82
 source_end = 86
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProductDecomposition::fmt"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19902,9 +19902,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 89
 source_end = 92
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "walk_of_path_or_vertex"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19915,9 +19915,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 93
 source_end = 96
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "walk_of_path_or_vertex"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19928,9 +19928,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 99
 source_end = 104
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reverse_path"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19941,9 +19941,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 107
 source_end = 128
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "include_in_product_quiver"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19954,9 +19954,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 131
 source_end = 149
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "project_from_product_quiver"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19967,9 +19967,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 152
 source_end = 158
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverProductDecomposition::factor"
+tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
 
 [[entries]]

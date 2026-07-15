@@ -18,6 +18,7 @@ pub mod quiver;
 pub mod quotient;
 pub mod static_dictionary;
 pub mod suffix_tree;
+pub mod tensor;
 pub mod triangular_reduced;
 pub mod vector_reduction;
 
@@ -52,6 +53,10 @@ pub use static_dictionary::{DictionaryMatch, QuiverStaticDictionary, StaticDicti
 pub use suffix_tree::{
     SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,
     SuffixTreeOccurrence, SuffixTreeToken,
+};
+pub use tensor::{
+    QuiverProduct, QuiverProductDecomposition, QuiverProductError, include_in_product_quiver,
+    project_from_product_quiver, quiver_product, reverse_path, walk_of_path_or_vertex,
 };
 pub use triangular_reduced::TriangularReducedError;
 pub use vector_reduction::{VectorCoefficients, VectorReductionError, VectorTip};

@@ -1,0 +1,576 @@
+//! QPA's combinatorial substrate for tensor products of path algebras.
+//!
+//! This module translates the dependency-free first part of
+//! `lib/pathalgtensor.gi`: product quivers, their retained decomposition,
+//! inclusion and projection of paths, and `ReversePath`.  Algebra tensor
+//! products are layered on these operations separately.
+
+use std::{collections::HashMap, fmt};
+
+use thiserror::Error;
+
+use crate::{
+    Generator, NamedArrowSpec, Path, PathEndpoint, PathError, Quiver, QuiverError, Vertex,
+};
+
+/// QPA's two-factor decomposition object attached to a product quiver.
+#[derive(Clone)]
+pub struct QuiverProductDecomposition {
+    factors: [Quiver; 2],
+    lookup_table: HashMap<Box<str>, [Generator; 2]>,
+}
+
+impl QuiverProductDecomposition {
+    /// Return whether QPA's list-like decomposition binds this positive index.
+    #[must_use]
+    pub const fn is_bound(&self, index: usize) -> bool {
+        index > 0 && index <= self.factors.len()
+    }
+
+    /// Extract a factor using QPA's one-based `dec[index]` convention.
+    ///
+    /// # Errors
+    ///
+    /// Returns an explicit error where GAP's list access would fail.
+    pub fn factor(&self, index: usize) -> Result<&Quiver, QuiverProductError> {
+        self.factors
+            .get(index.wrapping_sub(1))
+            .ok_or(QuiverProductError::FactorIndexOutOfRange { index })
+    }
+}
+
+impl fmt::Debug for QuiverProductDecomposition {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("<quiver product decomposition>")
+    }
+}
+
+impl fmt::Display for QuiverProductDecomposition {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("<quiver product decomposition>")
+    }
+}
+
+/// A quiver constructed by QPA's `QuiverProduct`, together with its attached
+/// decomposition attribute.
+#[derive(Clone, Debug)]
+pub struct QuiverProduct {
+    quiver: Quiver,
+    decomposition: QuiverProductDecomposition,
+}
+
+impl QuiverProduct {
+    /// Return the product quiver itself.
+    #[must_use]
+    pub const fn quiver(&self) -> &Quiver {
+        &self.quiver
+    }
+
+    /// Return QPA's attached `QuiverProductDecomposition` value.
+    #[must_use]
+    pub const fn decomposition(&self) -> &QuiverProductDecomposition {
+        &self.decomposition
+    }
+}
+
+/// Construct QPA's Cartesian product of two quivers.
+///
+/// Vertices are ordered as `Cartesian(Vertices(q1), Vertices(q2))`. Arrows
+/// first hold the first coordinate fixed and traverse `q2`, then hold the
+/// second coordinate fixed and traverse `q1`. Names are joined by `_` exactly
+/// as in the source.
+///
+/// # Errors
+///
+/// Propagates QPA-compatible named-quiver construction failures.
+pub fn quiver_product(q1: &Quiver, q2: &Quiver) -> Result<QuiverProduct, QuiverProductError> {
+    let mut vertex_pairs = Vec::new();
+    let mut vertex_names = Vec::new();
+    for left in q1.vertices() {
+        for right in q2.vertices() {
+            let pair = [
+                Generator::Vertex(left.clone()),
+                Generator::Vertex(right.clone()),
+            ];
+            vertex_names.push(compose_name(&pair));
+            vertex_pairs.push(pair);
+        }
+    }
+
+    let mut arrow_pairs = Vec::new();
+    for left in q1.vertices() {
+        for right in q2.arrows() {
+            arrow_pairs.push([Generator::Vertex(left.clone()), Generator::Arrow(right)]);
+        }
+    }
+    for left in q1.arrows() {
+        for right in q2.vertices() {
+            arrow_pairs.push([Generator::Arrow(left.clone()), Generator::Vertex(right)]);
+        }
+    }
+
+    let arrow_definitions = arrow_pairs
+        .iter()
+        .map(|pair| {
+            NamedArrowSpec::named(
+                compose_name(&[
+                    Generator::Vertex(generator_source(&pair[0])),
+                    Generator::Vertex(generator_source(&pair[1])),
+                ]),
+                compose_name(&[
+                    Generator::Vertex(generator_target(&pair[0])),
+                    Generator::Vertex(generator_target(&pair[1])),
+                ]),
+                compose_name(pair),
+            )
+        })
+        .collect();
+
+    let mut lookup_table = HashMap::new();
+    for (name, pair) in vertex_names.iter().cloned().zip(vertex_pairs) {
+        lookup_table.insert(name, pair);
+    }
+    for pair in &arrow_pairs {
+        lookup_table.insert(compose_name(pair), pair.clone());
+    }
+
+    let quiver = Quiver::from_named(vertex_names, arrow_definitions)?;
+    Ok(QuiverProduct {
+        quiver,
+        decomposition: QuiverProductDecomposition {
+            factors: [q1.clone(), q2.clone()],
+            lookup_table,
+        },
+    })
+}
+
+/// Translate QPA's two overloads of `WalkOfPathOrVertex`.
+///
+/// A vertex becomes a singleton generator list; a nontrivial path becomes its
+/// arrow walk. QPA has no `WalkOfPath` value for its zero path.
+///
+/// # Errors
+///
+/// Returns [`PathError::ZeroHasNoWalk`] for the distinguished zero path.
+pub fn walk_of_path_or_vertex(path: &Path) -> Result<Vec<Generator>, PathError> {
+    if path.is_zero() {
+        return Err(PathError::ZeroHasNoWalk);
+    }
+    if path.is_vertex() {
+        let PathEndpoint::Vertex(vertex) = path.source() else {
+            unreachable!("a nonzero vertex path has a vertex endpoint");
+        };
+        return Ok(vec![Generator::Vertex(vertex)]);
+    }
+    path.walk()
+        .ok_or(PathError::ZeroHasNoWalk)?
+        .iter()
+        .map(|&index| {
+            path.quiver().arrow(index).map(Generator::Arrow).ok_or(
+                PathError::GeneratorIndexOutOfRange {
+                    index: path.quiver().number_of_vertices() + index.get(),
+                    number_of_generators: path.quiver().number_of_vertices()
+                        + path.quiver().number_of_arrows(),
+                },
+            )
+        })
+        .collect()
+}
+
+/// Translate QPA's `ReversePath(path) = Product(Reversed(WalkOfPath(path)))`.
+///
+/// This is deliberately not the opposite path. Reversing a composable walk
+/// commonly makes adjacent arrows noncomposable, in which case QPA's product
+/// is the zero path and Rust returns that same value.
+///
+/// # Errors
+///
+/// Propagates QPA's unbound zero walk, empty generic product, and path-family
+/// failures.
+pub fn reverse_path(path: &Path) -> Result<Path, PathError> {
+    let walk = path.walk().ok_or(PathError::ZeroHasNoWalk)?;
+    let reversed = walk
+        .iter()
+        .rev()
+        .map(|&index| {
+            path.quiver().arrow(index).map(|arrow| arrow.path()).ok_or(
+                PathError::GeneratorIndexOutOfRange {
+                    index: path.quiver().number_of_vertices() + index.get(),
+                    number_of_generators: path.quiver().number_of_vertices()
+                        + path.quiver().number_of_arrows(),
+                },
+            )
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let Some((first, rest)) = reversed.split_first() else {
+        return Err(PathError::EmptyProduct);
+    };
+    let mut product = first.clone();
+    for arrow in rest {
+        product = product.multiply(arrow)?;
+    }
+    Ok(product)
+}
+
+/// Include two paths or vertices in QPA's selected product-quiver route.
+///
+/// The first path is traversed at the source of the second; the second is then
+/// traversed at the target of the first. Generator lookup is name-based, as in
+/// the GAP record-component implementation.
+///
+/// # Errors
+///
+/// Reports zero-path walks, missing composed record components, and path
+/// multiplication failures.
+pub fn include_in_product_quiver(
+    factors: [&Path; 2],
+    product: &QuiverProduct,
+) -> Result<Path, QuiverProductError> {
+    let walks = [
+        walk_of_path_or_vertex(factors[0])?,
+        walk_of_path_or_vertex(factors[1])?,
+    ];
+    let join = [
+        endpoint_vertex(factors[0].target())?,
+        endpoint_vertex(factors[1].source())?,
+    ];
+
+    let mut product_walk = Vec::with_capacity(walks[0].len().saturating_add(walks[1].len()));
+    for generator in &walks[0] {
+        product_walk.push(product_generator_path(
+            product,
+            &compose_name(&[generator.clone(), Generator::Vertex(join[1].clone())]),
+        )?);
+    }
+    for generator in &walks[1] {
+        product_walk.push(product_generator_path(
+            product,
+            &compose_name(&[Generator::Vertex(join[0].clone()), generator.clone()]),
+        )?);
+    }
+    product_of_paths(&product_walk).map_err(Into::into)
+}
+
+/// Project a product-quiver path to one of its two retained factors.
+///
+/// Projection maps each product generator through QPA's name-keyed lookup
+/// table and then multiplies the resulting factor generators in walk order.
+///
+/// # Errors
+///
+/// The path must belong to this product, and `index` must be one or two.
+pub fn project_from_product_quiver(
+    index: usize,
+    path: &Path,
+    product: &QuiverProduct,
+) -> Result<Path, QuiverProductError> {
+    let factor_position = index
+        .checked_sub(1)
+        .filter(|&position| position < 2)
+        .ok_or(QuiverProductError::FactorIndexOutOfRange { index })?;
+    if !path.quiver().is_identical(product.quiver()) {
+        return Err(QuiverProductError::PathNotInProductQuiver);
+    }
+
+    let mut projected = Vec::new();
+    for generator in walk_of_path_or_vertex(path)? {
+        let name = generator_name(&generator);
+        let pair = product
+            .decomposition
+            .lookup_table
+            .get(name)
+            .ok_or_else(|| QuiverProductError::MissingDecompositionEntry { name: name.into() })?;
+        projected.push(pair[factor_position].path());
+    }
+    product_of_paths(&projected).map_err(Into::into)
+}
+
+fn product_of_paths(paths: &[Path]) -> Result<Path, PathError> {
+    let Some((first, rest)) = paths.split_first() else {
+        return Err(PathError::EmptyProduct);
+    };
+    let mut product = first.clone();
+    for path in rest {
+        product = product.multiply(path)?;
+    }
+    Ok(product)
+}
+
+fn product_generator_path(product: &QuiverProduct, name: &str) -> Result<Path, QuiverProductError> {
+    product
+        .quiver
+        .generator_by_name(name)
+        .map(|generator| generator.path())
+        .ok_or_else(|| QuiverProductError::MissingProductGenerator { name: name.into() })
+}
+
+fn endpoint_vertex(endpoint: PathEndpoint) -> Result<Vertex, PathError> {
+    match endpoint {
+        PathEndpoint::Vertex(vertex) => Ok(vertex),
+        PathEndpoint::Zero(_) => Err(PathError::ZeroHasNoWalk),
+    }
+}
+
+fn generator_source(generator: &Generator) -> Vertex {
+    match generator {
+        Generator::Vertex(vertex) => vertex.clone(),
+        Generator::Arrow(arrow) => arrow.source(),
+    }
+}
+
+fn generator_target(generator: &Generator) -> Vertex {
+    match generator {
+        Generator::Vertex(vertex) => vertex.clone(),
+        Generator::Arrow(arrow) => arrow.target(),
+    }
+}
+
+fn generator_name(generator: &Generator) -> &str {
+    match generator {
+        Generator::Vertex(vertex) => vertex.name(),
+        Generator::Arrow(arrow) => arrow.name(),
+    }
+}
+
+fn compose_name(pair: &[Generator; 2]) -> Box<str> {
+    format!("{}_{}", generator_name(&pair[0]), generator_name(&pair[1])).into_boxed_str()
+}
+
+/// Failure in QPA's product-quiver utility layer.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum QuiverProductError {
+    /// QPA's decomposition has exactly two one-based factor positions.
+    #[error("product-quiver factor index {index} is outside 1..=2")]
+    FactorIndexOutOfRange {
+        /// Rejected one-based index.
+        index: usize,
+    },
+    /// Inclusion composed a name absent from the product quiver record.
+    #[error("cannot find product-quiver generator named {name}")]
+    MissingProductGenerator {
+        /// Missing composed name.
+        name: Box<str>,
+    },
+    /// Projection found no decomposition slot for a product generator name.
+    #[error("cannot decompose product-quiver generator named {name}")]
+    MissingDecompositionEntry {
+        /// Missing product-generator name.
+        name: Box<str>,
+    },
+    /// Projection was paired with a different product-quiver object.
+    #[error("the path does not belong to this product quiver")]
+    PathNotInProductQuiver,
+    /// Product quiver construction failed.
+    #[error(transparent)]
+    Quiver(#[from] QuiverError),
+    /// A source path operation failed.
+    #[error(transparent)]
+    Path(#[from] PathError),
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{ArrowSpec, NamedArrowSpec, PathError, Quiver, VertexIndex};
+    use serde_json::{Value, json};
+
+    use super::{
+        QuiverProductError, include_in_product_quiver, project_from_product_quiver, quiver_product,
+        reverse_path, walk_of_path_or_vertex,
+    };
+
+    fn vertex(index: usize) -> VertexIndex {
+        VertexIndex::new(index).unwrap()
+    }
+
+    fn factors() -> [Quiver; 2] {
+        [
+            Quiver::from_named(
+                vec!["u1".into(), "u2".into()],
+                vec![NamedArrowSpec::named("u1", "u2", "a")],
+            )
+            .unwrap(),
+            Quiver::from_named(
+                vec!["v1".into(), "v2".into(), "v3".into()],
+                vec![
+                    NamedArrowSpec::named("v1", "v2", "b"),
+                    NamedArrowSpec::named("v2", "v3", "c"),
+                ],
+            )
+            .unwrap(),
+        ]
+    }
+
+    #[test]
+    fn product_construction_and_decomposition_follow_cartesian_order() {
+        let [q1, q2] = factors();
+        let product = quiver_product(&q1, &q2).unwrap();
+        assert_eq!(product.quiver().number_of_vertices(), 6);
+        assert_eq!(product.quiver().number_of_arrows(), 7);
+        assert_eq!(
+            product
+                .quiver()
+                .vertices()
+                .map(|vertex| vertex.name().to_owned())
+                .collect::<Vec<_>>(),
+            ["u1_v1", "u1_v2", "u1_v3", "u2_v1", "u2_v2", "u2_v3"]
+        );
+        assert_eq!(
+            product
+                .quiver()
+                .arrows()
+                .map(|arrow| arrow.name().to_owned())
+                .collect::<Vec<_>>(),
+            ["u1_b", "u1_c", "u2_b", "u2_c", "a_v1", "a_v2", "a_v3"]
+        );
+        assert!(product.decomposition().is_bound(1));
+        assert!(product.decomposition().is_bound(2));
+        assert!(!product.decomposition().is_bound(3));
+        assert!(product.decomposition().factor(1).unwrap().is_identical(&q1));
+        assert!(product.decomposition().factor(2).unwrap().is_identical(&q2));
+        assert_eq!(
+            product.decomposition().factor(3),
+            Err(QuiverProductError::FactorIndexOutOfRange { index: 3 })
+        );
+        assert_eq!(
+            product.decomposition().to_string(),
+            "<quiver product decomposition>"
+        );
+    }
+
+    #[test]
+    fn inclusion_and_projection_follow_qpa_name_lookup_and_products() {
+        let [q1, q2] = factors();
+        let product = quiver_product(&q1, &q2).unwrap();
+        let a = q1.generator_by_name("a").unwrap().path();
+        let b = q2.generator_by_name("b").unwrap().path();
+        let c = q2.generator_by_name("c").unwrap().path();
+        let bc = b.multiply(&c).unwrap();
+
+        let included = include_in_product_quiver([&a, &bc], &product).unwrap();
+        assert_eq!(included.to_string(), "a_v1*u2_b*u2_c");
+        assert_eq!(
+            project_from_product_quiver(1, &included, &product)
+                .unwrap()
+                .to_string(),
+            "a"
+        );
+        assert_eq!(
+            project_from_product_quiver(2, &included, &product)
+                .unwrap()
+                .to_string(),
+            "b*c"
+        );
+
+        let u1 = q1.generator_by_name("u1").unwrap().path();
+        let v2 = q2.generator_by_name("v2").unwrap().path();
+        assert_eq!(
+            include_in_product_quiver([&u1, &v2], &product)
+                .unwrap()
+                .to_string(),
+            "u1_v2"
+        );
+    }
+
+    #[test]
+    fn walk_and_reverse_preserve_source_boundaries() {
+        let quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        )
+        .unwrap();
+        let a = quiver.generator_by_name("a").unwrap().path();
+        let b = quiver.generator_by_name("b").unwrap().path();
+        let ab = a.multiply(&b).unwrap();
+        assert_eq!(walk_of_path_or_vertex(&ab).unwrap().len(), 2);
+        assert_eq!(reverse_path(&a).unwrap(), a);
+        assert!(reverse_path(&ab).unwrap().is_zero());
+        assert_eq!(
+            reverse_path(&quiver.vertices().next().unwrap().path()),
+            Err(PathError::EmptyProduct)
+        );
+        assert_eq!(
+            walk_of_path_or_vertex(&quiver.zero()),
+            Err(PathError::ZeroHasNoWalk)
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_product_quiver_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalgtensor_quiver.schema-v1.json"
+        ))
+        .unwrap();
+        let [q1, q2] = factors();
+        let product = quiver_product(&q1, &q2).unwrap();
+        let a = q1.generator_by_name("a").unwrap().path();
+        let b = q2.generator_by_name("b").unwrap().path();
+        let c = q2.generator_by_name("c").unwrap().path();
+        let bc = b.multiply(&c).unwrap();
+        let included = include_in_product_quiver([&a, &bc], &product).unwrap();
+        let u1 = q1.generator_by_name("u1").unwrap().path();
+        let v2 = q2.generator_by_name("v2").unwrap().path();
+
+        let endpoints = product
+            .quiver()
+            .arrows()
+            .map(|arrow| json!([arrow.source().name(), arrow.target().name()]))
+            .collect::<Vec<_>>();
+        let actual = json!({
+            "product": {
+                "vertices": product.quiver().vertices().map(|vertex| vertex.name().to_owned()).collect::<Vec<_>>(),
+                "arrows": product.quiver().arrows().map(|arrow| arrow.name().to_owned()).collect::<Vec<_>>(),
+                "arrow_endpoints": endpoints,
+            },
+            "decomposition": {
+                "length": 2,
+                "bound": [
+                    product.decomposition().is_bound(1),
+                    product.decomposition().is_bound(2),
+                    product.decomposition().is_bound(3),
+                ],
+                "factor_identity": [
+                    product.decomposition().factor(1).unwrap().is_identical(&q1),
+                    product.decomposition().factor(2).unwrap().is_identical(&q2),
+                ],
+            },
+            "walks": {
+                "vertex": walk_of_path_or_vertex(&u1).unwrap().iter().map(super::generator_name).collect::<Vec<_>>(),
+                "arrow": walk_of_path_or_vertex(&a).unwrap().iter().map(super::generator_name).collect::<Vec<_>>(),
+                "path": walk_of_path_or_vertex(&bc).unwrap().iter().map(super::generator_name).collect::<Vec<_>>(),
+            },
+            "include": {
+                "path": included.to_string(),
+                "vertices": include_in_product_quiver([&u1, &v2], &product).unwrap().to_string(),
+            },
+            "project": {
+                "first": project_from_product_quiver(1, &included, &product).unwrap().to_string(),
+                "second": project_from_product_quiver(2, &included, &product).unwrap().to_string(),
+            }
+        });
+        for key in ["product", "decomposition", "walks", "include", "project"] {
+            assert_eq!(actual[key], expected[key], "fixture section {key}");
+        }
+
+        let loops = Quiver::from_indexed(
+            1,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "s"),
+                ArrowSpec::named(vertex(1), vertex(1), "t"),
+            ],
+        )
+        .unwrap();
+        let st = loops
+            .generator_by_name("s")
+            .unwrap()
+            .path()
+            .multiply(&loops.generator_by_name("t").unwrap().path())
+            .unwrap();
+        assert_eq!(
+            reverse_path(&st).unwrap().to_string(),
+            expected["reverse"]["loop_path"]
+        );
+    }
+}
