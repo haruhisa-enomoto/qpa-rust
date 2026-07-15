@@ -371,7 +371,9 @@ Primary QPA files: `quiver`, `groebnerordering`, `qpaposet`, and
   non-composable arrow lists. Ordering properties use QPA's cycle DFS methods
   and preserve the pinned source's observable failure branches as typed errors.
 - [x] Port quiver enumerators without materializing infinite path sets.
-- [ ] Port QPA posets and remaining quiver graph algorithms.
+- [x] Port QPA posets, including GAP's exact reflexive/transitive closure,
+  partial-order validation, Hasse relations, input ordering, and error branches.
+- [ ] Port remaining quiver graph algorithms.
 - [x] Provide Rust constructors that preserve every QPA ordering composition.
 
 Exit gate: all quiver/path/ordering declarations and examples are complete over

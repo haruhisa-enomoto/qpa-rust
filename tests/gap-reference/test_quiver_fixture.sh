@@ -35,6 +35,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/ordering_properties.g" \
     "$repo_root/tests/fixtures/ordering_properties.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/poset.g" \
+    "$repo_root/tests/fixtures/poset.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/path_algebra.g" \
     "$repo_root/tests/fixtures/path_algebra.schema-v1.json"
 compare_fixture \

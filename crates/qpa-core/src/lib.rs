@@ -9,6 +9,7 @@ pub mod groebner;
 pub mod matrix;
 pub mod ordering;
 pub mod path_algebra;
+pub mod poset;
 pub mod quiver;
 pub mod quotient;
 pub mod static_dictionary;
@@ -22,6 +23,7 @@ pub use groebner::{
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
 pub use ordering::{OrderingError, QuiverOrdering, check_quiver_subset_for_cycles};
 pub use path_algebra::{PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraTerm};
+pub use poset::{Poset, PosetError};
 pub use quiver::{
     Arrow, ArrowIndex, ArrowSpec, DynkinFamily, DynkinOrientation, DynkinType, Generator,
     NamedArrowSpec, Path, PathEndpoint, PathError, PathIterator, Quiver, QuiverCardinality,

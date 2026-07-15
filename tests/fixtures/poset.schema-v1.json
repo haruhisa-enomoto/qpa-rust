@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "kind": "poset",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "example": {
+    "size": 4,
+    "underlying": ["a","b","c","d"],
+    "minimal": [["b","d"],["a","b"],["a","c"],["c","d"]],
+    "matrix": [[true,true,true,true],[false,true,false,true],[false,false,true,true],[false,false,false,true]]
+  },
+  "duplicates": {
+    "size": 3,
+    "underlying": ["1","2","3"],
+    "minimal": [["1","2"],["2","3"]],
+    "matrix": [[true,true,true],[false,true,true],[false,false,true]]
+  },
+  "self_relation": {
+    "size": 2,
+    "underlying": ["1","2"],
+    "minimal": [],
+    "matrix": [[true,false],[false,true]]
+  }
+}
