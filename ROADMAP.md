@@ -522,7 +522,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   target-quotient reduction. Full tensor products now retain QPA's distinct
   ordered defining-relation and theorem-supplied Gröbner lists, product and
   algebra decompositions, quotient normal forms, field check, and empty-ideal
-  source failure. Tensor inclusions and enveloping-algebra methods remain.
+  source failure. Tensor-factor inclusions now retain QPA's explicit algebra
+  generators and images, including the quotient-only leading unit generator
+  and the source method's `n <> 1` second-factor branch. Enveloping-algebra
+  methods remain.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.

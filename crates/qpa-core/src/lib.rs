@@ -10,6 +10,7 @@ pub mod dynamic_tree;
 pub mod element_inverse;
 pub mod element_utilities;
 pub mod groebner;
+pub mod homomorphism;
 pub mod matrix;
 pub mod ordering;
 pub mod path_algebra;
@@ -34,6 +35,7 @@ pub use groebner::{
     leftmost_occurrence, make_uniform, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,
     tip_reduced_list,
 };
+pub use homomorphism::{QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError};
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
 pub use ordering::{OrderingError, QuiverOrdering, check_quiver_subset_for_cycles};
 pub use path_algebra::{

@@ -89,5 +89,5 @@ pub use sgrobner::{
 };
 pub use tensor::{
     EMPTY_TENSOR_RELATIONS_ERROR, TensorProductAlgebra, TensorProductError,
-    tensor_product_of_algebras, tensor_product_of_path_algebras,
+    tensor_algebra_inclusion, tensor_product_of_algebras, tensor_product_of_path_algebras,
 };

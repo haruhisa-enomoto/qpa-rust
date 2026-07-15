@@ -19694,9 +19694,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 59
 source_end = 59
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_algebra_inclusion; TensorProductAlgebra::inclusion"
+tests = ["tests/fixtures/pathalgtensor_inclusion.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20058,9 +20058,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 358
 source_end = 390
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_algebra_inclusion; QuiverAlgebraHomomorphism"
+tests = ["tests/fixtures/pathalgtensor_inclusion.schema-v1.json"]
 deviations = []
 
 [[entries]]

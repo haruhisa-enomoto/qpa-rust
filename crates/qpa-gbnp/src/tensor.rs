@@ -9,9 +9,10 @@
 use numerica::domains::Field;
 use qpa_core::{
     PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, PathAlgebraTensorError,
-    PathError, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct,
-    QuiverProductError, QuotientError, QuotientPathAlgebra, include_in_path_algebra,
-    include_in_product_quiver, quiver_product, simple_tensor, vertices_of_path_algebra,
+    PathError, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError,
+    QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError, QuiverProduct, QuiverProductError,
+    QuotientError, QuotientPathAlgebra, include_in_path_algebra, include_in_product_quiver,
+    quiver_product, simple_tensor, vertices_of_path_algebra,
 };
 use thiserror::Error;
 
@@ -86,6 +87,22 @@ impl<F: Field> TensorProductAlgebra<F> {
             self.product_quiver(),
         )?)
     }
+
+    /// Translate `TensorAlgebraInclusion(T, n)`.
+    ///
+    /// QPA selects the first factor only for the integer `1`; every other
+    /// integer selects the second factor, including zero and negative values.
+    ///
+    /// # Errors
+    ///
+    /// Propagates generator construction, simple-tensor, and homomorphism
+    /// construction failures.
+    pub fn inclusion(
+        &self,
+        factor_number: i64,
+    ) -> Result<QuiverAlgebraHomomorphism<F>, TensorProductError> {
+        tensor_algebra_inclusion(self, factor_number)
+    }
 }
 
 /// Translate QPA's binary `TensorProductOfAlgebras` method.
@@ -100,6 +117,42 @@ pub fn tensor_product_of_algebras<F: Field>(
     right: &QuiverAlgebra<F>,
 ) -> Result<TensorProductAlgebra<F>, TensorProductError> {
     tensor_product_of_path_algebras([left, right])
+}
+
+/// Translate QPA's `TensorAlgebraInclusion(T, n)` method.
+///
+/// The mapping sends `x` to `x tensor 1` when `n = 1`, and to `1 tensor x`
+/// for every other integer. Its explicitly retained generators and images
+/// are QPA's `GeneratorsOfAlgebra` list, including the leading identity that
+/// GAP adds for quotient path algebras.
+///
+/// # Errors
+///
+/// Propagates generator construction, simple-tensor, and homomorphism
+/// construction failures.
+pub fn tensor_algebra_inclusion<F: Field>(
+    tensor: &TensorProductAlgebra<F>,
+    factor_number: i64,
+) -> Result<QuiverAlgebraHomomorphism<F>, TensorProductError> {
+    let selected = usize::from(factor_number != 1);
+    let source = tensor.factors[selected].clone();
+    let generators = source.generators()?;
+    let other_one = tensor.factors[1 - selected].one()?;
+    let images = generators
+        .iter()
+        .map(|generator| {
+            if factor_number == 1 {
+                tensor.simple_tensor([generator, &other_one])
+            } else {
+                tensor.simple_tensor([&other_one, generator])
+            }
+        })
+        .collect::<Result<Vec<_>, TensorProductError>>()?;
+    Ok(QuiverAlgebraHomomorphism::by_generator_images(
+        source,
+        tensor.algebra.clone(),
+        images,
+    )?)
 }
 
 /// Translate QPA's `TensorProductOfPathAlgebras([A, B])` global function.
@@ -310,6 +363,9 @@ pub enum TensorProductError {
     /// Ideal attachment or quotient construction failed.
     #[error(transparent)]
     Quotient(#[from] QuotientError),
+    /// Construction or application of the stored algebra mapping failed.
+    #[error(transparent)]
+    Homomorphism(#[from] QuiverAlgebraHomomorphismError),
 }
 
 #[cfg(test)]
@@ -326,7 +382,7 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use super::{TensorProductError, tensor_product_of_algebras};
+    use super::{TensorProductError, tensor_algebra_inclusion, tensor_product_of_algebras};
     use crate::quotient_by_relations;
 
     fn q(numerator: i64) -> Rational {
@@ -378,6 +434,17 @@ mod tests {
     }
 
     fn rational_union_terms(element: &QuiverAlgebraElement<RationalField>) -> Value {
+        union_terms(element, ToString::to_string)
+    }
+
+    fn binary_union_terms(element: &QuiverAlgebraElement<Z2>) -> Value {
+        union_terms(element, |_| "Z(2)^0".to_owned())
+    }
+
+    fn union_terms<F: Field>(
+        element: &QuiverAlgebraElement<F>,
+        coefficient_text: impl Fn(&F::Element) -> String,
+    ) -> Value {
         Value::Array(
             path_algebra_element_terms(element)
                 .unwrap()
@@ -385,7 +452,7 @@ mod tests {
                 .map(|term| {
                     json!({
                         "monomial": path_text(term.monomial()),
-                        "coefficient": term.coefficient().to_string(),
+                        "coefficient": coefficient_text(term.coefficient()),
                     })
                 })
                 .collect(),
@@ -485,5 +552,86 @@ mod tests {
             .unwrap();
         let result = tensor.simple_tensor([&left_arrow, &right_arrow]).unwrap();
         assert_eq!(result.leading_coefficient(), q(6));
+    }
+
+    #[test]
+    fn tensor_inclusions_store_qpa_generators_images_and_else_branch() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalgtensor_inclusion.schema-v1.json"
+        ))
+        .unwrap();
+        let [q1, q2] = quivers();
+        let left_parent = PathAlgebra::new(Q, q1.clone()).unwrap();
+        let right_parent = PathAlgebra::new(Q, q2.clone()).unwrap();
+        let b = right_parent.generators()[1].clone();
+        let right = QuiverAlgebra::Quotient(
+            quotient_by_relations(right_parent, &[b.multiply(&b).unwrap()]).unwrap(),
+        );
+        let left = QuiverAlgebra::Path(left_parent);
+        let tensor = tensor_product_of_algebras(&left, &right).unwrap();
+
+        let left_inclusion = tensor_algebra_inclusion(&tensor, 1).unwrap();
+        let right_inclusion = tensor.inclusion(2).unwrap();
+        let zero_inclusion = tensor.inclusion(0).unwrap();
+        assert_eq!(left_inclusion.source(), &left);
+        assert_eq!(right_inclusion.source(), &right);
+        assert_eq!(left_inclusion.range(), tensor.algebra());
+        assert_eq!(left_inclusion.generators(), left.generators().unwrap());
+        assert_eq!(right_inclusion.generators(), right.generators().unwrap());
+        assert_eq!(zero_inclusion.generators(), right_inclusion.generators());
+        assert_eq!(
+            zero_inclusion.generator_images(),
+            right_inclusion.generator_images()
+        );
+
+        let left_vertex = left.generator_element_by_name("u1").unwrap().unwrap();
+        let left_arrow = left.generator_element_by_name("a").unwrap().unwrap();
+        let left_element = left_vertex
+            .add(&left_arrow.scale_left(&q(2)).unwrap())
+            .unwrap();
+        let right_vertex = right.generator_element_by_name("v").unwrap().unwrap();
+        let right_arrow = right.generator_element_by_name("b").unwrap().unwrap();
+        let right_element = right_vertex
+            .add(&right_arrow.scale_left(&q(3)).unwrap())
+            .unwrap();
+        let rational = json!({
+            "left_generators": left_inclusion.generators().iter().map(rational_union_terms).collect::<Vec<_>>(),
+            "left_images": left_inclusion.generator_images().iter().map(rational_union_terms).collect::<Vec<_>>(),
+            "right_generators": right_inclusion.generators().iter().map(rational_union_terms).collect::<Vec<_>>(),
+            "right_images": right_inclusion.generator_images().iter().map(rational_union_terms).collect::<Vec<_>>(),
+            "zero_selects_second": [
+                zero_inclusion.generators() == right_inclusion.generators(),
+                zero_inclusion.generator_images() == right_inclusion.generator_images(),
+            ],
+            "source_range_identity": [
+                left_inclusion.source() == &left,
+                right_inclusion.source() == &right,
+                left_inclusion.range() == tensor.algebra(),
+                right_inclusion.range() == tensor.algebra(),
+            ],
+            "left_element_image": rational_union_terms(&left_inclusion.image(&left_element).unwrap()),
+            "right_element_image": rational_union_terms(&right_inclusion.image(&right_element).unwrap()),
+            "zero_index_image": rational_union_terms(&zero_inclusion.image(&right_element).unwrap()),
+        });
+        assert_eq!(rational, expected["rational"]);
+
+        let binary_left = QuiverAlgebra::Path(PathAlgebra::new(Z2, q1).unwrap());
+        let binary_right_parent = PathAlgebra::new(Z2, q2).unwrap();
+        let binary_b = binary_right_parent.generators()[1].clone();
+        let binary_right = QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                binary_right_parent,
+                &[binary_b.multiply(&binary_b).unwrap()],
+            )
+            .unwrap(),
+        );
+        let binary_tensor = tensor_product_of_algebras(&binary_left, &binary_right).unwrap();
+        let binary_left_inclusion = binary_tensor.inclusion(1).unwrap();
+        let binary_right_inclusion = binary_tensor.inclusion(2).unwrap();
+        let binary = json!({
+            "left_images": binary_left_inclusion.generator_images().iter().map(binary_union_terms).collect::<Vec<_>>(),
+            "right_images": binary_right_inclusion.generator_images().iter().map(binary_union_terms).collect::<Vec<_>>(),
+        });
+        assert_eq!(binary, expected["binary"]);
     }
 }

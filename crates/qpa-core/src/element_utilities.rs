@@ -93,6 +93,82 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Return QPA's ordinary `GeneratorsOfAlgebra` list.
+    ///
+    /// Path algebras return vertices followed by arrows. QPA quotients are
+    /// algebras-with-one built from that same list, so GAP's ordinary algebra
+    /// generators prepend the identity: one, vertices, then arrows.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient normal-form failures while embedding generators.
+    pub fn generators(&self) -> Result<Vec<QuiverAlgebraElement<F>>, QuiverAlgebraElementError> {
+        match self {
+            Self::Path(algebra) => Ok(algebra
+                .generators()
+                .into_iter()
+                .map(QuiverAlgebraElement::Path)
+                .collect()),
+            Self::Quotient(algebra) => {
+                let mut generators = Vec::with_capacity(
+                    algebra
+                        .original_path_algebra()
+                        .quiver()
+                        .number_of_vertices()
+                        + algebra.original_path_algebra().quiver().number_of_arrows()
+                        + 1,
+                );
+                generators.push(QuiverAlgebraElement::Quotient(algebra.one()?));
+                generators.extend(
+                    algebra
+                        .generators()?
+                        .into_iter()
+                        .map(QuiverAlgebraElement::Quotient),
+                );
+                Ok(generators)
+            }
+        }
+    }
+
+    /// Return QPA's `GeneratorsOfAlgebraWithOne` list.
+    ///
+    /// For both variants this is the vertex-then-arrow list; unlike
+    /// [`Self::generators`], the quotient case does not prepend the identity.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient normal-form failures while embedding generators.
+    pub fn generators_with_one(
+        &self,
+    ) -> Result<Vec<QuiverAlgebraElement<F>>, QuiverAlgebraElementError> {
+        match self {
+            Self::Path(algebra) => Ok(algebra
+                .generators()
+                .into_iter()
+                .map(QuiverAlgebraElement::Path)
+                .collect()),
+            Self::Quotient(algebra) => Ok(algebra
+                .generators()?
+                .into_iter()
+                .map(QuiverAlgebraElement::Quotient)
+                .collect()),
+        }
+    }
+
+    /// Return whether an element belongs to this identical algebra family.
+    #[must_use]
+    pub fn contains_element(&self, element: &QuiverAlgebraElement<F>) -> bool {
+        match (self, element) {
+            (Self::Path(algebra), QuiverAlgebraElement::Path(element)) => {
+                algebra.is_identical(element.algebra())
+            }
+            (Self::Quotient(algebra), QuiverAlgebraElement::Quotient(element)) => {
+                algebra.is_identical(element.algebra())
+            }
+            _ => false,
+        }
+    }
+
     /// Look up a vertex or arrow using QPA's record-component name semantics
     /// and return its image in this algebra.
     ///
