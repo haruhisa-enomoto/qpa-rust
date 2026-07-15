@@ -45,14 +45,14 @@ impl VertexIndex {
         self.0.get()
     }
 
-    const fn from_zero_based(index: usize) -> Self {
+    pub(crate) const fn from_zero_based(index: usize) -> Self {
         let Some(index) = NonZeroUsize::new(index + 1) else {
             unreachable!();
         };
         Self(index)
     }
 
-    const fn zero_based(self) -> usize {
+    pub(crate) const fn zero_based(self) -> usize {
         self.get() - 1
     }
 }
@@ -78,14 +78,14 @@ impl ArrowIndex {
         self.0.get()
     }
 
-    const fn from_zero_based(index: usize) -> Self {
+    pub(crate) const fn from_zero_based(index: usize) -> Self {
         let Some(index) = NonZeroUsize::new(index + 1) else {
             unreachable!();
         };
         Self(index)
     }
 
-    const fn zero_based(self) -> usize {
+    pub(crate) const fn zero_based(self) -> usize {
         self.get() - 1
     }
 }

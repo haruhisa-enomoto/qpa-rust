@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "groebner_high_level",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "basis": [
+      [{"path": "x^2", "coefficient": [1, 1]}],
+      [
+        {"path": "x*y", "coefficient": [-1, 1]},
+        {"path": "y*x", "coefficient": [1, 1]}
+      ],
+      [{"path": "y^2", "coefficient": [1, 1]}]
+    ],
+    "remainder_yx": [{"path": "x*y", "coefficient": [1, 1]}],
+    "remainder_yxy_plus_x": [{"path": "x", "coefficient": [1, 1]}]
+  },
+  "f5": {
+    "basis": [
+      [{"path": "x^2", "coefficient": 1}],
+      [
+        {"path": "x*y", "coefficient": 2},
+        {"path": "y*x", "coefficient": 1}
+      ],
+      [{"path": "y^2", "coefficient": 1}]
+    ],
+    "remainder_yx": [{"path": "x*y", "coefficient": 3}]
+  },
+  "f2": {
+    "basis": [
+      [{"path": "x^2", "coefficient": 1}],
+      [
+        {"path": "x*y", "coefficient": 1},
+        {"path": "y*x", "coefficient": 1}
+      ],
+      [{"path": "y^2", "coefficient": 1}]
+    ],
+    "remainder_yx": [{"path": "x*y", "coefficient": 1}]
+  },
+  "uniform_components": [
+    [{"path": "a", "coefficient": [1, 1]}],
+    [{"path": "b", "coefficient": [1, 1]}],
+    [{"path": "c", "coefficient": [1, 1]}]
+  ]
+}

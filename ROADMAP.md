@@ -378,12 +378,16 @@ the ledger, including cyclic quivers and zero/non-composable paths.
 Primary QPA files: `pathalg` and `pathalgideal` excluding later high-level
 properties that depend on modules or specialized algebra constructions.
 
-- [ ] Implement sparse linear combinations of paths with canonical term order.
-- [ ] Implement path rings/algebras, generators, zero, one, and element actions.
-- [ ] Implement left/right uniformity and source/target decomposition.
+- [x] Implement sparse linear combinations of paths with canonical term order.
+- [x] Implement path rings/algebras, generators, zero, one, and element actions.
+- [x] Implement left/right uniformity and source/target decomposition.
 - [ ] Implement ideals, relation lists, quotient construction, and natural maps.
+  Two-sided ideal construction, membership, high-level relation quotients, and
+  eager normal-form arithmetic are implemented; natural maps remain.
 - [ ] Implement quotient elements with lazy/eager normal-form state.
 - [ ] Implement basis, coefficient, membership, and element conversion hooks.
+  Finite canonical nontip bases, dimension, and membership are implemented;
+  general basis/coefficient conversion remains.
 - [ ] Implement admissibility, monomial, quadratic, and arrow-ideal operations.
 - [ ] Preserve QPA external representation and serialization semantics.
 
@@ -407,12 +411,14 @@ options, and the Gröbner loop. Extra GBNP APIs are not automatically in scope.
 - [ ] Port the four phases of `SGrobner`, including resumable iteration bounds.
 - [ ] Port QPA conversion back from GBNP and path-algebra structure relations.
 - [ ] Port QPA Gröbner objects, tip reduction, complete reduction, and properties.
-- [ ] Port nontip enumeration and finite-dimensionality detection.
+- [x] Port nontip enumeration and finite-dimensionality detection.
 - [ ] Port QPA right Gröbner bases.
-- [ ] Port `HighLevelGroebnerBasis` and its reduction operations.
+- [x] Port `HighLevelGroebnerBasis` and its reduction operations.
 - [ ] Port inverse-length/inverse-lexicographic Gröbner operations.
-- [ ] Port static/dynamic dictionaries, suffix trees, and dynamic trees used by
-  QPA's implementations.
+- [x] Port the quiver static dictionary used for tip search, nontips, dimension,
+  and canonical quotient bases.
+- [ ] Port the remaining generic static/dynamic dictionaries, suffix trees, and
+  dynamic trees used by QPA's implementations.
 - [ ] Define cancellation, progress, iteration, memory, and user-interrupt APIs
   for computations that may not terminate.
 

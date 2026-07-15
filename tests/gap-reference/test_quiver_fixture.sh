@@ -34,3 +34,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/path_algebra.g" \
     "$repo_root/tests/fixtures/path_algebra.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/groebner_high_level.g" \
+    "$repo_root/tests/fixtures/groebner_high_level.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/quotient_path_algebra.g" \
+    "$repo_root/tests/fixtures/quotient_path_algebra.schema-v1.json"

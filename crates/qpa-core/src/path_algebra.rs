@@ -6,9 +6,9 @@
 //! semantics: terms are strictly path-sorted, equal paths are combined, zero
 //! coefficients disappear, and QPA's zero path is quotiented out.
 
-use std::{fmt, sync::Arc};
+use std::{cmp::Ordering, fmt, sync::Arc};
 
-use numerica::domains::Field;
+use numerica::domains::{Field, InternalOrdering};
 use thiserror::Error;
 
 use crate::{OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverOrdering, Vertex};
@@ -257,6 +257,35 @@ impl<F: Field> PathAlgebraElement<F> {
         self.terms.is_empty()
     }
 
+    /// Translate QPA's path-algebra element comparison from `pathalg.gi`.
+    ///
+    /// QPA compares terms from greatest monomial to least, comparing each
+    /// monomial before its coefficient, and finally compares term counts.
+    /// Numerica's [`InternalOrdering`] supplies the backend's deterministic
+    /// coefficient ordering, including for fields without a mathematical
+    /// order such as finite fields.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error unless both values have identical algebra families.
+    pub fn compare(&self, right: &Self) -> Result<Ordering, PathAlgebraError> {
+        self.ensure_same_algebra(right)?;
+        for (left_term, right_term) in self.terms.iter().rev().zip(right.terms.iter().rev()) {
+            let path_ordering = self
+                .algebra
+                .ordering()
+                .compare(&left_term.path, &right_term.path)?;
+            if !path_ordering.is_eq() {
+                return Ok(path_ordering);
+            }
+            let coefficient_ordering = left_term.coefficient.internal_cmp(&right_term.coefficient);
+            if !coefficient_ordering.is_eq() {
+                return Ok(coefficient_ordering);
+            }
+        }
+        Ok(self.terms.len().cmp(&right.terms.len()))
+    }
+
     /// Add elements using GAP's `ZippedSum` semantics.
     ///
     /// # Errors
@@ -351,6 +380,48 @@ impl<F: Field> PathAlgebraElement<F> {
                 self.algebra.field().mul(scalar, &term.coefficient),
             )
         }))
+    }
+
+    /// Divide every coefficient by a nonzero field scalar.
+    ///
+    /// This is the scalar division used by QPA to make relations monic in
+    /// `HighLevelGroebnerBasis`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PathAlgebraError::DivisionByZero`] for the zero scalar.
+    pub fn divide_scalar(&self, scalar: &F::Element) -> Result<Self, PathAlgebraError> {
+        if self.algebra.field().is_zero(scalar) {
+            return Err(PathAlgebraError::DivisionByZero);
+        }
+        self.algebra.from_terms(self.terms.iter().map(|term| {
+            (
+                term.path.clone(),
+                self.algebra.field().div(&term.coefficient, scalar),
+            )
+        }))
+    }
+
+    /// Raise an element to a nonnegative power in the path algebra.
+    ///
+    /// Exponent zero returns QPA's sum-of-vertices identity.
+    ///
+    /// # Errors
+    ///
+    /// Propagates source-translated path-algebra arithmetic failures.
+    pub fn pow(&self, mut exponent: u64) -> Result<Self, PathAlgebraError> {
+        let mut result = self.algebra.one();
+        let mut base = self.clone();
+        while exponent > 0 {
+            if exponent & 1 == 1 {
+                result = result.multiply(&base)?;
+            }
+            exponent >>= 1;
+            if exponent > 0 {
+                base = base.multiply(&base)?;
+            }
+        }
+        Ok(result)
     }
 
     /// Return QPA's `LeadingTerm` (tip), or zero for the zero element.
@@ -475,6 +546,9 @@ pub enum PathAlgebraError {
     /// GAP installs arithmetic only for identical element families.
     #[error("the elements belong to different path algebras")]
     DifferentAlgebras,
+    /// Field-scalar division is undefined for zero.
+    #[error("cannot divide a path-algebra element by zero")]
+    DivisionByZero,
     /// A source-translated ordering operation failed.
     #[error(transparent)]
     Ordering(#[from] OrderingError),

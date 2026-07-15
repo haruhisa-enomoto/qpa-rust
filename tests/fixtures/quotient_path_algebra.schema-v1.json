@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "kind": "quotient_path_algebra",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "relations": [
+      [{"path": "x^2", "coefficient": [1, 1]}],
+      [
+        {"path": "x*y", "coefficient": [-1, 1]},
+        {"path": "y*x", "coefficient": [1, 1]}
+      ],
+      [{"path": "y^2", "coefficient": [1, 1]}]
+    ],
+    "zero": [],
+    "one": [{"path": "v1", "coefficient": [1, 1]}],
+    "yx": [{"path": "x*y", "coefficient": [1, 1]}],
+    "x_squared": [],
+    "yxy_plus_x": [{"path": "x", "coefficient": [1, 1]}],
+    "one_plus_x_times_one_minus_x": [{"path": "v1", "coefficient": [1, 1]}],
+    "finite_dimensional": true,
+    "dimension": 4,
+    "canonical_basis_paths": ["v1", "x", "y", "x*y"],
+    "ideal_membership": {
+      "zero": true,
+      "x": false,
+      "x_cubed": true
+    }
+  },
+  "f5": {
+    "yx": [{"path": "x*y", "coefficient": 3}],
+    "x_squared": []
+  },
+  "f2": {
+    "yx": [{"path": "x*y", "coefficient": 1}],
+    "x_squared": []
+  },
+  "qpa_regression_dimension_17": {
+    "finite_dimensional": true,
+    "dimension": 17,
+    "canonical_basis_paths": [
+      "v1",
+      "v2",
+      "v3",
+      "a",
+      "b",
+      "c",
+      "d",
+      "e",
+      "a*c",
+      "a*d",
+      "b*c",
+      "b*d",
+      "c*d",
+      "e*b",
+      "b*c*d",
+      "e*b*c",
+      "e*b*c*d"
+    ]
+  }
+}
