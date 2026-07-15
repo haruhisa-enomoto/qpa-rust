@@ -12297,9 +12297,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 53
 source_end = 53
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_split_monomorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12310,9 +12310,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 54
 source_end = 54
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_split_epimorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12323,9 +12323,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 55
 source_end = 55
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_inverse_of_homomorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12336,9 +12336,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 56
 source_end = 56
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_inverse_of_homomorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13519,9 +13519,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2938
 source_end = 2976
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_inverse_of_homomorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13532,9 +13532,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2986
 source_end = 3023
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_inverse_of_homomorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13545,9 +13545,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3033
 source_end = 3070
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_split_monomorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13558,9 +13558,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3079
 source_end = 3115
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_split_epimorphism"
+tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
 
 [[entries]]

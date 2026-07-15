@@ -78,6 +78,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_split.g" \
+    "$repo_root/tests/fixtures/modulehom_split.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_stable_zero_error.g" \
     >"$actual" 2>&1

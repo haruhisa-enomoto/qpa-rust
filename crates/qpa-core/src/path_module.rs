@@ -719,6 +719,14 @@ struct PathAlgebraModuleHomomorphismData<F: Field> {
     dual_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     is_injective: OnceLock<bool>,
     is_surjective: OnceLock<bool>,
+    is_split_monomorphism: OnceLock<bool>,
+    is_split_epimorphism: OnceLock<bool>,
+    is_right_minimal: OnceLock<bool>,
+    is_left_minimal: OnceLock<bool>,
+    left_inverse_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    left_inverse_fail: OnceLock<()>,
+    right_inverse_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    right_inverse_fail: OnceLock<()>,
     kernel_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     image_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     cokernel_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
@@ -754,6 +762,23 @@ impl<F: Field> WeakPathAlgebraModuleHomomorphism<F> {
     fn upgrade(&self) -> Option<PathAlgebraModuleHomomorphism<F>> {
         self.0.upgrade().map(PathAlgebraModuleHomomorphism)
     }
+}
+
+fn cache_weak_homomorphism<F: Field>(
+    slot: &RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> PathAlgebraModuleHomomorphism<F> {
+    let mut slot = slot
+        .write()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some(cached) = slot
+        .as_ref()
+        .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    {
+        return cached;
+    }
+    *slot = Some(homomorphism.downgrade());
+    homomorphism.clone()
 }
 
 /// QPA's `HomOverAlgebraWithBasisFunction` result.
@@ -1384,6 +1409,126 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
         self.is_injective() && self.is_surjective()
     }
 
+    /// Return QPA's cached `IsSplitMonomorphism` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_split_monomorphism(&self) -> Option<bool> {
+        self.0.is_split_monomorphism.get().copied()
+    }
+
+    /// Install QPA's `IsSplitMonomorphism` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_split_monomorphism(&self, value: bool) -> bool {
+        *self.0.is_split_monomorphism.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsSplitEpimorphism` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_split_epimorphism(&self) -> Option<bool> {
+        self.0.is_split_epimorphism.get().copied()
+    }
+
+    /// Install QPA's `IsSplitEpimorphism` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_split_epimorphism(&self, value: bool) -> bool {
+        *self.0.is_split_epimorphism.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsRightMinimal` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_right_minimal(&self) -> Option<bool> {
+        self.0.is_right_minimal.get().copied()
+    }
+
+    /// Install QPA's `IsRightMinimal` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_right_minimal(&self, value: bool) -> bool {
+        *self.0.is_right_minimal.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsLeftMinimal` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_left_minimal(&self) -> Option<bool> {
+        self.0.is_left_minimal.get().copied()
+    }
+
+    /// Install QPA's `IsLeftMinimal` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_left_minimal(&self, value: bool) -> bool {
+        *self.0.is_left_minimal.get_or_init(|| value)
+    }
+
+    /// Return an already-live cached `LeftInverseOfHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_left_inverse(&self) -> Option<Self> {
+        self.0
+            .left_inverse_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    /// Return whether QPA's left-inverse attribute is bound to `false`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn left_inverse_attribute_is_fail(&self) -> bool {
+        self.0.left_inverse_fail.get().is_some()
+    }
+
+    /// Cache QPA's failed left-inverse attribute result.
+    #[doc(hidden)]
+    pub fn mark_left_inverse_attribute_fail(&self) {
+        let _ = self.0.left_inverse_fail.set(());
+    }
+
+    /// Install a live `LeftInverseOfHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_left_inverse(&self, inverse: &Self) -> Self {
+        cache_weak_homomorphism(&self.0.left_inverse_weak, inverse)
+    }
+
+    /// Return an already-live cached `RightInverseOfHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_right_inverse(&self) -> Option<Self> {
+        self.0
+            .right_inverse_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    /// Return whether QPA's right-inverse attribute is bound to `false`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn right_inverse_attribute_is_fail(&self) -> bool {
+        self.0.right_inverse_fail.get().is_some()
+    }
+
+    /// Cache QPA's failed right-inverse attribute result.
+    #[doc(hidden)]
+    pub fn mark_right_inverse_attribute_fail(&self) {
+        let _ = self.0.right_inverse_fail.set(());
+    }
+
+    /// Install a live `RightInverseOfHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_right_inverse(&self, inverse: &Self) -> Self {
+        cache_weak_homomorphism(&self.0.right_inverse_weak, inverse)
+    }
+
     /// Return the map whose cached kernel inclusion this map is, if it is
     /// still live.
     #[must_use]
@@ -1570,6 +1715,14 @@ pub fn right_module_hom_over_algebra<F: Field>(
             dual_homomorphism: OnceLock::new(),
             is_injective: OnceLock::new(),
             is_surjective: OnceLock::new(),
+            is_split_monomorphism: OnceLock::new(),
+            is_split_epimorphism: OnceLock::new(),
+            is_right_minimal: OnceLock::new(),
+            is_left_minimal: OnceLock::new(),
+            left_inverse_weak: RwLock::new(None),
+            left_inverse_fail: OnceLock::new(),
+            right_inverse_weak: RwLock::new(None),
+            right_inverse_fail: OnceLock::new(),
             kernel_of_what: RwLock::new(None),
             image_of_what: RwLock::new(None),
             cokernel_of_what: RwLock::new(None),
@@ -1629,6 +1782,171 @@ pub fn identity_module_mapping<F: Field>(
         })
         .collect();
     right_module_hom_over_algebra(module.clone(), module, matrices)
+}
+
+/// Translate QPA's cached `RightInverseOfHomomorphism(f)` attribute.
+///
+/// `Ok(None)` is QPA's returned `false`: either `f` is not injective, the
+/// reverse Hom basis is empty, or GAP's row solver finds no retraction.
+/// Successful calls install the same reciprocal inverse attributes and split
+/// properties as the source method.
+///
+/// # Errors
+///
+/// Propagates Hom-space construction, composition, exact row solving, and
+/// checked linear-combination failures.
+pub fn right_inverse_of_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_right_inverse() {
+        return Ok(Some(cached));
+    }
+    if homomorphism.right_inverse_attribute_is_fail() {
+        return Ok(None);
+    }
+    if !homomorphism.is_injective() {
+        homomorphism.mark_right_inverse_attribute_fail();
+        return Ok(None);
+    }
+    let candidates = hom_over_algebra(homomorphism.range(), homomorphism.source())?
+        .ok_or(PathAlgebraModuleError::InternalSplittingHomRejected)?;
+    if candidates.is_empty() {
+        homomorphism.mark_right_inverse_attribute_fail();
+        return Ok(None);
+    }
+    let composites = candidates
+        .iter()
+        .map(|candidate| homomorphism.compose(candidate))
+        .collect::<Result<Vec<_>, _>>()?;
+    let identity = identity_module_mapping(homomorphism.source().clone())?;
+    let Some(coefficients) = solve_map_linear_combination(&composites, &identity)? else {
+        let _ = homomorphism.cache_is_split_monomorphism(false);
+        homomorphism.mark_right_inverse_attribute_fail();
+        return Ok(None);
+    };
+    let inverse = linear_combination_of_homomorphisms(&candidates, &coefficients)?;
+    let _ = inverse.cache_is_split_epimorphism(true);
+    let _ = homomorphism.cache_is_split_monomorphism(true);
+    let _ = inverse.cache_left_inverse(homomorphism);
+    Ok(Some(homomorphism.cache_right_inverse(&inverse)))
+}
+
+/// Translate QPA's cached `LeftInverseOfHomomorphism(f)` attribute.
+///
+/// `Ok(None)` is QPA's returned `false`: either `f` is not surjective, the
+/// reverse Hom basis is empty, or GAP's row solver finds no section.
+/// Successful calls install the source method's reciprocal attributes and
+/// split properties.
+///
+/// # Errors
+///
+/// Propagates Hom-space construction, composition, exact row solving, and
+/// checked linear-combination failures.
+pub fn left_inverse_of_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_left_inverse() {
+        return Ok(Some(cached));
+    }
+    if homomorphism.left_inverse_attribute_is_fail() {
+        return Ok(None);
+    }
+    if !homomorphism.is_surjective() {
+        homomorphism.mark_left_inverse_attribute_fail();
+        return Ok(None);
+    }
+    let candidates = hom_over_algebra(homomorphism.range(), homomorphism.source())?
+        .ok_or(PathAlgebraModuleError::InternalSplittingHomRejected)?;
+    if candidates.is_empty() {
+        homomorphism.mark_left_inverse_attribute_fail();
+        return Ok(None);
+    }
+    let composites = candidates
+        .iter()
+        .map(|candidate| candidate.compose(homomorphism))
+        .collect::<Result<Vec<_>, _>>()?;
+    let identity = identity_module_mapping(homomorphism.range().clone())?;
+    let Some(coefficients) = solve_map_linear_combination(&composites, &identity)? else {
+        let _ = homomorphism.cache_is_split_epimorphism(false);
+        homomorphism.mark_left_inverse_attribute_fail();
+        return Ok(None);
+    };
+    let inverse = linear_combination_of_homomorphisms(&candidates, &coefficients)?;
+    let _ = inverse.cache_is_split_monomorphism(true);
+    let _ = homomorphism.cache_is_split_epimorphism(true);
+    let _ = inverse.cache_right_inverse(homomorphism);
+    Ok(Some(homomorphism.cache_left_inverse(&inverse)))
+}
+
+/// Translate QPA's `IsSplitMonomorphism(f)` property method.
+///
+/// # Errors
+///
+/// Propagates [`right_inverse_of_homomorphism`].
+pub fn is_split_monomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<bool, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_is_split_monomorphism() {
+        return Ok(cached);
+    }
+    let value = right_inverse_of_homomorphism(homomorphism)?.is_some();
+    Ok(homomorphism.cache_is_split_monomorphism(value))
+}
+
+/// Translate QPA's `IsSplitEpimorphism(f)` property method.
+///
+/// # Errors
+///
+/// Propagates [`left_inverse_of_homomorphism`].
+pub fn is_split_epimorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<bool, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_is_split_epimorphism() {
+        return Ok(cached);
+    }
+    let value = left_inverse_of_homomorphism(homomorphism)?.is_some();
+    Ok(homomorphism.cache_is_split_epimorphism(value))
+}
+
+fn solve_map_linear_combination<F: Field>(
+    basis: &[PathAlgebraModuleHomomorphism<F>],
+    target: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Option<Vec<F::Element>>, PathAlgebraModuleError> {
+    let field = target.source().right_acting_algebra().field().clone();
+    let row_length = target.flat_vertex_matrix_entries().len();
+    let row_count = basis.len();
+    let entry_count = row_count
+        .checked_mul(row_length)
+        .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+    let mut entries = Vec::with_capacity(entry_count);
+    for homomorphism in basis {
+        entries.extend(homomorphism.flat_vertex_matrix_entries());
+    }
+    let rows = DenseMatrix::from_flat(row_count, row_length, entries, field)?;
+    Ok(rows.solution_row(&target.flat_vertex_matrix_entries())?)
+}
+
+fn linear_combination_of_homomorphisms<F: Field>(
+    basis: &[PathAlgebraModuleHomomorphism<F>],
+    coefficients: &[F::Element],
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if basis.len() != coefficients.len() {
+        return Err(PathAlgebraModuleError::SplittingCoefficientCount {
+            actual: coefficients.len(),
+            expected: basis.len(),
+        });
+    }
+    let first = basis
+        .first()
+        .ok_or(PathAlgebraModuleError::EmptySplittingHomBasis)?;
+    let field = first.source().right_acting_algebra().field();
+    let mut combination = zero_module_mapping(first.source().clone(), first.range().clone())?;
+    for (homomorphism, coefficient) in basis.iter().zip(coefficients) {
+        if !field.is_zero(coefficient) {
+            combination = combination.add(&homomorphism.scale(coefficient)?)?;
+        }
+    }
+    Ok(combination)
 }
 
 fn zero_module_for_algebra<F: Field>(
@@ -4075,6 +4393,23 @@ pub enum PathAlgebraModuleError {
     /// An endomorphism-space query cannot fail its identical algebra check.
     #[error("HomOverAlgebra unexpectedly rejected an endomorphism pair")]
     EndomorphismAlgebraMismatch,
+    /// A reverse Hom query for one module map necessarily has a common
+    /// acting algebra.
+    #[error("HomOverAlgebra unexpectedly rejected a splitting pair")]
+    InternalSplittingHomRejected,
+    /// GAP's splitting solver returns one coefficient per reverse-Hom basis
+    /// vector.
+    #[error("splitting combination has {actual} coefficients, expected {expected}")]
+    SplittingCoefficientCount {
+        /// Entered coefficient count.
+        actual: usize,
+        /// Reverse-Hom basis length.
+        expected: usize,
+    },
+    /// Internal linear-combination construction follows a nonempty-basis
+    /// source branch.
+    #[error("an internal splitting combination has an empty Hom basis")]
+    EmptySplittingHomBasis,
     /// GAP's `DirectSumOfAlgebras` rejects the empty list for the zero module.
     #[error("EndOverAlgebra cannot form a direct sum for a zero module")]
     EmptyEndomorphismDirectSum,
@@ -4374,14 +4709,15 @@ mod tests {
         PathAlgebraModuleMatrix, cokernel_projection, direct_sum_inclusions,
         direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, hom_over_algebra,
         hom_over_algebra_with_basis_function, identity_module_mapping, image_projection_inclusion,
-        intersection_of_submodules, intersection_of_submodules_list, kernel_inclusion,
+        intersection_of_submodules, intersection_of_submodules_list, is_split_epimorphism,
+        is_split_monomorphism, kernel_inclusion, left_inverse_of_homomorphism,
         minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_image,
         morphism_on_kernel, natural_endomorphism_quotient_by_ideal, pull_back, push_out,
         radical_of_module_inclusion, reject_of_module, right_fac_approximation,
-        right_fac_approximation_via_all_basis_images, right_module_hom_over_algebra,
-        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
-        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
-        top_of_module_projection, trace_of_module, zero_module_mapping,
+        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
+        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
+        socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list, top_of_module,
+        top_of_module_homomorphism, top_of_module_projection, trace_of_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -4426,6 +4762,162 @@ mod tests {
                 .map(|homomorphism| module_map_json(homomorphism, coefficient))
                 .collect::<Vec<_>>()
         )
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_split_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let layer = right_module_over_path_algebra(algebra.clone(), vec![1, 1], &[])
+            .unwrap()
+            .unwrap();
+        let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let zero_module = right_module_over_path_algebra(algebra.clone(), vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+        let projective_one = right_module_over_path_algebra(
+            algebra,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let inclusion = right_module_hom_over_algebra(
+            simple_one.clone(),
+            layer.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![one.clone()]], field.clone()).unwrap(),
+                DenseMatrix::from_rows(vec![vec![zero.clone()]], field.clone()).unwrap(),
+            ],
+        )
+        .unwrap();
+        let projection = right_module_hom_over_algebra(
+            layer.clone(),
+            simple_one.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![one.clone()]], field.clone()).unwrap(),
+                DenseMatrix::from_rows(vec![vec![zero.clone()]], field.clone()).unwrap(),
+            ],
+        )
+        .unwrap();
+        let right_inverse = right_inverse_of_homomorphism(&inclusion).unwrap().unwrap();
+        let left_inverse = left_inverse_of_homomorphism(&projection).unwrap().unwrap();
+        let radical_inclusion = right_module_hom_over_algebra(
+            simple_two,
+            projective_one.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![zero.clone()]], field.clone()).unwrap(),
+                DenseMatrix::from_rows(vec![vec![one.clone()]], field.clone()).unwrap(),
+            ],
+        )
+        .unwrap();
+        let top_projection = right_module_hom_over_algebra(
+            projective_one,
+            simple_one.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![one]], field.clone()).unwrap(),
+                DenseMatrix::from_rows(vec![vec![zero]], field.clone()).unwrap(),
+            ],
+        )
+        .unwrap();
+        let zero_inclusion = zero_module_mapping(zero_module.clone(), layer.clone()).unwrap();
+        let zero_projection = zero_module_mapping(layer.clone(), zero_module).unwrap();
+        let identity = identity_module_mapping(layer.clone()).unwrap();
+        let identity_right = right_inverse_of_homomorphism(&identity).unwrap().unwrap();
+        let identity_left = left_inverse_of_homomorphism(&identity).unwrap().unwrap();
+        let property_inclusion = right_module_hom_over_algebra(
+            simple_one.clone(),
+            layer.clone(),
+            vec![
+                DenseMatrix::identity(1, field.clone()),
+                DenseMatrix::zero(1, 1, field.clone()),
+            ],
+        )
+        .unwrap();
+        let property_projection = right_module_hom_over_algebra(
+            layer,
+            simple_one.clone(),
+            vec![
+                DenseMatrix::identity(1, field.clone()),
+                DenseMatrix::zero(1, 1, field),
+            ],
+        )
+        .unwrap();
+        let property_values = [
+            is_split_monomorphism(&property_inclusion).unwrap(),
+            is_split_epimorphism(&property_projection).unwrap(),
+        ];
+        let property_right = right_inverse_of_homomorphism(&property_inclusion)
+            .unwrap()
+            .unwrap();
+        let property_left = left_inverse_of_homomorphism(&property_projection)
+            .unwrap()
+            .unwrap();
+
+        json!({
+            "right_inverse": module_map_json(&right_inverse, coefficient),
+            "left_inverse": module_map_json(&left_inverse, coefficient),
+            "triangles": [
+                inclusion.compose(&right_inverse).unwrap()
+                    == identity_module_mapping(simple_one.clone()).unwrap(),
+                left_inverse.compose(&projection).unwrap()
+                    == identity_module_mapping(simple_one.clone()).unwrap(),
+            ],
+            "cache_identity": [
+                right_inverse_of_homomorphism(&inclusion).unwrap().unwrap()
+                    .is_identical(&right_inverse),
+                left_inverse_of_homomorphism(&projection).unwrap().unwrap()
+                    .is_identical(&left_inverse),
+                left_inverse_of_homomorphism(&right_inverse).unwrap().unwrap()
+                    .is_identical(&inclusion),
+                right_inverse_of_homomorphism(&left_inverse).unwrap().unwrap()
+                    .is_identical(&projection),
+            ],
+            "split_properties": [
+                is_split_monomorphism(&inclusion).unwrap(),
+                is_split_epimorphism(&right_inverse).unwrap(),
+                is_split_epimorphism(&projection).unwrap(),
+                is_split_monomorphism(&left_inverse).unwrap(),
+            ],
+            "nonsplit": [
+                right_inverse_of_homomorphism(&radical_inclusion).unwrap().is_none(),
+                is_split_monomorphism(&radical_inclusion).unwrap(),
+                left_inverse_of_homomorphism(&top_projection).unwrap().is_none(),
+                is_split_epimorphism(&top_projection).unwrap(),
+            ],
+            "zero_space_bug": [
+                right_inverse_of_homomorphism(&zero_inclusion).unwrap().is_none(),
+                is_split_monomorphism(&zero_inclusion).unwrap(),
+                left_inverse_of_homomorphism(&zero_projection).unwrap().is_none(),
+                is_split_epimorphism(&zero_projection).unwrap(),
+            ],
+            "identity_right": module_map_json(&identity_right, coefficient),
+            "identity_left": module_map_json(&identity_left, coefficient),
+            "identity_cache_same": identity_right.is_identical(&identity_left),
+            "property_values": property_values,
+            "property_right": module_map_json(&property_right, coefficient),
+            "property_left": module_map_json(&property_left, coefficient),
+            "property_triangles": [
+                property_inclusion.compose(&property_right).unwrap()
+                    == identity_module_mapping(simple_one.clone()).unwrap(),
+                property_left.compose(&property_projection).unwrap()
+                    == identity_module_mapping(simple_one).unwrap(),
+            ],
+        })
     }
 
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
@@ -4959,6 +5451,25 @@ mod tests {
                 }
             },
         );
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_split_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_split.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = modulehom_split_case(Q, ToString::to_string);
+        let binary = modulehom_split_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
 
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
