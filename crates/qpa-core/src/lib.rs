@@ -46,10 +46,12 @@ pub use path_algebra::{
 pub use path_module::{
     NamedArrowMatrix, PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleError,
     PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, cokernel_of_module_homomorphism,
-    cokernel_projection, identity_module_mapping, loewy_length_of_module, radical_of_module,
-    radical_of_module_inclusion, right_module_hom_over_algebra, right_module_over_path_algebra,
+    cokernel_projection, identity_module_mapping, image_inclusion, image_of_module_homomorphism,
+    image_projection, image_projection_inclusion, kernel_inclusion, kernel_of_module_homomorphism,
+    loewy_length_of_module, radical_of_module, radical_of_module_inclusion,
+    right_module_hom_over_algebra, right_module_over_path_algebra,
     right_module_over_path_algebra_with_tensor, subrepresentation, subrepresentation_inclusion,
-    top_of_module, top_of_module_projection, zero_module_mapping,
+    top_of_module, top_of_module_homomorphism, top_of_module_projection, zero_module_mapping,
 };
 pub use poset::{Poset, PosetError};
 pub use quiver::{

@@ -11816,9 +11816,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "kernel_inclusion"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11829,9 +11829,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "image_projection_inclusion"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11842,9 +11842,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "image_projection"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11855,9 +11855,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "image_inclusion"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11870,7 +11870,7 @@ source_end = 20
 classification = "declared_surface"
 status = "verified"
 rust_symbol = "cokernel_projection"
-tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11881,9 +11881,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::kernel_of_what"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11894,9 +11894,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::cokernel_of_what"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11907,9 +11907,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::image_of_what"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11920,9 +11920,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::is_isomorphism"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12011,9 +12011,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 31
 source_end = 31
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "top_of_module_homomorphism"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12700,9 +12700,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 34
 source_end = 60
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::images_set"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12791,9 +12791,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 265
 source_end = 298
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::zero"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12830,9 +12830,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 387
 source_end = 403
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::eq"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12895,9 +12895,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 681
 source_end = 712
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::is_injective"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12908,9 +12908,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 721
 source_end = 813
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "kernel_inclusion"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12921,9 +12921,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 821
 source_end = 830
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "kernel_of_module_homomorphism"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12934,9 +12934,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 840
 source_end = 965
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "image_projection_inclusion"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12947,9 +12947,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 974
 source_end = 983
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "image_projection"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12960,9 +12960,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 992
 source_end = 1001
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "image_inclusion"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12973,9 +12973,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1011
 source_end = 1020
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "image_of_module_homomorphism"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12986,9 +12986,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1029
 source_end = 1038
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::is_zero"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12999,9 +12999,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1046
 source_end = 1072
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::is_surjective"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13012,9 +13012,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1081
 source_end = 1090
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::is_isomorphism"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13027,7 +13027,7 @@ source_end = 1201
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "cokernel_projection"
-tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13040,7 +13040,7 @@ source_end = 1218
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "cokernel_of_module_homomorphism"
-tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13077,9 +13077,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1263
 source_end = 1311
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "top_of_module_homomorphism"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13090,9 +13090,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1320
 source_end = 1338
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::add"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13103,9 +13103,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1349
 source_end = 1366
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::compose"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13116,9 +13116,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1376
 source_end = 1394
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::scale"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13129,9 +13129,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1403
 source_end = 1416
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::negate"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13142,9 +13142,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1425
 source_end = 1443
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::scale"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]

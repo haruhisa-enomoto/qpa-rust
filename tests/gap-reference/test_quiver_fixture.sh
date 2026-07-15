@@ -63,6 +63,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalgtensor_trivial_extension.g" \
     "$repo_root/tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_foundation.g" \
+    "$repo_root/tests/fixtures/modulehom_foundation.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalgtensor_empty_error.g" \
     >"$actual" 2>&1

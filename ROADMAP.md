@@ -629,15 +629,23 @@ Primary QPA files: `modulehom` and `moduledecomp`.
   physical zero-space matrix conventions, checked arrow squares, element
   images/preimages, zero/identity maps, and matrix accessor are pinned against
   the module/trivial-extension oracle.
-- [ ] Port map equality, addition, scalar multiplication, and composition.
+- [x] Port map equality, addition, scalar multiplication, and composition.
+  QPA's structural hom-set checks, row-order composition, left/right scalar
+  multiplication, additive inverse, zero map, and map equality are pinned over
+  `QQ` and `GF(2)`.
 - [ ] Port `HomOverAlgebra` using QPA's linear-equation construction.
 - [ ] Port endomorphism algebras and basis-coordinate functions.
 - [ ] Port kernel, image, cokernel, induced maps, intersections, and sums.
-  QPA's natural row-space quotient convention and cokernel projection/object
-  are complete; kernels, images, induced maps, intersections, and sums remain.
+  QPA's component nullspace kernel, canonical-row-space image
+  projection/inclusion, natural-row-quotient cokernel, their objects and
+  injective/surjective/isomorphism predicates are complete. Attribute
+  repeat-call identity and the weak reciprocal `KernelOfWhat`, `ImageOfWhat`,
+  and `CoKernelOfWhat` links follow the source; induced maps, intersections,
+  and sums remain.
 - [ ] Port radical/top/socle maps and direct-sum inclusions/projections. Radical
-  inclusion/object and top projection/object are complete over `QQ` and
-  `GF(2)`, including GAP's canonical quotient lifts and zero-module branch.
+  inclusion/object, top projection/object, and the top-of-a-homomorphism
+  overload are complete over `QQ` and `GF(2)`, including GAP's canonical
+  quotient lifts and zero-module branch.
 - [ ] Port liftings, split maps, inverses, minimal versions, and factoring through
   projectives.
 - [ ] Port isomorphism/direct-summand/additive-closure computations.

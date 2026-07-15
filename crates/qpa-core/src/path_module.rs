@@ -504,35 +504,76 @@ impl<F: Field> WeakPathAlgebraModule<F> {
     }
 }
 
-/// A QPA homomorphism between right path-algebra matrix modules.
-///
-/// The matrix at vertex `i` acts on row vectors from the source vertex space
-/// to the range vertex space.  Physical one-row/one-column zero-space
-/// stand-ins are retained exactly as in `RightModuleHomOverAlgebra`.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct PathAlgebraModuleHomomorphism<F: Field> {
+#[derive(Debug)]
+struct PathAlgebraModuleHomomorphismData<F: Field> {
     source: PathAlgebraModule<F>,
     range: PathAlgebraModule<F>,
     vertex_matrices: Vec<DenseMatrix<F>>,
+    kernel_inclusion: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    image_projection_inclusion: OnceLock<(
+        PathAlgebraModuleHomomorphism<F>,
+        PathAlgebraModuleHomomorphism<F>,
+    )>,
+    cokernel_projection: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    is_injective: OnceLock<bool>,
+    is_surjective: OnceLock<bool>,
+    kernel_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    image_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    cokernel_of_what: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
 }
+
+/// A QPA homomorphism between right path-algebra matrix modules.
+///
+/// The matrix at vertex `i` acts on row vectors from the source vertex space
+/// to the range vertex space. Physical one-row/one-column zero-space
+/// stand-ins are retained exactly as in `RightModuleHomOverAlgebra`. Clones
+/// retain mapping identity so QPA's cached kernel, image, and cokernel
+/// attributes can return the identical map object.
+#[derive(Clone, Debug)]
+pub struct PathAlgebraModuleHomomorphism<F: Field>(Arc<PathAlgebraModuleHomomorphismData<F>>);
+
+#[derive(Clone, Debug)]
+struct WeakPathAlgebraModuleHomomorphism<F: Field>(Weak<PathAlgebraModuleHomomorphismData<F>>);
+
+impl<F: Field> WeakPathAlgebraModuleHomomorphism<F> {
+    fn upgrade(&self) -> Option<PathAlgebraModuleHomomorphism<F>> {
+        self.0.upgrade().map(PathAlgebraModuleHomomorphism)
+    }
+}
+
+impl<F: Field> PartialEq for PathAlgebraModuleHomomorphism<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.source() == other.source()
+            && self.range() == other.range()
+            && self.vertex_matrices() == other.vertex_matrices()
+    }
+}
+
+impl<F: Field> Eq for PathAlgebraModuleHomomorphism<F> {}
 
 impl<F: Field> PathAlgebraModuleHomomorphism<F> {
     /// Return QPA's `Source` module.
     #[must_use]
-    pub const fn source(&self) -> &PathAlgebraModule<F> {
-        &self.source
+    pub fn source(&self) -> &PathAlgebraModule<F> {
+        &self.0.source
     }
 
     /// Return QPA's `Range` module.
     #[must_use]
-    pub const fn range(&self) -> &PathAlgebraModule<F> {
-        &self.range
+    pub fn range(&self) -> &PathAlgebraModule<F> {
+        &self.0.range
     }
 
     /// Translate `MatricesOfPathAlgebraMatModuleHomomorphism`.
     #[must_use]
     pub fn vertex_matrices(&self) -> &[DenseMatrix<F>] {
-        &self.vertex_matrices
+        &self.0.vertex_matrices
+    }
+
+    /// Return whether two handles denote the identical QPA mapping object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
     }
 
     /// Apply the mapping to a module element.
@@ -545,11 +586,11 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
         &self,
         element: &PathAlgebraModuleElement<F>,
     ) -> Result<PathAlgebraModuleElement<F>, PathAlgebraModuleError> {
-        if !self.source.is_identical(element.module()) {
+        if !self.source().is_identical(element.module()) {
             return Err(PathAlgebraModuleError::ForeignMapSourceElement);
         }
-        let mut image = self.range.zero_element();
-        for (vertex, matrix) in self.vertex_matrices.iter().enumerate() {
+        let mut image = self.range().zero_element();
+        for (vertex, matrix) in self.vertex_matrices().iter().enumerate() {
             let row = DenseMatrix::from_flat(
                 1,
                 element.coordinates[vertex].len(),
@@ -573,17 +614,271 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
         &self,
         element: &PathAlgebraModuleElement<F>,
     ) -> Result<Option<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
-        if !self.range.is_identical(element.module()) {
+        if !self.range().is_identical(element.module()) {
             return Err(PathAlgebraModuleError::ForeignMapRangeElement);
         }
-        let mut preimage = self.source.zero_element();
-        for (vertex, matrix) in self.vertex_matrices.iter().enumerate() {
+        let mut preimage = self.source().zero_element();
+        for (vertex, matrix) in self.vertex_matrices().iter().enumerate() {
             let Some(row) = matrix.solution_row(&element.coordinates[vertex])? else {
                 return Ok(None);
             };
             preimage.coordinates[vertex] = row;
         }
         Ok(Some(preimage))
+    }
+
+    /// Translate QPA's `ImagesSet` list branch, omitting zero images while
+    /// retaining the entered order and duplicates.
+    ///
+    /// # Errors
+    ///
+    /// Propagates [`Self::image`], including its identical-source check.
+    pub fn images_set(
+        &self,
+        elements: &[PathAlgebraModuleElement<F>],
+    ) -> Result<Vec<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
+        let mut images = Vec::new();
+        for element in elements {
+            let image = self.image(element)?;
+            if !image.is_zero() {
+                images.push(image);
+            }
+        }
+        Ok(images)
+    }
+
+    /// Return QPA's zero mapping with the same source and range.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the checked zero-map constructor.
+    pub fn zero(&self) -> Result<Self, PathAlgebraModuleError> {
+        zero_module_mapping(self.source().clone(), self.range().clone())
+    }
+
+    /// Add two maps in the same structural homomorphism set.
+    ///
+    /// # Errors
+    ///
+    /// Rejects different sources or ranges and propagates exact matrix or
+    /// checked module-map failures.
+    pub fn add(&self, right: &Self) -> Result<Self, PathAlgebraModuleError> {
+        if self.source() != right.source() || self.range() != right.range() {
+            return Err(PathAlgebraModuleError::DifferentHomomorphismSets);
+        }
+        let matrices = self
+            .vertex_matrices()
+            .iter()
+            .zip(right.vertex_matrices())
+            .map(|(left, right)| left.add(right))
+            .collect::<Result<Vec<_>, _>>()?;
+        right_module_hom_over_algebra(self.source().clone(), self.range().clone(), matrices)
+    }
+
+    /// Compose maps in QPA's row-action order: first `self`, then `right`.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a structural range/source mismatch and propagates exact matrix
+    /// or checked module-map failures.
+    pub fn compose(&self, right: &Self) -> Result<Self, PathAlgebraModuleError> {
+        if self.range() != right.source() {
+            return Err(PathAlgebraModuleError::NoncomposableHomomorphisms);
+        }
+        let matrices = self
+            .vertex_matrices()
+            .iter()
+            .zip(right.vertex_matrices())
+            .map(|(left, right)| left.multiply(right))
+            .collect::<Result<Vec<_>, _>>()?;
+        right_module_hom_over_algebra(self.source().clone(), right.range().clone(), matrices)
+    }
+
+    /// Multiply every vertex matrix by a coefficient-field scalar.
+    ///
+    /// Numerica's element type makes the coefficient domain part of the Rust
+    /// type for `QQ` and fixed fields; runtime prime-field descriptors are
+    /// retained by each matrix and the checked constructor.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the checked module-map constructor.
+    pub fn scale(&self, scalar: &F::Element) -> Result<Self, PathAlgebraModuleError> {
+        right_module_hom_over_algebra(
+            self.source().clone(),
+            self.range().clone(),
+            self.vertex_matrices()
+                .iter()
+                .map(|matrix| matrix.scale_left(scalar))
+                .collect(),
+        )
+    }
+
+    /// Return QPA's additive inverse map.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the checked module-map constructor.
+    pub fn negate(&self) -> Result<Self, PathAlgebraModuleError> {
+        let field = self.source().right_acting_algebra().field();
+        self.scale(&field.neg(&field.one()))
+    }
+
+    /// Return whether every stored physical vertex matrix is zero.
+    #[must_use]
+    pub fn is_zero(&self) -> bool {
+        self.vertex_matrices().iter().all(DenseMatrix::is_zero)
+    }
+
+    /// Translate QPA's componentwise `IsInjective` method.
+    #[must_use]
+    pub fn is_injective(&self) -> bool {
+        *self.0.is_injective.get_or_init(|| {
+            self.source()
+                .dimension_vector()
+                .iter()
+                .enumerate()
+                .all(|(vertex, &dimension)| {
+                    dimension == 0 || logical_vertex_map(self, vertex).rank() == dimension
+                })
+        })
+    }
+
+    /// Translate QPA's `IsSurjective` image-space dimension test.
+    #[must_use]
+    pub fn is_surjective(&self) -> bool {
+        *self.0.is_surjective.get_or_init(|| {
+            self.range()
+                .dimension_vector()
+                .iter()
+                .enumerate()
+                .all(|(vertex, &dimension)| logical_vertex_map(self, vertex).rank() == dimension)
+        })
+    }
+
+    /// Translate QPA's short-circuit injective-and-surjective isomorphism
+    /// predicate.
+    #[must_use]
+    pub fn is_isomorphism(&self) -> bool {
+        self.is_injective() && self.is_surjective()
+    }
+
+    /// Return the map whose cached kernel inclusion this map is, if it is
+    /// still live.
+    #[must_use]
+    pub fn kernel_of_what(&self) -> Option<Self> {
+        self.0
+            .kernel_of_what
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    /// Return the map whose cached image factor this map belongs to, if it is
+    /// still live.
+    #[must_use]
+    pub fn image_of_what(&self) -> Option<Self> {
+        self.0
+            .image_of_what
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    /// Return the map whose cached cokernel projection this map is, if it is
+    /// still live.
+    #[must_use]
+    pub fn cokernel_of_what(&self) -> Option<Self> {
+        self.0
+            .cokernel_of_what
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    fn set_is_injective(&self, value: bool) {
+        let _ = self.0.is_injective.set(value);
+    }
+
+    fn set_is_surjective(&self, value: bool) {
+        let _ = self.0.is_surjective.set(value);
+    }
+
+    fn downgrade(&self) -> WeakPathAlgebraModuleHomomorphism<F> {
+        WeakPathAlgebraModuleHomomorphism(Arc::downgrade(&self.0))
+    }
+
+    fn cached_kernel_inclusion(&self) -> Option<Self> {
+        self.0.kernel_inclusion.get().cloned()
+    }
+
+    fn cache_kernel_inclusion(&self, inclusion: &Self) -> Self {
+        let _ = self.0.kernel_inclusion.set(inclusion.clone());
+        self.0
+            .kernel_inclusion
+            .get()
+            .expect("kernel inclusion was just initialized")
+            .clone()
+    }
+
+    fn cached_image_projection_inclusion(&self) -> Option<(Self, Self)> {
+        self.0.image_projection_inclusion.get().cloned()
+    }
+
+    fn cache_image_projection_inclusion(
+        &self,
+        projection: &Self,
+        inclusion: &Self,
+    ) -> (Self, Self) {
+        let _ = self
+            .0
+            .image_projection_inclusion
+            .set((projection.clone(), inclusion.clone()));
+        self.0
+            .image_projection_inclusion
+            .get()
+            .expect("image factorization was just initialized")
+            .clone()
+    }
+
+    fn cached_cokernel_projection(&self) -> Option<Self> {
+        self.0.cokernel_projection.get().cloned()
+    }
+
+    fn cache_cokernel_projection(&self, projection: &Self) -> Self {
+        let _ = self.0.cokernel_projection.set(projection.clone());
+        self.0
+            .cokernel_projection
+            .get()
+            .expect("cokernel projection was just initialized")
+            .clone()
+    }
+
+    fn set_kernel_of_what(&self, homomorphism: &Self) {
+        *self
+            .0
+            .kernel_of_what
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(homomorphism.downgrade());
+    }
+
+    fn set_image_of_what(&self, homomorphism: &Self) {
+        *self
+            .0
+            .image_of_what
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(homomorphism.downgrade());
+    }
+
+    fn set_cokernel_of_what(&self, homomorphism: &Self) {
+        *self
+            .0
+            .cokernel_of_what
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(homomorphism.downgrade());
     }
 }
 
@@ -643,11 +938,21 @@ pub fn right_module_hom_over_algebra<F: Field>(
         }
     }
 
-    Ok(PathAlgebraModuleHomomorphism {
-        source,
-        range,
-        vertex_matrices,
-    })
+    Ok(PathAlgebraModuleHomomorphism(Arc::new(
+        PathAlgebraModuleHomomorphismData {
+            source,
+            range,
+            vertex_matrices,
+            kernel_inclusion: OnceLock::new(),
+            image_projection_inclusion: OnceLock::new(),
+            cokernel_projection: OnceLock::new(),
+            is_injective: OnceLock::new(),
+            is_surjective: OnceLock::new(),
+            kernel_of_what: RwLock::new(None),
+            image_of_what: RwLock::new(None),
+            cokernel_of_what: RwLock::new(None),
+        },
+    )))
 }
 
 /// Translate QPA's zero mapping between two modules.
@@ -702,6 +1007,293 @@ pub fn identity_module_mapping<F: Field>(
         })
         .collect();
     right_module_hom_over_algebra(module.clone(), module, matrices)
+}
+
+fn zero_module_for_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    right_module_over_path_algebra(
+        algebra.clone(),
+        vec![0; algebra.quiver().number_of_vertices()],
+        &[],
+    )?
+    .ok_or(PathAlgebraModuleError::GeneratedModuleRejectedRelations)
+}
+
+/// Translate QPA's cached `KernelInclusion(f)` attribute.
+///
+/// Component kernels use the exact GAP `NullspaceMat` row convention. Their
+/// arrow actions are reconstructed by solving in those ordered bases, and the
+/// zero-kernel branch returns QPA's physical zero mapping.
+///
+/// # Errors
+///
+/// Propagates exact matrix operations and checked module/map construction.
+pub fn kernel_inclusion<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_kernel_inclusion() {
+        return Ok(cached);
+    }
+
+    let source = homomorphism.source();
+    let algebra = source.right_acting_algebra().clone();
+    let field = algebra.field().clone();
+    let kernel_bases = source
+        .dimension_vector()
+        .iter()
+        .enumerate()
+        .map(|(vertex, &dimension)| {
+            if dimension == 0 {
+                DenseMatrix::from_flat(0, 0, Vec::new(), field.clone())
+            } else {
+                Ok(logical_vertex_map(homomorphism, vertex).nullspace_rows())
+            }
+        })
+        .collect::<Result<Vec<_>, MatrixError>>()?;
+    let dimensions = kernel_bases
+        .iter()
+        .map(DenseMatrix::nrows)
+        .collect::<Vec<_>>();
+
+    let inclusion = if dimensions.iter().all(|&dimension| dimension == 0) {
+        homomorphism.set_is_injective(true);
+        zero_module_mapping(zero_module_for_algebra(&algebra)?, source.clone())?
+    } else {
+        let mut arrow_matrices = Vec::new();
+        for arrow in algebra.quiver().arrows() {
+            let source_vertex = arrow.source().index().zero_based();
+            let target_vertex = arrow.target().index().zero_based();
+            if dimensions[source_vertex] == 0 || dimensions[target_vertex] == 0 {
+                continue;
+            }
+            let source_action = logical_submatrix(
+                &source.arrow_matrices()[arrow.index().zero_based()],
+                source.dimension_vector()[source_vertex],
+                source.dimension_vector()[target_vertex],
+            )?;
+            let acted = kernel_bases[source_vertex].multiply(&source_action)?;
+            let mut entries =
+                Vec::with_capacity(dimensions[source_vertex] * dimensions[target_vertex]);
+            for row in 0..acted.nrows() {
+                let coordinates = kernel_bases[target_vertex]
+                    .solution_row(acted.row(row))?
+                    .ok_or(PathAlgebraModuleError::InternalKernelCoordinates)?;
+                entries.extend(coordinates);
+            }
+            arrow_matrices.push(NamedArrowMatrix::new(
+                arrow.name(),
+                DenseMatrix::from_flat(
+                    dimensions[source_vertex],
+                    dimensions[target_vertex],
+                    entries,
+                    field.clone(),
+                )?,
+            ));
+        }
+        let kernel = right_module_over_path_algebra(algebra, dimensions.clone(), &arrow_matrices)?
+            .ok_or(PathAlgebraModuleError::GeneratedModuleRejectedRelations)?;
+        let inclusion_matrices = kernel_bases
+            .iter()
+            .enumerate()
+            .map(|(vertex, basis)| {
+                if dimensions[vertex] == 0 {
+                    DenseMatrix::zero(
+                        1,
+                        physical_dimension(source.dimension_vector()[vertex]),
+                        field.clone(),
+                    )
+                } else {
+                    basis.clone()
+                }
+            })
+            .collect();
+        right_module_hom_over_algebra(kernel, source.clone(), inclusion_matrices)?
+    };
+    inclusion.set_kernel_of_what(homomorphism);
+    inclusion.set_is_injective(true);
+    Ok(homomorphism.cache_kernel_inclusion(&inclusion))
+}
+
+/// Return the source of QPA's canonical kernel inclusion.
+///
+/// # Errors
+///
+/// Propagates [`kernel_inclusion`].
+pub fn kernel_of_module_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    Ok(kernel_inclusion(homomorphism)?.source().clone())
+}
+
+/// Translate QPA's cached image projection/inclusion factorization.
+///
+/// At each vertex, QPA takes the fully reduced canonical basis of the row
+/// image, reconstructs the induced range action, and solves each source-basis
+/// image in that basis. The returned pair is projection first, inclusion
+/// second, exactly as in `ImageProjectionInclusion`.
+///
+/// # Errors
+///
+/// Propagates exact row-space/coordinate operations and checked module/map
+/// construction.
+#[allow(clippy::too_many_lines)]
+pub fn image_projection_inclusion<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<
+    (
+        PathAlgebraModuleHomomorphism<F>,
+        PathAlgebraModuleHomomorphism<F>,
+    ),
+    PathAlgebraModuleError,
+> {
+    if let Some(cached) = homomorphism.cached_image_projection_inclusion() {
+        return Ok(cached);
+    }
+
+    let source = homomorphism.source();
+    let range = homomorphism.range();
+    let algebra = source.right_acting_algebra().clone();
+    let field = algebra.field().clone();
+    let image_bases = source
+        .dimension_vector()
+        .iter()
+        .enumerate()
+        .map(|(vertex, _)| logical_vertex_map(homomorphism, vertex).canonical_row_space_basis())
+        .collect::<Vec<_>>();
+    let dimensions = image_bases
+        .iter()
+        .map(DenseMatrix::nrows)
+        .collect::<Vec<_>>();
+
+    if dimensions.iter().all(|&dimension| dimension == 0) {
+        let zero = zero_module_for_algebra(&algebra)?;
+        let projection = zero_module_mapping(source.clone(), zero.clone())?;
+        let inclusion = zero_module_mapping(zero, range.clone())?;
+        return Ok(homomorphism.cache_image_projection_inclusion(&projection, &inclusion));
+    }
+
+    let mut arrow_matrices = Vec::new();
+    for arrow in algebra.quiver().arrows() {
+        let source_vertex = arrow.source().index().zero_based();
+        let target_vertex = arrow.target().index().zero_based();
+        if dimensions[source_vertex] == 0 || dimensions[target_vertex] == 0 {
+            continue;
+        }
+        let range_action = logical_submatrix(
+            &range.arrow_matrices()[arrow.index().zero_based()],
+            range.dimension_vector()[source_vertex],
+            range.dimension_vector()[target_vertex],
+        )?;
+        let acted = image_bases[source_vertex].multiply(&range_action)?;
+        let mut entries = Vec::with_capacity(dimensions[source_vertex] * dimensions[target_vertex]);
+        for row in 0..acted.nrows() {
+            let coordinates = image_bases[target_vertex]
+                .solution_row(acted.row(row))?
+                .ok_or(PathAlgebraModuleError::InternalImageCoordinates)?;
+            entries.extend(coordinates);
+        }
+        arrow_matrices.push(NamedArrowMatrix::new(
+            arrow.name(),
+            DenseMatrix::from_flat(
+                dimensions[source_vertex],
+                dimensions[target_vertex],
+                entries,
+                field.clone(),
+            )?,
+        ));
+    }
+    let image = right_module_over_path_algebra(algebra, dimensions.clone(), &arrow_matrices)?
+        .ok_or(PathAlgebraModuleError::GeneratedModuleRejectedRelations)?;
+
+    let inclusion_matrices = image_bases
+        .iter()
+        .enumerate()
+        .map(|(vertex, basis)| {
+            if dimensions[vertex] == 0 {
+                DenseMatrix::zero(
+                    1,
+                    physical_dimension(range.dimension_vector()[vertex]),
+                    field.clone(),
+                )
+            } else {
+                basis.clone()
+            }
+        })
+        .collect();
+    let inclusion =
+        right_module_hom_over_algebra(image.clone(), range.clone(), inclusion_matrices)?;
+    inclusion.set_image_of_what(homomorphism);
+    inclusion.set_is_injective(true);
+
+    let projection_matrices = source
+        .dimension_vector()
+        .iter()
+        .enumerate()
+        .map(
+            |(vertex, &source_dimension)| -> Result<DenseMatrix<F>, PathAlgebraModuleError> {
+                if source_dimension == 0 || dimensions[vertex] == 0 {
+                    return Ok(DenseMatrix::zero(
+                        physical_dimension(source_dimension),
+                        physical_dimension(dimensions[vertex]),
+                        field.clone(),
+                    ));
+                }
+                let logical_map = logical_vertex_map(homomorphism, vertex);
+                let mut entries = Vec::with_capacity(source_dimension * dimensions[vertex]);
+                for row in 0..source_dimension {
+                    let coordinates = image_bases[vertex]
+                        .solution_row(logical_map.row(row))?
+                        .ok_or(PathAlgebraModuleError::InternalImageCoordinates)?;
+                    entries.extend(coordinates);
+                }
+                Ok(DenseMatrix::from_flat(
+                    source_dimension,
+                    dimensions[vertex],
+                    entries,
+                    field.clone(),
+                )?)
+            },
+        )
+        .collect::<Result<Vec<_>, _>>()?;
+    let projection = right_module_hom_over_algebra(source.clone(), image, projection_matrices)?;
+    projection.set_image_of_what(homomorphism);
+    projection.set_is_surjective(true);
+
+    Ok(homomorphism.cache_image_projection_inclusion(&projection, &inclusion))
+}
+
+/// Return QPA's canonical projection onto the image.
+///
+/// # Errors
+///
+/// Propagates [`image_projection_inclusion`].
+pub fn image_projection<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    Ok(image_projection_inclusion(homomorphism)?.0)
+}
+
+/// Return QPA's canonical inclusion of the image.
+///
+/// # Errors
+///
+/// Propagates [`image_projection_inclusion`].
+pub fn image_inclusion<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    Ok(image_projection_inclusion(homomorphism)?.1)
+}
+
+/// Return QPA's image module object.
+///
+/// # Errors
+///
+/// Propagates [`image_projection_inclusion`].
+pub fn image_of_module_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    Ok(image_projection(homomorphism)?.range().clone())
 }
 
 /// Translate QPA's `SubRepresentationInclusion(M, generators)` method.
@@ -955,6 +1547,9 @@ pub fn loewy_length_of_module<F: Field>(
 pub fn cokernel_projection<F: Field>(
     homomorphism: &PathAlgebraModuleHomomorphism<F>,
 ) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_cokernel_projection() {
+        return Ok(cached);
+    }
     let range = homomorphism.range();
     let algebra = range.right_acting_algebra().clone();
     let field = algebra.field().clone();
@@ -1019,7 +1614,10 @@ pub fn cokernel_projection<F: Field>(
             }
         })
         .collect();
-    right_module_hom_over_algebra(range.clone(), cokernel, projection_matrices)
+    let projection = right_module_hom_over_algebra(range.clone(), cokernel, projection_matrices)?;
+    projection.set_cokernel_of_what(homomorphism);
+    projection.set_is_surjective(true);
+    Ok(homomorphism.cache_cokernel_projection(&projection))
 }
 
 /// Translate QPA's cokernel-object convenience method as the range of its
@@ -1061,6 +1659,63 @@ pub fn top_of_module<F: Field>(
     module: PathAlgebraModule<F>,
 ) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
     Ok(top_of_module_projection(module)?.range().clone())
+}
+
+/// Translate QPA's `TopOfModule(f)` overload for a module homomorphism.
+///
+/// QPA lifts each vertex-major basis vector of the source top through its
+/// canonical top projection, applies `f`, and projects to the range top. This
+/// preserves the source method's chosen quotient representatives rather than
+/// constructing an abstract induced linear map.
+///
+/// # Errors
+///
+/// Propagates top construction, preimage, image, and checked-map failures.
+pub fn top_of_module_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+    let source_projection = top_of_module_projection(homomorphism.source().clone())?;
+    let range_projection = top_of_module_projection(homomorphism.range().clone())?;
+    let source_top = source_projection.range();
+    let range_top = range_projection.range();
+    let field = source_top.right_acting_algebra().field().clone();
+    let basis = source_top.basis_elements();
+    let offsets = dimension_offsets(source_top.dimension_vector());
+    let matrices = source_top
+        .dimension_vector()
+        .iter()
+        .enumerate()
+        .map(
+            |(vertex, &source_dimension)| -> Result<DenseMatrix<F>, PathAlgebraModuleError> {
+                let range_dimension = range_top.dimension_vector()[vertex];
+                if source_dimension == 0 || range_dimension == 0 {
+                    return Ok(DenseMatrix::zero(
+                        physical_dimension(source_dimension),
+                        physical_dimension(range_dimension),
+                        field.clone(),
+                    ));
+                }
+                let mut entries = Vec::with_capacity(source_dimension * range_dimension);
+                for basis_element in basis.iter().skip(offsets[vertex]).take(source_dimension) {
+                    let lift = source_projection
+                        .preimage_representative(basis_element)?
+                        .ok_or(PathAlgebraModuleError::MissingTopBasisPreimage)?;
+                    let image = homomorphism.image(&lift)?;
+                    let top_image = range_projection.image(&image)?;
+                    entries.extend_from_slice(
+                        &top_image.external_representation()[vertex][..range_dimension],
+                    );
+                }
+                Ok(DenseMatrix::from_flat(
+                    source_dimension,
+                    range_dimension,
+                    entries,
+                    field.clone(),
+                )?)
+            },
+        )
+        .collect::<Result<Vec<_>, _>>()?;
+    right_module_hom_over_algebra(source_top.clone(), range_top.clone(), matrices)
 }
 
 #[derive(Clone, Debug)]
@@ -1136,6 +1791,18 @@ fn logical_submatrix<F: Field>(
         entries.extend_from_slice(&matrix.row(row)[..columns]);
     }
     DenseMatrix::from_flat(rows, columns, entries, matrix.field().clone())
+}
+
+fn logical_vertex_map<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+    vertex: usize,
+) -> DenseMatrix<F> {
+    logical_submatrix(
+        &homomorphism.vertex_matrices()[vertex],
+        homomorphism.source().dimension_vector()[vertex],
+        homomorphism.range().dimension_vector()[vertex],
+    )
+    .expect("a checked module homomorphism retains every logical vertex submatrix")
 }
 
 fn dimension_offsets(dimensions: &[usize]) -> Vec<usize> {
@@ -1437,6 +2104,12 @@ pub enum PathAlgebraModuleError {
         /// First failing arrow label.
         arrow: Box<str>,
     },
+    /// Addition requires structurally equal source and range modules.
+    #[error("the two maps do not belong to the same homomorphism set")]
+    DifferentHomomorphismSets,
+    /// Composition requires the first range to equal the second source.
+    #[error("the first map's range is not the second map's source")]
+    NoncomposableHomomorphisms,
     /// Mapping application requires an element of the identical source.
     #[error("the module element does not belong to the mapping source")]
     ForeignMapSourceElement,
@@ -1452,6 +2125,15 @@ pub enum PathAlgebraModuleError {
     /// Coordinates in the generated submodule's canonical basis must exist.
     #[error("failed to express a generated-submodule element in its canonical basis")]
     InternalSubrepresentationCoordinates,
+    /// A kernel action must remain in the next component kernel.
+    #[error("failed to express a kernel action in its component kernel basis")]
+    InternalKernelCoordinates,
+    /// A range action and every source image must remain in the image basis.
+    #[error("failed to express a module-map image in its canonical image basis")]
+    InternalImageCoordinates,
+    /// Every basis vector of a constructed top must have QPA's chosen lift.
+    #[error("a source-top basis vector has no preimage under its top projection")]
+    MissingTopBasisPreimage,
     /// A source-generated module unexpectedly failed its defining relations.
     #[error("a module reconstructed by a QPA source method failed the acting-algebra relations")]
     GeneratedModuleRejectedRelations,
@@ -1530,8 +2212,10 @@ mod tests {
     };
 
     use super::{
-        NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleMatrix,
-        radical_of_module_inclusion, right_module_over_path_algebra, top_of_module_projection,
+        NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleMatrix, cokernel_projection,
+        identity_module_mapping, image_projection_inclusion, kernel_inclusion,
+        radical_of_module_inclusion, right_module_hom_over_algebra, right_module_over_path_algebra,
+        top_of_module_homomorphism, top_of_module_projection, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1718,6 +2402,159 @@ mod tests {
         assert!(first.is_identical(&clone));
         assert!(!first.is_identical(&second));
         assert_eq!(first, second);
+    }
+
+    #[test]
+    fn foundational_module_map_factorizations_follow_qpa_row_bases() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let action = DenseMatrix::from_rows(vec![vec![q(1), q(1)], vec![q(0), q(0)]], Q).unwrap();
+        let module = right_module_over_path_algebra(
+            algebra,
+            vec![2, 2],
+            &[NamedArrowMatrix::new("a", action)],
+        )
+        .unwrap()
+        .unwrap();
+        let map = right_module_hom_over_algebra(
+            module.clone(),
+            module.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![q(1), q(0)], vec![q(0), q(0)]], Q).unwrap(),
+                DenseMatrix::identity(2, Q),
+            ],
+        )
+        .unwrap();
+
+        assert!(!map.is_injective());
+        assert!(!map.is_surjective());
+        assert!(!map.is_isomorphism());
+        assert!(!map.is_zero());
+
+        let kernel = kernel_inclusion(&map).unwrap();
+        assert_eq!(kernel.source().dimension_vector(), &[1, 0]);
+        assert_eq!(
+            kernel.vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(vec![vec![q(0), q(1)]], Q).unwrap(),
+                DenseMatrix::zero(1, 2, Q),
+            ]
+        );
+        assert!(kernel.is_injective());
+        assert!(kernel.kernel_of_what().unwrap().is_identical(&map));
+        assert!(kernel_inclusion(&map).unwrap().is_identical(&kernel));
+        assert!(kernel.compose(&map).unwrap().is_zero());
+
+        let (projection, inclusion) = image_projection_inclusion(&map).unwrap();
+        assert_eq!(projection.range().dimension_vector(), &[1, 2]);
+        assert_eq!(
+            projection.vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(vec![vec![q(1)], vec![q(0)]], Q).unwrap(),
+                DenseMatrix::identity(2, Q),
+            ]
+        );
+        assert_eq!(
+            inclusion.vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(vec![vec![q(1), q(0)]], Q).unwrap(),
+                DenseMatrix::identity(2, Q),
+            ]
+        );
+        assert!(projection.is_surjective());
+        assert!(inclusion.is_injective());
+        assert!(projection.image_of_what().unwrap().is_identical(&map));
+        assert!(inclusion.image_of_what().unwrap().is_identical(&map));
+        assert!(
+            image_projection_inclusion(&map)
+                .unwrap()
+                .0
+                .is_identical(&projection)
+        );
+        assert_eq!(projection.compose(&inclusion).unwrap(), map);
+
+        let cokernel = cokernel_projection(&map).unwrap();
+        assert_eq!(cokernel.range().dimension_vector(), &[1, 0]);
+        assert_eq!(
+            cokernel.vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(vec![vec![q(0)], vec![q(1)]], Q).unwrap(),
+                DenseMatrix::zero(2, 1, Q),
+            ]
+        );
+        assert!(cokernel.is_surjective());
+        assert!(cokernel.cokernel_of_what().unwrap().is_identical(&map));
+        assert!(cokernel_projection(&map).unwrap().is_identical(&cokernel));
+        assert!(map.compose(&cokernel).unwrap().is_zero());
+
+        let zero = zero_module_mapping(module.clone(), module.clone()).unwrap();
+        let identity = identity_module_mapping(module.clone()).unwrap();
+        assert_eq!(map.add(&zero).unwrap(), map);
+        assert!(map.add(&map.negate().unwrap()).unwrap().is_zero());
+        assert!(identity.is_isomorphism());
+        assert_eq!(identity.compose(&map).unwrap(), map);
+        assert_eq!(map.compose(&identity).unwrap(), map);
+        assert!(zero.zero().unwrap().is_zero());
+
+        let top_map = top_of_module_homomorphism(&map).unwrap();
+        assert_eq!(top_map.source().dimension_vector(), &[2, 1]);
+        assert_eq!(top_map.range().dimension_vector(), &[2, 1]);
+        assert_eq!(
+            top_map.vertex_matrices(),
+            &[
+                DenseMatrix::from_rows(vec![vec![q(1), q(0)], vec![q(0), q(0)]], Q).unwrap(),
+                DenseMatrix::identity(1, Q),
+            ]
+        );
+
+        let basis = module.basis_elements();
+        let nonzero_images = map.images_set(&basis).unwrap();
+        assert_eq!(nonzero_images.len(), 3);
+        assert!(nonzero_images.iter().all(|image| !image.is_zero()));
+    }
+
+    #[test]
+    fn characteristic_two_module_map_factorizations_match_the_same_qpa_fixture() {
+        let e = |value: i64| Z2.nth(Integer::from(value));
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let module = right_module_over_path_algebra(
+            algebra,
+            vec![2, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![e(1), e(1)], vec![e(0), e(0)]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let map = right_module_hom_over_algebra(
+            module.clone(),
+            module,
+            vec![
+                DenseMatrix::from_rows(vec![vec![e(1), e(0)], vec![e(0), e(0)]], Z2).unwrap(),
+                DenseMatrix::identity(2, Z2),
+            ],
+        )
+        .unwrap();
+
+        let kernel = kernel_inclusion(&map).unwrap();
+        assert_eq!(kernel.source().dimension_vector(), &[1, 0]);
+        assert_eq!(
+            kernel.vertex_matrices()[0],
+            DenseMatrix::from_rows(vec![vec![e(0), e(1)]], Z2).unwrap()
+        );
+        let (projection, inclusion) = image_projection_inclusion(&map).unwrap();
+        assert_eq!(projection.range().dimension_vector(), &[1, 2]);
+        assert_eq!(projection.compose(&inclusion).unwrap(), map);
+        let cokernel = cokernel_projection(&map).unwrap();
+        assert_eq!(cokernel.range().dimension_vector(), &[1, 0]);
+        assert_eq!(
+            cokernel.vertex_matrices()[0],
+            DenseMatrix::from_rows(vec![vec![e(0)], vec![e(1)]], Z2).unwrap()
+        );
     }
 
     #[test]
