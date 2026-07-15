@@ -8,9 +8,85 @@
 use numerica::domains::Field;
 
 use crate::{
-    PathAlgebra, PathAlgebraElement, PathAlgebraError, QuotientError, QuotientPathAlgebra,
-    QuotientPathAlgebraElement,
+    NamedArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver, QuotientError,
+    QuotientPathAlgebra, QuotientPathAlgebraElement,
 };
+
+/// A QPA quiver algebra that may be a path algebra or a proper quotient.
+///
+/// `QuiverAlgebraOfAmodAeA` returns the rebuilt path algebra itself when no
+/// converted relations survive, while nonempty relations produce a quotient.
+/// This enum retains that observable type distinction.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum QuiverAlgebra<F: Field> {
+    /// QPA's empty-relation result.
+    Path(PathAlgebra<F>),
+    /// A quotient by the computed relation ideal.
+    Quotient(QuotientPathAlgebra<F>),
+}
+
+impl<F: Field> QuiverAlgebra<F> {
+    /// Return whether QPA returned an actual path algebra.
+    #[must_use]
+    pub const fn is_path_algebra(&self) -> bool {
+        matches!(self, Self::Path(_))
+    }
+
+    /// Return the path algebra containing the sparse defining relations.
+    #[must_use]
+    pub fn original_path_algebra(&self) -> &PathAlgebra<F> {
+        match self {
+            Self::Path(algebra) => algebra,
+            Self::Quotient(algebra) => algebra.original_path_algebra(),
+        }
+    }
+
+    /// Return QPA's `RelationsOfAlgebra` value.
+    #[must_use]
+    pub fn relations(&self) -> &[PathAlgebraElement<F>] {
+        match self {
+            Self::Path(_) => &[],
+            Self::Quotient(algebra) => algebra.relations(),
+        }
+    }
+
+    /// Borrow the quotient result, if nonempty relations survived.
+    #[must_use]
+    pub const fn as_quotient(&self) -> Option<&QuotientPathAlgebra<F>> {
+        match self {
+            Self::Path(_) => None,
+            Self::Quotient(algebra) => Some(algebra),
+        }
+    }
+}
+
+/// The rebuilt named quiver and converted relation list immediately before
+/// QPA applies its configured Gröbner backend in `QuiverAlgebraOfAmodAeA`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct VertexQuotientPresentation<F: Field> {
+    path_algebra: PathAlgebra<F>,
+    relations: Vec<PathAlgebraElement<F>>,
+}
+
+impl<F: Field> VertexQuotientPresentation<F> {
+    /// Return the rebuilt path algebra.
+    #[must_use]
+    pub const fn path_algebra(&self) -> &PathAlgebra<F> {
+        &self.path_algebra
+    }
+
+    /// Return relations after `PathRemoval` and arrow-name conversion.
+    #[must_use]
+    pub fn relations(&self) -> &[PathAlgebraElement<F>] {
+        &self.relations
+    }
+
+    /// Consume the presentation into its parent and relation list.
+    #[must_use]
+    pub fn into_parts(self) -> (PathAlgebra<F>, Vec<PathAlgebraElement<F>>) {
+        (self.path_algebra, self.relations)
+    }
+}
 
 impl<F: Field> PathAlgebraElement<F> {
     /// Translate QPA's `PathRemoval(x, elist)`.
@@ -67,6 +143,37 @@ impl<F: Field> PathAlgebraElement<F> {
 }
 
 impl<F: Field> PathAlgebra<F> {
+    /// Rebuild QPA's presentation for `A/AeA` before Gröbner computation.
+    ///
+    /// A path algebra has no defining relations, so this always returns an
+    /// empty converted relation list on the full subquiver complementary to
+    /// `vertex_positions`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates named-quiver and path-algebra construction failures.
+    pub fn a_mod_aea_presentation(
+        &self,
+        vertex_positions: &[usize],
+    ) -> Result<VertexQuotientPresentation<F>, PathAlgebraError> {
+        vertex_quotient_presentation(self, &[], vertex_positions)
+    }
+
+    /// Translate `QuiverAlgebraOfAmodAeA` through QPA's high-level backend.
+    ///
+    /// The empty-relation result remains a path algebra, matching QPA's
+    /// dispatch for `KQ / []`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates presentation and high-level Gröbner failures.
+    pub fn quiver_algebra_of_a_mod_aea_high_level(
+        &self,
+        vertex_positions: &[usize],
+    ) -> Result<QuiverAlgebra<F>, QuotientError> {
+        quotient_vertex_presentation_high_level(self.a_mod_aea_presentation(vertex_positions)?)
+    }
+
     /// Translate QPA's `LeftSupportOfQuiverAlgebraElement(A, m)`.
     ///
     /// # Errors
@@ -128,6 +235,39 @@ impl<F: Field> PathAlgebra<F> {
 }
 
 impl<F: Field> QuotientPathAlgebra<F> {
+    /// Rebuild QPA's presentation for `A/AeA` before Gröbner computation.
+    ///
+    /// This uses `RelationsOfAlgebra(A)`, applies `PathRemoval` to each stored
+    /// relation, removes zeros, and converts every surviving walk by matching
+    /// arrow names in the rebuilt full subquiver.
+    ///
+    /// # Errors
+    ///
+    /// Propagates `PathRemoval`, quiver reconstruction, and sparse arithmetic
+    /// failures.
+    pub fn a_mod_aea_presentation(
+        &self,
+        vertex_positions: &[usize],
+    ) -> Result<VertexQuotientPresentation<F>, PathAlgebraError> {
+        vertex_quotient_presentation(
+            self.original_path_algebra(),
+            self.relations(),
+            vertex_positions,
+        )
+    }
+
+    /// Translate `QuiverAlgebraOfAmodAeA` through QPA's high-level backend.
+    ///
+    /// # Errors
+    ///
+    /// Propagates presentation and high-level Gröbner failures.
+    pub fn quiver_algebra_of_a_mod_aea_high_level(
+        &self,
+        vertex_positions: &[usize],
+    ) -> Result<QuiverAlgebra<F>, QuotientError> {
+        quotient_vertex_presentation_high_level(self.a_mod_aea_presentation(vertex_positions)?)
+    }
+
     /// Translate QPA's left-support method using actual quotient products.
     ///
     /// # Errors
@@ -188,6 +328,96 @@ impl<F: Field> QuotientPathAlgebra<F> {
             self.right_support_of_quiver_algebra_element(element)?,
         ])
     }
+}
+
+fn quotient_vertex_presentation_high_level<F: Field>(
+    presentation: VertexQuotientPresentation<F>,
+) -> Result<QuiverAlgebra<F>, QuotientError> {
+    let (path_algebra, relations) = presentation.into_parts();
+    if relations.is_empty() {
+        Ok(QuiverAlgebra::Path(path_algebra))
+    } else {
+        Ok(QuiverAlgebra::Quotient(
+            QuotientPathAlgebra::by_relations_high_level(path_algebra, &relations)?,
+        ))
+    }
+}
+
+fn vertex_quotient_presentation<F: Field>(
+    parent: &PathAlgebra<F>,
+    relations: &[PathAlgebraElement<F>],
+    removed_vertex_positions: &[usize],
+) -> Result<VertexQuotientPresentation<F>, PathAlgebraError> {
+    let retained_vertices = parent
+        .quiver()
+        .vertices()
+        .filter(|vertex| !removed_vertex_positions.contains(&vertex.index().get()))
+        .collect::<Vec<_>>();
+    let vertex_names = retained_vertices
+        .iter()
+        .map(|vertex| Box::<str>::from(vertex.name()))
+        .collect::<Vec<_>>();
+    let retained_arrows = parent
+        .quiver()
+        .arrows()
+        .filter(|arrow| {
+            retained_vertices.contains(&arrow.source())
+                && retained_vertices.contains(&arrow.target())
+        })
+        .collect::<Vec<_>>();
+    let arrow_specs = retained_arrows
+        .iter()
+        .map(|arrow| {
+            NamedArrowSpec::named(arrow.source().name(), arrow.target().name(), arrow.name())
+        })
+        .collect();
+    let quiver = Quiver::from_named(vertex_names, arrow_specs)?;
+    let path_algebra = PathAlgebra::new(parent.field().clone(), quiver)?;
+
+    let mut converted_relations = Vec::new();
+    for relation in relations {
+        let relation = relation.path_removal(removed_vertex_positions)?;
+        if relation.is_zero() {
+            continue;
+        }
+        let mut converted = path_algebra.zero();
+        for term in relation.terms() {
+            let walk = term
+                .path()
+                .walk()
+                .ok_or(PathAlgebraError::InvalidPathTermInPathRemoval)?;
+            let mut mapped_arrows = Vec::with_capacity(walk.len());
+            for arrow_index in walk {
+                let original_arrow = parent
+                    .quiver()
+                    .arrow(*arrow_index)
+                    .ok_or(PathAlgebraError::InvalidPathTermInPathRemoval)?;
+                let mapped_arrow = path_algebra
+                    .quiver()
+                    .arrows()
+                    .find(|arrow| arrow.name() == original_arrow.name())
+                    .ok_or_else(|| PathAlgebraError::MissingArrowInVertexQuotient {
+                        name: original_arrow.name().into(),
+                    })?;
+                mapped_arrows.push(mapped_arrow);
+            }
+            let mut mapped_arrows = mapped_arrows.into_iter();
+            let Some(first) = mapped_arrows.next() else {
+                return Err(PathAlgebraError::VertexTermInPathRemoval);
+            };
+            let mut path = first.path();
+            for arrow in mapped_arrows {
+                path = path.multiply(&arrow.path())?;
+            }
+            let monomial = path_algebra.one().multiply(&path_algebra.element(path)?)?;
+            converted = converted.add(&monomial.scale_left(term.coefficient())?)?;
+        }
+        converted_relations.push(converted);
+    }
+    Ok(VertexQuotientPresentation {
+        path_algebra,
+        relations: converted_relations,
+    })
 }
 
 #[cfg(test)]

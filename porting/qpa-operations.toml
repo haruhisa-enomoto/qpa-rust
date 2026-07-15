@@ -16834,9 +16834,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 102
 source_end = 102
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quiver_algebra_of_path_algebra_mod_aea; quiver_algebra_of_quotient_mod_aea; PathAlgebra::a_mod_aea_presentation; QuotientPathAlgebra::a_mod_aea_presentation"
+tests = ["tests/fixtures/pathalg_vertex_quotient.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18420,9 +18420,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3145
 source_end = 3199
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quiver_algebra_of_path_algebra_mod_aea; quiver_algebra_of_quotient_mod_aea; PathAlgebra::a_mod_aea_presentation; QuotientPathAlgebra::a_mod_aea_presentation"
+tests = ["tests/fixtures/pathalg_vertex_quotient.schema-v1.json"]
 deviations = []
 
 [[entries]]

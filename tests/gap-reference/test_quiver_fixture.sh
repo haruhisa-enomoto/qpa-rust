@@ -78,6 +78,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_element_utilities.g" \
     "$repo_root/tests/fixtures/pathalg_element_utilities.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_vertex_quotient.g" \
+    "$repo_root/tests/fixtures/pathalg_vertex_quotient.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_vector_empty_error.g" \
     >"$actual" 2>&1

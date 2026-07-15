@@ -873,6 +873,12 @@ pub enum PathAlgebraError {
     /// A canonical sparse term violated its stored path/quiver invariant.
     #[error("PathRemoval encountered an invalid stored path term")]
     InvalidPathTermInPathRemoval,
+    /// A surviving walk could not be mapped by arrow name to the rebuilt quiver.
+    #[error("the arrow {name} is absent from the rebuilt vertex-quotient quiver")]
+    MissingArrowInVertexQuotient {
+        /// The original QPA arrow name.
+        name: Box<str>,
+    },
     /// Concurrent opposite-algebra construction lost its reciprocal cache.
     #[error("concurrent opposite-path-algebra cache initialization failed")]
     OppositeCacheRace,

@@ -484,6 +484,11 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   indecomposable projectives and reads their dimension vectors; both
   semicommutativity methods call that exact test.
 - [ ] Port associated monomial/graded algebras and corner/quotient constructions.
+  `QuiverAlgebraOfAmodAeA` is source-translated through `PathRemoval`, named
+  full-subquiver reconstruction, arrow-name relation conversion, and the
+  default GBNP quotient backend. Its empty-relation path-algebra return type is
+  preserved explicitly; the general idempotent-corner `QuiverAlgebraOfeAe`
+  remains module/radical dependent.
 - [ ] Port tensor products, enveloping algebras, and algebra-as-bimodule.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.

@@ -22,6 +22,7 @@ pub mod vector_reduction;
 pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
+pub use element_utilities::{QuiverAlgebra, VertexQuotientPresentation};
 pub use groebner::{
     GroebnerBasis, GroebnerBasisKind, GroebnerError, high_level_groebner_basis,
     leftmost_occurrence, make_uniform, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,

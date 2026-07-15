@@ -6,8 +6,8 @@
 use numerica::domains::Field;
 use qpa_core::{
     AlgebraDimension, CentreError, GroebnerBasis, PathAlgebra, PathAlgebraElement,
-    PathAlgebraError, Quiver, QuotientError, QuotientPathAlgebra, QuotientPathAlgebraCentre,
-    QuotientPathAlgebraElement,
+    PathAlgebraError, Quiver, QuiverAlgebra, QuotientError, QuotientPathAlgebra,
+    QuotientPathAlgebraCentre, QuotientPathAlgebraElement, VertexQuotientPresentation,
 };
 use thiserror::Error;
 
@@ -29,6 +29,50 @@ pub fn quotient_by_relations<F: Field>(
         parent,
         &complete_relations,
     )?)
+}
+
+/// Translate `QuiverAlgebraOfAmodAeA(A, elist)` for a path algebra through
+/// QPA's default GBNP backend.
+///
+/// QPA returns the rebuilt path algebra itself because its relation list is
+/// empty; the [`QuiverAlgebra`] result preserves that type distinction.
+///
+/// # Errors
+///
+/// Propagates full-subquiver reconstruction and path conversion failures.
+pub fn quiver_algebra_of_path_algebra_mod_aea<F: Field>(
+    algebra: &PathAlgebra<F>,
+    vertex_positions: &[usize],
+) -> Result<QuiverAlgebra<F>, PathalgGbnpError> {
+    quotient_vertex_presentation(algebra.a_mod_aea_presentation(vertex_positions)?)
+}
+
+/// Translate `QuiverAlgebraOfAmodAeA(A, elist)` for a quotient through QPA's
+/// default GBNP backend.
+///
+/// # Errors
+///
+/// Propagates `PathRemoval`, named-quiver conversion, GBNP, and quotient
+/// construction failures.
+pub fn quiver_algebra_of_quotient_mod_aea<F: Field>(
+    algebra: &QuotientPathAlgebra<F>,
+    vertex_positions: &[usize],
+) -> Result<QuiverAlgebra<F>, PathalgGbnpError> {
+    quotient_vertex_presentation(algebra.a_mod_aea_presentation(vertex_positions)?)
+}
+
+fn quotient_vertex_presentation<F: Field>(
+    presentation: VertexQuotientPresentation<F>,
+) -> Result<QuiverAlgebra<F>, PathalgGbnpError> {
+    let (path_algebra, relations) = presentation.into_parts();
+    if relations.is_empty() {
+        Ok(QuiverAlgebra::Path(path_algebra))
+    } else {
+        Ok(QuiverAlgebra::Quotient(quotient_by_relations(
+            path_algebra,
+            &relations,
+        )?))
+    }
 }
 
 /// Compute and attach QPA's configured default Gröbner basis when the
@@ -172,13 +216,14 @@ mod tests {
     };
     use qpa_core::{
         AlgebraDimension, ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal,
-        Quiver, QuotientPathAlgebra, VertexIndex,
+        Quiver, QuiverAlgebra, QuotientPathAlgebra, VertexIndex,
     };
     use serde_json::{Value, json};
 
     use super::{
-        opposite_path_algebra, opposite_quotient_element, quotient_centre, quotient_dimension,
-        quotient_is_finite_dimensional, truncated_path_algebra,
+        opposite_path_algebra, opposite_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
+        quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
+        quotient_dimension, quotient_is_finite_dimensional, truncated_path_algebra,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -241,6 +286,128 @@ mod tests {
                 })
                 .collect(),
         )
+    }
+
+    fn quiver_json(quiver: &Quiver) -> Value {
+        json!({
+            "vertices": quiver.vertices().map(|vertex| vertex.name().to_owned()).collect::<Vec<_>>(),
+            "arrows": quiver.arrows().map(|arrow| json!({
+                "source": arrow.source().name(),
+                "target": arrow.target().name(),
+                "name": arrow.name()
+            })).collect::<Vec<_>>()
+        })
+    }
+
+    fn finite_dimension<F: numerica::domains::Field>(algebra: &QuiverAlgebra<F>) -> i64 {
+        let AlgebraDimension::Finite(dimension) = algebra
+            .as_quotient()
+            .expect("the oracle presentation has nonempty relations")
+            .dimension()
+            .unwrap()
+        else {
+            panic!("the oracle vertex quotient must be finite");
+        };
+        small_integer(&dimension)
+    }
+
+    #[test]
+    #[allow(clippy::many_single_char_names, clippy::too_many_lines)]
+    fn pinned_qpa_vertex_quotient_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_vertex_quotient.schema-v1.json"
+        ))
+        .unwrap();
+        let quiver = Quiver::from_indexed(
+            4,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+                ArrowSpec::named(vertex(1), vertex(3), "c"),
+                ArrowSpec::named(vertex(3), vertex(4), "d"),
+                ArrowSpec::named(vertex(2), vertex(4), "e"),
+                ArrowSpec::named(vertex(1), vertex(4), "f"),
+            ],
+        )
+        .unwrap();
+        let algebra = PathAlgebra::new(Q, quiver.clone()).unwrap();
+        let generators = algebra.generators();
+        let a = &generators[4];
+        let b = &generators[5];
+        let c = &generators[6];
+        let d = &generators[7];
+        let e = &generators[8];
+        let f = &generators[9];
+        let relations = [
+            a.multiply(b).unwrap().sub(c).unwrap(),
+            b.multiply(d).unwrap().sub(e).unwrap(),
+            c.multiply(d).unwrap().sub(f).unwrap(),
+        ];
+        let quotient = quotient_by_relations(algebra.clone(), &relations).unwrap();
+        let remove_two = quiver_algebra_of_quotient_mod_aea(&quotient, &[2]).unwrap();
+        let remove_three = quiver_algebra_of_quotient_mod_aea(&quotient, &[3]).unwrap();
+        let none = quiver_algebra_of_quotient_mod_aea(&quotient, &[]).unwrap();
+        let ignored = quiver_algebra_of_quotient_mod_aea(&quotient, &[0, 5, 99]).unwrap();
+        let path_input = quiver_algebra_of_path_algebra_mod_aea(&algebra, &[2]).unwrap();
+
+        assert_eq!(
+            json!({
+                "remove_two": {
+                    "quiver": quiver_json(remove_two.original_path_algebra().quiver()),
+                    "relations": remove_two.relations().iter().map(rational_element_json).collect::<Vec<_>>(),
+                    "dimension": finite_dimension(&remove_two)
+                },
+                "remove_three": {
+                    "quiver": quiver_json(remove_three.original_path_algebra().quiver()),
+                    "relations": remove_three.relations().iter().map(rational_element_json).collect::<Vec<_>>(),
+                    "dimension": finite_dimension(&remove_three)
+                },
+                "none": {
+                    "quiver": quiver_json(none.original_path_algebra().quiver()),
+                    "relations": none.relations().iter().map(rational_element_json).collect::<Vec<_>>(),
+                    "dimension": finite_dimension(&none)
+                },
+                "ignored_same_quiver": quiver_json(ignored.original_path_algebra().quiver())
+                    == quiver_json(none.original_path_algebra().quiver()),
+                "path_algebra_input": {
+                    "is_quotient": !path_input.is_path_algebra(),
+                    "relations": path_input.relations().iter().map(rational_element_json).collect::<Vec<_>>()
+                }
+            }),
+            expected["rational"]
+        );
+
+        let algebra2 = PathAlgebra::new(Z2, quiver).unwrap();
+        let generators2 = algebra2.generators();
+        let relations2 = [
+            generators2[4]
+                .multiply(&generators2[5])
+                .unwrap()
+                .add(&generators2[6])
+                .unwrap(),
+            generators2[5]
+                .multiply(&generators2[7])
+                .unwrap()
+                .add(&generators2[8])
+                .unwrap(),
+            generators2[6]
+                .multiply(&generators2[7])
+                .unwrap()
+                .add(&generators2[9])
+                .unwrap(),
+        ];
+        let quotient2 = quotient_by_relations(algebra2, &relations2).unwrap();
+        let remove_two2 = quiver_algebra_of_quotient_mod_aea(&quotient2, &[2]).unwrap();
+        assert_eq!(
+            json!({
+                "remove_two": {
+                    "quiver": quiver_json(remove_two2.original_path_algebra().quiver()),
+                    "relations": remove_two2.relations().iter().map(z2_element_json).collect::<Vec<_>>(),
+                    "dimension": finite_dimension(&remove_two2)
+                }
+            }),
+            expected["f2"]
+        );
     }
 
     #[test]

@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_vertex_quotient",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "remove_two": {
+      "quiver": {
+        "vertices": ["v1", "v3", "v4"],
+        "arrows": [
+          { "source": "v1", "target": "v3", "name": "c" },
+          { "source": "v3", "target": "v4", "name": "d" },
+          { "source": "v1", "target": "v4", "name": "f" }
+        ]
+      },
+      "relations": [
+        [{ "path": [4], "coefficient": [1, 1] }],
+        [{ "path": [6], "coefficient": [1, 1] }]
+      ],
+      "dimension": 4
+    },
+    "remove_three": {
+      "quiver": {
+        "vertices": ["v1", "v2", "v4"],
+        "arrows": [
+          { "source": "v1", "target": "v2", "name": "a" },
+          { "source": "v2", "target": "v4", "name": "e" },
+          { "source": "v1", "target": "v4", "name": "f" }
+        ]
+      },
+      "relations": [
+        [{ "path": [5], "coefficient": [1, 1] }],
+        [{ "path": [6], "coefficient": [1, 1] }]
+      ],
+      "dimension": 4
+    },
+    "none": {
+      "quiver": {
+        "vertices": ["v1", "v2", "v3", "v4"],
+        "arrows": [
+          { "source": "v1", "target": "v2", "name": "a" },
+          { "source": "v2", "target": "v3", "name": "b" },
+          { "source": "v1", "target": "v3", "name": "c" },
+          { "source": "v3", "target": "v4", "name": "d" },
+          { "source": "v2", "target": "v4", "name": "e" },
+          { "source": "v1", "target": "v4", "name": "f" }
+        ]
+      },
+      "relations": [
+        [
+          { "path": [7], "coefficient": [-1, 1] },
+          { "path": [5, 6], "coefficient": [1, 1] }
+        ],
+        [
+          { "path": [10], "coefficient": [-1, 1] },
+          { "path": [5, 9], "coefficient": [1, 1] }
+        ],
+        [
+          { "path": [9], "coefficient": [-1, 1] },
+          { "path": [6, 8], "coefficient": [1, 1] }
+        ],
+        [
+          { "path": [10], "coefficient": [-1, 1] },
+          { "path": [7, 8], "coefficient": [1, 1] }
+        ]
+      ],
+      "dimension": 10
+    },
+    "ignored_same_quiver": true,
+    "path_algebra_input": {
+      "is_quotient": false,
+      "relations": []
+    }
+  },
+  "f2": {
+    "remove_two": {
+      "quiver": {
+        "vertices": ["v1", "v3", "v4"],
+        "arrows": [
+          { "source": "v1", "target": "v3", "name": "c" },
+          { "source": "v3", "target": "v4", "name": "d" },
+          { "source": "v1", "target": "v4", "name": "f" }
+        ]
+      },
+      "relations": [
+        [{ "path": [4], "coefficient": 1 }],
+        [{ "path": [6], "coefficient": 1 }]
+      ],
+      "dimension": 4
+    }
+  }
+}
