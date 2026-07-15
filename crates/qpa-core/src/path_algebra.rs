@@ -9,22 +9,25 @@
 use std::{
     cmp::Ordering,
     fmt,
-    sync::{Arc, OnceLock, Weak},
+    sync::{Arc, OnceLock, RwLock, Weak},
 };
 
 use numerica::domains::{Field, InternalOrdering};
 use thiserror::Error;
 
+use crate::TensorProductAlgebra;
 use crate::{
     OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverError, QuiverOrdering, Vertex,
+    tensor::WeakTensorProductAlgebra,
 };
 
 struct PathAlgebraData<F: Field> {
     field: F,
     quiver: Quiver,
     ordering: QuiverOrdering,
-    opposite_weak: OnceLock<Weak<PathAlgebraData<F>>>,
+    opposite_weak: RwLock<Option<Weak<PathAlgebraData<F>>>>,
     opposite_strong: OnceLock<PathAlgebra<F>>,
+    enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
 }
 
 /// QPA's external representation of a path-algebra element.
@@ -104,8 +107,9 @@ impl<F: Field> PathAlgebra<F> {
             field,
             quiver,
             ordering,
-            opposite_weak: OnceLock::new(),
+            opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
+            enveloping_weak: RwLock::new(None),
         })))
     }
 
@@ -131,6 +135,31 @@ impl<F: Field> PathAlgebra<F> {
     #[must_use]
     pub fn is_identical(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    pub(crate) fn cached_enveloping_algebra(&self) -> Option<TensorProductAlgebra<F>> {
+        self.0
+            .enveloping_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakTensorProductAlgebra::upgrade)
+    }
+
+    pub(crate) fn cache_enveloping_algebra(
+        &self,
+        enveloping: &TensorProductAlgebra<F>,
+    ) -> TensorProductAlgebra<F> {
+        let mut slot = self
+            .0
+            .enveloping_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakTensorProductAlgebra::upgrade) {
+            return cached;
+        }
+        *slot = Some(enveloping.downgrade());
+        enveloping.clone()
     }
 
     /// Return the additive zero.
@@ -282,7 +311,14 @@ impl<F: Field> PathAlgebra<F> {
         if let Some(opposite) = self.0.opposite_strong.get() {
             return Ok(opposite.clone());
         }
-        if let Some(opposite) = self.0.opposite_weak.get().and_then(Weak::upgrade) {
+        if let Some(opposite) = self
+            .0
+            .opposite_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(Weak::upgrade)
+        {
             return Ok(Self(opposite));
         }
 
@@ -290,20 +326,15 @@ impl<F: Field> PathAlgebra<F> {
         if opposite.0.opposite_strong.set(self.clone()).is_err() {
             return Err(PathAlgebraError::OppositeCacheRace);
         }
-        if self
+        let mut slot = self
             .0
             .opposite_weak
-            .set(Arc::downgrade(&opposite.0))
-            .is_err()
-        {
-            return self
-                .0
-                .opposite_weak
-                .get()
-                .and_then(Weak::upgrade)
-                .map(Self)
-                .ok_or(PathAlgebraError::OppositeCacheRace);
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(Weak::upgrade) {
+            return Ok(Self(cached));
         }
+        *slot = Some(Arc::downgrade(&opposite.0));
         Ok(opposite)
     }
 

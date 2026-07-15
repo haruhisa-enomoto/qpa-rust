@@ -88,6 +88,7 @@ pub use sgrobner::{
     sgrobner_with_options, strong_normal_form_trees,
 };
 pub use tensor::{
-    EMPTY_TENSOR_RELATIONS_ERROR, TensorProductAlgebra, TensorProductError,
-    tensor_algebra_inclusion, tensor_product_of_algebras, tensor_product_of_path_algebras,
+    EMPTY_TENSOR_RELATIONS_ERROR, TensorProductAlgebra, TensorProductError, enveloping_algebra,
+    is_enveloping_algebra, tensor_algebra_inclusion, tensor_product_of_algebras,
+    tensor_product_of_path_algebras,
 };

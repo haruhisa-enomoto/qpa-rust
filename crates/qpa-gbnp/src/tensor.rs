@@ -7,103 +7,22 @@
 //! by an independent algorithm.
 
 use numerica::domains::Field;
+pub use qpa_core::TensorProductAlgebra;
 use qpa_core::{
     PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, PathAlgebraTensorError,
     PathError, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError,
-    QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError, QuiverProduct, QuiverProductError,
-    QuotientError, QuotientPathAlgebra, include_in_path_algebra, include_in_product_quiver,
-    quiver_product, simple_tensor, vertices_of_path_algebra,
+    QuiverAlgebraHomomorphism, QuiverProduct, QuiverProductError, QuotientError,
+    QuotientPathAlgebra, TensorAlgebraInclusionError, include_in_path_algebra,
+    include_in_product_quiver, quiver_product, simple_tensor, vertices_of_path_algebra,
 };
 use thiserror::Error;
 
-use crate::{PathalgGbnpError, ensure_quotient_groebner_basis};
+use crate::{PathalgGbnpError, ensure_quotient_groebner_basis, opposite_path_algebra};
 
 /// QPA's error text reached when the tensor presentation has no generators
 /// for its defining ideal.
 pub const EMPTY_TENSOR_RELATIONS_ERROR: &str =
     "first argument must be a ring,\nsecond argument must be a list of generators";
-
-/// A tensor-product quotient together with QPA's retained product quiver and
-/// original algebra factors.
-#[derive(Clone, Debug)]
-pub struct TensorProductAlgebra<F: Field> {
-    algebra: QuiverAlgebra<F>,
-    product: QuiverProduct,
-    factors: [QuiverAlgebra<F>; 2],
-}
-
-impl<F: Field> TensorProductAlgebra<F> {
-    /// Return the tensor product as QPA's quiver-algebra union.
-    #[must_use]
-    pub const fn algebra(&self) -> &QuiverAlgebra<F> {
-        &self.algebra
-    }
-
-    /// Return the quotient constructed by the source method.
-    #[must_use]
-    pub const fn quotient(&self) -> &QuotientPathAlgebra<F> {
-        match &self.algebra {
-            QuiverAlgebra::Quotient(quotient) => quotient,
-            QuiverAlgebra::Path(_) => unreachable!(),
-        }
-    }
-
-    /// Return QPA's product quiver with its decomposition metadata.
-    #[must_use]
-    pub const fn product_quiver(&self) -> &QuiverProduct {
-        &self.product
-    }
-
-    /// Return QPA's retained `TensorProductDecomposition` list.
-    #[must_use]
-    pub const fn factors(&self) -> &[QuiverAlgebra<F>; 2] {
-        &self.factors
-    }
-
-    /// Extract one retained factor using QPA's one-based indexing.
-    ///
-    /// # Errors
-    ///
-    /// Returns an explicit range error where GAP list access would fail.
-    pub fn factor(&self, index: usize) -> Result<&QuiverAlgebra<F>, TensorProductError> {
-        self.factors
-            .get(index.wrapping_sub(1))
-            .ok_or(TensorProductError::FactorIndexOutOfRange { index })
-    }
-
-    /// Apply QPA's `SimpleTensor` using this tensor product's retained product
-    /// metadata.
-    ///
-    /// # Errors
-    ///
-    /// Propagates source-translated simple-tensor failures.
-    pub fn simple_tensor(
-        &self,
-        factors: [&QuiverAlgebraElement<F>; 2],
-    ) -> Result<QuiverAlgebraElement<F>, TensorProductError> {
-        Ok(simple_tensor(
-            factors,
-            self.algebra(),
-            self.product_quiver(),
-        )?)
-    }
-
-    /// Translate `TensorAlgebraInclusion(T, n)`.
-    ///
-    /// QPA selects the first factor only for the integer `1`; every other
-    /// integer selects the second factor, including zero and negative values.
-    ///
-    /// # Errors
-    ///
-    /// Propagates generator construction, simple-tensor, and homomorphism
-    /// construction failures.
-    pub fn inclusion(
-        &self,
-        factor_number: i64,
-    ) -> Result<QuiverAlgebraHomomorphism<F>, TensorProductError> {
-        tensor_algebra_inclusion(self, factor_number)
-    }
-}
 
 /// Translate QPA's binary `TensorProductOfAlgebras` method.
 ///
@@ -134,25 +53,48 @@ pub fn tensor_algebra_inclusion<F: Field>(
     tensor: &TensorProductAlgebra<F>,
     factor_number: i64,
 ) -> Result<QuiverAlgebraHomomorphism<F>, TensorProductError> {
-    let selected = usize::from(factor_number != 1);
-    let source = tensor.factors[selected].clone();
-    let generators = source.generators()?;
-    let other_one = tensor.factors[1 - selected].one()?;
-    let images = generators
-        .iter()
-        .map(|generator| {
-            if factor_number == 1 {
-                tensor.simple_tensor([generator, &other_one])
-            } else {
-                tensor.simple_tensor([&other_one, generator])
-            }
-        })
-        .collect::<Result<Vec<_>, TensorProductError>>()?;
-    Ok(QuiverAlgebraHomomorphism::by_generator_images(
-        source,
-        tensor.algebra.clone(),
-        images,
-    )?)
+    Ok(tensor.inclusion(factor_number)?)
+}
+
+/// Translate QPA's cached `EnvelopingAlgebra(A)` attribute.
+///
+/// The source constructs `OppositeAlgebra(A) tensor A`, marks the returned
+/// quotient as an enveloping algebra, and propagates a true admissible-
+/// quotient filter after the opposite-algebra method has computed it.
+/// Repeated calls while the returned tensor is live preserve attribute
+/// identity.
+///
+/// # Errors
+///
+/// Propagates QPA's opposite-algebra and tensor-product construction paths.
+pub fn enveloping_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<TensorProductAlgebra<F>, TensorProductError> {
+    if let Some(cached) = algebra.cached_enveloping_algebra() {
+        return Ok(cached);
+    }
+
+    let opposite = match algebra {
+        QuiverAlgebra::Path(path_algebra) => QuiverAlgebra::Path(path_algebra.opposite()?),
+        QuiverAlgebra::Quotient(quotient) => {
+            QuiverAlgebra::Quotient(opposite_path_algebra(quotient)?)
+        }
+    };
+    let enveloping = tensor_product_of_algebras(&opposite, algebra)?;
+    enveloping.quotient().mark_enveloping_algebra();
+    if matches!(algebra, QuiverAlgebra::Quotient(quotient) if quotient.cached_admissibility() == Some(true))
+    {
+        enveloping.quotient().mark_admissible();
+    }
+    Ok(algebra.cache_enveloping_algebra(&enveloping))
+}
+
+/// Translate QPA's default-false `IsEnvelopingAlgebra` property method.
+///
+/// Only an algebra explicitly marked by [`enveloping_algebra`] returns true.
+#[must_use]
+pub fn is_enveloping_algebra<F: Field>(algebra: &QuiverAlgebra<F>) -> bool {
+    algebra.is_enveloping_algebra()
 }
 
 /// Translate QPA's `TensorProductOfPathAlgebras([A, B])` global function.
@@ -220,11 +162,11 @@ pub fn tensor_product_of_path_algebras<F: Field>(
     let ideal = PathAlgebraIdeal::new(product_parent, tensor_relations)?;
     ideal.with_complete_groebner_basis(&tensor_basis)?;
     let quotient = QuotientPathAlgebra::by_ideal(&ideal)?;
-    Ok(TensorProductAlgebra {
-        algebra: QuiverAlgebra::Quotient(quotient),
+    Ok(TensorProductAlgebra::from_qpa_parts(
+        quotient,
         product,
-        factors: [factors[0].clone(), factors[1].clone()],
-    })
+        [factors[0].clone(), factors[1].clone()],
+    )?)
 }
 
 fn commutativity_relations<F: Field>(
@@ -336,12 +278,6 @@ pub enum TensorProductError {
     /// the source method.
     #[error("a tensor presentation helper returned a quotient target element")]
     UnexpectedTargetVariant,
-    /// QPA's retained decomposition contains exactly two factors.
-    #[error("tensor-product factor index {index} is outside 1..=2")]
-    FactorIndexOutOfRange {
-        /// Rejected one-based index.
-        index: usize,
-    },
     /// Product-quiver construction or inclusion failed.
     #[error(transparent)]
     Product(#[from] QuiverProductError),
@@ -363,9 +299,9 @@ pub enum TensorProductError {
     /// Ideal attachment or quotient construction failed.
     #[error(transparent)]
     Quotient(#[from] QuotientError),
-    /// Construction or application of the stored algebra mapping failed.
+    /// Construction of QPA's stored tensor-factor inclusion failed.
     #[error(transparent)]
-    Homomorphism(#[from] QuiverAlgebraHomomorphismError),
+    Inclusion(#[from] TensorAlgebraInclusionError),
 }
 
 #[cfg(test)]
@@ -383,7 +319,8 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{TensorProductError, tensor_algebra_inclusion, tensor_product_of_algebras};
-    use crate::quotient_by_relations;
+    use super::{enveloping_algebra, is_enveloping_algebra};
+    use crate::{opposite_path_algebra, quotient_by_relations};
 
     fn q(numerator: i64) -> Rational {
         Q.to_element(Integer::from(numerator), Integer::from(1), true)
@@ -633,5 +570,129 @@ mod tests {
             "right_images": binary_right_inclusion.generator_images().iter().map(binary_union_terms).collect::<Vec<_>>(),
         });
         assert_eq!(binary, expected["binary"]);
+    }
+
+    fn rational_quotient_enveloping_json(loop_quiver: &Quiver) -> Value {
+        let parent = PathAlgebra::new(Q, loop_quiver.clone()).unwrap();
+        let x = parent.generators()[1].clone();
+        let quotient = quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap();
+        let input_admissible_cached_before = quotient.cached_admissibility().is_some();
+        let opposite_cached_before = quotient.cached_opposite().is_some();
+        let algebra = QuiverAlgebra::Quotient(quotient.clone());
+        let enveloping = enveloping_algebra(&algebra).unwrap();
+        let enveloping_again = enveloping_algebra(&algebra).unwrap();
+        let opposite = opposite_path_algebra(&quotient).unwrap();
+        let double_opposite = opposite_path_algebra(&opposite).unwrap();
+        let nonadmissible_parent = PathAlgebra::new(Q, loop_quiver.clone()).unwrap();
+        let nonadmissible_x = nonadmissible_parent.generators()[1].clone();
+        let nonadmissible_quotient =
+            quotient_by_relations(nonadmissible_parent, &[nonadmissible_x]).unwrap();
+        let nonadmissible_cached_before = nonadmissible_quotient.cached_admissibility().is_some();
+        let nonadmissible_algebra = QuiverAlgebra::Quotient(nonadmissible_quotient.clone());
+        let nonadmissible_enveloping = enveloping_algebra(&nonadmissible_algebra).unwrap();
+        let result = json!({
+            "property": [
+                is_enveloping_algebra(&algebra),
+                is_enveloping_algebra(enveloping.algebra()),
+                enveloping.is_identical(&enveloping_again),
+            ],
+            "input_admissibility": [
+                input_admissible_cached_before,
+                quotient.cached_admissibility().is_some(),
+                quotient.is_admissible().unwrap(),
+            ],
+            "enveloping_admissibility": [
+                enveloping.quotient().cached_admissibility().is_some(),
+                enveloping.quotient().is_admissible().unwrap(),
+            ],
+            "opposite_cache": [
+                opposite_cached_before,
+                quotient.cached_opposite().is_some(),
+                enveloping.factors()[0] == QuiverAlgebra::Quotient(opposite.clone()),
+                double_opposite.is_identical(&quotient),
+            ],
+            "factor_identity": [
+                enveloping.factors()[1] == algebra,
+                enveloping.factors()[0] == QuiverAlgebra::Quotient(opposite),
+            ],
+            "vertices": enveloping.product_quiver().quiver().vertices().map(|vertex| vertex.name().to_owned()).collect::<Vec<_>>(),
+            "arrows": enveloping.product_quiver().quiver().arrows().map(|arrow| arrow.name().to_owned()).collect::<Vec<_>>(),
+            "relations": enveloping.quotient().relations().iter().map(rational_terms).collect::<Vec<_>>(),
+            "groebner_basis": enveloping.quotient().ideal().groebner_basis().unwrap().relations().iter().map(rational_terms).collect::<Vec<_>>(),
+            "nonadmissible": [
+                nonadmissible_cached_before,
+                nonadmissible_quotient.cached_admissibility().is_some(),
+                nonadmissible_quotient.is_admissible().unwrap(),
+                nonadmissible_enveloping.quotient().cached_admissibility().is_some(),
+                is_enveloping_algebra(nonadmissible_enveloping.algebra()),
+            ],
+        });
+        drop(enveloping);
+        drop(enveloping_again);
+        let recreated = enveloping_algebra(&algebra).unwrap();
+        let recreated_again = enveloping_algebra(&algebra).unwrap();
+        assert!(recreated.is_identical(&recreated_again));
+        result
+    }
+
+    fn rational_path_enveloping_json() -> Value {
+        let path_quiver = Quiver::from_named(
+            vec!["u1".into(), "u2".into()],
+            vec![NamedArrowSpec::named("u1", "u2", "a")],
+        )
+        .unwrap();
+        let path_parent = PathAlgebra::new(Q, path_quiver).unwrap();
+        let path_algebra = QuiverAlgebra::Path(path_parent.clone());
+        let path_enveloping = enveloping_algebra(&path_algebra).unwrap();
+        let path_enveloping_again = enveloping_algebra(&path_algebra).unwrap();
+        let path_opposite = path_parent.opposite().unwrap();
+        json!({
+            "property": [
+                is_enveloping_algebra(&path_algebra),
+                is_enveloping_algebra(path_enveloping.algebra()),
+                path_enveloping.is_identical(&path_enveloping_again),
+            ],
+            "admissibility_cached": path_enveloping.quotient().cached_admissibility().is_some(),
+            "factor_identity": [
+                path_enveloping.factors()[1] == path_algebra,
+                path_enveloping.factors()[0] == QuiverAlgebra::Path(path_opposite),
+            ],
+            "relations": path_enveloping.quotient().relations().iter().map(rational_terms).collect::<Vec<_>>(),
+        })
+    }
+
+    fn binary_enveloping_json(loop_quiver: Quiver) -> Value {
+        let binary_parent = PathAlgebra::new(Z2, loop_quiver).unwrap();
+        let binary_x = binary_parent.generators()[1].clone();
+        let binary_quotient =
+            quotient_by_relations(binary_parent, &[binary_x.multiply(&binary_x).unwrap()]).unwrap();
+        let binary_algebra = QuiverAlgebra::Quotient(binary_quotient);
+        let binary_enveloping = enveloping_algebra(&binary_algebra).unwrap();
+        json!({
+            "property": is_enveloping_algebra(binary_enveloping.algebra()),
+            "admissibility": [
+                binary_enveloping.quotient().cached_admissibility().is_some(),
+                binary_enveloping.quotient().is_admissible().unwrap(),
+            ],
+            "relations": binary_enveloping.quotient().relations().iter().map(binary_terms).collect::<Vec<_>>(),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_enveloping_algebra_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalgtensor_enveloping.schema-v1.json"
+        ))
+        .unwrap();
+        let loop_quiver =
+            Quiver::from_named(vec!["v".into()], vec![NamedArrowSpec::named("v", "v", "x")])
+                .unwrap();
+
+        assert_eq!(
+            rational_quotient_enveloping_json(&loop_quiver),
+            expected["rational_quotient"]
+        );
+        assert_eq!(rational_path_enveloping_json(), expected["rational_path"]);
+        assert_eq!(binary_enveloping_json(loop_quiver), expected["binary"]);
     }
 }

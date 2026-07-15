@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "kind": "pathalgtensor_enveloping",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational_quotient": {
+    "property": [false, true, true],
+    "input_admissibility": [true, true, true],
+    "enveloping_admissibility": [true, true],
+    "opposite_cache": [false, true, true, true],
+    "factor_identity": [true, true],
+    "vertices": ["v_op_v"],
+    "arrows": ["v_op_x", "x_op_v"],
+    "relations": [
+      [
+        {"monomial": "x_op_v*v_op_x", "coefficient": "1"},
+        {"monomial": "v_op_x*x_op_v", "coefficient": "-1"}
+      ],
+      [{"monomial": "x_op_v*x_op_v", "coefficient": "1"}],
+      [{"monomial": "v_op_x*v_op_x", "coefficient": "1"}]
+    ],
+    "groebner_basis": [
+      [{"monomial": "v_op_x*v_op_x", "coefficient": "1"}],
+      [
+        {"monomial": "x_op_v*v_op_x", "coefficient": "1"},
+        {"monomial": "v_op_x*x_op_v", "coefficient": "-1"}
+      ],
+      [{"monomial": "x_op_v*x_op_v", "coefficient": "1"}]
+    ],
+    "nonadmissible": [false, true, false, false, true]
+  },
+  "rational_path": {
+    "property": [false, true, true],
+    "admissibility_cached": false,
+    "factor_identity": [true, true],
+    "relations": [
+      [
+        {"monomial": "a_op_u1*u1_op_a", "coefficient": "1"},
+        {"monomial": "u2_op_a*a_op_u2", "coefficient": "-1"}
+      ]
+    ]
+  },
+  "binary": {
+    "property": true,
+    "admissibility": [true, true],
+    "relations": [
+      [
+        {"monomial": "x_op_v*v_op_x", "coefficient": "Z(2)^0"},
+        {"monomial": "v_op_x*x_op_v", "coefficient": "Z(2)^0"}
+      ],
+      [{"monomial": "x_op_v*x_op_v", "coefficient": "Z(2)^0"}],
+      [{"monomial": "v_op_x*v_op_x", "coefficient": "Z(2)^0"}]
+    ]
+  }
+}

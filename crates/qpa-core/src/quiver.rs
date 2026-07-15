@@ -12,7 +12,7 @@ use std::{
     hash::{Hash, Hasher},
     num::NonZeroUsize,
     sync::{
-        Arc, OnceLock, Weak,
+        Arc, OnceLock, RwLock, Weak,
         atomic::{AtomicU64, Ordering as AtomicOrdering},
     },
 };
@@ -234,7 +234,7 @@ struct QuiverData {
     outgoing: Box<[Box<[ArrowIndex]>]>,
     neighbors: Box<[Box<[VertexIndex]>]>,
     special_arrow_names: bool,
-    opposite_weak: OnceLock<Weak<QuiverData>>,
+    opposite_weak: RwLock<Option<Weak<QuiverData>>>,
     opposite_strong: OnceLock<Quiver>,
     opposite_name_map: OnceLock<OppositeNameMap>,
 }
@@ -442,7 +442,7 @@ impl Quiver {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             special_arrow_names,
-            opposite_weak: OnceLock::new(),
+            opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             opposite_name_map: OnceLock::new(),
         })))
@@ -978,7 +978,14 @@ impl Quiver {
         if let Some(opposite) = self.0.opposite_strong.get() {
             return Ok(opposite.clone());
         }
-        if let Some(opposite) = self.0.opposite_weak.get().and_then(Weak::upgrade) {
+        if let Some(opposite) = self
+            .0
+            .opposite_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(Weak::upgrade)
+        {
             return Ok(Self(opposite));
         }
 
@@ -1013,21 +1020,16 @@ impl Quiver {
             return Err(QuiverError::OppositeCacheRace);
         }
 
-        if self
+        let _ = self.0.opposite_name_map.set(OppositeNameMap::AppendSuffix);
+        let mut slot = self
             .0
             .opposite_weak
-            .set(Arc::downgrade(&opposite.0))
-            .is_err()
-        {
-            return self
-                .0
-                .opposite_weak
-                .get()
-                .and_then(Weak::upgrade)
-                .map(Self)
-                .ok_or(QuiverError::OppositeCacheRace);
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(Weak::upgrade) {
+            return Ok(Self(cached));
         }
-        let _ = self.0.opposite_name_map.set(OppositeNameMap::AppendSuffix);
+        *slot = Some(Arc::downgrade(&opposite.0));
         Ok(opposite)
     }
 

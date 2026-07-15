@@ -19,6 +19,7 @@ use thiserror::Error;
 use crate::{
     DenseMatrix, GroebnerBasis, GroebnerError, MatrixError, Path, PathAlgebra, PathAlgebraElement,
     PathAlgebraError, PathAlgebraExternalRepresentation, PathEndpoint, Quiver, QuiverError,
+    TensorProductAlgebra, tensor::WeakTensorProductAlgebra,
 };
 
 struct PathAlgebraIdealData<F: Field> {
@@ -434,8 +435,10 @@ struct QuotientPathAlgebraData<F: Field> {
     groebner_basis: Option<GroebnerBasis<F>>,
     admissible: OnceLock<bool>,
     canonical_basis: OnceLock<QuotientCanonicalBasisState<F>>,
-    opposite_weak: OnceLock<Weak<QuotientPathAlgebraData<F>>>,
+    opposite_weak: RwLock<Option<Weak<QuotientPathAlgebraData<F>>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
+    enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
+    is_enveloping: OnceLock<bool>,
 }
 
 #[derive(Debug)]
@@ -521,8 +524,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             groebner_basis,
             admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
-            opposite_weak: OnceLock::new(),
+            opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
+            enveloping_weak: RwLock::new(None),
+            is_enveloping: OnceLock::new(),
         })))
     }
 
@@ -545,8 +550,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             groebner_basis: Some(groebner_basis),
             admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
-            opposite_weak: OnceLock::new(),
+            opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
+            enveloping_weak: RwLock::new(None),
+            is_enveloping: OnceLock::new(),
         })))
     }
 
@@ -799,6 +806,49 @@ impl<F: Field> QuotientPathAlgebra<F> {
         self.0.admissible.get().copied()
     }
 
+    /// Install QPA's true admissible-quotient filter without recomputation.
+    #[doc(hidden)]
+    pub fn mark_admissible(&self) {
+        let _ = self.0.admissible.set(true);
+    }
+
+    /// Return QPA's `IsEnvelopingAlgebra` property value.
+    #[must_use]
+    pub fn is_enveloping_algebra(&self) -> bool {
+        self.0.is_enveloping.get().copied().unwrap_or(false)
+    }
+
+    /// Install QPA's true enveloping-algebra property.
+    #[doc(hidden)]
+    pub fn mark_enveloping_algebra(&self) {
+        let _ = self.0.is_enveloping.set(true);
+    }
+
+    pub(crate) fn cached_enveloping_algebra(&self) -> Option<TensorProductAlgebra<F>> {
+        self.0
+            .enveloping_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakTensorProductAlgebra::upgrade)
+    }
+
+    pub(crate) fn cache_enveloping_algebra(
+        &self,
+        enveloping: &TensorProductAlgebra<F>,
+    ) -> TensorProductAlgebra<F> {
+        let mut slot = self
+            .0
+            .enveloping_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakTensorProductAlgebra::upgrade) {
+            return cached;
+        }
+        *slot = Some(enveloping.downgrade());
+        enveloping.clone()
+    }
+
     /// Translate QPA's cached `OppositePathAlgebra` for a quotient.
     ///
     /// QPA takes opposite relators, computes the configured Gröbner basis on
@@ -827,11 +877,15 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[doc(hidden)]
     #[must_use]
     pub fn cached_opposite(&self) -> Option<Self> {
-        self.0
-            .opposite_strong
-            .get()
-            .cloned()
-            .or_else(|| self.0.opposite_weak.get().and_then(Weak::upgrade).map(Self))
+        self.0.opposite_strong.get().cloned().or_else(|| {
+            self.0
+                .opposite_weak
+                .read()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .as_ref()
+                .and_then(Weak::upgrade)
+                .map(Self)
+        })
     }
 
     /// Return QPA's termwise opposite defining relators.
@@ -873,16 +927,15 @@ impl<F: Field> QuotientPathAlgebra<F> {
         if opposite.0.opposite_strong.set(self.clone()).is_err() {
             return Err(QuotientError::OppositeCacheRace);
         }
-        if self
+        let mut slot = self
             .0
             .opposite_weak
-            .set(Arc::downgrade(&opposite.0))
-            .is_err()
-        {
-            return self
-                .cached_opposite()
-                .ok_or(QuotientError::OppositeCacheRace);
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(Weak::upgrade) {
+            return Ok(Self(cached));
         }
+        *slot = Some(Arc::downgrade(&opposite.0));
         Ok(opposite)
     }
 
@@ -1014,8 +1067,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             groebner_basis: Some(groebner_basis),
             admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
-            opposite_weak: OnceLock::new(),
+            opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
+            enveloping_weak: RwLock::new(None),
+            is_enveloping: OnceLock::new(),
         }));
         if quotient.ideal().is_admissible()? {
             let _ = quotient.0.admissible.set(true);

@@ -2,17 +2,23 @@
 //!
 //! This module translates the dependency-free first part of
 //! `lib/pathalgtensor.gi`: product quivers, their retained decomposition,
-//! inclusion and projection of paths, and `ReversePath`.  Algebra tensor
-//! products are layered on these operations separately.
+//! inclusion and projection of paths, and `ReversePath`. The retained tensor
+//! object and factor inclusions live here; the relation/Gröbner constructor is
+//! layered on them by `qpa-gbnp`.
 
-use std::{collections::HashMap, fmt};
+use std::{
+    collections::HashMap,
+    fmt,
+    sync::{Arc, Weak},
+};
 
 use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
     Generator, NamedArrowSpec, Path, PathEndpoint, PathError, Quiver, QuiverAlgebra,
-    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverError, Vertex,
+    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverAlgebraHomomorphism,
+    QuiverAlgebraHomomorphismError, QuiverError, QuotientPathAlgebra, Vertex,
 };
 
 /// QPA's two-factor decomposition object attached to a product quiver.
@@ -73,6 +79,186 @@ impl QuiverProduct {
     pub const fn decomposition(&self) -> &QuiverProductDecomposition {
         &self.decomposition
     }
+}
+
+#[derive(Debug)]
+struct TensorProductAlgebraData<F: Field> {
+    algebra: QuiverAlgebra<F>,
+    product: QuiverProduct,
+    factors: [QuiverAlgebra<F>; 2],
+}
+
+/// A tensor-product quotient together with QPA's retained product quiver and
+/// original algebra factors.
+///
+/// Cloning preserves the identity of the tensor object. This lets attribute
+/// caches such as `EnvelopingAlgebra` reproduce GAP's repeated-call identity.
+#[derive(Clone, Debug)]
+pub struct TensorProductAlgebra<F: Field>(Arc<TensorProductAlgebraData<F>>);
+
+impl<F: Field> TensorProductAlgebra<F> {
+    /// Assemble the metadata around the quotient produced by QPA's tensor
+    /// constructor.
+    ///
+    /// # Errors
+    ///
+    /// Rejects product metadata belonging to a different target quiver.
+    #[doc(hidden)]
+    pub fn from_qpa_parts(
+        quotient: QuotientPathAlgebra<F>,
+        product: QuiverProduct,
+        factors: [QuiverAlgebra<F>; 2],
+    ) -> Result<Self, PathAlgebraTensorError> {
+        if !quotient
+            .original_path_algebra()
+            .quiver()
+            .is_identical(product.quiver())
+        {
+            return Err(PathAlgebraTensorError::TargetProductQuiverMismatch);
+        }
+        Ok(Self(Arc::new(TensorProductAlgebraData {
+            algebra: QuiverAlgebra::Quotient(quotient),
+            product,
+            factors,
+        })))
+    }
+
+    /// Return the tensor product as QPA's quiver-algebra union.
+    #[must_use]
+    pub fn algebra(&self) -> &QuiverAlgebra<F> {
+        &self.0.algebra
+    }
+
+    /// Return the quotient constructed by the source method.
+    #[must_use]
+    pub fn quotient(&self) -> &QuotientPathAlgebra<F> {
+        match self.algebra() {
+            QuiverAlgebra::Quotient(quotient) => quotient,
+            QuiverAlgebra::Path(_) => unreachable!(),
+        }
+    }
+
+    /// Return QPA's product quiver with its decomposition metadata.
+    #[must_use]
+    pub fn product_quiver(&self) -> &QuiverProduct {
+        &self.0.product
+    }
+
+    /// Return QPA's retained `TensorProductDecomposition` list.
+    #[must_use]
+    pub fn factors(&self) -> &[QuiverAlgebra<F>; 2] {
+        &self.0.factors
+    }
+
+    /// Extract one retained factor using QPA's one-based indexing.
+    ///
+    /// # Errors
+    ///
+    /// Returns an explicit range error where GAP list access would fail.
+    pub fn factor(&self, index: usize) -> Result<&QuiverAlgebra<F>, TensorProductAlgebraError> {
+        self.factors()
+            .get(index.wrapping_sub(1))
+            .ok_or(TensorProductAlgebraError::FactorIndexOutOfRange { index })
+    }
+
+    /// Apply QPA's `SimpleTensor` using this tensor product's retained product
+    /// metadata.
+    ///
+    /// # Errors
+    ///
+    /// Propagates source-translated simple-tensor failures.
+    pub fn simple_tensor(
+        &self,
+        factors: [&QuiverAlgebraElement<F>; 2],
+    ) -> Result<QuiverAlgebraElement<F>, PathAlgebraTensorError> {
+        simple_tensor(factors, self.algebra(), self.product_quiver())
+    }
+
+    /// Translate `TensorAlgebraInclusion(T, n)`.
+    ///
+    /// QPA selects the first factor only for the integer `1`; every other
+    /// integer selects the second factor, including zero and negative values.
+    ///
+    /// # Errors
+    ///
+    /// Propagates generator construction, simple-tensor, and homomorphism
+    /// construction failures.
+    pub fn inclusion(
+        &self,
+        factor_number: i64,
+    ) -> Result<QuiverAlgebraHomomorphism<F>, TensorAlgebraInclusionError> {
+        let selected = usize::from(factor_number != 1);
+        let source = self.factors()[selected].clone();
+        let generators = source.generators()?;
+        let other_one = self.factors()[1 - selected].one()?;
+        let images = generators
+            .iter()
+            .map(|generator| {
+                if factor_number == 1 {
+                    self.simple_tensor([generator, &other_one])
+                } else {
+                    self.simple_tensor([&other_one, generator])
+                }
+            })
+            .collect::<Result<Vec<_>, PathAlgebraTensorError>>()?;
+        Ok(QuiverAlgebraHomomorphism::by_generator_images(
+            source,
+            self.algebra().clone(),
+            images,
+        )?)
+    }
+
+    /// Return whether two handles denote the identical tensor object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    pub(crate) fn downgrade(&self) -> WeakTensorProductAlgebra<F> {
+        WeakTensorProductAlgebra(Arc::downgrade(&self.0))
+    }
+}
+
+impl<F: Field> PartialEq for TensorProductAlgebra<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.is_identical(other)
+    }
+}
+
+impl<F: Field> Eq for TensorProductAlgebra<F> {}
+
+#[derive(Clone)]
+pub(crate) struct WeakTensorProductAlgebra<F: Field>(Weak<TensorProductAlgebraData<F>>);
+
+impl<F: Field> WeakTensorProductAlgebra<F> {
+    pub(crate) fn upgrade(&self) -> Option<TensorProductAlgebra<F>> {
+        self.0.upgrade().map(TensorProductAlgebra)
+    }
+}
+
+/// Failure while accessing QPA's retained tensor-product metadata.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum TensorProductAlgebraError {
+    /// QPA's retained decomposition contains exactly two factors.
+    #[error("tensor-product factor index {index} is outside 1..=2")]
+    FactorIndexOutOfRange {
+        /// Rejected one-based index.
+        index: usize,
+    },
+}
+
+/// Failure while constructing QPA's inclusion of one tensor factor.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum TensorAlgebraInclusionError {
+    /// Source generators or their units could not be embedded.
+    #[error(transparent)]
+    Element(#[from] QuiverAlgebraElementError),
+    /// The retained tensor metadata or simple-tensor expansion failed.
+    #[error(transparent)]
+    Tensor(#[from] PathAlgebraTensorError),
+    /// Construction of the stored generator-image map failed.
+    #[error(transparent)]
+    Homomorphism(#[from] QuiverAlgebraHomomorphismError),
 }
 
 /// Construct QPA's Cartesian product of two quivers.

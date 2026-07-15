@@ -524,8 +524,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   algebra decompositions, quotient normal forms, field check, and empty-ideal
   source failure. Tensor-factor inclusions now retain QPA's explicit algebra
   generators and images, including the quotient-only leading unit generator
-  and the source method's `n <> 1` second-factor branch. Enveloping-algebra
-  methods remain.
+  and the source method's `n <> 1` second-factor branch. Enveloping algebras
+  now use the cached QPA opposite, preserve attribute identity and decomposition,
+  install the explicit property flag, and propagate cached admissibility over
+  `QQ` and `GF(2)`. The enveloping-algebra module constructions remain.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.

@@ -16446,7 +16446,7 @@ source_end = 70
 classification = "declared_surface"
 status = "verified"
 rust_symbol = "PathAlgebra::opposite; qpa_gbnp::opposite_path_algebra"
-tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json","tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17915,7 +17915,7 @@ source_end = 1569
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "qpa_gbnp::opposite_path_algebra"
-tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json","tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17928,7 +17928,7 @@ source_end = 1575
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "qpa_gbnp::opposite_path_algebra"
-tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json","tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19707,9 +19707,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 61
 source_end = 61
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19720,9 +19720,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 62
 source_end = 62
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_enveloping_algebra; QuiverAlgebra::is_enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20071,9 +20071,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 392
 source_end = 404
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20084,9 +20084,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 407
 source_end = 412
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -60,7 +60,8 @@ pub use suffix_tree::{
 };
 pub use tensor::{
     PathAlgebraElementTermRecord, PathAlgebraTensorError, QuiverProduct,
-    QuiverProductDecomposition, QuiverProductError, include_in_path_algebra,
+    QuiverProductDecomposition, QuiverProductError, TensorAlgebraInclusionError,
+    TensorProductAlgebra, TensorProductAlgebraError, include_in_path_algebra,
     include_in_product_quiver, path_algebra_element_terms, project_from_product_quiver,
     quiver_product, reverse_path, simple_tensor, vertices_of_path_algebra, walk_of_path_or_vertex,
 };

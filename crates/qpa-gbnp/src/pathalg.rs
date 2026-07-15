@@ -609,8 +609,12 @@ pub fn opposite_path_algebra<F: Field>(
     let opposite_parent = quotient.original_path_algebra().opposite()?;
     let opposite_relators = quotient.opposite_defining_relations()?;
     let complete_relations = gbnp_groebner_basis(&opposite_relators, &opposite_parent)?;
-    Ok(quotient
-        .install_opposite_from_complete_relations(&opposite_relators, &complete_relations)?)
+    let opposite = quotient
+        .install_opposite_from_complete_relations(&opposite_relators, &complete_relations)?;
+    if quotient.is_admissible()? {
+        opposite.mark_admissible();
+    }
+    Ok(opposite)
 }
 
 /// Translate `OppositePathAlgebraElement` for a quotient element through the

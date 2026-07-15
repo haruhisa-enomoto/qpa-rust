@@ -10,7 +10,7 @@ use thiserror::Error;
 
 use crate::{
     NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver, QuotientError,
-    QuotientPathAlgebra, QuotientPathAlgebraElement,
+    QuotientPathAlgebra, QuotientPathAlgebraElement, TensorProductAlgebra,
 };
 
 /// A QPA quiver algebra that may be a path algebra or a proper quotient.
@@ -166,6 +166,41 @@ impl<F: Field> QuiverAlgebra<F> {
                 algebra.is_identical(element.algebra())
             }
             _ => false,
+        }
+    }
+
+    /// Return QPA's `IsEnvelopingAlgebra` property.
+    ///
+    /// The generic source method is false; only the quotient object explicitly
+    /// marked by `EnvelopingAlgebra` returns true.
+    #[must_use]
+    pub fn is_enveloping_algebra(&self) -> bool {
+        match self {
+            Self::Path(_) => false,
+            Self::Quotient(algebra) => algebra.is_enveloping_algebra(),
+        }
+    }
+
+    /// Return an already-live cached `EnvelopingAlgebra` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_enveloping_algebra(&self) -> Option<TensorProductAlgebra<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_enveloping_algebra(),
+            Self::Quotient(algebra) => algebra.cached_enveloping_algebra(),
+        }
+    }
+
+    /// Install and return QPA's cached `EnvelopingAlgebra` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_enveloping_algebra(
+        &self,
+        enveloping: &TensorProductAlgebra<F>,
+    ) -> TensorProductAlgebra<F> {
+        match self {
+            Self::Path(algebra) => algebra.cache_enveloping_algebra(enveloping),
+            Self::Quotient(algebra) => algebra.cache_enveloping_algebra(enveloping),
         }
     }
 
