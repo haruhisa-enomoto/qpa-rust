@@ -19,6 +19,7 @@ use crate::TensorProductAlgebra;
 use crate::{
     OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverError, QuiverOrdering, Vertex,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule},
+    quotient::{QuotientPathAlgebra, WeakQuotientPathAlgebra},
     tensor::WeakTensorProductAlgebra,
 };
 
@@ -35,6 +36,10 @@ struct PathAlgebraData<F: Field> {
     dual_enveloping_module_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     dual_enveloping_module_bound: OnceLock<()>,
     dual_enveloping_module_fail: OnceLock<()>,
+    trivial_extension_level: OnceLock<usize>,
+    trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
+    trivial_extension_bound: OnceLock<()>,
+    trivial_extension_fail: OnceLock<()>,
 }
 
 /// QPA's external representation of a path-algebra element.
@@ -123,6 +128,10 @@ impl<F: Field> PathAlgebra<F> {
             dual_enveloping_module_weak: RwLock::new(None),
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
+            trivial_extension_level: OnceLock::new(),
+            trivial_extension_weak: RwLock::new(None),
+            trivial_extension_bound: OnceLock::new(),
+            trivial_extension_fail: OnceLock::new(),
         })))
     }
 
@@ -251,6 +260,49 @@ impl<F: Field> PathAlgebra<F> {
         *slot = Some(module.downgrade());
         let _ = self.0.dual_enveloping_module_bound.set(());
         module.clone()
+    }
+
+    pub(crate) fn trivial_extension_level(&self) -> usize {
+        self.0.trivial_extension_level.get().copied().unwrap_or(0)
+    }
+
+    pub(crate) fn set_trivial_extension_level(&self, level: usize) {
+        let _ = self.0.trivial_extension_level.set(level);
+    }
+
+    pub(crate) fn cached_trivial_extension(&self) -> Option<QuotientPathAlgebra<F>> {
+        self.0
+            .trivial_extension_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakQuotientPathAlgebra::upgrade)
+    }
+
+    pub(crate) fn trivial_extension_attribute_is_fail(&self) -> bool {
+        self.0.trivial_extension_fail.get().is_some()
+    }
+
+    pub(crate) fn mark_trivial_extension_attribute_fail(&self) {
+        let _ = self.0.trivial_extension_fail.set(());
+        let _ = self.0.trivial_extension_bound.set(());
+    }
+
+    pub(crate) fn cache_trivial_extension(
+        &self,
+        extension: &QuotientPathAlgebra<F>,
+    ) -> QuotientPathAlgebra<F> {
+        let mut slot = self
+            .0
+            .trivial_extension_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakQuotientPathAlgebra::upgrade) {
+            return cached;
+        }
+        *slot = Some(extension.downgrade());
+        let _ = self.0.trivial_extension_bound.set(());
+        extension.clone()
     }
 
     /// Return the additive zero.

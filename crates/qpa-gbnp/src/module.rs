@@ -9,7 +9,7 @@ use qpa_core::{
     DenseMatrix, MatrixError, NamedArrowMatrix, PathAlgebraError, PathAlgebraModule,
     PathAlgebraModuleError, PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra,
     QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct, QuiverProductError,
-    QuotientError, include_in_path_algebra, project_from_product_quiver,
+    QuotientError, include_in_path_algebra, loewy_length_of_module, project_from_product_quiver,
     right_module_over_path_algebra, right_module_over_path_algebra_with_tensor,
 };
 use thiserror::Error;
@@ -143,6 +143,92 @@ pub fn algebra_as_module_of_enveloping_algebra<F: Field>(
     algebra: &QuiverAlgebra<F>,
 ) -> Result<Option<PathAlgebraModule<F>>, EnvelopingModuleError> {
     algebra_as_module_over_enveloping_algebra(algebra)
+}
+
+/// Translate QPA's algebra `LoewyLength` method through its indecomposable
+/// projective representations and repeated `RadicalOfModule` calls.
+///
+/// # Errors
+///
+/// Requires a finite path algebra or finite admissible quotient and
+/// propagates canonical-basis, exact module, and radical failures.
+pub fn loewy_length_of_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<usize, EnvelopingModuleError> {
+    let projectives = projective_matrix_modules(algebra)?;
+    let mut maximum = 0;
+    for projective in projectives {
+        maximum = maximum.max(loewy_length_of_module(projective)?);
+    }
+    Ok(maximum)
+}
+
+fn projective_matrix_modules<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Vec<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    let Some(basis) = finite_canonical_basis(algebra)? else {
+        return Err(EnvelopingModuleError::InfiniteLoewyAlgebra);
+    };
+    if matches!(algebra, QuiverAlgebra::Quotient(quotient) if !quotient.is_admissible()?) {
+        return Err(EnvelopingModuleError::NonadmissibleLoewyAlgebra);
+    }
+    let vertex_count = algebra.quiver().number_of_vertices();
+    let arrows = algebra
+        .quiver()
+        .arrows()
+        .map(|arrow| include_in_path_algebra(&arrow.path(), algebra))
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut projectives = Vec::with_capacity(vertex_count);
+
+    for projective_vertex in 0..vertex_count {
+        let projective_basis = basis
+            .iter()
+            .enumerate()
+            .filter_map(|(index, element)| {
+                let PathEndpoint::Vertex(source) = element.leading_monomial().source() else {
+                    return None;
+                };
+                (source.index().get() - 1 == projective_vertex).then_some(index)
+            })
+            .collect::<Vec<_>>();
+        let mut intervals = vec![Vec::new(); vertex_count];
+        for &basis_index in &projective_basis {
+            let PathEndpoint::Vertex(target) = basis[basis_index].leading_monomial().target()
+            else {
+                continue;
+            };
+            intervals[target.index().get() - 1].push(basis_index);
+        }
+        let dimensions = intervals.iter().map(Vec::len).collect::<Vec<_>>();
+        let mut specification = Vec::new();
+        for (arrow, arrow_element) in algebra.quiver().arrows().zip(&arrows) {
+            let source = arrow.source().index().get() - 1;
+            let target = arrow.target().index().get() - 1;
+            if dimensions[source] == 0 || dimensions[target] == 0 {
+                continue;
+            }
+            let rows = intervals[source]
+                .iter()
+                .map(|&basis_index| {
+                    let image = basis[basis_index].multiply(arrow_element)?;
+                    let coefficients = canonical_basis_coefficients(algebra, &basis, &image)?;
+                    Ok(intervals[target]
+                        .iter()
+                        .map(|&index| coefficients[index].clone())
+                        .collect::<Vec<_>>())
+                })
+                .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+            specification.push(NamedArrowMatrix::new(
+                arrow.name(),
+                DenseMatrix::from_rows(rows, algebra.field().clone())?,
+            ));
+        }
+        projectives.push(
+            right_module_over_path_algebra(algebra.clone(), dimensions, &specification)?
+                .ok_or(EnvelopingModuleError::GeneratedProjectiveViolatesRelations)?,
+        );
+    }
+    Ok(projectives)
 }
 
 /// Translate QPA's cached `DualOfModule(M)` for path-algebra matrix modules.
@@ -309,7 +395,7 @@ fn swapped_product_generator_name<F: Field>(
     Ok(format!("{second_name}_{first_name}").into_boxed_str())
 }
 
-fn finite_canonical_basis<F: Field>(
+pub(crate) fn finite_canonical_basis<F: Field>(
     algebra: &QuiverAlgebra<F>,
 ) -> Result<Option<Vec<QuiverAlgebraElement<F>>>, EnvelopingModuleError> {
     match algebra {
@@ -333,7 +419,7 @@ fn finite_canonical_basis<F: Field>(
     }
 }
 
-fn canonical_basis_coefficients<F: Field>(
+pub(crate) fn canonical_basis_coefficients<F: Field>(
     algebra: &QuiverAlgebra<F>,
     basis_vectors: &[QuiverAlgebraElement<F>],
     element: &QuiverAlgebraElement<F>,
@@ -380,6 +466,15 @@ pub enum EnvelopingModuleError {
         /// Generated QPA product name.
         name: Box<str>,
     },
+    /// QPA defines algebra Loewy length only for finite-dimensional input.
+    #[error("the entered algebra is not finite dimensional")]
+    InfiniteLoewyAlgebra,
+    /// QPA's method requires an admissible quotient when input is not a path algebra.
+    #[error("LoewyLength requires an admissible quotient of a path algebra")]
+    NonadmissibleLoewyAlgebra,
+    /// A projective action generated from canonical basis multiplication must satisfy relations.
+    #[error("a generated indecomposable projective does not satisfy the algebra relations")]
+    GeneratedProjectiveViolatesRelations,
     /// The configured QPA/GBNP finite-basis path failed.
     #[error(transparent)]
     Backend(#[from] PathalgGbnpError),

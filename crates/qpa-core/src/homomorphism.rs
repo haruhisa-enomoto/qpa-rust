@@ -22,6 +22,7 @@ pub struct QuiverAlgebraHomomorphism<F: Field> {
     range: QuiverAlgebra<F>,
     generators: Vec<QuiverAlgebraElement<F>>,
     generator_images: Vec<QuiverAlgebraElement<F>>,
+    generator_index_offset: usize,
 }
 
 impl<F: Field> QuiverAlgebraHomomorphism<F> {
@@ -41,6 +42,43 @@ impl<F: Field> QuiverAlgebraHomomorphism<F> {
         generator_images: Vec<QuiverAlgebraElement<F>>,
     ) -> Result<Self, QuiverAlgebraHomomorphismError> {
         let generators = source.generators()?;
+        let generator_index_offset = usize::from(matches!(source, QuiverAlgebra::Quotient(_)));
+        Self::by_explicit_generator_images(
+            source,
+            range,
+            generators,
+            generator_images,
+            generator_index_offset,
+        )
+    }
+
+    /// Construct a mapping on QPA's `GeneratorsOfAlgebraWithOne` list.
+    ///
+    /// For quotient path algebras this list is vertices followed by arrows,
+    /// without the extra leading identity returned by ordinary
+    /// `GeneratorsOfAlgebra`. Path algebras use the same list in both cases.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a list of the wrong length or an image outside the identical
+    /// range algebra family, and propagates source-generator construction
+    /// failures.
+    pub fn by_generators_with_one_images(
+        source: QuiverAlgebra<F>,
+        range: QuiverAlgebra<F>,
+        generator_images: Vec<QuiverAlgebraElement<F>>,
+    ) -> Result<Self, QuiverAlgebraHomomorphismError> {
+        let generators = source.generators_with_one()?;
+        Self::by_explicit_generator_images(source, range, generators, generator_images, 0)
+    }
+
+    fn by_explicit_generator_images(
+        source: QuiverAlgebra<F>,
+        range: QuiverAlgebra<F>,
+        generators: Vec<QuiverAlgebraElement<F>>,
+        generator_images: Vec<QuiverAlgebraElement<F>>,
+        generator_index_offset: usize,
+    ) -> Result<Self, QuiverAlgebraHomomorphismError> {
         if generator_images.len() != generators.len() {
             return Err(
                 QuiverAlgebraHomomorphismError::GeneratorImageCountMismatch {
@@ -61,6 +99,7 @@ impl<F: Field> QuiverAlgebraHomomorphism<F> {
             range,
             generators,
             generator_images,
+            generator_index_offset,
         })
     }
 
@@ -86,6 +125,13 @@ impl<F: Field> QuiverAlgebraHomomorphism<F> {
     #[must_use]
     pub fn generator_images(&self) -> &[QuiverAlgebraElement<F>] {
         &self.generator_images
+    }
+
+    /// Return whether this map was entered on
+    /// `GeneratorsOfAlgebraWithOne` rather than ordinary generators.
+    #[must_use]
+    pub const fn uses_generators_with_one(&self) -> bool {
+        self.generator_index_offset == 0
     }
 
     /// Apply the homomorphism to one element of its identical source family.
@@ -125,12 +171,11 @@ impl<F: Field> QuiverAlgebraHomomorphism<F> {
         &self,
         one_based_index: usize,
     ) -> Result<QuiverAlgebraElement<F>, QuiverAlgebraHomomorphismError> {
-        let quotient_unit_offset = usize::from(matches!(self.source, QuiverAlgebra::Quotient(_)));
         self.generator_images
             .get(
                 one_based_index
                     .wrapping_sub(1)
-                    .saturating_add(quotient_unit_offset),
+                    .saturating_add(self.generator_index_offset),
             )
             .cloned()
             .ok_or(QuiverAlgebraHomomorphismError::MissingGeneratorImage {

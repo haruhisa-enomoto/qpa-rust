@@ -447,6 +447,10 @@ struct QuotientPathAlgebraData<F: Field> {
     dual_enveloping_module_bound: OnceLock<()>,
     dual_enveloping_module_fail: OnceLock<()>,
     is_enveloping: OnceLock<bool>,
+    trivial_extension_level: OnceLock<usize>,
+    trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
+    trivial_extension_bound: OnceLock<()>,
+    trivial_extension_fail: OnceLock<()>,
 }
 
 #[derive(Debug)]
@@ -461,6 +465,15 @@ enum QuotientCanonicalBasisState<F: Field> {
 /// A quotient `KQ/I` with QPA's optional normal-form function.
 #[derive(Clone)]
 pub struct QuotientPathAlgebra<F: Field>(Arc<QuotientPathAlgebraData<F>>);
+
+#[derive(Clone, Debug)]
+pub(crate) struct WeakQuotientPathAlgebra<F: Field>(Weak<QuotientPathAlgebraData<F>>);
+
+impl<F: Field> WeakQuotientPathAlgebra<F> {
+    pub(crate) fn upgrade(&self) -> Option<QuotientPathAlgebra<F>> {
+        self.0.upgrade().map(QuotientPathAlgebra)
+    }
+}
 
 impl<F: Field> QuotientPathAlgebra<F> {
     /// Translate QPA's `KQ / relators` using its `HighLevelGroebnerBasis`
@@ -542,6 +555,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
             is_enveloping: OnceLock::new(),
+            trivial_extension_level: OnceLock::new(),
+            trivial_extension_weak: RwLock::new(None),
+            trivial_extension_bound: OnceLock::new(),
+            trivial_extension_fail: OnceLock::new(),
         })))
     }
 
@@ -574,6 +591,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
             is_enveloping: OnceLock::new(),
+            trivial_extension_level: OnceLock::new(),
+            trivial_extension_weak: RwLock::new(None),
+            trivial_extension_bound: OnceLock::new(),
+            trivial_extension_fail: OnceLock::new(),
         })))
     }
 
@@ -606,6 +627,50 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn has_normal_form_function(&self) -> bool {
         self.groebner_basis().is_some()
+    }
+
+    pub(crate) fn trivial_extension_level(&self) -> usize {
+        self.0.trivial_extension_level.get().copied().unwrap_or(0)
+    }
+
+    pub(crate) fn set_trivial_extension_level(&self, level: usize) {
+        let _ = self.0.trivial_extension_level.set(level);
+    }
+
+    pub(crate) fn cached_trivial_extension(&self) -> Option<Self> {
+        self.0
+            .trivial_extension_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakQuotientPathAlgebra::upgrade)
+    }
+
+    pub(crate) fn trivial_extension_attribute_is_fail(&self) -> bool {
+        self.0.trivial_extension_fail.get().is_some()
+    }
+
+    pub(crate) fn mark_trivial_extension_attribute_fail(&self) {
+        let _ = self.0.trivial_extension_fail.set(());
+        let _ = self.0.trivial_extension_bound.set(());
+    }
+
+    pub(crate) fn cache_trivial_extension(&self, extension: &Self) -> Self {
+        let mut slot = self
+            .0
+            .trivial_extension_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakQuotientPathAlgebra::upgrade) {
+            return cached;
+        }
+        *slot = Some(extension.downgrade());
+        let _ = self.0.trivial_extension_bound.set(());
+        extension.clone()
+    }
+
+    pub(crate) fn downgrade(&self) -> WeakQuotientPathAlgebra<F> {
+        WeakQuotientPathAlgebra(Arc::downgrade(&self.0))
     }
 
     /// Return whether two handles denote the identical quotient object.
@@ -1175,6 +1240,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
             is_enveloping: OnceLock::new(),
+            trivial_extension_level: OnceLock::new(),
+            trivial_extension_weak: RwLock::new(None),
+            trivial_extension_bound: OnceLock::new(),
+            trivial_extension_fail: OnceLock::new(),
         }));
         if quotient.ideal().is_admissible()? {
             let _ = quotient.0.admissible.set(true);

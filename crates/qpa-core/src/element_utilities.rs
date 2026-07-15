@@ -27,6 +27,16 @@ pub enum QuiverAlgebra<F: Field> {
 }
 
 impl<F: Field> QuiverAlgebra<F> {
+    /// Return whether two handles denote the identical QPA algebra object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Path(left), Self::Path(right)) => left.is_identical(right),
+            (Self::Quotient(left), Self::Quotient(right)) => left.is_identical(right),
+            _ => false,
+        }
+    }
+
     /// Return whether QPA returned an actual path algebra.
     #[must_use]
     pub const fn is_path_algebra(&self) -> bool {
@@ -307,6 +317,67 @@ impl<F: Field> QuiverAlgebra<F> {
         match self {
             Self::Path(algebra) => algebra.cache_dual_enveloping_module(module),
             Self::Quotient(algebra) => algebra.cache_dual_enveloping_module(module),
+        }
+    }
+
+    /// Translate QPA's defaulting `TrivialExtensionOfQuiverAlgebraLevel`
+    /// method. An unbound attribute has level zero.
+    #[must_use]
+    pub fn trivial_extension_level(&self) -> usize {
+        match self {
+            Self::Path(algebra) => algebra.trivial_extension_level(),
+            Self::Quotient(algebra) => algebra.trivial_extension_level(),
+        }
+    }
+
+    /// Install the level attribute on a newly constructed trivial extension.
+    #[doc(hidden)]
+    pub fn set_trivial_extension_level(&self, level: usize) {
+        match self {
+            Self::Path(algebra) => algebra.set_trivial_extension_level(level),
+            Self::Quotient(algebra) => algebra.set_trivial_extension_level(level),
+        }
+    }
+
+    /// Return an already-live cached trivial-extension attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_trivial_extension(&self) -> Option<QuotientPathAlgebra<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_trivial_extension(),
+            Self::Quotient(algebra) => algebra.cached_trivial_extension(),
+        }
+    }
+
+    /// Return whether the cached trivial-extension attribute is GAP `fail`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn trivial_extension_attribute_is_fail(&self) -> bool {
+        match self {
+            Self::Path(algebra) => algebra.trivial_extension_attribute_is_fail(),
+            Self::Quotient(algebra) => algebra.trivial_extension_attribute_is_fail(),
+        }
+    }
+
+    /// Cache GAP's `fail` result for an infinite-dimensional algebra.
+    #[doc(hidden)]
+    pub fn mark_trivial_extension_attribute_fail(&self) {
+        match self {
+            Self::Path(algebra) => algebra.mark_trivial_extension_attribute_fail(),
+            Self::Quotient(algebra) => algebra.mark_trivial_extension_attribute_fail(),
+        }
+    }
+
+    /// Install and return the cached trivial-extension quotient.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_trivial_extension(
+        &self,
+        extension: &QuotientPathAlgebra<F>,
+    ) -> QuotientPathAlgebra<F> {
+        match self {
+            Self::Path(algebra) => algebra.cache_trivial_extension(extension),
+            Self::Quotient(algebra) => algebra.cache_trivial_extension(extension),
         }
     }
 

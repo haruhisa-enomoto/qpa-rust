@@ -19,6 +19,7 @@ pub mod reduction;
 pub mod reptype;
 pub mod sgrobner;
 pub mod tensor;
+pub mod trivial_extension;
 
 pub use heap::{TodoHeap, TodoHeapError};
 pub use invlenlex::{
@@ -31,7 +32,7 @@ pub use invlenlex::{
 pub use module::{
     EnvelopingModuleError, ModuleFunctorError, algebra_as_module_of_enveloping_algebra,
     algebra_as_module_over_enveloping_algebra, dual_of_algebra_as_module_over_enveloping_algebra,
-    dual_of_module,
+    dual_of_module, loewy_length_of_algebra,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,
@@ -97,4 +98,9 @@ pub use tensor::{
     EMPTY_TENSOR_RELATIONS_ERROR, TensorProductAlgebra, TensorProductError, enveloping_algebra,
     is_enveloping_algebra, tensor_algebra_inclusion, tensor_product_of_algebras,
     tensor_product_of_path_algebras,
+};
+pub use trivial_extension::{
+    TrivialExtensionError, enveloping_algebra_homomorphism, opposite_algebra_homomorphism,
+    trivial_extension_level, trivial_extension_of_quiver_algebra,
+    trivial_extension_of_quiver_algebra_projection,
 };

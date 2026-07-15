@@ -309,6 +309,59 @@ impl<F: Field> DenseMatrix<F> {
         }
     }
 
+    /// Return GAP's canonical basis for the row space of this matrix.
+    ///
+    /// This translates the generic `TriangulizeMat` method used by
+    /// `CanonicalBasis` for a Gaussian row space.  Unlike
+    /// [`Self::semi_echelon_transformation`], every pivot column is cleared
+    /// both above and below its pivot, and the surviving rows are ordered by
+    /// increasing pivot column.
+    #[must_use]
+    pub fn canonical_row_space_basis(&self) -> Self {
+        let mut matrix = self.clone();
+        let mut rank = 0;
+
+        for column in 0..self.ncols {
+            let Some(pivot_row) =
+                (rank..self.nrows).find(|&row| !self.field.is_zero(&matrix[(row, column)]))
+            else {
+                continue;
+            };
+
+            if pivot_row != rank {
+                for entry_column in 0..self.ncols {
+                    let pivot_index = pivot_row * self.ncols + entry_column;
+                    let rank_index = rank * self.ncols + entry_column;
+                    matrix.data.swap(pivot_index, rank_index);
+                }
+            }
+
+            let inverse = self.field.inv(&matrix[(rank, column)]);
+            scale_row(&self.field, matrix.row_mut(rank), &inverse);
+            let pivot = matrix.row(rank).to_vec();
+            for row in 0..self.nrows {
+                if row == rank {
+                    continue;
+                }
+                let scale = self.field.neg(&matrix[(row, column)]);
+                if !self.field.is_zero(&scale) {
+                    add_scaled_row(&self.field, matrix.row_mut(row), &pivot, &scale);
+                }
+            }
+            rank += 1;
+            if rank == self.nrows {
+                break;
+            }
+        }
+
+        Self {
+            nrows: rank,
+            ncols: self.ncols,
+            data: matrix.data[..rank * self.ncols].to_vec(),
+            field: self.field.clone(),
+        }
+    }
+
     /// Return GAP's left nullspace: rows `x` satisfying `x * self = 0`.
     #[must_use]
     pub fn nullspace_rows(&self) -> Self {
@@ -541,6 +594,30 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(solution, vec![q(5, 3), q(1, 3), q(0, 1)]);
+    }
+
+    #[test]
+    fn canonical_row_basis_translates_gap_full_triangulation() {
+        let matrix = DenseMatrix::from_rows(
+            vec![
+                vec![q(1, 1), q(1, 1), q(0, 1), q(1, 1)],
+                vec![q(0, 1), q(1, 1), q(1, 1), q(0, 1)],
+            ],
+            Q,
+        )
+        .unwrap();
+
+        assert_eq!(
+            matrix.canonical_row_space_basis(),
+            DenseMatrix::from_rows(
+                vec![
+                    vec![q(1, 1), q(0, 1), q(-1, 1), q(1, 1)],
+                    vec![q(0, 1), q(1, 1), q(1, 1), q(0, 1)],
+                ],
+                Q,
+            )
+            .unwrap()
+        );
     }
 
     #[test]

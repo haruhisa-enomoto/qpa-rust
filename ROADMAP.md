@@ -510,7 +510,7 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   default GBNP quotient backend. Its empty-relation path-algebra return type is
   preserved explicitly; the general idempotent-corner `QuiverAlgebraOfeAe`
   remains module/radical dependent.
-- [ ] Port tensor products, enveloping algebras, and algebra-as-bimodule.
+- [x] Port tensor products, enveloping algebras, and algebra-as-bimodule.
   The dependency-free `pathalgtensor` substrate is source-translated:
   `QuiverProduct` retains QPA's Cartesian generator order, composed names, and
   two-factor decomposition; list-like factor access, display, path-or-vertex
@@ -538,8 +538,15 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   QPA's opposite algebra with its reciprocal attribute identity. The dual
   regular bimodule then follows QPA's second-stage tensor-factor name
   permutation back to the original enveloping algebra, including cached
-  identity and the pre-construction infinite-dimensional `fail` branch.
-- [ ] Port trivial extensions and their structural maps.
+  identity and the pre-construction infinite-dimensional `fail` branch. The
+  complete `pathalgtensor` declaration/implementation ledger is now verified.
+- [x] Port trivial extensions and their structural maps. The construction uses
+  QPA's dual-regular-bimodule top, new-arrow naming, old relations, `V V` and
+  `V(rad A)V` products, Loewy truncation, one-new-arrow canonical paths,
+  simple-tensor action matrix, and GAP-compatible nullspace relations. The
+  level attribute, finite-dimensional `fail`, repeat-call identity,
+  opposite/enveloping homomorphisms, and natural projection are pinned over
+  `QQ` and `GF(2)`.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.
   `NakayamaAlgebra`, both `CanonicalAlgebra` overloads, and
@@ -589,13 +596,23 @@ every predefined algebra example and property test is translated.
 
 Primary QPA files: `module` and `modulespecial`.
 
-- [ ] Port module elements and the right action of paths/algebra elements.
-- [ ] Port matrix-module construction with and without relation checking.
+- [ ] Port module elements and the right action of paths/algebra elements. The
+  external representation, vertex support, vertex-major basis coordinates,
+  arithmetic, and right action used by QPA's tensor/module pipeline are now
+  source-translated; the remaining `module.gi` element surface keeps this open.
+- [ ] Port matrix-module construction with and without relation checking. The
+  checked three-argument constructor is complete; unchecked and remaining
+  constructor overloads are pending.
 - [ ] Validate dimensions, fields, relation satisfaction, and zero spaces as QPA
   does.
 - [ ] Port bases, canonical bases, coordinates, dimension vectors, and support.
+  The element basis, coordinates, dimension vector, and support required by
+  the translated module-map layer are complete.
 - [ ] Port submodules, restriction, direct sums, generators, radical/socle series,
-  Loewy length, annihilators, and module predicates.
+  Loewy length, annihilators, and module predicates. `SubRepresentation`,
+  radical inclusion/object, and module/algebra Loewy length now follow QPA's
+  repeated-arrow closure and repeated-radical methods; the other operations
+  remain pending.
 - [ ] Port simples, indecomposable projectives/injectives, and zero modules.
 - [ ] Port projective bases and element conversions.
 - [ ] Port rigidity, tau-rigidity, exceptionality, and complexity operations.
@@ -608,12 +625,19 @@ available in Rust and matches QPA on translated module examples.
 
 Primary QPA files: `modulehom` and `moduledecomp`.
 
-- [ ] Port matrix-defined module maps and commutativity validation.
+- [x] Port matrix-defined module maps and commutativity validation. The
+  physical zero-space matrix conventions, checked arrow squares, element
+  images/preimages, zero/identity maps, and matrix accessor are pinned against
+  the module/trivial-extension oracle.
 - [ ] Port map equality, addition, scalar multiplication, and composition.
 - [ ] Port `HomOverAlgebra` using QPA's linear-equation construction.
 - [ ] Port endomorphism algebras and basis-coordinate functions.
 - [ ] Port kernel, image, cokernel, induced maps, intersections, and sums.
-- [ ] Port radical/top/socle maps and direct-sum inclusions/projections.
+  QPA's natural row-space quotient convention and cokernel projection/object
+  are complete; kernels, images, induced maps, intersections, and sums remain.
+- [ ] Port radical/top/socle maps and direct-sum inclusions/projections. Radical
+  inclusion/object and top projection/object are complete over `QQ` and
+  `GF(2)`, including GAP's canonical quotient lifts and zero-module branch.
 - [ ] Port liftings, split maps, inverses, minimal versions, and factoring through
   projectives.
 - [ ] Port isomorphism/direct-summand/additive-closure computations.
