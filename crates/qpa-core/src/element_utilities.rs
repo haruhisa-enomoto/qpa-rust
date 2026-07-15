@@ -9,8 +9,8 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, Quiver, QuotientError,
-    QuotientPathAlgebra, QuotientPathAlgebraElement, TensorProductAlgebra,
+    NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraModule,
+    Quiver, QuotientError, QuotientPathAlgebra, QuotientPathAlgebraElement, TensorProductAlgebra,
 };
 
 /// A QPA quiver algebra that may be a path algebra or a proper quotient.
@@ -201,6 +201,59 @@ impl<F: Field> QuiverAlgebra<F> {
         match self {
             Self::Path(algebra) => algebra.cache_enveloping_algebra(enveloping),
             Self::Quotient(algebra) => algebra.cache_enveloping_algebra(enveloping),
+        }
+    }
+
+    /// Return an already-live cached
+    /// `AlgebraAsModuleOverEnvelopingAlgebra` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_regular_enveloping_module(&self) -> Option<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_regular_enveloping_module(),
+            Self::Quotient(algebra) => algebra.cached_regular_enveloping_module(),
+        }
+    }
+
+    /// Return QPA's `HasAlgebraAsModuleOverEnvelopingAlgebra` state.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn has_regular_enveloping_module_attribute(&self) -> bool {
+        match self {
+            Self::Path(algebra) => algebra.has_regular_enveloping_module_attribute(),
+            Self::Quotient(algebra) => algebra.has_regular_enveloping_module_attribute(),
+        }
+    }
+
+    /// Return whether the bound attribute value is GAP's `fail`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn regular_enveloping_module_attribute_is_fail(&self) -> bool {
+        match self {
+            Self::Path(algebra) => algebra.regular_enveloping_module_attribute_is_fail(),
+            Self::Quotient(algebra) => algebra.regular_enveloping_module_attribute_is_fail(),
+        }
+    }
+
+    /// Bind the regular enveloping-module attribute to GAP's `fail` value.
+    #[doc(hidden)]
+    pub fn mark_regular_enveloping_module_attribute_fail(&self) {
+        match self {
+            Self::Path(algebra) => algebra.mark_regular_enveloping_module_attribute_fail(),
+            Self::Quotient(algebra) => algebra.mark_regular_enveloping_module_attribute_fail(),
+        }
+    }
+
+    /// Install and return QPA's cached regular enveloping-module attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_regular_enveloping_module(
+        &self,
+        module: &PathAlgebraModule<F>,
+    ) -> PathAlgebraModule<F> {
+        match self {
+            Self::Path(algebra) => algebra.cache_regular_enveloping_module(module),
+            Self::Quotient(algebra) => algebra.cache_regular_enveloping_module(module),
         }
     }
 

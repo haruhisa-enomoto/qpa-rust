@@ -14,6 +14,7 @@ pub mod homomorphism;
 pub mod matrix;
 pub mod ordering;
 pub mod path_algebra;
+pub mod path_module;
 pub mod poset;
 pub mod quiver;
 pub mod quotient;
@@ -41,6 +42,10 @@ pub use ordering::{OrderingError, QuiverOrdering, check_quiver_subset_for_cycles
 pub use path_algebra::{
     PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraExternalRepresentation,
     PathAlgebraTerm, opposite_relations,
+};
+pub use path_module::{
+    NamedArrowMatrix, PathAlgebraModule, PathAlgebraModuleError, PathAlgebraModuleMatrix,
+    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor,
 };
 pub use poset::{Poset, PosetError};
 pub use quiver::{

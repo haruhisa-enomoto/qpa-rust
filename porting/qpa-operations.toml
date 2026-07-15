@@ -10022,9 +10022,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::matrices_of_path_algebra_module"
+tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10035,9 +10035,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::dimension_vector"
+tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10685,9 +10685,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 771
 source_end = 915
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_module_over_path_algebra"
+tests = ["crates/qpa-core/src/path_module.rs","tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10698,9 +10698,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 925
 source_end = 940
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "ported"
+rust_symbol = "PathAlgebraModule::eq; PathAlgebraModule::is_identical"
+tests = ["crates/qpa-core/src/path_module.rs"]
 deviations = []
 
 [[entries]]
@@ -10828,9 +10828,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1451
 source_end = 1479
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::matrices_of_path_algebra_module"
+tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19733,9 +19733,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 64
 source_end = 64
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "algebra_as_module_over_enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19746,9 +19746,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gd"
 source_start = 65
 source_end = 65
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "algebra_as_module_of_enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20097,9 +20097,9 @@ source_file = "upstream/qpa/lib/pathalgtensor.gi"
 source_start = 414
 source_end = 485
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "algebra_as_module_over_enveloping_algebra"
+tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
 
 [[entries]]

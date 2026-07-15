@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "kind": "pathalgtensor_regular_module",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational_quotient": {
+    "attribute_identity": [false, true, true, true, true],
+    "module": {
+      "dimension_vector": [2],
+      "dimension": 2,
+      "arrows": ["v_op_x", "x_op_v"],
+      "matrices": [
+        {"shape": [2, 2], "rows": [["0", "1"], ["0", "0"]]},
+        {"shape": [2, 2], "rows": [["0", "1"], ["0", "0"]]}
+      ]
+    }
+  },
+  "binary_path": {
+    "attribute_identity": [true, true],
+    "module": {
+      "dimension_vector": [1, 1, 0, 1],
+      "dimension": 3,
+      "arrows": ["u1_op_a", "u2_op_a", "a_op_u1", "a_op_u2"],
+      "matrices": [
+        {"shape": [1, 1], "rows": [["Z(2)^0"]]},
+        {"shape": [1, 1], "rows": [["0*Z(2)"]]},
+        {"shape": [1, 1], "rows": [["0*Z(2)"]]},
+        {"shape": [1, 1], "rows": [["Z(2)^0"]]}
+      ]
+    }
+  },
+  "infinite_path": {
+    "is_fail": true,
+    "attribute_bound": true,
+    "enveloping_bound": false
+  }
+}

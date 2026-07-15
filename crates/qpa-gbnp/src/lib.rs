@@ -5,6 +5,7 @@
 
 pub mod heap;
 pub mod invlenlex;
+pub mod module;
 pub mod np;
 pub mod obstruction;
 pub mod occur_tree;
@@ -26,6 +27,10 @@ pub use invlenlex::{
     reduced_list_inv_len_inv_lex, remainder_of_division_inv_len_inv_lex,
     tip_coefficient_inv_len_inv_lex, tip_inv_len_inv_lex, tip_monomial_inv_len_inv_lex,
     tip_reduced_list_inv_len_inv_lex, tip_walk_inv_len_inv_lex, truncate_element,
+};
+pub use module::{
+    EnvelopingModuleError, algebra_as_module_of_enveloping_algebra,
+    algebra_as_module_over_enveloping_algebra,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,

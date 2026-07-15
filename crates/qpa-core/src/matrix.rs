@@ -153,6 +153,101 @@ impl<F: Field> DenseMatrix<F> {
         self.data.iter().all(|entry| self.field.is_zero(entry))
     }
 
+    /// Add equally shaped matrices over the same exact field.
+    ///
+    /// # Errors
+    ///
+    /// Rejects different fields or shapes.
+    pub fn add(&self, right: &Self) -> Result<Self, MatrixError> {
+        self.ensure_same_field(right)?;
+        self.ensure_same_shape(right)?;
+        Self::from_flat(
+            self.nrows,
+            self.ncols,
+            self.data
+                .iter()
+                .zip(&right.data)
+                .map(|(left, right)| self.field.add(left, right))
+                .collect(),
+            self.field.clone(),
+        )
+    }
+
+    /// Multiply matrices using GAP's row-vector convention.
+    ///
+    /// # Errors
+    ///
+    /// Rejects different fields or incompatible inner dimensions.
+    pub fn multiply(&self, right: &Self) -> Result<Self, MatrixError> {
+        self.ensure_same_field(right)?;
+        if self.ncols != right.nrows {
+            return Err(MatrixError::IncompatibleProduct {
+                left: (self.nrows, self.ncols),
+                right: (right.nrows, right.ncols),
+            });
+        }
+        let mut result = Self::zero(self.nrows, right.ncols, self.field.clone());
+        for row in 0..self.nrows {
+            for inner in 0..self.ncols {
+                let left = &self[(row, inner)];
+                if self.field.is_zero(left) {
+                    continue;
+                }
+                for column in 0..right.ncols {
+                    let product = self.field.mul(left, &right[(inner, column)]);
+                    self.field.add_assign(&mut result[(row, column)], &product);
+                }
+            }
+        }
+        Ok(result)
+    }
+
+    /// Multiply every entry by a field scalar on the left.
+    #[must_use]
+    pub fn scale_left(&self, scalar: &F::Element) -> Self {
+        Self {
+            nrows: self.nrows,
+            ncols: self.ncols,
+            data: self
+                .data
+                .iter()
+                .map(|entry| self.field.mul(scalar, entry))
+                .collect(),
+            field: self.field.clone(),
+        }
+    }
+
+    /// Return the matrix transpose with its explicit shape reversed.
+    #[must_use]
+    pub fn transpose(&self) -> Self {
+        let mut result = Self::zero(self.ncols, self.nrows, self.field.clone());
+        for row in 0..self.nrows {
+            for column in 0..self.ncols {
+                result[(column, row)] = self[(row, column)].clone();
+            }
+        }
+        result
+    }
+
+    fn ensure_same_field(&self, right: &Self) -> Result<(), MatrixError> {
+        if self.field == right.field {
+            Ok(())
+        } else {
+            Err(MatrixError::DifferentFields)
+        }
+    }
+
+    fn ensure_same_shape(&self, right: &Self) -> Result<(), MatrixError> {
+        if (self.nrows, self.ncols) == (right.nrows, right.ncols) {
+            Ok(())
+        } else {
+            Err(MatrixError::DifferentShapes {
+                left: (self.nrows, self.ncols),
+                right: (right.nrows, right.ncols),
+            })
+        }
+    }
+
     /// Translate GAP's semi-echelon transformation algorithm.
     ///
     /// The returned `relations` rows are exactly the coefficient relations
@@ -312,6 +407,25 @@ pub struct SemiEchelonTransformation<F: Field> {
 /// Failure to construct or operate on an explicitly shaped matrix.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum MatrixError {
+    /// Matrix arithmetic requires one exact coefficient field.
+    #[error("matrices are over different coefficient fields")]
+    DifferentFields,
+    /// Matrix addition requires equal shapes.
+    #[error("matrix shapes {left:?} and {right:?} are different")]
+    DifferentShapes {
+        /// Left matrix shape.
+        left: (usize, usize),
+        /// Right matrix shape.
+        right: (usize, usize),
+    },
+    /// Matrix multiplication requires matching inner dimensions.
+    #[error("cannot multiply matrices with shapes {left:?} and {right:?}")]
+    IncompatibleProduct {
+        /// Left matrix shape.
+        left: (usize, usize),
+        /// Right matrix shape.
+        right: (usize, usize),
+    },
     /// The requested dimensions overflow `usize` storage.
     #[error("matrix shape {nrows} x {ncols} overflows addressable storage")]
     ShapeOverflow {
@@ -386,7 +500,7 @@ mod tests {
         rational::{Q, Rational},
     };
 
-    use super::DenseMatrix;
+    use super::{DenseMatrix, MatrixError};
 
     fn q(numerator: i64, denominator: i64) -> Rational {
         Q.to_element(numerator.into(), denominator.into(), true)
@@ -474,5 +588,66 @@ mod tests {
             Some(vec![])
         );
         assert_eq!(matrix.solution_row(&vec![q(1, 1); 4]).unwrap(), None);
+    }
+
+    #[test]
+    fn arithmetic_uses_gap_row_action_order() {
+        let first = DenseMatrix::from_rows(vec![vec![q(1, 1), q(2, 1)], vec![q(0, 1), q(1, 1)]], Q)
+            .unwrap();
+        let second =
+            DenseMatrix::from_rows(vec![vec![q(3, 1), q(0, 1)], vec![q(4, 1), q(5, 1)]], Q)
+                .unwrap();
+
+        assert_eq!(
+            first.multiply(&second).unwrap(),
+            DenseMatrix::from_rows(vec![vec![q(11, 1), q(10, 1)], vec![q(4, 1), q(5, 1)]], Q,)
+                .unwrap()
+        );
+        assert_eq!(
+            first.add(&second).unwrap(),
+            DenseMatrix::from_rows(vec![vec![q(4, 1), q(2, 1)], vec![q(4, 1), q(6, 1)]], Q,)
+                .unwrap()
+        );
+        assert_eq!(
+            first.scale_left(&q(-2, 1)),
+            DenseMatrix::from_rows(vec![vec![q(-2, 1), q(-4, 1)], vec![q(0, 1), q(-2, 1)]], Q,)
+                .unwrap()
+        );
+        assert_eq!(
+            first.transpose(),
+            DenseMatrix::from_rows(vec![vec![q(1, 1), q(0, 1)], vec![q(2, 1), q(1, 1)]], Q,)
+                .unwrap()
+        );
+    }
+
+    #[test]
+    fn arithmetic_preserves_explicit_empty_shapes() {
+        let zero_by_three = DenseMatrix::from_flat(0, 3, Vec::new(), Q).unwrap();
+        let three_by_two = DenseMatrix::zero(3, 2, Q);
+        let product = zero_by_three.multiply(&three_by_two).unwrap();
+
+        assert_eq!((product.nrows(), product.ncols()), (0, 2));
+        assert_eq!(
+            zero_by_three.transpose(),
+            DenseMatrix::from_flat(3, 0, Vec::new(), Q).unwrap()
+        );
+        assert_eq!(
+            DenseMatrix::zero(2, 3, Q)
+                .multiply(&DenseMatrix::zero(4, 1, Q))
+                .unwrap_err(),
+            MatrixError::IncompatibleProduct {
+                left: (2, 3),
+                right: (4, 1),
+            }
+        );
+    }
+
+    #[test]
+    fn arithmetic_rejects_different_prime_fields() {
+        let left = DenseMatrix::zero(1, 1, Zp::new(3));
+        let right = DenseMatrix::zero(1, 1, Zp::new(5));
+
+        assert_eq!(left.add(&right), Err(MatrixError::DifferentFields));
+        assert_eq!(left.multiply(&right), Err(MatrixError::DifferentFields));
     }
 }

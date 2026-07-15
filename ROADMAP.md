@@ -527,7 +527,14 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   and the source method's `n <> 1` second-factor branch. Enveloping algebras
   now use the cached QPA opposite, preserve attribute identity and decomposition,
   install the explicit property flag, and propagate cached admissibility over
-  `QQ` and `GF(2)`. The enveloping-algebra module constructions remain.
+  `QQ` and `GF(2)`. The checked three-argument right-module constructor now
+  preserves QPA's row-vector action, omitted-arrow zero-space stand-ins,
+  relation validation, total-zero matrix output, structural equality, and
+  distinct identity. `AlgebraAsModuleOverEnvelopingAlgebra` now partitions the
+  canonical basis into `e_i A e_j`, constructs every product-arrow action by
+  QPA's projected left/right multiplication, retains the identical enveloping
+  algebra, and caches both module values and infinite-dimensional `fail` over
+  `QQ` and `GF(2)`. The dual regular bimodule remains.
 - [ ] Port trivial extensions and their structural maps.
 - [ ] Port quadratic dual/Koszul helpers.
 - [ ] Port all predefined QPA algebra families and their recognition properties.

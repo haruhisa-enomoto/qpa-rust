@@ -18,6 +18,7 @@ use thiserror::Error;
 use crate::TensorProductAlgebra;
 use crate::{
     OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverError, QuiverOrdering, Vertex,
+    path_module::{PathAlgebraModule, WeakPathAlgebraModule},
     tensor::WeakTensorProductAlgebra,
 };
 
@@ -28,6 +29,9 @@ struct PathAlgebraData<F: Field> {
     opposite_weak: RwLock<Option<Weak<PathAlgebraData<F>>>>,
     opposite_strong: OnceLock<PathAlgebra<F>>,
     enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
+    regular_enveloping_module_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
+    regular_enveloping_module_bound: OnceLock<()>,
+    regular_enveloping_module_fail: OnceLock<()>,
 }
 
 /// QPA's external representation of a path-algebra element.
@@ -110,6 +114,9 @@ impl<F: Field> PathAlgebra<F> {
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
+            regular_enveloping_module_weak: RwLock::new(None),
+            regular_enveloping_module_bound: OnceLock::new(),
+            regular_enveloping_module_fail: OnceLock::new(),
         })))
     }
 
@@ -160,6 +167,45 @@ impl<F: Field> PathAlgebra<F> {
         }
         *slot = Some(enveloping.downgrade());
         enveloping.clone()
+    }
+
+    pub(crate) fn cached_regular_enveloping_module(&self) -> Option<PathAlgebraModule<F>> {
+        self.0
+            .regular_enveloping_module_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModule::upgrade)
+    }
+
+    pub(crate) fn has_regular_enveloping_module_attribute(&self) -> bool {
+        self.0.regular_enveloping_module_bound.get().is_some()
+    }
+
+    pub(crate) fn regular_enveloping_module_attribute_is_fail(&self) -> bool {
+        self.0.regular_enveloping_module_fail.get().is_some()
+    }
+
+    pub(crate) fn mark_regular_enveloping_module_attribute_fail(&self) {
+        let _ = self.0.regular_enveloping_module_fail.set(());
+        let _ = self.0.regular_enveloping_module_bound.set(());
+    }
+
+    pub(crate) fn cache_regular_enveloping_module(
+        &self,
+        module: &PathAlgebraModule<F>,
+    ) -> PathAlgebraModule<F> {
+        let mut slot = self
+            .0
+            .regular_enveloping_module_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakPathAlgebraModule::upgrade) {
+            return cached;
+        }
+        *slot = Some(module.downgrade());
+        let _ = self.0.regular_enveloping_module_bound.set(());
+        module.clone()
     }
 
     /// Return the additive zero.
