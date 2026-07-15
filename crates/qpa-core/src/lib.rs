@@ -5,6 +5,7 @@
 //! algorithms.
 
 pub mod coefficient;
+pub mod dynamic_tree;
 pub mod groebner;
 pub mod matrix;
 pub mod ordering;
@@ -15,6 +16,7 @@ pub mod quotient;
 pub mod static_dictionary;
 
 pub use coefficient::{CoefficientDomain, CoefficientDomainError};
+pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use groebner::{
     GroebnerBasis, GroebnerBasisKind, GroebnerError, high_level_groebner_basis,
     leftmost_occurrence, make_uniform, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,

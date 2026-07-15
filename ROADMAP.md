@@ -430,8 +430,10 @@ options, and the Gröbner loop. Extra GBNP APIs are not automatically in scope.
 - [x] Port inverse-length/inverse-lexicographic Gröbner operations.
 - [x] Port the quiver static dictionary used for tip search, nontips, dimension,
   and canonical quotient bases.
-- [ ] Port the remaining generic static/dynamic dictionaries, suffix trees, and
-  dynamic trees used by QPA's implementations.
+- [x] Port QPA's dynamic trees with identity-preserving link, cut, root, splay,
+  splice, and rotation operations.
+- [ ] Port the remaining dynamic dictionary and suffix-tree operations used by
+  QPA's implementations.
 - [ ] Define cancellation, progress, iteration, memory, and user-interrupt APIs
   for computations that may not terminate.
 

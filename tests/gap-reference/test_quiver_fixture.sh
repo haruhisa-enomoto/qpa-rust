@@ -38,6 +38,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/poset.g" \
     "$repo_root/tests/fixtures/poset.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/dynamic_tree.g" \
+    "$repo_root/tests/fixtures/dynamic_tree.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/path_algebra.g" \
     "$repo_root/tests/fixtures/path_algebra.schema-v1.json"
 compare_fixture \

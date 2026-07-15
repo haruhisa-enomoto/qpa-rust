@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "kind": "dynamic_tree",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "right_rotation": [
+    ["left", null, null, "middle"],
+    ["middle", "left", null, "right"],
+    ["right", "middle", null, null]
+  ],
+  "left_rotation": [
+    ["left", "middle", null, null],
+    ["middle", "right", "left", null],
+    ["right", null, "middle", null]
+  ],
+  "splice": [
+    ["parent", null, "child", null],
+    ["child", "parent", null, null]
+  ],
+  "roots_before": ["c", "c", "c", "c"],
+  "roots_after_cut": ["b", "b", "c", "c"],
+  "roots_after_relink": ["c", "c", "c", "c"]
+}
