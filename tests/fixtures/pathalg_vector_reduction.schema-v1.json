@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_vector_reduction",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "tip": {
+      "position": 1,
+      "path": [3],
+      "coefficient": [1, 1]
+    },
+    "zero_tip": {
+      "position": 1,
+      "path": [0],
+      "coefficient": [0, 1]
+    },
+    "same_rows": true,
+    "reduced": [
+      [
+        [{ "path": [3], "coefficient": [1, 1] }],
+        []
+      ],
+      [
+        [],
+        [{ "path": [2], "coefficient": [1, 1] }]
+      ]
+    ],
+    "coefficients": [[3, 1], [5, 1]],
+    "failure_witness": true,
+    "quotient_coefficients": [[3, 1], [5, 1]]
+  },
+  "f2": {
+    "reduced": [
+      [
+        [{ "path": [3], "coefficient": 1 }],
+        []
+      ],
+      [
+        [],
+        [{ "path": [2], "coefficient": 1 }]
+      ]
+    ],
+    "coefficients": [1, 1]
+  }
+}

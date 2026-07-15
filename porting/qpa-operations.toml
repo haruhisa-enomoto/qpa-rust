@@ -16626,9 +16626,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 86
 source_end = 86
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::tip_monomial_and_coefficient_of_vector; QuotientPathAlgebra::tip_monomial_and_coefficient_of_vector"
+tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json","tests/gap-reference/pathalg_vector_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -16639,9 +16639,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 87
 source_end = 87
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::tip_reduce_vectors; QuotientPathAlgebra::tip_reduce_vectors"
+tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16652,9 +16652,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 88
 source_end = 88
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::coefficients_of_vectors; QuotientPathAlgebra::coefficients_of_vectors"
+tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18043,9 +18043,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1868
 source_end = 1887
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::tip_monomial_and_coefficient_of_vector; QuotientPathAlgebra::tip_monomial_and_coefficient_of_vector"
+tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json","tests/gap-reference/pathalg_vector_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -18056,9 +18056,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1890
 source_end = 1916
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::tip_reduce_vectors; QuotientPathAlgebra::tip_reduce_vectors"
+tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18069,9 +18069,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1921
 source_end = 1961
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::coefficients_of_vectors; QuotientPathAlgebra::coefficients_of_vectors"
+tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]

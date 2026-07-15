@@ -466,6 +466,9 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   connected-component/oriented-cycle generators, and finite quotients use its
   canonical-basis arrow-commutator matrix and GAP-compatible left nullspace.
   The remaining radical and general finite-algebra surface keeps this item open.
+- [x] Port QPA's componentwise path-vector tip selection, ordered in-place tip
+  reduction, and coefficient extraction helpers. The source's documented
+  non-span `[basis, vector]` bug is preserved as a typed failure witness.
 - [ ] Port opposite algebras and homomorphisms. Parent and quotient path
   algebras, termwise opposite elements/relations, reciprocal identity caches,
   and the default GBNP quotient backend are implemented; general finite-
