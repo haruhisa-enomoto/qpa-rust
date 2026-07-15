@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "kind": "gbnp_np_arithmetic",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "clean": [
+      {"monomial": [1, 1, 2], "coefficient": [-1, 1]}
+    ],
+    "add_p1_minus_p2": [
+      {"monomial": [1, 2, 2], "coefficient": [-1, 1]},
+      {"monomial": [1, 1, 2], "coefficient": [1, 1]},
+      {"monomial": [], "coefficient": [1, 1]}
+    ],
+    "bimul_right_2": [
+      {"monomial": [1, 1, 2, 2], "coefficient": [1, 1]},
+      {"monomial": [2], "coefficient": [-3, 1]}
+    ],
+    "bimul_left_1": [
+      {"monomial": [1, 1, 2, 2], "coefficient": [1, 1]},
+      {"monomial": [1], "coefficient": [-4, 1]}
+    ],
+    "multiply": [
+      {"monomial": [1, 1, 2, 1, 2, 2], "coefficient": [1, 1]},
+      {"monomial": [1, 2, 2], "coefficient": [-3, 1]},
+      {"monomial": [1, 1, 2], "coefficient": [-4, 1]},
+      {"monomial": [], "coefficient": [12, 1]}
+    ],
+    "commutator": [
+      {"monomial": [1, 2, 2, 1, 1, 2], "coefficient": [-1, 1]},
+      {"monomial": [1, 1, 2, 1, 2, 2], "coefficient": [1, 1]}
+    ],
+    "monic": [
+      {"monomial": [1, 1, 2], "coefficient": [1, 1]},
+      {"monomial": [], "coefficient": [-1, 2]}
+    ],
+    "leading_monomial": [1, 1, 2],
+    "leading_term": [
+      {"monomial": [1, 1, 2], "coefficient": [1, 1]}
+    ],
+    "generator_counts": {"algebra": 2, "module": 3},
+    "occurrences": {
+      "occur_ab_in_bab": 2,
+      "left_ab_in_bab": 0,
+      "right_ab_in_bab": 2,
+      "empty_in_bab": 1,
+      "first_in_list": [1, 2]
+    },
+    "strong_normal_form": [
+      {"monomial": [2, 1], "coefficient": [-1, 1]},
+      {"monomial": [1], "coefficient": [3, 1]},
+      {"monomial": [], "coefficient": [3, 1]}
+    ]
+  },
+  "f5": {
+    "cancelled": [],
+    "monic": [
+      {"monomial": [2, 1], "coefficient": 1},
+      {"monomial": [1], "coefficient": 2}
+    ],
+    "strong_normal_form": [
+      {"monomial": [1, 2], "coefficient": 3}
+    ]
+  },
+  "f2": {
+    "cancelled": [],
+    "clean": [
+      {"monomial": [], "coefficient": 1}
+    ],
+    "strong_normal_form": [
+      {"monomial": [1, 2], "coefficient": 1}
+    ]
+  }
+}

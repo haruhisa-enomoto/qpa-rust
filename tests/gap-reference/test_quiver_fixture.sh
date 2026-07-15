@@ -40,3 +40,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/quotient_path_algebra.g" \
     "$repo_root/tests/fixtures/quotient_path_algebra.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/gbnp_np_arithmetic.g" \
+    "$repo_root/tests/fixtures/gbnp_np_arithmetic.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/gbnp_obstructions.g" \
+    "$repo_root/tests/fixtures/gbnp_obstructions.schema-v1.json"

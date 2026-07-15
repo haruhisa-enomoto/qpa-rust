@@ -332,7 +332,10 @@ dependencies = [
 name = "qpa-gbnp"
 version = "0.1.0"
 dependencies = [
+ "numerica",
  "qpa-core",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

@@ -8,8 +8,12 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+numerica.workspace = true
 qpa-core = { path = "../qpa-core" }
+thiserror.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
 
 [lints]
 workspace = true
-
