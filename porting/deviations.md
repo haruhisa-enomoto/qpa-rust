@@ -23,3 +23,26 @@ the computations remain translations of the cited source methods.
 - Evidence: `tests/gap-reference/dynamic_tree.g`,
   `tests/fixtures/dynamic_tree.schema-v1.json`, and the tests in
   `crates/qpa-core/src/dynamic_tree.rs`.
+
+## PATHALG-001 — Natural projection application repairs stale GAP record access
+
+- Source: QPA `lib/pathalg.gi`, `ImagesRepresentative` at lines 769–787 and
+  `NaturalHomomorphismByIdeal` at lines 312–336.
+- Reason: QPA 1.37 applies a path-algebra homomorphism through the private
+  fields `alghom!.generators` and `alghom!.genimages`. The pinned GAP 4.17dev
+  mapping representation no longer binds `generators`, so applying the natural
+  projection raises a record-element error even though construction, source,
+  range, generator images, and surjectivity are valid.
+- Rust behavior: `NaturalQuotientMap::image` translates the intended
+  `MappedExpression`: each vertex/arrow generator maps to the corresponding
+  quotient generator, hence a sparse path-algebra representative maps to the
+  identical sparse representative in the factor family. It preserves QPA's
+  lazy state when the ideal has no attached Gröbner basis and reduces only when
+  QPA would have installed a normal-form function.
+- Compatibility impact: the Rust operation succeeds where the pinned
+  QPA/GAP combination errors because of obsolete representation access; its
+  mathematical result is the map specified by QPA's constructor.
+- Tests: `tests/gap-reference/natural_map_image_error.g` pins the upstream
+  failure; `pathalg_foundational.schema-v1.json` pins the source/range,
+  surjectivity, lazy and attached-basis quotient states; Rust tests exercise the
+  repaired projection over `QQ` and `GF(2)`.

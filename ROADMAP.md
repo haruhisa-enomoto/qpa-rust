@@ -389,19 +389,23 @@ properties that depend on modules or specialized algebra constructions.
 - [x] Implement sparse linear combinations of paths with canonical term order.
 - [x] Implement path rings/algebras, generators, zero, one, and element actions.
 - [x] Implement left/right uniformity and source/target decomposition.
-- [ ] Implement ideals, relation lists, quotient construction, and natural maps.
-  Two-sided ideal construction, membership, high-level relation quotients, and
-  eager normal-form arithmetic are implemented. Ideal products and QPA's
-  minimal generating set through `I/(JI+IJ)` are also source-translated;
-  natural maps remain.
-- [ ] Implement quotient elements with lazy/eager normal-form state.
+- [x] Implement ideals, relation lists, quotient construction, and natural maps.
+  Two-sided ideal construction, membership, high-level and default-GBNP
+  relation quotients, ideal products, QPA's minimal generating set through
+  `I/(JI+IJ)`, and its natural surjection are source-translated. The pinned
+  QPA/GAP natural-map application bug is isolated as `PATHALG-001`.
+- [x] Implement quotient elements with lazy/eager normal-form state. Quotients
+  by ideals without attached Gröbner bases retain unreduced representatives;
+  attached-basis and relation-list quotients install QPA's normal-form path.
 - [ ] Implement basis, coefficient, membership, and element conversion hooks.
   Finite canonical nontip bases, dimension, and membership are implemented;
   general basis/coefficient conversion remains.
 - [ ] Implement admissibility, monomial, quadratic, and arrow-ideal operations.
   Ideal/quotient admissibility, full monomial-ideal detection, and homogeneous
-  list checking are implemented; quadratic-dual and arrow-power operations
-  remain in their later source files.
+  list checking are implemented. `MakeUniformOnRight`, right arrow extension,
+  `NthPowerOfArrowIdeal`, relation-list extension, and default-GBNP truncated
+  path algebras are source-translated; quadratic-dual operations remain in
+  their later source files.
 - [ ] Preserve QPA external representation and serialization semantics.
 
 Exit gate: non-Gröbner path-algebra operations are source mapped and verified;
@@ -452,7 +456,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
 `pathalgpredef`, `pathalgtensor`, `pathalgkoszul`, and `pathalgreptype`.
 
 - [ ] Complete quotient bases, dimensions, multiplication, radicals, and centers.
-- [ ] Port opposite algebras and homomorphisms.
+- [ ] Port opposite algebras and homomorphisms. Parent and quotient path
+  algebras, termwise opposite elements/relations, reciprocal identity caches,
+  and the default GBNP quotient backend are implemented; general finite-
+  dimensional algebra and module homomorphism opposites remain.
 - [ ] Port primitive-idempotent and lifting algorithms.
 - [ ] Port Cartan/Coxeter, Nakayama, Frobenius, Loewy, global-dimension, and
   structural property computations.

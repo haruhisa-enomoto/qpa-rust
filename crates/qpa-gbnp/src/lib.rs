@@ -9,6 +9,7 @@ pub mod np;
 pub mod obstruction;
 pub mod occur_tree;
 pub mod options;
+pub mod pathalg;
 pub mod preprocessing;
 pub mod qpa_conversion;
 pub mod reduction;
@@ -32,6 +33,10 @@ pub use obstruction::{
 };
 pub use occur_tree::{OccurTree, OccurTreeError, TreeDirection};
 pub use options::GbnpOptions;
+pub use pathalg::{
+    PathalgGbnpError, opposite_path_algebra, opposite_quotient_element, quotient_by_relations,
+    truncated_path_algebra,
+};
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,
     reduce_polynomials_in_place, reduce_polynomials_with_options, strong_normal_form_except,

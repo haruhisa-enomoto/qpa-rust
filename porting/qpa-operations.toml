@@ -16353,9 +16353,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 61
 source_end = 61
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraElement::algebra; QuotientPathAlgebraElement::algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16366,9 +16366,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 63
 source_end = 63
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra; QuotientPathAlgebra::original_path_algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16379,9 +16379,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 64
 source_end = 64
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::make_uniform_on_right; QuotientPathAlgebra::make_uniform_on_right"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16392,9 +16392,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 65
 source_end = 65
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::generators_times_arrows_on_right; QuotientPathAlgebra::generators_times_arrows_on_right"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16405,9 +16405,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 66
 source_end = 66
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::nth_power_of_arrow_ideal"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16418,9 +16418,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 67
 source_end = 67
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::truncated_path_algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16431,9 +16431,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 68
 source_end = 68
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::add_nth_power_to_relations"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16444,9 +16444,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 70
 source_end = 70
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::opposite; qpa_gbnp::opposite_path_algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16457,9 +16457,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 71
 source_end = 71
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraElement::opposite; qpa_gbnp::opposite_quotient_element"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16470,9 +16470,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 72
 source_end = 72
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_core::opposite_relations"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17081,9 +17081,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 215
 source_end = 309
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebra::by_ideal; QuotientPathAlgebra::by_complete_groebner_relations"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17094,10 +17094,10 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 312
 source_end = 336
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::natural_homomorphism; NaturalQuotientMap"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json","tests/gap-reference/natural_map_image_error.g"]
+deviations = ["PATHALG-001"]
 
 [[entries]]
 id = "pathalg:InstallMethod:\\.:1"
@@ -17770,9 +17770,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1336
 source_end = 1343
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraElement::algebra; QuotientPathAlgebraElement::algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17783,9 +17783,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1365
 source_end = 1374
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra; QuotientPathAlgebra::original_path_algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17796,9 +17796,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1376
 source_end = 1416
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::make_uniform_on_right; QuotientPathAlgebra::make_uniform_on_right"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17809,9 +17809,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1418
 source_end = 1447
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::generators_times_arrows_on_right; QuotientPathAlgebra::generators_times_arrows_on_right"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17822,9 +17822,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1449
 source_end = 1465
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::nth_power_of_arrow_ideal"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17835,9 +17835,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1467
 source_end = 1479
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::truncated_path_algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17848,9 +17848,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1481
 source_end = 1491
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::add_nth_power_to_relations"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17861,9 +17861,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1493
 source_end = 1506
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::opposite"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17874,9 +17874,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1509
 source_end = 1512
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::opposite"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17887,9 +17887,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1515
 source_end = 1533
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraElement::opposite; qpa_gbnp::opposite_quotient_element"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17900,9 +17900,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1536
 source_end = 1541
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_core::opposite_relations"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17913,9 +17913,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1544
 source_end = 1569
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::opposite_path_algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17926,9 +17926,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1572
 source_end = 1575
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::opposite_path_algebra"
+tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
 
 [[entries]]

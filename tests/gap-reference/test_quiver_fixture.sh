@@ -63,6 +63,17 @@ grep -Fq "The 1st argument is 'fail'" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/path_algebra.g" \
     "$repo_root/tests/fixtures/path_algebra.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_foundational.g" \
+    "$repo_root/tests/fixtures/pathalg_foundational.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/natural_map_image_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly applied its natural path-algebra projection" >&2
+    exit 1
+fi
+grep -Fq "alghom!.generators" "$actual"
 # `IsHomogeneousListOfElements([], n)` deliberately prints one source line.
 "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/pathalg_ideal.g" |

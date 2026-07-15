@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_foundational",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "right_uniform": [
+    [{"path": [4], "coefficient": [1, 1]}],
+    [{"path": [5], "coefficient": [1, 1]}]
+  ],
+  "times_arrows": [[4, 4], [4, 5], [5, 6], [5, 8]],
+  "arrow_powers": {
+    "n0": [[4], [5], [6], [7], [8]],
+    "n1": [[4], [5], [6], [7], [8]],
+    "n2": [[4, 4], [4, 5], [5, 6], [5, 8], [6, 7], [7, 4], [7, 5], [8, 6], [8, 8]],
+    "n3": [
+      [4, 4, 4], [4, 4, 5], [4, 5, 6], [4, 5, 8],
+      [5, 6, 7], [5, 8, 6], [5, 8, 8], [6, 7, 4],
+      [6, 7, 5], [7, 4, 4], [7, 4, 5], [7, 5, 6],
+      [7, 5, 8], [8, 6, 7], [8, 8, 6], [8, 8, 8]
+    ]
+  },
+  "add_power": {
+    "same_object": true,
+    "relations": [
+      [{"path": [4], "coefficient": [1, 1]}, {"path": [5], "coefficient": [1, 1]}],
+      [{"path": [4, 4], "coefficient": [1, 1]}],
+      [{"path": [4, 5], "coefficient": [1, 1]}],
+      [{"path": [5, 6], "coefficient": [1, 1]}],
+      [{"path": [5, 8], "coefficient": [1, 1]}],
+      [{"path": [6, 7], "coefficient": [1, 1]}],
+      [{"path": [7, 4], "coefficient": [1, 1]}],
+      [{"path": [7, 5], "coefficient": [1, 1]}],
+      [{"path": [8, 6], "coefficient": [1, 1]}],
+      [{"path": [8, 8], "coefficient": [1, 1]}]
+    ]
+  },
+  "natural_map": {
+    "source_identical": true,
+    "range_original_identical": true,
+    "surjective": true,
+    "image": [
+      {"path": [4], "coefficient": [1, 1]},
+      {"path": [4, 4], "coefficient": [1, 1]}
+    ],
+    "image_is_normal_form": false,
+    "right_uniform": [
+      [{"path": [4], "coefficient": [1, 1]}],
+      [{"path": [5], "coefficient": [1, 1]}]
+    ],
+    "times_arrows": [
+      [{"path": [4, 4], "coefficient": [1, 1]}],
+      [{"path": [4, 5], "coefficient": [1, 1]}],
+      [{"path": [5, 6], "coefficient": [1, 1]}],
+      [{"path": [5, 8], "coefficient": [1, 1]}]
+    ],
+    "attached_image": [{"path": [4], "coefficient": [1, 1]}],
+    "attached_image_is_normal_form": true
+  },
+  "opposite_parent": {
+    "double_identical": true,
+    "quiver_double_identical": true,
+    "element": [
+      {"path": [5, 4], "coefficient": [2, 1]},
+      {"path": [6, 5], "coefficient": [3, 1]}
+    ],
+    "double_element": [
+      {"path": [4, 5], "coefficient": [2, 1]},
+      {"path": [5, 6], "coefficient": [3, 1]}
+    ],
+    "relations": [
+      [
+        {"path": [4, 4], "coefficient": [1, 1]},
+        {"path": [6, 5], "coefficient": [1, 1]}
+      ],
+      [{"path": [7, 6], "coefficient": [1, 1]}]
+    ]
+  },
+  "truncated": {
+    "dimension": 17,
+    "opposite_dimension": 17,
+    "double_identical": true,
+    "opposite_element": [
+      {"path": [4], "coefficient": [1, 1]},
+      {"path": [4, 4], "coefficient": [1, 1]},
+      {"path": [6, 5], "coefficient": [1, 1]}
+    ]
+  },
+  "f2": {
+    "lazy_image": [
+      {"path": [4], "coefficient": 1},
+      {"path": [4, 4], "coefficient": 1}
+    ],
+    "lazy_is_normal_form": false,
+    "attached_image": [{"path": [4], "coefficient": 1}],
+    "attached_is_normal_form": true,
+    "opposite_element": [
+      {"path": [5, 4], "coefficient": 1},
+      {"path": [6, 5], "coefficient": 1}
+    ]
+  }
+}

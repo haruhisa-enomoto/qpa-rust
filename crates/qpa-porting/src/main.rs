@@ -42,6 +42,14 @@ struct Entry {
     source_end: usize,
 }
 
+#[derive(Debug)]
+struct Progress {
+    status: Box<str>,
+    rust_symbol: Box<str>,
+    tests: Vec<Box<str>>,
+    deviations: Vec<Box<str>>,
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut arguments = env::args_os().skip(1);
     let source_root = PathBuf::from(
@@ -62,7 +70,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         entries.extend(scan_file(&file)?);
     }
 
-    let rendered = render_ledger(&source_root, &entries)?;
+    let progress = read_progress(Path::new("porting/qpa-operations.toml"))?;
+    let rendered = render_ledger(&source_root, &entries, &progress)?;
     if let Some(output) = output {
         fs::write(output, rendered)?;
     } else {
@@ -235,6 +244,7 @@ fn is_identifier_continue(byte: u8) -> bool {
 fn render_ledger(
     source_root: &Path,
     entries: &[Entry],
+    progress: &BTreeMap<Box<str>, Progress>,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let mut result = String::new();
     result.push_str("schema_version = 1\n");
@@ -264,6 +274,7 @@ fn render_ledger(
             "{file_stem}:{}:{}:{}",
             entry.construct, entry.name, occurrence
         );
+        let reviewed = progress.get(identifier.as_str());
 
         result.push_str("\n[[entries]]\n");
         push_string(&mut result, "id", &identifier)?;
@@ -281,10 +292,70 @@ fn render_ledger(
                 "installed_implementation"
             },
         )?;
-        push_string(&mut result, "status", "inventory")?;
-        push_string(&mut result, "rust_symbol", "")?;
-        result.push_str("tests = []\n");
-        result.push_str("deviations = []\n");
+        push_string(
+            &mut result,
+            "status",
+            reviewed.map_or("inventory", |value| &value.status),
+        )?;
+        push_string(
+            &mut result,
+            "rust_symbol",
+            reviewed.map_or("", |value| &value.rust_symbol),
+        )?;
+        push_string_array(
+            &mut result,
+            "tests",
+            reviewed.map_or(&[], |value| value.tests.as_slice()),
+        )?;
+        push_string_array(
+            &mut result,
+            "deviations",
+            reviewed.map_or(&[], |value| value.deviations.as_slice()),
+        )?;
+    }
+    Ok(result)
+}
+
+fn read_progress(path: &Path) -> Result<BTreeMap<Box<str>, Progress>, Box<dyn std::error::Error>> {
+    let Ok(source) = fs::read_to_string(path) else {
+        return Ok(BTreeMap::new());
+    };
+    let mut result = BTreeMap::new();
+    let mut identifier: Option<Box<str>> = None;
+    let mut status: Option<Box<str>> = None;
+    let mut rust_symbol: Option<Box<str>> = None;
+    let mut tests: Option<Vec<Box<str>>> = None;
+    for line in source.lines() {
+        if let Some(value) = line.strip_prefix("id = ") {
+            identifier = Some(serde_json::from_str::<String>(value)?.into_boxed_str());
+        } else if let Some(value) = line.strip_prefix("status = ") {
+            status = Some(serde_json::from_str::<String>(value)?.into_boxed_str());
+        } else if let Some(value) = line.strip_prefix("rust_symbol = ") {
+            rust_symbol = Some(serde_json::from_str::<String>(value)?.into_boxed_str());
+        } else if let Some(value) = line.strip_prefix("tests = ") {
+            tests = Some(
+                serde_json::from_str::<Vec<String>>(value)?
+                    .into_iter()
+                    .map(String::into_boxed_str)
+                    .collect(),
+            );
+        } else if let Some(value) = line.strip_prefix("deviations = ") {
+            let deviations = serde_json::from_str::<Vec<String>>(value)?
+                .into_iter()
+                .map(String::into_boxed_str)
+                .collect();
+            if let Some(identifier) = identifier.take() {
+                result.insert(
+                    identifier,
+                    Progress {
+                        status: status.take().unwrap_or_else(|| "inventory".into()),
+                        rust_symbol: rust_symbol.take().unwrap_or_default(),
+                        tests: tests.take().unwrap_or_default(),
+                        deviations,
+                    },
+                );
+            }
+        }
     }
     Ok(result)
 }
@@ -293,6 +364,18 @@ fn push_string(result: &mut String, key: &str, value: &str) -> Result<(), serde_
     result.push_str(key);
     result.push_str(" = ");
     result.push_str(&serde_json::to_string(value)?);
+    result.push('\n');
+    Ok(())
+}
+
+fn push_string_array(
+    result: &mut String,
+    key: &str,
+    values: &[Box<str>],
+) -> Result<(), serde_json::Error> {
+    result.push_str(key);
+    result.push_str(" = ");
+    result.push_str(&serde_json::to_string(values)?);
     result.push('\n');
     Ok(())
 }

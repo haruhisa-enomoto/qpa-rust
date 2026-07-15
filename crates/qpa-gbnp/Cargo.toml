@@ -7,9 +7,14 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[features]
+default = ["numerica-no-gmp"]
+numerica-no-gmp = ["numerica/no_gmp", "qpa-core/numerica-no-gmp"]
+numerica-gmp = ["numerica/gmp", "qpa-core/numerica-gmp"]
+
 [dependencies]
 numerica.workspace = true
-qpa-core = { path = "../qpa-core" }
+qpa-core = { path = "../qpa-core", default-features = false }
 thiserror.workspace = true
 
 [dev-dependencies]

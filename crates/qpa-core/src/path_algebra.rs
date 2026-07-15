@@ -6,17 +6,25 @@
 //! semantics: terms are strictly path-sorted, equal paths are combined, zero
 //! coefficients disappear, and QPA's zero path is quotiented out.
 
-use std::{cmp::Ordering, fmt, sync::Arc};
+use std::{
+    cmp::Ordering,
+    fmt,
+    sync::{Arc, OnceLock, Weak},
+};
 
 use numerica::domains::{Field, InternalOrdering};
 use thiserror::Error;
 
-use crate::{OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverOrdering, Vertex};
+use crate::{
+    OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverError, QuiverOrdering, Vertex,
+};
 
 struct PathAlgebraData<F: Field> {
     field: F,
     quiver: Quiver,
     ordering: QuiverOrdering,
+    opposite_weak: OnceLock<Weak<PathAlgebraData<F>>>,
+    opposite_strong: OnceLock<PathAlgebra<F>>,
 }
 
 /// A QPA path algebra over an exact Numerica field.
@@ -56,6 +64,8 @@ impl<F: Field> PathAlgebra<F> {
             field,
             quiver,
             ordering,
+            opposite_weak: OnceLock::new(),
+            opposite_strong: OnceLock::new(),
         })))
     }
 
@@ -177,6 +187,145 @@ impl<F: Field> PathAlgebra<F> {
                 .map(|path| self.monomial_element(path))
                 .collect()
         })
+    }
+
+    /// Translate QPA's cached `OppositePathAlgebra` construction.
+    ///
+    /// The opposite uses QPA's default ordering on the cached opposite quiver.
+    /// Reciprocal weak/strong caches preserve observable double-opposite
+    /// identity without creating a permanent `Arc` cycle.
+    ///
+    /// # Errors
+    ///
+    /// Propagates opposite-quiver and default-ordering construction failures.
+    pub fn opposite(&self) -> Result<Self, PathAlgebraError> {
+        if let Some(opposite) = self.0.opposite_strong.get() {
+            return Ok(opposite.clone());
+        }
+        if let Some(opposite) = self.0.opposite_weak.get().and_then(Weak::upgrade) {
+            return Ok(Self(opposite));
+        }
+
+        let opposite = Self::new(self.field().clone(), self.quiver().opposite()?)?;
+        if opposite.0.opposite_strong.set(self.clone()).is_err() {
+            return Err(PathAlgebraError::OppositeCacheRace);
+        }
+        if self
+            .0
+            .opposite_weak
+            .set(Arc::downgrade(&opposite.0))
+            .is_err()
+        {
+            return self
+                .0
+                .opposite_weak
+                .get()
+                .and_then(Weak::upgrade)
+                .map(Self)
+                .ok_or(PathAlgebraError::OppositeCacheRace);
+        }
+        Ok(opposite)
+    }
+
+    /// Translate QPA's `MakeUniformOnRight` for path-algebra elements.
+    ///
+    /// Target vertices and final elements are deduplicated in first-occurrence
+    /// order, matching GAP's `Unique` rather than a sorted Rust set.
+    ///
+    /// # Errors
+    ///
+    /// All nonempty inputs must belong to this identical path algebra.
+    pub fn make_uniform_on_right(
+        &self,
+        generators: &[PathAlgebraElement<F>],
+    ) -> Result<Vec<PathAlgebraElement<F>>, PathAlgebraError> {
+        ensure_algebra_elements(self, generators)?;
+        let mut uniform = Vec::new();
+        for generator in generators {
+            let mut targets = Vec::new();
+            for term in generator.terms() {
+                if let PathEndpoint::Vertex(target) = term.path().target()
+                    && !targets.contains(&target)
+                {
+                    targets.push(target);
+                }
+            }
+            for target in targets {
+                let vertex = self.element(target.path())?;
+                let component = generator.multiply(&vertex)?;
+                if !component.is_zero() && !uniform.contains(&component) {
+                    uniform.push(component);
+                }
+            }
+        }
+        Ok(uniform)
+    }
+
+    /// Translate QPA's `GeneratorsTimesArrowsOnRight` for path-algebra
+    /// elements.
+    ///
+    /// # Errors
+    ///
+    /// Propagates right-uniformization, quiver lookup, and multiplication
+    /// failures.
+    pub fn generators_times_arrows_on_right(
+        &self,
+        generators: &[PathAlgebraElement<F>],
+    ) -> Result<Vec<PathAlgebraElement<F>>, PathAlgebraError> {
+        let uniform = self.make_uniform_on_right(generators)?;
+        let mut extended = Vec::new();
+        for generator in uniform {
+            let PathEndpoint::Vertex(target) = generator.leading_monomial().target() else {
+                continue;
+            };
+            for arrow in self.quiver().outgoing_arrows(&target)? {
+                let product = generator.multiply(&self.element(arrow.path())?)?;
+                if !product.is_zero() {
+                    extended.push(product);
+                }
+            }
+        }
+        Ok(extended)
+    }
+
+    /// Translate QPA's `NthPowerOfArrowIdeal` generator list.
+    ///
+    /// The pinned source returns the arrow list for every exponent at most one
+    /// because GAP's range `[1..n-1]` is empty there; Rust preserves that
+    /// observable boundary behavior.
+    ///
+    /// # Errors
+    ///
+    /// Propagates source-translated right-extension failures.
+    pub fn nth_power_of_arrow_ideal(
+        &self,
+        exponent: i64,
+    ) -> Result<Vec<PathAlgebraElement<F>>, PathAlgebraError> {
+        let mut generators = self
+            .quiver()
+            .arrows()
+            .map(|arrow| self.element(arrow.path()))
+            .collect::<Result<Vec<_>, _>>()?;
+        for _ in 1..exponent {
+            generators = self.generators_times_arrows_on_right(&generators)?;
+        }
+        Ok(generators)
+    }
+
+    /// Translate QPA's mutating `AddNthPowerToRelations`.
+    ///
+    /// # Errors
+    ///
+    /// Existing relations must belong to this algebra; arrow-power generation
+    /// failures are propagated.
+    pub fn add_nth_power_to_relations(
+        &self,
+        relations: &mut Vec<PathAlgebraElement<F>>,
+        exponent: i64,
+    ) -> Result<(), PathAlgebraError> {
+        ensure_algebra_elements(self, relations)?;
+        relations.extend(self.nth_power_of_arrow_ideal(exponent)?);
+        Ok(())
     }
 
     fn monomial_element(&self, path: Path) -> PathAlgebraElement<F> {
@@ -473,6 +622,28 @@ impl<F: Field> PathAlgebraElement<F> {
         self.is_left_uniform() && self.is_right_uniform()
     }
 
+    /// Translate QPA's `OppositePathAlgebraElement` for a parent-algebra
+    /// element.
+    ///
+    /// # Errors
+    ///
+    /// Propagates opposite-algebra, opposite-path, and sparse construction
+    /// failures.
+    pub fn opposite(&self) -> Result<Self, PathAlgebraError> {
+        let opposite = self.algebra().opposite()?;
+        opposite.from_terms(
+            self.terms()
+                .iter()
+                .map(|term| {
+                    Ok((
+                        self.algebra().quiver().opposite_path(term.path())?,
+                        term.coefficient().clone(),
+                    ))
+                })
+                .collect::<Result<Vec<_>, PathAlgebraError>>()?,
+        )
+    }
+
     fn ensure_same_algebra(&self, other: &Self) -> Result<(), PathAlgebraError> {
         if self.algebra.is_identical(&other.algebra) {
             Ok(())
@@ -534,6 +705,31 @@ fn uniform_endpoint<F: Field>(
     endpoints.all(|candidate: Vertex| candidate == first)
 }
 
+fn ensure_algebra_elements<F: Field>(
+    algebra: &PathAlgebra<F>,
+    elements: &[PathAlgebraElement<F>],
+) -> Result<(), PathAlgebraError> {
+    if elements
+        .iter()
+        .all(|element| algebra.is_identical(element.algebra()))
+    {
+        Ok(())
+    } else {
+        Err(PathAlgebraError::DifferentAlgebras)
+    }
+}
+
+/// Translate QPA's `OppositeRelations` on parent-algebra relations.
+///
+/// # Errors
+///
+/// Propagates each relation's opposite-element construction failure.
+pub fn opposite_relations<F: Field>(
+    relations: &[PathAlgebraElement<F>],
+) -> Result<Vec<PathAlgebraElement<F>>, PathAlgebraError> {
+    relations.iter().map(PathAlgebraElement::opposite).collect()
+}
+
 /// Failure to construct or operate on a QPA path algebra.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum PathAlgebraError {
@@ -549,12 +745,18 @@ pub enum PathAlgebraError {
     /// Field-scalar division is undefined for zero.
     #[error("cannot divide a path-algebra element by zero")]
     DivisionByZero,
+    /// Concurrent opposite-algebra construction lost its reciprocal cache.
+    #[error("concurrent opposite-path-algebra cache initialization failed")]
+    OppositeCacheRace,
     /// A source-translated ordering operation failed.
     #[error(transparent)]
     Ordering(#[from] OrderingError),
     /// QPA path multiplication failed.
     #[error(transparent)]
     Path(#[from] PathError),
+    /// A source-translated quiver lookup or construction failed.
+    #[error(transparent)]
+    Quiver(#[from] QuiverError),
 }
 
 #[cfg(test)]

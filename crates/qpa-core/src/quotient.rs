@@ -4,21 +4,27 @@
 //! `pathalg.gi`: two-sided ideals remember their path algebra and generators,
 //! membership is a Groebner normal-form test, and `KQ / relations` first
 //! computes a Groebner basis and then stores quotient elements in normal form.
+//! Direct factoring by an ideal without an attached basis preserves QPA's lazy
+//! unreduced representative state.
 
-use std::{cmp::Ordering, fmt, sync::Arc};
+use std::{
+    cmp::Ordering,
+    fmt,
+    sync::{Arc, OnceLock, RwLock, Weak},
+};
 
 use numerica::domains::{Field, integer::Integer};
 use thiserror::Error;
 
 use crate::{
     DenseMatrix, GroebnerBasis, GroebnerError, MatrixError, Path, PathAlgebra, PathAlgebraElement,
-    PathAlgebraError,
+    PathAlgebraError, PathEndpoint, Quiver, QuiverError,
 };
 
 struct PathAlgebraIdealData<F: Field> {
     algebra: PathAlgebra<F>,
     generators: Vec<PathAlgebraElement<F>>,
-    groebner_basis: Option<GroebnerBasis<F>>,
+    groebner_basis: RwLock<Option<GroebnerBasis<F>>>,
 }
 
 /// A QPA two-sided ideal in a path algebra.
@@ -42,16 +48,19 @@ impl<F: Field> PathAlgebraIdeal<F> {
         Ok(Self(Arc::new(PathAlgebraIdealData {
             algebra,
             generators,
-            groebner_basis: None,
+            groebner_basis: RwLock::new(None),
         })))
     }
 
-    fn from_groebner_basis(algebra: PathAlgebra<F>, basis: GroebnerBasis<F>) -> Self {
-        let generators = basis.relations().to_vec();
+    fn from_generators_and_groebner_basis(
+        algebra: PathAlgebra<F>,
+        generators: Vec<PathAlgebraElement<F>>,
+        basis: GroebnerBasis<F>,
+    ) -> Self {
         Self(Arc::new(PathAlgebraIdealData {
             algebra,
             generators,
-            groebner_basis: Some(basis),
+            groebner_basis: RwLock::new(Some(basis)),
         }))
     }
 
@@ -81,28 +90,25 @@ impl<F: Field> PathAlgebraIdeal<F> {
 
     /// Compute and attach QPA's high-level Groebner basis.
     ///
-    /// The returned handle is a new ideal object with the original generator
-    /// list and an attached complete basis.
+    /// The basis is attached to the same identity-preserving ideal object, as
+    /// GAP's cached `GroebnerBasisOfIdeal` attribute is.
     ///
     /// # Errors
     ///
     /// Propagates QPA high-level Groebner failures.
     pub fn with_high_level_groebner_basis(&self) -> Result<Self, QuotientError> {
-        if self.0.groebner_basis.is_some() {
+        if self.groebner_basis().is_some() {
             return Ok(self.clone());
         }
         let basis = GroebnerBasis::high_level(self.algebra(), self.generators())?;
-        Ok(Self(Arc::new(PathAlgebraIdealData {
-            algebra: self.algebra().clone(),
-            generators: self.generators().to_vec(),
-            groebner_basis: Some(basis),
-        })))
+        self.set_groebner_basis(basis);
+        Ok(self.clone())
     }
 
     /// Attach QPA `GroebnerBasis(I, relations)` to this ideal.
     ///
-    /// The returned handle is a new immutable Rust ideal object carrying the
-    /// complete basis; the original generator list is preserved.
+    /// The returned handle denotes the same ideal object; all clones observe
+    /// the attached complete basis while the generator list remains unchanged.
     ///
     /// # Errors
     ///
@@ -112,17 +118,26 @@ impl<F: Field> PathAlgebraIdeal<F> {
         relations: &[PathAlgebraElement<F>],
     ) -> Result<Self, QuotientError> {
         let basis = GroebnerBasis::from_complete_relations(self.algebra(), relations)?;
-        Ok(Self(Arc::new(PathAlgebraIdealData {
-            algebra: self.algebra().clone(),
-            generators: self.generators().to_vec(),
-            groebner_basis: Some(basis),
-        })))
+        self.set_groebner_basis(basis);
+        Ok(self.clone())
     }
 
     /// Return an attached Groebner basis, if one has been computed.
     #[must_use]
-    pub fn groebner_basis(&self) -> Option<&GroebnerBasis<F>> {
-        self.0.groebner_basis.as_ref()
+    pub fn groebner_basis(&self) -> Option<GroebnerBasis<F>> {
+        self.0
+            .groebner_basis
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone()
+    }
+
+    fn set_groebner_basis(&self, basis: GroebnerBasis<F>) {
+        *self
+            .0
+            .groebner_basis
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(basis);
     }
 
     /// Translate ideal-level QPA `RightGroebnerBasis(I)`.
@@ -157,14 +172,13 @@ impl<F: Field> PathAlgebraIdeal<F> {
         if self.is_trivial() {
             return Ok(false);
         }
-        let computed;
-        let basis = if let Some(basis) = self.groebner_basis() {
-            basis
-        } else {
-            computed = GroebnerBasis::high_level(self.algebra(), self.generators())?;
-            &computed
-        };
-        Ok(basis.remainder(element)?.is_zero())
+        let basis = match self.groebner_basis() {
+            Some(basis) => basis,
+            None => GroebnerBasis::high_level(self.algebra(), self.generators())?,
+        }
+        .completely_reduced_basis()?;
+        self.set_groebner_basis(basis.clone());
+        Ok(basis.completely_reduce(element)?.is_zero())
     }
 
     /// Translate QPA's fast monomial-ideal test on ideal generators.
@@ -187,12 +201,12 @@ impl<F: Field> PathAlgebraIdeal<F> {
         if self.is_trivial() || self.generators_are_monomial() {
             return Ok(true);
         }
-        let computed;
         let basis = if let Some(basis) = self.groebner_basis() {
             basis
         } else {
-            computed = GroebnerBasis::high_level(self.algebra(), self.generators())?;
-            &computed
+            let basis = GroebnerBasis::high_level(self.algebra(), self.generators())?;
+            self.set_groebner_basis(basis.clone());
+            basis
         };
         Ok(basis
             .relations()
@@ -275,6 +289,19 @@ impl<F: Field> PathAlgebraIdeal<F> {
         Self::new(self.algebra().clone(), generators)
     }
 
+    /// Translate QPA's `NaturalHomomorphismByIdeal(A, I)` with
+    /// `A = self.algebra()`.
+    ///
+    /// This does not compute a Gröbner basis. If none is already attached to
+    /// the ideal, images retain QPA's lazy unreduced representatives.
+    ///
+    /// # Errors
+    ///
+    /// Propagates factor-quotient construction failures.
+    pub fn natural_homomorphism(&self) -> Result<NaturalQuotientMap<F>, QuotientError> {
+        NaturalQuotientMap::new(self)
+    }
+
     /// Translate QPA's `MinimalGeneratingSetOfIdeal` for an admissible ideal.
     ///
     /// This forms `JI + IJ`, constructs `KQ/(JI+IJ)`, computes the GAP-style
@@ -340,7 +367,7 @@ impl<F: Field> PathAlgebraIdeal<F> {
             .collect::<Result<Vec<_>, _>>()?;
         Ok(quotient_ideal_span(&quotient, &generators, &algebra_basis)?
             .into_iter()
-            .map(|element| element.normal_form().clone())
+            .map(|element| element.representative().clone())
             .collect())
     }
 }
@@ -367,10 +394,12 @@ impl<F: Field> Eq for PathAlgebraIdeal<F> {}
 struct QuotientPathAlgebraData<F: Field> {
     parent: PathAlgebra<F>,
     ideal: PathAlgebraIdeal<F>,
-    groebner_basis: GroebnerBasis<F>,
+    groebner_basis: Option<GroebnerBasis<F>>,
+    opposite_weak: OnceLock<Weak<QuotientPathAlgebraData<F>>>,
+    opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
 }
 
-/// A quotient `KQ/I` whose elements are stored in QPA Groebner normal form.
+/// A quotient `KQ/I` with QPA's optional normal-form function.
 #[derive(Clone)]
 pub struct QuotientPathAlgebra<F: Field>(Arc<QuotientPathAlgebraData<F>>);
 
@@ -390,12 +419,60 @@ impl<F: Field> QuotientPathAlgebra<F> {
         relators: &[PathAlgebraElement<F>],
     ) -> Result<Self, QuotientError> {
         ensure_parent_elements(&parent, relators)?;
-        let groebner_basis = GroebnerBasis::high_level(&parent, relators)?;
-        let ideal = PathAlgebraIdeal::from_groebner_basis(parent.clone(), groebner_basis.clone());
-        Ok(Self(Arc::new(QuotientPathAlgebraData {
+        let complete = GroebnerBasis::high_level(&parent, relators)?;
+        let complete_relations = complete.relations().to_vec();
+        Self::by_relators_and_complete_groebner_basis(
             parent,
-            ideal,
+            &complete_relations,
+            &complete_relations,
+        )
+    }
+
+    /// Construct QPA's quotient after an external source-translated backend
+    /// has computed a complete Gröbner relation list.
+    ///
+    /// This is the cross-crate boundary used by the GBNP translation. It
+    /// models QPA's `/` method on a relation list, which replaces the defining
+    /// ideal generators by the computed basis before factoring.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for foreign relations or basis normalization failure.
+    pub fn by_complete_groebner_relations(
+        parent: PathAlgebra<F>,
+        complete_relations: &[PathAlgebraElement<F>],
+    ) -> Result<Self, QuotientError> {
+        Self::by_relators_and_complete_groebner_basis(
+            parent,
+            complete_relations,
+            complete_relations,
+        )
+    }
+
+    /// Translate `FactorPathAlgebraByRelators(A, I, OrderingOfAlgebra(A))`
+    /// without forcing a Gröbner computation.
+    ///
+    /// If the ideal already carries a complete basis, the quotient installs
+    /// QPA's normal-form function. Otherwise quotient elements retain their
+    /// representatives and are not marked as normal forms.
+    ///
+    /// # Errors
+    ///
+    /// The ideal must belong to its recorded parent path algebra.
+    pub fn by_ideal(ideal: &PathAlgebraIdeal<F>) -> Result<Self, QuotientError> {
+        let groebner_basis = ideal
+            .groebner_basis()
+            .map(|basis| basis.tip_reduced_basis())
+            .transpose()?;
+        if let Some(basis) = &groebner_basis {
+            ideal.set_groebner_basis(basis.clone());
+        }
+        Ok(Self(Arc::new(QuotientPathAlgebraData {
+            parent: ideal.algebra().clone(),
+            ideal: ideal.clone(),
             groebner_basis,
+            opposite_weak: OnceLock::new(),
+            opposite_strong: OnceLock::new(),
         })))
     }
 
@@ -409,12 +486,15 @@ impl<F: Field> QuotientPathAlgebra<F> {
         let ideal = ideal.with_high_level_groebner_basis()?;
         let groebner_basis = ideal
             .groebner_basis()
-            .cloned()
-            .ok_or(QuotientError::MissingGroebnerBasis)?;
+            .ok_or(QuotientError::MissingGroebnerBasis)?
+            .tip_reduced_basis()?;
+        ideal.set_groebner_basis(groebner_basis.clone());
         Ok(Self(Arc::new(QuotientPathAlgebraData {
             parent,
             ideal,
-            groebner_basis,
+            groebner_basis: Some(groebner_basis),
+            opposite_weak: OnceLock::new(),
+            opposite_strong: OnceLock::new(),
         })))
     }
 
@@ -438,8 +518,15 @@ impl<F: Field> QuotientPathAlgebra<F> {
 
     /// Return the complete Groebner basis used for normal forms.
     #[must_use]
-    pub fn groebner_basis(&self) -> &GroebnerBasis<F> {
-        &self.0.groebner_basis
+    pub fn groebner_basis(&self) -> Option<&GroebnerBasis<F>> {
+        self.0.groebner_basis.as_ref()
+    }
+
+    /// Return whether QPA installed a normal-form function on the quotient
+    /// element family.
+    #[must_use]
+    pub fn has_normal_form_function(&self) -> bool {
+        self.groebner_basis().is_some()
     }
 
     /// Return whether two handles denote the identical quotient object.
@@ -453,7 +540,8 @@ impl<F: Field> QuotientPathAlgebra<F> {
     pub fn zero(&self) -> QuotientPathAlgebraElement<F> {
         QuotientPathAlgebraElement {
             algebra: self.clone(),
-            normal_form: self.original_path_algebra().zero(),
+            representative: self.original_path_algebra().zero(),
+            is_normal_form: self.has_normal_form_function(),
         }
     }
 
@@ -463,7 +551,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
     ///
     /// Propagates normal-form failures.
     pub fn one(&self) -> Result<QuotientPathAlgebraElement<F>, QuotientError> {
-        self.element(self.original_path_algebra().one())
+        self.element_with_normality(self.original_path_algebra().one(), true)
     }
 
     /// Map a parent path-algebra element into the quotient and normalize it.
@@ -475,12 +563,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
         &self,
         element: PathAlgebraElement<F>,
     ) -> Result<QuotientPathAlgebraElement<F>, QuotientError> {
-        ensure_parent_element(self.original_path_algebra(), &element)?;
-        let normal_form = self.groebner_basis().remainder(element)?;
-        Ok(QuotientPathAlgebraElement {
-            algebra: self.clone(),
-            normal_form,
-        })
+        self.element_with_normality(element, false)
     }
 
     /// Embed a quiver path into the quotient and normalize it.
@@ -512,7 +595,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
     ///
     /// Propagates static-dictionary failures.
     pub fn is_finite_dimensional(&self) -> Result<bool, QuotientError> {
-        Ok(self.groebner_basis().admits_finitely_many_nontips()?)
+        Ok(self
+            .groebner_basis()
+            .ok_or(QuotientError::MissingGroebnerBasis)?
+            .admits_finitely_many_nontips()?)
     }
 
     /// Translate QPA's `Dimension`; infinite dimension is explicit.
@@ -523,6 +609,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
     pub fn dimension(&self) -> Result<AlgebraDimension, QuotientError> {
         Ok(self
             .groebner_basis()
+            .ok_or(QuotientError::MissingGroebnerBasis)?
             .nontip_size()?
             .map_or(AlgebraDimension::Infinite, AlgebraDimension::Finite))
     }
@@ -538,6 +625,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
         &self,
     ) -> Result<Option<Vec<QuotientPathAlgebraElement<F>>>, QuotientError> {
         self.groebner_basis()
+            .ok_or(QuotientError::MissingGroebnerBasis)?
             .nontips()?
             .map(|paths| paths.into_iter().map(|path| self.path(path)).collect())
             .transpose()
@@ -550,6 +638,214 @@ impl<F: Field> QuotientPathAlgebra<F> {
     /// Propagates the defining ideal's admissibility computation.
     pub fn is_admissible(&self) -> Result<bool, QuotientError> {
         self.ideal().is_admissible()
+    }
+
+    /// Translate QPA's cached `OppositePathAlgebra` for a quotient.
+    ///
+    /// QPA takes opposite relators, computes the configured Gröbner basis on
+    /// the opposite parent, and factors by that ideal. This core entry point
+    /// uses the already source-translated high-level QPA backend; the default
+    /// GBNP-backed facade is supplied by the GBNP layer.
+    ///
+    /// # Errors
+    ///
+    /// Propagates opposite-parent, relation, and Gröbner failures.
+    pub fn opposite_high_level(&self) -> Result<Self, QuotientError> {
+        if let Some(opposite) = self.cached_opposite() {
+            return Ok(opposite);
+        }
+
+        let opposite_parent = self.original_path_algebra().opposite()?;
+        let opposite_relations = self.opposite_defining_relations()?;
+        let complete = GroebnerBasis::high_level(&opposite_parent, &opposite_relations)?;
+        self.install_opposite_from_complete_relations(&opposite_relations, complete.relations())
+    }
+
+    /// Return an already-live cached opposite quotient, if one exists.
+    ///
+    /// This backend-neutral hook lets the GBNP crate avoid recomputing a basis
+    /// before delegating reciprocal-cache installation back to `qpa-core`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_opposite(&self) -> Option<Self> {
+        self.0
+            .opposite_strong
+            .get()
+            .cloned()
+            .or_else(|| self.0.opposite_weak.get().and_then(Weak::upgrade).map(Self))
+    }
+
+    /// Return QPA's termwise opposite defining relators.
+    ///
+    /// # Errors
+    ///
+    /// Propagates opposite path-algebra element failures.
+    #[doc(hidden)]
+    pub fn opposite_defining_relations(&self) -> Result<Vec<PathAlgebraElement<F>>, QuotientError> {
+        self.relations()
+            .iter()
+            .map(PathAlgebraElement::opposite)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Into::into)
+    }
+
+    /// Complete QPA's opposite-quotient construction after a backend has
+    /// computed the opposite ideal's complete Gröbner basis.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for foreign relators, invalid basis data, or a lost
+    /// reciprocal-cache race.
+    #[doc(hidden)]
+    pub fn install_opposite_from_complete_relations(
+        &self,
+        opposite_relators: &[PathAlgebraElement<F>],
+        complete_relations: &[PathAlgebraElement<F>],
+    ) -> Result<Self, QuotientError> {
+        if let Some(opposite) = self.cached_opposite() {
+            return Ok(opposite);
+        }
+        let opposite_parent = self.original_path_algebra().opposite()?;
+        let opposite = Self::by_relators_and_complete_groebner_basis(
+            opposite_parent,
+            opposite_relators,
+            complete_relations,
+        )?;
+        if opposite.0.opposite_strong.set(self.clone()).is_err() {
+            return Err(QuotientError::OppositeCacheRace);
+        }
+        if self
+            .0
+            .opposite_weak
+            .set(Arc::downgrade(&opposite.0))
+            .is_err()
+        {
+            return self
+                .cached_opposite()
+                .ok_or(QuotientError::OppositeCacheRace);
+        }
+        Ok(opposite)
+    }
+
+    /// Translate QPA's `MakeUniformOnRight` for quotient elements.
+    ///
+    /// The operation examines each stored representative, preserving QPA's
+    /// behavior for quotient families without a normal-form function.
+    ///
+    /// # Errors
+    ///
+    /// All elements must belong to this identical quotient family.
+    pub fn make_uniform_on_right(
+        &self,
+        generators: &[QuotientPathAlgebraElement<F>],
+    ) -> Result<Vec<QuotientPathAlgebraElement<F>>, QuotientError> {
+        ensure_quotient_elements(self, generators)?;
+        let mut uniform = Vec::new();
+        for generator in generators {
+            let mut targets = Vec::new();
+            for term in generator.representative().terms() {
+                if let PathEndpoint::Vertex(target) = term.path().target()
+                    && !targets.contains(&target)
+                {
+                    targets.push(target);
+                }
+            }
+            for target in targets {
+                let vertex = self.path(target.path())?;
+                let component = generator.multiply(&vertex)?;
+                if !component.is_zero() && !uniform.contains(&component) {
+                    uniform.push(component);
+                }
+            }
+        }
+        Ok(uniform)
+    }
+
+    /// Translate QPA's `GeneratorsTimesArrowsOnRight` for quotient elements.
+    ///
+    /// # Errors
+    ///
+    /// Propagates uniformization, quiver lookup, and quotient arithmetic
+    /// failures.
+    pub fn generators_times_arrows_on_right(
+        &self,
+        generators: &[QuotientPathAlgebraElement<F>],
+    ) -> Result<Vec<QuotientPathAlgebraElement<F>>, QuotientError> {
+        let uniform = self.make_uniform_on_right(generators)?;
+        let mut extended = Vec::new();
+        for generator in uniform {
+            let PathEndpoint::Vertex(target) = generator.leading_monomial().target() else {
+                continue;
+            };
+            for arrow in self
+                .original_path_algebra()
+                .quiver()
+                .outgoing_arrows(&target)?
+            {
+                let product = generator.multiply(&self.path(arrow.path())?)?;
+                if !product.is_zero() {
+                    extended.push(product);
+                }
+            }
+        }
+        Ok(extended)
+    }
+
+    /// Construct QPA's truncated path algebra with the high-level Gröbner
+    /// backend available in `qpa-core`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates path-algebra, arrow-power, and Gröbner construction failures.
+    pub fn truncated_high_level(
+        field: F,
+        quiver: Quiver,
+        exponent: i64,
+    ) -> Result<Self, QuotientError> {
+        let parent = PathAlgebra::new(field, quiver)?;
+        let relations = parent.nth_power_of_arrow_ideal(exponent)?;
+        Self::by_relations_high_level(parent, &relations)
+    }
+
+    fn element_with_normality(
+        &self,
+        element: PathAlgebraElement<F>,
+        known_normal: bool,
+    ) -> Result<QuotientPathAlgebraElement<F>, QuotientError> {
+        ensure_parent_element(self.original_path_algebra(), &element)?;
+        let (representative, is_normal_form) = match self.groebner_basis() {
+            Some(_) if known_normal => (element, true),
+            Some(basis) => (basis.completely_reduce(element)?, true),
+            None => (element, false),
+        };
+        Ok(QuotientPathAlgebraElement {
+            algebra: self.clone(),
+            representative,
+            is_normal_form,
+        })
+    }
+
+    fn by_relators_and_complete_groebner_basis(
+        parent: PathAlgebra<F>,
+        relators: &[PathAlgebraElement<F>],
+        complete_relations: &[PathAlgebraElement<F>],
+    ) -> Result<Self, QuotientError> {
+        ensure_parent_elements(&parent, relators)?;
+        ensure_parent_elements(&parent, complete_relations)?;
+        let groebner_basis = GroebnerBasis::from_complete_relations(&parent, complete_relations)?
+            .tip_reduced_basis()?;
+        let ideal = PathAlgebraIdeal::from_generators_and_groebner_basis(
+            parent.clone(),
+            relators.to_vec(),
+            groebner_basis.clone(),
+        );
+        Ok(Self(Arc::new(QuotientPathAlgebraData {
+            parent,
+            ideal,
+            groebner_basis: Some(groebner_basis),
+            opposite_weak: OnceLock::new(),
+            opposite_strong: OnceLock::new(),
+        })))
     }
 }
 
@@ -571,11 +867,98 @@ impl<F: Field> PartialEq for QuotientPathAlgebra<F> {
 
 impl<F: Field> Eq for QuotientPathAlgebra<F> {}
 
-/// A normalized element of a quotient of a path algebra.
+/// QPA's natural surjection from a path algebra to its quotient by an ideal.
+///
+/// The pinned QPA method constructs the quotient without forcing a Gröbner
+/// basis, maps the path-algebra generators to the corresponding quotient
+/// generators, and marks the mapping surjective. Rust stores the mathematically
+/// equivalent generator map as the canonical representative projection.
+#[derive(Clone)]
+pub struct NaturalQuotientMap<F: Field> {
+    source: PathAlgebra<F>,
+    range: QuotientPathAlgebra<F>,
+    kernel: PathAlgebraIdeal<F>,
+}
+
+impl<F: Field> NaturalQuotientMap<F> {
+    fn new(ideal: &PathAlgebraIdeal<F>) -> Result<Self, QuotientError> {
+        Ok(Self {
+            source: ideal.algebra().clone(),
+            range: QuotientPathAlgebra::by_ideal(ideal)?,
+            kernel: ideal.clone(),
+        })
+    }
+
+    /// Return the source path algebra.
+    #[must_use]
+    pub const fn source(&self) -> &PathAlgebra<F> {
+        &self.source
+    }
+
+    /// Return the factor path algebra.
+    #[must_use]
+    pub const fn range(&self) -> &QuotientPathAlgebra<F> {
+        &self.range
+    }
+
+    /// Return the defining kernel ideal.
+    #[must_use]
+    pub const fn kernel(&self) -> &PathAlgebraIdeal<F> {
+        &self.kernel
+    }
+
+    /// Return QPA's explicitly installed surjectivity property.
+    #[must_use]
+    pub const fn is_surjective(&self) -> bool {
+        true
+    }
+
+    /// Map an element by replacing each path-algebra generator with its
+    /// quotient generator.
+    ///
+    /// Since that is precisely the canonical projection, QPA's
+    /// `MappedExpression` result has the same stored parent representative.
+    /// The range performs normal-form reduction only when its defining ideal
+    /// already carries a complete basis.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a foreign source element or reduction failure.
+    pub fn image(
+        &self,
+        element: &PathAlgebraElement<F>,
+    ) -> Result<QuotientPathAlgebraElement<F>, QuotientError> {
+        ensure_parent_element(self.source(), element)?;
+        self.range().element(element.clone())
+    }
+
+    /// Return the images of QPA's vertex-then-arrow generator list.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient element construction failures.
+    pub fn generator_images(&self) -> Result<Vec<QuotientPathAlgebraElement<F>>, QuotientError> {
+        self.range().generators()
+    }
+}
+
+impl<F: Field> fmt::Debug for NaturalQuotientMap<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("NaturalQuotientMap")
+            .field("source", self.source())
+            .field("range", self.range())
+            .field("surjective", &true)
+            .finish_non_exhaustive()
+    }
+}
+
+/// A possibly lazy element of a quotient of a path algebra.
 #[derive(Clone, Debug)]
 pub struct QuotientPathAlgebraElement<F: Field> {
     algebra: QuotientPathAlgebra<F>,
-    normal_form: PathAlgebraElement<F>,
+    representative: PathAlgebraElement<F>,
+    is_normal_form: bool,
 }
 
 impl<F: Field> QuotientPathAlgebraElement<F> {
@@ -585,16 +968,42 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
         &self.algebra
     }
 
-    /// Return the normalized underlying path-algebra element.
+    /// Return QPA's stored underlying path-algebra representative.
+    ///
+    /// This is a canonical normal form exactly when [`Self::is_normal_form`]
+    /// is true. Quotients constructed from ideals without attached Gröbner
+    /// bases deliberately retain lazy, unreduced representatives.
     #[must_use]
-    pub const fn normal_form(&self) -> &PathAlgebraElement<F> {
-        &self.normal_form
+    pub const fn representative(&self) -> &PathAlgebraElement<F> {
+        &self.representative
+    }
+
+    /// Return QPA's `IsNormalForm` filter state.
+    #[must_use]
+    pub const fn is_normal_form(&self) -> bool {
+        self.is_normal_form
+    }
+
+    /// Normalize this representative using the quotient's installed basis.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`QuotientError::MissingGroebnerBasis`] when QPA did not install
+    /// a normal-form function on this quotient family.
+    pub fn normalized(&self) -> Result<Self, QuotientError> {
+        if self.is_normal_form() {
+            return Ok(self.clone());
+        }
+        if !self.algebra().has_normal_form_function() {
+            return Err(QuotientError::MissingGroebnerBasis);
+        }
+        self.algebra.element(self.representative().clone())
     }
 
     /// Return whether this is quotient zero.
     #[must_use]
     pub fn is_zero(&self) -> bool {
-        self.normal_form.is_zero()
+        self.representative.is_zero()
     }
 
     /// Add and normalize quotient elements.
@@ -604,8 +1013,10 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     /// Returns an error for different quotient families or reduction failure.
     pub fn add(&self, right: &Self) -> Result<Self, QuotientError> {
         self.ensure_same_quotient(right)?;
-        self.algebra
-            .element(self.normal_form.add(&right.normal_form)?)
+        self.algebra.element_with_normality(
+            self.representative.add(&right.representative)?,
+            self.is_normal_form && right.is_normal_form,
+        )
     }
 
     /// Return the additive inverse in normal form.
@@ -614,7 +1025,8 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     ///
     /// Propagates arithmetic and reduction failures.
     pub fn neg(&self) -> Result<Self, QuotientError> {
-        self.algebra.element(self.normal_form.neg()?)
+        self.algebra
+            .element_with_normality(self.representative.neg()?, self.is_normal_form)
     }
 
     /// Subtract and normalize quotient elements.
@@ -624,8 +1036,10 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     /// Returns an error for different quotient families or reduction failure.
     pub fn sub(&self, right: &Self) -> Result<Self, QuotientError> {
         self.ensure_same_quotient(right)?;
-        self.algebra
-            .element(self.normal_form.sub(&right.normal_form)?)
+        self.algebra.element_with_normality(
+            self.representative.sub(&right.representative)?,
+            self.is_normal_form && right.is_normal_form,
+        )
     }
 
     /// Multiply and normalize quotient elements.
@@ -636,7 +1050,7 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     pub fn multiply(&self, right: &Self) -> Result<Self, QuotientError> {
         self.ensure_same_quotient(right)?;
         self.algebra
-            .element(self.normal_form.multiply(&right.normal_form)?)
+            .element_with_normality(self.representative.multiply(&right.representative)?, false)
     }
 
     /// Scale on the left and normalize.
@@ -645,7 +1059,8 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     ///
     /// Propagates arithmetic and reduction failures.
     pub fn scale_left(&self, scalar: &F::Element) -> Result<Self, QuotientError> {
-        self.algebra.element(self.normal_form.scale_left(scalar)?)
+        self.algebra
+            .element_with_normality(self.representative.scale_left(scalar)?, self.is_normal_form)
     }
 
     /// Raise to a nonnegative power and normalize each multiplication.
@@ -673,38 +1088,39 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     pub fn leading_term(&self) -> Self {
         Self {
             algebra: self.algebra.clone(),
-            normal_form: self.normal_form.leading_term(),
+            representative: self.representative.leading_term(),
+            is_normal_form: self.is_normal_form,
         }
     }
 
     /// Return the leading coefficient of the normal representative.
     #[must_use]
     pub fn leading_coefficient(&self) -> F::Element {
-        self.normal_form.leading_coefficient()
+        self.representative.leading_coefficient()
     }
 
     /// Return the leading monomial of the normal representative.
     #[must_use]
     pub fn leading_monomial(&self) -> Path {
-        self.normal_form.leading_monomial()
+        self.representative.leading_monomial()
     }
 
     /// Translate QPA's left-uniform test on the representative.
     #[must_use]
     pub fn is_left_uniform(&self) -> bool {
-        self.normal_form.is_left_uniform()
+        self.representative.is_left_uniform()
     }
 
     /// Translate QPA's right-uniform test on the representative.
     #[must_use]
     pub fn is_right_uniform(&self) -> bool {
-        self.normal_form.is_right_uniform()
+        self.representative.is_right_uniform()
     }
 
     /// Translate QPA's uniform test on the representative.
     #[must_use]
     pub fn is_uniform(&self) -> bool {
-        self.normal_form.is_uniform()
+        self.representative.is_uniform()
     }
 
     /// Compare normal representatives using QPA's path-algebra comparison.
@@ -714,7 +1130,25 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     /// Returns an error for different quotient families.
     pub fn compare(&self, right: &Self) -> Result<Ordering, QuotientError> {
         self.ensure_same_quotient(right)?;
-        Ok(self.normal_form.compare(&right.normal_form)?)
+        if !self.is_normal_form() || !right.is_normal_form() {
+            return Err(QuotientError::ElementsNotInNormalForm);
+        }
+        Ok(self.representative.compare(&right.representative)?)
+    }
+
+    /// Translate `OppositePathAlgebraElement` for a quotient element.
+    ///
+    /// QPA maps the stored representative termwise and then constructs an
+    /// element of the opposite quotient, whose freshly computed basis performs
+    /// normal-form reduction.
+    ///
+    /// # Errors
+    ///
+    /// Propagates opposite quotient, path, and reduction failures.
+    pub fn opposite_high_level(&self) -> Result<Self, QuotientError> {
+        let opposite = self.algebra().opposite_high_level()?;
+        let representative = self.representative().opposite()?;
+        opposite.element(representative)
     }
 
     fn ensure_same_quotient(&self, right: &Self) -> Result<(), QuotientError> {
@@ -728,7 +1162,7 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
 
 impl<F: Field> PartialEq for QuotientPathAlgebraElement<F> {
     fn eq(&self, other: &Self) -> bool {
-        self.algebra == other.algebra && self.normal_form == other.normal_form
+        self.algebra == other.algebra && self.representative == other.representative
     }
 }
 
@@ -817,11 +1251,11 @@ fn quotient_span_basis<F: Field>(
 ) -> Result<Vec<QuotientPathAlgebraElement<F>>, QuotientError> {
     let basis_paths = algebra_basis
         .iter()
-        .map(|element| canonical_basis_path(element.normal_form()))
+        .map(|element| canonical_basis_path(element.representative()))
         .collect::<Result<Vec<_>, _>>()?;
     let rows = elements
         .iter()
-        .map(|element| element_coordinates(element.normal_form(), &basis_paths))
+        .map(|element| element_coordinates(element.representative(), &basis_paths))
         .collect::<Result<Vec<_>, _>>()?;
     let matrix = DenseMatrix::from_rows(rows, quotient.original_path_algebra().field().clone())?;
     let vectors = matrix.semi_echelon_transformation().vectors;
@@ -921,6 +1355,20 @@ fn ensure_parent_elements<F: Field>(
     Ok(())
 }
 
+fn ensure_quotient_elements<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+    elements: &[QuotientPathAlgebraElement<F>],
+) -> Result<(), QuotientError> {
+    if elements
+        .iter()
+        .all(|element| quotient.is_identical(element.algebra()))
+    {
+        Ok(())
+    } else {
+        Err(QuotientError::DifferentQuotients)
+    }
+}
+
 /// Failure to construct or operate on a QPA ideal or quotient path algebra.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum QuotientError {
@@ -930,6 +1378,9 @@ pub enum QuotientError {
     /// Quotient arithmetic requires identical quotient families.
     #[error("the elements belong to different quotient path algebras")]
     DifferentQuotients,
+    /// QPA only installs quotient comparison for normal-form elements.
+    #[error("quotient elements must be in normal form for this operation")]
+    ElementsNotInNormalForm,
     /// An ideal-level method requiring an attached basis did not receive one.
     #[error("the path-algebra ideal has no attached Groebner basis")]
     MissingGroebnerBasis,
@@ -954,12 +1405,18 @@ pub enum QuotientError {
     /// QPA declares homogeneous-list checking only for positive degrees.
     #[error("the homogeneous degree must be positive")]
     NonPositiveDegree,
+    /// Concurrent opposite-quotient construction lost its reciprocal cache.
+    #[error("concurrent opposite-quotient cache initialization failed")]
+    OppositeCacheRace,
     /// QPA Groebner computation or reduction failed.
     #[error(transparent)]
     Groebner(#[from] GroebnerError),
     /// Parent path-algebra arithmetic failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
+    /// A source-translated quiver lookup failed.
+    #[error(transparent)]
+    Quiver(#[from] QuiverError),
     /// Exact GAP-compatible row reduction failed.
     #[error(transparent)]
     Matrix(#[from] MatrixError),
@@ -975,7 +1432,10 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use crate::{ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
+    use crate::{
+        ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex,
+        opposite_relations,
+    };
 
     use super::{
         AlgebraDimension, PathAlgebraIdeal, QuotientError, QuotientPathAlgebra,
@@ -1008,6 +1468,20 @@ mod tests {
             vec![
                 ArrowSpec::named(vertex(1), vertex(1), "x"),
                 ArrowSpec::named(vertex(1), vertex(1), "y"),
+            ],
+        )
+        .unwrap()
+    }
+
+    fn foundational_quiver() -> Quiver {
+        Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "a"),
+                ArrowSpec::named(vertex(1), vertex(2), "b"),
+                ArrowSpec::named(vertex(2), vertex(3), "c"),
+                ArrowSpec::named(vertex(3), vertex(1), "d"),
+                ArrowSpec::named(vertex(2), vertex(2), "e"),
             ],
         )
         .unwrap()
@@ -1092,6 +1566,18 @@ mod tests {
         )
     }
 
+    fn monomial_external_paths<F: Field>(elements: &[PathAlgebraElement<F>]) -> Value {
+        Value::Array(
+            elements
+                .iter()
+                .map(|element| {
+                    assert_eq!(element.terms().len(), 1);
+                    json!(element.terms()[0].path().external_representation())
+                })
+                .collect(),
+        )
+    }
+
     #[test]
     fn ideal_membership_uses_qpa_complete_reduction() {
         let algebra = loop_algebra();
@@ -1153,6 +1639,247 @@ mod tests {
         assert_eq!(y.multiply(x).unwrap(), x.multiply(y).unwrap());
         assert!(y.multiply(x).unwrap().multiply(y).unwrap().is_zero());
         assert_eq!(quotient.relations().len(), 3);
+    }
+
+    #[test]
+    #[allow(
+        clippy::many_single_char_names,
+        clippy::similar_names,
+        clippy::too_many_lines
+    )]
+    fn pinned_qpa_foundational_pathalg_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_foundational.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            expected["oracle"],
+            json!({
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+            })
+        );
+
+        let quiver = foundational_quiver();
+        let algebra = PathAlgebra::new(Q, quiver.clone()).unwrap();
+        let arrows = (1..=5)
+            .map(|index| {
+                algebra
+                    .element(quiver.arrow(arrow(index)).unwrap().path())
+                    .unwrap()
+            })
+            .collect::<Vec<_>>();
+        let [a, b, c, d, _e] = arrows.as_slice() else {
+            unreachable!();
+        };
+
+        let a_plus_b = a.add(b).unwrap();
+        let uniform = algebra
+            .make_uniform_on_right(&[a_plus_b.clone(), a.clone()])
+            .unwrap();
+        assert_eq!(
+            Value::Array(uniform.iter().map(rational_external_json).collect()),
+            expected["right_uniform"]
+        );
+        let extended = algebra
+            .generators_times_arrows_on_right(std::slice::from_ref(&a_plus_b))
+            .unwrap();
+        assert_eq!(monomial_external_paths(&extended), expected["times_arrows"]);
+        for exponent in [0_i64, 1, 2, 3] {
+            assert_eq!(
+                monomial_external_paths(&algebra.nth_power_of_arrow_ideal(exponent).unwrap()),
+                expected["arrow_powers"][format!("n{exponent}")]
+            );
+        }
+        let mut relations = vec![a_plus_b.clone()];
+        algebra
+            .add_nth_power_to_relations(&mut relations, 2)
+            .unwrap();
+        assert_eq!(
+            json!({
+                "same_object": true,
+                "relations": relations.iter().map(rational_external_json).collect::<Vec<_>>()
+            }),
+            expected["add_power"]
+        );
+
+        let a_squared = a.pow(2).unwrap();
+        let ideal = PathAlgebraIdeal::new(algebra.clone(), vec![a_squared.clone()]).unwrap();
+        let projection = ideal.natural_homomorphism().unwrap();
+        let lazy_image = projection.image(&a.add(&a_squared).unwrap()).unwrap();
+        let lazy_sum = projection.image(&a_plus_b).unwrap();
+        let lazy_uniform = projection
+            .range()
+            .make_uniform_on_right(std::slice::from_ref(&lazy_sum))
+            .unwrap();
+        let lazy_extended = projection
+            .range()
+            .generators_times_arrows_on_right(std::slice::from_ref(&lazy_sum))
+            .unwrap();
+        assert!(projection.source().is_identical(&algebra));
+        assert!(
+            projection
+                .range()
+                .original_path_algebra()
+                .is_identical(&algebra)
+        );
+        assert!(projection.kernel().is_identical(&ideal));
+        assert!(projection.is_surjective());
+        assert!(!lazy_image.is_normal_form());
+        assert_eq!(
+            lazy_image.normalized().unwrap_err(),
+            QuotientError::MissingGroebnerBasis
+        );
+
+        let attached_ideal = ideal
+            .with_complete_groebner_basis(std::slice::from_ref(&a_squared))
+            .unwrap();
+        assert!(attached_ideal.is_identical(&ideal));
+        assert_eq!(
+            attached_ideal
+                .groebner_basis()
+                .unwrap()
+                .tip_reduced_property(),
+            None
+        );
+        let attached_projection = attached_ideal.natural_homomorphism().unwrap();
+        assert_eq!(
+            attached_ideal
+                .groebner_basis()
+                .unwrap()
+                .tip_reduced_property(),
+            Some(true)
+        );
+        let attached_image = attached_projection
+            .image(&a.add(&a_squared).unwrap())
+            .unwrap();
+        assert_eq!(
+            json!({
+                "source_identical": projection.source().is_identical(&algebra),
+                "range_original_identical": projection.range().original_path_algebra().is_identical(&algebra),
+                "surjective": projection.is_surjective(),
+                "image": rational_external_json(lazy_image.representative()),
+                "image_is_normal_form": lazy_image.is_normal_form(),
+                "right_uniform": lazy_uniform.iter().map(|element| rational_external_json(element.representative())).collect::<Vec<_>>(),
+                "times_arrows": lazy_extended.iter().map(|element| rational_external_json(element.representative())).collect::<Vec<_>>(),
+                "attached_image": rational_external_json(attached_image.representative()),
+                "attached_image_is_normal_form": attached_image.is_normal_form()
+            }),
+            expected["natural_map"]
+        );
+
+        let opposite_parent = algebra.opposite().unwrap();
+        assert!(opposite_parent.opposite().unwrap().is_identical(&algebra));
+        assert!(
+            opposite_parent
+                .quiver()
+                .opposite()
+                .unwrap()
+                .is_identical(&quiver)
+        );
+        let q2 = Q.to_element(2.into(), 1.into(), true);
+        let q3 = Q.to_element(3.into(), 1.into(), true);
+        let element = a
+            .multiply(b)
+            .unwrap()
+            .scale_left(&q2)
+            .unwrap()
+            .add(&b.multiply(c).unwrap().scale_left(&q3).unwrap())
+            .unwrap();
+        let opposite_element = element.opposite().unwrap();
+        let double_element = opposite_element.opposite().unwrap();
+        let source_relations = vec![
+            a_squared.add(&b.multiply(c).unwrap()).unwrap(),
+            c.multiply(d).unwrap(),
+        ];
+        let opposite_source_relations = opposite_relations(&source_relations).unwrap();
+        assert_eq!(
+            json!({
+                "double_identical": opposite_parent.opposite().unwrap().is_identical(&algebra),
+                "quiver_double_identical": opposite_parent.quiver().opposite().unwrap().is_identical(&quiver),
+                "element": rational_external_json(&opposite_element),
+                "double_element": rational_external_json(&double_element),
+                "relations": opposite_source_relations.iter().map(rational_external_json).collect::<Vec<_>>()
+            }),
+            expected["opposite_parent"]
+        );
+
+        let truncated = QuotientPathAlgebra::truncated_high_level(Q, quiver.clone(), 3).unwrap();
+        let truncated_opposite = truncated.opposite_high_level().unwrap();
+        let truncated_double = truncated_opposite.opposite_high_level().unwrap();
+        let qa = truncated
+            .path(quiver.arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        let qb = truncated
+            .path(quiver.arrow(arrow(2)).unwrap().path())
+            .unwrap();
+        let qc = truncated
+            .path(quiver.arrow(arrow(3)).unwrap().path())
+            .unwrap();
+        let quotient_element = qa
+            .add(&qa.pow(2).unwrap())
+            .unwrap()
+            .add(&qb.multiply(&qc).unwrap())
+            .unwrap();
+        let opposite_quotient_element = quotient_element.opposite_high_level().unwrap();
+        let AlgebraDimension::Finite(dimension) = truncated.dimension().unwrap() else {
+            panic!("the truncated algebra must be finite-dimensional");
+        };
+        let AlgebraDimension::Finite(opposite_dimension) = truncated_opposite.dimension().unwrap()
+        else {
+            panic!("the opposite truncated algebra must be finite-dimensional");
+        };
+        assert_eq!(
+            json!({
+                "dimension": small_integer(&dimension),
+                "opposite_dimension": small_integer(&opposite_dimension),
+                "double_identical": truncated_double.is_identical(&truncated),
+                "opposite_element": rational_external_json(opposite_quotient_element.representative())
+            }),
+            expected["truncated"]
+        );
+
+        let algebra2 = PathAlgebra::new(Z2, quiver.clone()).unwrap();
+        let a2 = algebra2
+            .element(quiver.arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        let b2 = algebra2
+            .element(quiver.arrow(arrow(2)).unwrap().path())
+            .unwrap();
+        let c2 = algebra2
+            .element(quiver.arrow(arrow(3)).unwrap().path())
+            .unwrap();
+        let a2_squared = a2.pow(2).unwrap();
+        let ideal2 = PathAlgebraIdeal::new(algebra2, vec![a2_squared.clone()]).unwrap();
+        let projection2 = ideal2.natural_homomorphism().unwrap();
+        let image2 = projection2.image(&a2.add(&a2_squared).unwrap()).unwrap();
+        let attached2 = ideal2
+            .with_complete_groebner_basis(std::slice::from_ref(&a2_squared))
+            .unwrap();
+        let attached_image2 = attached2
+            .natural_homomorphism()
+            .unwrap()
+            .image(&a2.add(&a2_squared).unwrap())
+            .unwrap();
+        let opposite_element2 = a2
+            .multiply(&b2)
+            .unwrap()
+            .add(&b2.multiply(&c2).unwrap())
+            .unwrap()
+            .opposite()
+            .unwrap();
+        assert_eq!(
+            json!({
+                "lazy_image": z2_external_json(image2.representative()),
+                "lazy_is_normal_form": image2.is_normal_form(),
+                "attached_image": z2_external_json(attached_image2.representative()),
+                "attached_is_normal_form": attached_image2.is_normal_form(),
+                "opposite_element": z2_external_json(&opposite_element2)
+            }),
+            expected["f2"]
+        );
     }
 
     #[test]
@@ -1379,12 +2106,12 @@ mod tests {
         assert_eq!(
             json!({
                 "relations": quotient.relations().iter().map(rational_json).collect::<Vec<_>>(),
-                "zero": rational_json(quotient.zero().normal_form()),
-                "one": rational_json(one.normal_form()),
-                "yx": rational_json(yx.normal_form()),
-                "x_squared": rational_json(x_quotient.pow(2).unwrap().normal_form()),
-                "yxy_plus_x": rational_json(yxy_plus_x.normal_form()),
-                "one_plus_x_times_one_minus_x": rational_json(product_with_inverse.normal_form()),
+                "zero": rational_json(quotient.zero().representative()),
+                "one": rational_json(one.representative()),
+                "yx": rational_json(yx.representative()),
+                "x_squared": rational_json(x_quotient.pow(2).unwrap().representative()),
+                "yxy_plus_x": rational_json(yxy_plus_x.representative()),
+                "one_plus_x_times_one_minus_x": rational_json(product_with_inverse.representative()),
                 "finite_dimensional": quotient.is_finite_dimensional().unwrap(),
                 "dimension": small_integer(&rational_dimension),
                 "canonical_basis_paths": rational_basis.iter().map(|element| element.leading_monomial().to_string()).collect::<Vec<_>>(),
@@ -1425,8 +2152,8 @@ mod tests {
         let y5 = &generators5[2];
         assert_eq!(
             json!({
-                "yx": zp_json(y5.multiply(x5).unwrap().normal_form(), &field5),
-                "x_squared": zp_json(x5.pow(2).unwrap().normal_form(), &field5)
+                "yx": zp_json(y5.multiply(x5).unwrap().representative(), &field5),
+                "x_squared": zp_json(x5.pow(2).unwrap().representative(), &field5)
             }),
             expected["f5"]
         );
@@ -1453,8 +2180,8 @@ mod tests {
         let y2 = &generators2[2];
         assert_eq!(
             json!({
-                "yx": z2_json(y2.multiply(x2).unwrap().normal_form()),
-                "x_squared": z2_json(x2.pow(2).unwrap().normal_form())
+                "yx": z2_json(y2.multiply(x2).unwrap().representative()),
+                "x_squared": z2_json(x2.pow(2).unwrap().representative())
             }),
             expected["f2"]
         );
