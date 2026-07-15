@@ -57,6 +57,24 @@ dynkin_e := DynkinQuiverEn(6, ["r", "l", "r", "l", "d"]);;
 separated := SeparatedQuiver(cyclic);;
 doubled := DoubleQuiver(cyclic);;
 
+universe := [[1, 1, "a"], [1, 2, "b"],
+             [2, 1, "c"], [2, 2, "d"]];;
+exhaustive := [];;
+for quiver_mask in [0..15] do
+    specifications := Filtered([1..4],
+        i -> QuoInt(quiver_mask, 2^(i-1)) mod 2 = 1);;
+    test_quiver := Quiver(2, universe{specifications});;
+    acyclic := IsAcyclicQuiver(test_quiver);;
+    if acyclic then
+        topological := List(test_quiver!.tsorted, VertexIndex);;
+    else
+        topological := [];;
+    fi;
+    Add(exhaustive, [quiver_mask, acyclic,
+        IsConnectedQuiver(test_quiver), IsUAcyclicQuiver(test_quiver),
+        IsTreeQuiver(test_quiver), topological]);
+od;
+
 Print("{\"schema_version\":1,\"kind\":\"quiver_graph\",\"oracle\":{");
 Print("\"gap_version\":");
 PrintJsonString(GAPInfo.Version);
@@ -96,6 +114,7 @@ Print("},\"separated\":");
 PrintQuiverRecord(separated);
 Print(",\"double\":");
 PrintQuiverRecord(doubled);
+Print(",\"exhaustive\":", exhaustive);
 Print("}\n");
 
 QUIT_GAP(0);

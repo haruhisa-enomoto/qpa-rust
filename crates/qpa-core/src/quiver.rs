@@ -2347,6 +2347,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::too_many_lines)]
     fn pinned_qpa_quiver_graph_fixture_matches() {
         use DynkinOrientation::{Down, Left, Right};
 
@@ -2430,6 +2431,41 @@ mod tests {
             expected["separated"]
         );
         assert_eq!(quiver_record(&cyclic.double().unwrap()), expected["double"]);
+
+        let universe = [
+            ArrowSpec::named(vertex(1), vertex(1), "a"),
+            ArrowSpec::named(vertex(1), vertex(2), "b"),
+            ArrowSpec::named(vertex(2), vertex(1), "c"),
+            ArrowSpec::named(vertex(2), vertex(2), "d"),
+        ];
+        let mut exhaustive = Vec::new();
+        for quiver_mask in 0_u8..16 {
+            let specifications = universe
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| quiver_mask & (1 << index) != 0)
+                .map(|(_, specification)| specification.clone())
+                .collect();
+            let quiver = Quiver::from_indexed(2, specifications).unwrap();
+            let topological = quiver
+                .topological_order()
+                .map(|vertices| {
+                    vertices
+                        .into_iter()
+                        .map(|vertex| vertex.index().get())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            exhaustive.push(json!([
+                quiver_mask,
+                quiver.is_acyclic(),
+                quiver.is_connected(),
+                quiver.is_unoriented_acyclic(),
+                quiver.is_tree(),
+                topological,
+            ]));
+        }
+        assert_eq!(json!(exhaustive), expected["exhaustive"]);
     }
 
     #[test]

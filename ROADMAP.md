@@ -373,7 +373,9 @@ Primary QPA files: `quiver`, `groebnerordering`, `qpaposet`, and
 - [x] Port quiver enumerators without materializing infinite path sets.
 - [x] Port QPA posets, including GAP's exact reflexive/transitive closure,
   partial-order validation, Hasse relations, input ordering, and error branches.
-- [ ] Port remaining quiver graph algorithms.
+- [x] Port remaining quiver graph algorithms. The complete declaration family
+  is audited and its DFS/topological behavior is exhaustively pinned on all
+  directed simple-edge subsets on two vertices.
 - [x] Provide Rust constructors that preserve every QPA ordering composition.
 
 Exit gate: all quiver/path/ordering declarations and examples are complete over

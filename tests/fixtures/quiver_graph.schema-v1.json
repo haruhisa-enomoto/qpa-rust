@@ -70,5 +70,23 @@
       {"name": "c", "source": "v3", "target": "v2"},
       {"name": "cbar", "source": "v2", "target": "v3"}
     ]
-  }
+  },
+  "exhaustive": [
+    [0,true,false,true,false,[2,1]],
+    [1,false,false,false,false,[]],
+    [2,true,true,true,true,[1,2]],
+    [3,false,true,false,false,[]],
+    [4,true,true,true,true,[2,1]],
+    [5,false,true,false,false,[]],
+    [6,false,true,false,false,[]],
+    [7,false,true,false,false,[]],
+    [8,false,false,false,false,[]],
+    [9,false,false,false,false,[]],
+    [10,false,true,false,false,[]],
+    [11,false,true,false,false,[]],
+    [12,false,true,false,false,[]],
+    [13,false,true,false,false,[]],
+    [14,false,true,false,false,[]],
+    [15,false,true,false,false,[]]
+  ]
 }
