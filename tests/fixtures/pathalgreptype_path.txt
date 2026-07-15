@@ -1,0 +1,25 @@
+BEGIN_SEMISIMPLE
+Finite type!
+Semisimple algebra (Q has no arrows).
+RESULT_SEMISIMPLE=true
+BEGIN_A3
+A_3
+Finite type!
+Quiver is a (union of) Dynkin quiver(s).
+RESULT_A3=true
+BEGIN_DISJOINT_DYNKIN
+A_2
+D_4
+Finite type!
+Quiver is a (union of) Dynkin quiver(s).
+RESULT_DISJOINT_DYNKIN=true
+BEGIN_NONDYNKIN_TREE
+Infinite type!
+Quiver is not a (union of) Dynkin quiver(s).
+RESULT_NONDYNKIN_TREE=false
+BEGIN_SHORT_CIRCUIT
+A_2
+Quiver contains an (un)oriented cycle.
+Infinite type!
+Quiver is not a (union of) Dynkin quiver(s).
+RESULT_SHORT_CIRCUIT=false

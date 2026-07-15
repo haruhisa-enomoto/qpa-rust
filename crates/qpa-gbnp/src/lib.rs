@@ -15,6 +15,7 @@ pub mod predefined;
 pub mod preprocessing;
 pub mod qpa_conversion;
 pub mod reduction;
+pub mod reptype;
 pub mod sgrobner;
 
 pub use heap::{TodoHeap, TodoHeapError};
@@ -75,6 +76,11 @@ pub use qpa_conversion::{
 pub use reduction::{
     ReductionError, left_occurrence, normal_form_np, occur, occur_in_list, right_occurrence,
     strong_normal_form_np, strong_normal_form_two,
+};
+pub use reptype::{
+    DYNKIN_ORIENTED_CYCLE_MESSAGE, FINITE_TYPE_DYNKIN_MESSAGE, FINITE_TYPE_SEMISIMPLE_MESSAGE,
+    INFINITE_TYPE_NON_DYNKIN_MESSAGE, PathAlgebraFiniteTypeDecision, PathAlgebraFiniteTypeReason,
+    path_algebra_finite_type,
 };
 pub use sgrobner::{
     SgrobnerError, SgrobnerResult, all_obstructions, sgrobner, sgrobner_loops,

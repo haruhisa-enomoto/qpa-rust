@@ -22,6 +22,14 @@ compare_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_text_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" "$source_script" >"$actual"
+    diff --unified "$fixture" "$actual"
+}
+
 compare_fixture \
     "$repo_root/tests/gap-reference/quiver_paths.g" \
     "$repo_root/tests/fixtures/quiver_paths.schema-v1.json"
@@ -114,6 +122,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_predefined_remaining.g" \
     "$repo_root/tests/fixtures/pathalg_predefined_remaining.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/pathalgreptype_path.g" \
+    "$repo_root/tests/fixtures/pathalgreptype_path.txt"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_preprojective_cycle_error.g" \
     >"$actual" 2>&1

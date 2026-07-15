@@ -547,6 +547,10 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   integer `PreprojectiveAlgebra` overload remains queued behind the module
   layer, together with the remaining recognition properties.
 - [ ] Port representation-type and finite-global-dimension tests in this layer.
+  The path-algebra `IsFiniteTypeAlgebra` overload is source-translated through
+  its semisimple early return, QPA-ordered connected components, nested Dynkin
+  messages, and GAP `ForAll` short-circuit. The quotient overload and
+  `BongartzTest` remain module-dependent.
 - [ ] Port save/read using a safe, versioned, language-independent format while
   retaining a QPA-compatible import path.
 

@@ -19434,9 +19434,9 @@ source_file = "upstream/qpa/lib/pathalgreptype.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_finite_type"
+tests = ["tests/fixtures/pathalgreptype_path.txt"]
 deviations = []
 
 [[entries]]
@@ -19473,9 +19473,9 @@ source_file = "upstream/qpa/lib/pathalgreptype.gi"
 source_start = 23
 source_end = 47
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_finite_type"
+tests = ["tests/fixtures/pathalgreptype_path.txt"]
 deviations = []
 
 [[entries]]
