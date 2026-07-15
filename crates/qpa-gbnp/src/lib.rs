@@ -38,7 +38,7 @@ pub use pathalg::{
     opposite_path_algebra, opposite_quotient_element, power_quotient_element,
     quiver_algebra_of_path_algebra_mod_aea, quiver_algebra_of_quotient_mod_aea,
     quotient_by_relations, quotient_centre, quotient_dimension, quotient_is_finite_dimensional,
-    truncated_path_algebra,
+    quotient_is_triangular_reduced, truncated_path_algebra,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,

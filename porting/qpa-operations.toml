@@ -16808,9 +16808,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 100
 source_end = 100
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::is_triangular_reduced; QuotientPathAlgebra::is_triangular_reduced; quotient_is_triangular_reduced"
+tests = ["tests/fixtures/pathalg_triangular_reduced.schema-v1.json","tests/gap-reference/pathalg_triangular_infinite_error.g"]
 deviations = []
 
 [[entries]]
@@ -18394,9 +18394,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3079
 source_end = 3108
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebra::is_triangular_reduced; QuotientPathAlgebra::is_triangular_reduced; quotient_is_triangular_reduced"
+tests = ["tests/fixtures/pathalg_triangular_reduced.schema-v1.json","tests/gap-reference/pathalg_triangular_infinite_error.g"]
 deviations = []
 
 [[entries]]

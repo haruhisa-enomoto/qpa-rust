@@ -18,6 +18,7 @@ pub mod quiver;
 pub mod quotient;
 pub mod static_dictionary;
 pub mod suffix_tree;
+pub mod triangular_reduced;
 pub mod vector_reduction;
 
 pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
@@ -52,4 +53,5 @@ pub use suffix_tree::{
     SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,
     SuffixTreeOccurrence, SuffixTreeToken,
 };
+pub use triangular_reduced::TriangularReducedError;
 pub use vector_reduction::{VectorCoefficients, VectorReductionError, VectorTip};

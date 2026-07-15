@@ -487,7 +487,9 @@ Primary QPA files: `algebra`, the remaining `pathalg`, `idempotent`,
   structural property computations. QPA's Schurian test is intentionally
   queued behind the module layer because its pinned implementation constructs
   indecomposable projectives and reads their dimension vectors; both
-  semicommutativity methods call that exact test.
+  semicommutativity methods call that exact test. `IsTriangularReduced` is
+  complete using QPA's vertex-subset enumeration and canonical-basis product
+  test for parent and quotient algebras.
 - [ ] Port associated monomial/graded algebras and corner/quotient constructions.
   `QuiverAlgebraOfAmodAeA` is source-translated through `PathRemoval`, named
   full-subquiver reconstruction, arrow-name relation conversion, and the

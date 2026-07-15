@@ -8,7 +8,7 @@ use qpa_core::{
     AlgebraDimension, CentreError, ElementInverseError, GroebnerBasis, PathAlgebra,
     PathAlgebraElement, PathAlgebraError, Quiver, QuiverAlgebra, QuotientError,
     QuotientPathAlgebra, QuotientPathAlgebraCentre, QuotientPathAlgebraElement,
-    VertexQuotientPresentation,
+    TriangularReducedError, VertexQuotientPresentation,
 };
 use thiserror::Error;
 
@@ -170,6 +170,19 @@ pub fn quotient_centre<F: Field>(
     Ok(quotient.centre()?)
 }
 
+/// Translate QPA's quotient `IsTriangularReduced` method through its lazy
+/// default GBNP finite-dimensionality call.
+///
+/// # Errors
+///
+/// Propagates default GBNP, canonical-basis, and quotient-arithmetic failures.
+pub fn quotient_is_triangular_reduced<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    ensure_quotient_groebner_basis(quotient)?;
+    Ok(quotient.is_triangular_reduced()?)
+}
+
 /// Translate QPA's public `TruncatedPathAlgebra(K, Q, n)` through its default
 /// GBNP backend.
 ///
@@ -232,6 +245,9 @@ pub enum PathalgGbnpError {
     /// QPA's finite-dimensional inverse polynomial failed.
     #[error(transparent)]
     ElementInverse(#[from] ElementInverseError),
+    /// QPA's triangular-reduced subset computation failed.
+    #[error(transparent)]
+    TriangularReduced(#[from] TriangularReducedError),
     /// Parent or opposite path-algebra construction failed.
     #[error(transparent)]
     PathAlgebra(#[from] PathAlgebraError),
@@ -261,7 +277,8 @@ mod tests {
         inverse_quotient_element, opposite_path_algebra, opposite_quotient_element,
         power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
         quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
-        quotient_dimension, quotient_is_finite_dimensional, truncated_path_algebra,
+        quotient_dimension, quotient_is_finite_dimensional, quotient_is_triangular_reduced,
+        truncated_path_algebra,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -347,6 +364,57 @@ mod tests {
             panic!("the oracle vertex quotient must be finite");
         };
         small_integer(&dimension)
+    }
+
+    #[test]
+    fn pinned_qpa_triangular_reduced_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_triangular_reduced.schema-v1.json"
+        ))
+        .unwrap();
+        let one_vertex_quiver = Quiver::from_indexed(1, vec![]).unwrap();
+        let arrow_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "u")]).unwrap();
+        let cycle_quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(1), "b"),
+            ],
+        )
+        .unwrap();
+
+        let one_vertex = PathAlgebra::new(Q, one_vertex_quiver.clone()).unwrap();
+        let arrow = PathAlgebra::new(Q, arrow_quiver.clone()).unwrap();
+        let truncated = truncated_path_algebra(Q, cycle_quiver.clone(), 2).unwrap();
+        let cycle = PathAlgebra::new(Q, cycle_quiver.clone()).unwrap();
+        let killed_reverse =
+            quotient_by_relations(cycle.clone(), &[cycle.generators()[3].clone()]).unwrap();
+        assert_eq!(
+            json!({
+                "one_vertex_path": one_vertex.is_triangular_reduced().unwrap(),
+                "arrow_path": arrow.is_triangular_reduced().unwrap(),
+                "two_cycle_truncated": quotient_is_triangular_reduced(&truncated).unwrap(),
+                "killed_reverse_arrow": quotient_is_triangular_reduced(&killed_reverse).unwrap()
+            }),
+            expected["rational"]
+        );
+
+        let one_vertex2 = PathAlgebra::new(Z2, one_vertex_quiver).unwrap();
+        let arrow2 = PathAlgebra::new(Z2, arrow_quiver).unwrap();
+        let truncated2 = truncated_path_algebra(Z2, cycle_quiver.clone(), 2).unwrap();
+        let cycle2 = PathAlgebra::new(Z2, cycle_quiver).unwrap();
+        let killed_reverse2 =
+            quotient_by_relations(cycle2.clone(), &[cycle2.generators()[3].clone()]).unwrap();
+        assert_eq!(
+            json!({
+                "one_vertex_path": one_vertex2.is_triangular_reduced().unwrap(),
+                "arrow_path": arrow2.is_triangular_reduced().unwrap(),
+                "two_cycle_truncated": quotient_is_triangular_reduced(&truncated2).unwrap(),
+                "killed_reverse_arrow": quotient_is_triangular_reduced(&killed_reverse2).unwrap()
+            }),
+            expected["f2"]
+        );
     }
 
     #[test]
