@@ -11751,9 +11751,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_over_algebra"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11764,9 +11764,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_over_algebra_with_basis_function; PathAlgebraModuleHomomorphismBasis"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11777,9 +11777,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "end_over_algebra; ModuleEndomorphismAlgebra"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/gap-reference/modulehom_end_zero_error.g"]
 deviations = []
 
 [[entries]]
@@ -13155,9 +13155,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1453
 source_end = 1638
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_over_algebra"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13168,9 +13168,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1651
 source_end = 1684
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_over_algebra_with_basis_function; PathAlgebraModuleHomomorphismBasis"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13181,9 +13181,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1694
 source_end = 1726
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "end_over_algebra; ModuleEndomorphismAlgebra"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/gap-reference/modulehom_end_zero_error.g"]
 deviations = []
 
 [[entries]]

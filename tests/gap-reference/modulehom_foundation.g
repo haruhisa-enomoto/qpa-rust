@@ -54,9 +54,36 @@ PrintMatrixList := function(matrices)
     Print("]");
 end;
 
+PrintHomBasis := function(homomorphisms)
+    local first, homomorphism;
+    Print("[");
+    first := true;
+    for homomorphism in homomorphisms do
+        if not first then Print(","); fi;
+        PrintMatrixList(MatricesOfPathAlgebraMatModuleHomomorphism(homomorphism));
+        first := false;
+    od;
+    Print("]");
+end;
+
+PrintScalarList := function(values)
+    local first, value;
+    Print("[");
+    first := true;
+    for value in values do
+        if not first then Print(","); fi;
+        PrintJsonString(String(value));
+        first := false;
+    od;
+    Print("]");
+end;
+
 PrintCase := function(field)
     local quiver, algebra, module, map, kernel, factorization, projection,
-          inclusion, cokernel, zero, identity, top_map;
+          inclusion, cokernel, zero, identity, top_map, hom_basis,
+          hom_with_basis, free_quiver, free_algebra, free_source, free_range,
+          free_basis, disjoint_source, disjoint_range, disjoint_basis,
+          disjoint_with_basis, endomorphism_algebra, endomorphism_basis;
     quiver := Quiver(["v1", "v2"], [["v1", "v2", "a"]]);
     algebra := PathAlgebra(field, quiver);
     module := RightModuleOverPathAlgebra(
@@ -72,6 +99,20 @@ PrintCase := function(field)
     zero := Zero(map);
     identity := IdentityMapping(module);
     top_map := TopOfModule(map);
+    hom_basis := HomOverAlgebra(module, module);
+    hom_with_basis := HomOverAlgebraWithBasisFunction(module, module);
+    free_quiver := Quiver(["w"], []);
+    free_algebra := PathAlgebra(field, free_quiver);
+    free_source := RightModuleOverPathAlgebra(free_algebra, [1], []);
+    free_range := RightModuleOverPathAlgebra(free_algebra, [2], []);
+    free_basis := HomOverAlgebra(free_source, free_range);
+    disjoint_source := RightModuleOverPathAlgebra(algebra, [1, 0], []);
+    disjoint_range := RightModuleOverPathAlgebra(algebra, [0, 1], []);
+    disjoint_basis := HomOverAlgebra(disjoint_source, disjoint_range);
+    disjoint_with_basis :=
+        HomOverAlgebraWithBasisFunction(disjoint_source, disjoint_range);
+    endomorphism_algebra := EndOverAlgebra(module);
+    endomorphism_basis := BasisVectors(Basis(endomorphism_algebra));
 
     Print("{\"predicates\":{");
     Print("\"injective\":", IsInjective(map), ",");
@@ -124,6 +165,30 @@ PrintCase := function(field)
     Print("\"inverse_sum_zero\":", IsZero(map + (-map)), ",");
     Print("\"left_identity_equal\":", identity * map = map, ",");
     Print("\"right_identity_equal\":", map * identity = map);
+    Print("},\"hom_space\":{");
+    Print("\"dimension\":", Length(hom_basis), ",");
+    Print("\"basis\":");
+    PrintHomBasis(hom_basis);
+    Print(",\"map_coefficients\":");
+    PrintScalarList(hom_with_basis[2](map));
+    Print(",\"free_dimension\":", Length(free_basis), ",");
+    Print("\"free_basis\":");
+    PrintHomBasis(free_basis);
+    Print(",\"disjoint_dimension\":", Length(disjoint_basis), ",");
+    Print("\"disjoint_zero_coefficients\":");
+    PrintScalarList(disjoint_with_basis[2](
+        ZeroMapping(disjoint_source, disjoint_range)));
+    Print("},\"endomorphism_algebra\":{");
+    Print("\"dimension\":", Dimension(endomorphism_algebra), ",");
+    Print("\"cached_identity\":",
+          IsIdenticalObj(EndOverAlgebra(module), endomorphism_algebra), ",");
+    Print("\"basis\":");
+    PrintMatrixList(endomorphism_basis);
+    Print(",\"one\":");
+    PrintMatrix(One(endomorphism_algebra));
+    Print(",\"one_coefficients\":");
+    PrintScalarList(Coefficients(Basis(endomorphism_algebra),
+                                 One(endomorphism_algebra)));
     Print("}}");
 end;
 

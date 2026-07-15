@@ -633,8 +633,14 @@ Primary QPA files: `modulehom` and `moduledecomp`.
   QPA's structural hom-set checks, row-order composition, left/right scalar
   multiplication, additive inverse, zero map, and map equality are pinned over
   `QQ` and `GF(2)`.
-- [ ] Port `HomOverAlgebra` using QPA's linear-equation construction.
-- [ ] Port endomorphism algebras and basis-coordinate functions.
+- [x] Port `HomOverAlgebra` using QPA's linear-equation construction. Unknowns,
+  arrow-equation columns, nullspace row order, unconstrained matrix units,
+  empty Hom spaces, and the returned coordinate closure match QPA over `QQ`
+  and `GF(2)`.
+- [x] Port endomorphism algebras and basis-coordinate functions. Vertex maps
+  are embedded block-diagonally and reduced with GAP's insertion-ordered
+  semi-echelon semantics; the cached algebra, identity coordinates, and QPA's
+  zero-module `DirectSumOfAlgebras([])` error are oracle-pinned.
 - [ ] Port kernel, image, cokernel, induced maps, intersections, and sums.
   QPA's component nullspace kernel, canonical-row-space image
   projection/inclusion, natural-row-quotient cokernel, their objects and

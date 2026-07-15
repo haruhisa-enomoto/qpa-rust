@@ -67,6 +67,14 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_foundation.g" \
     "$repo_root/tests/fixtures/modulehom_foundation.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_end_zero_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted EndOverAlgebra of the zero module" >&2
+    exit 1
+fi
+grep -Fq "<list> must be nonempty" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalgtensor_empty_error.g" \
     >"$actual" 2>&1
 then
