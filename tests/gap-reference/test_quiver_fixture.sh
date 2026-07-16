@@ -75,6 +75,30 @@ compare_cartan_coxeter_dispatch_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_reptype_quotient_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw" 2>&1
+    test "$(grep -Fc 'Finite type!' "$raw")" -eq 3
+    test "$(grep -Fc 'Semisimple algebra (Q has no arrows).' "$raw")" -eq 1
+    test "$(grep -Fc 'Quiver is a (union of) Dynkin quiver(s).' "$raw")" -eq 1
+    test "$(grep -Fc 'Quiver contains an (un)oriented cycle.' "$raw")" -eq 5
+    test "$(grep -Fc 'A_3' "$raw")" -eq 5
+    test "$(grep -Fc 'A_2' "$raw")" -eq 4
+    test "$(grep -Fc 'A_1' "$raw")" -eq 8
+    test "$(grep -Fc 'Have checked representation type of the algebra modulo the square of the radical.' "$raw")" -eq 1
+    test "$(grep -Fc 'Special biserial algebra with no unoriented cycles in Q.' "$raw")" -eq 1
+    bongartz_count=$(grep -Fc "Entering Bongartz' test for infinite type." "$raw")
+    test "$bongartz_count" -eq 1
+    test "$(grep -Fc 'Can not determine the representation type.' "$raw")" -eq 1
+    test "$(grep -Fc 'not an admissible quotient of a path algebra' "$raw")" -eq 1
+    sed -n '/^{"schema_version":/,$p' "$raw" |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_text_fixture() {
     source_script=$1
     fixture=$2
@@ -540,6 +564,9 @@ compare_prefixed_catching_fixture \
     "$repo_root/tests/fixtures/reptype_bongartz.schema-v1.json" \
     "Entering Bongartz' test for infinite type." \
     4
+compare_reptype_quotient_fixture \
+    "$repo_root/tests/gap-reference/reptype_quotient.g" \
+    "$repo_root/tests/fixtures/reptype_quotient.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_preprojective_cycle_error.g" \
     >"$actual" 2>&1

@@ -16665,9 +16665,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 89
 source_end = 89
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_distributive; quotient_is_distributive"
+tests = ["tests/fixtures/reptype_quotient.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18160,9 +18160,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2225
 source_end = 2324
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quotient_is_distributive"
+tests = ["tests/fixtures/reptype_quotient.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18173,9 +18173,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2326
 source_end = 2335
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_algebra_is_distributive"
+tests = ["tests/fixtures/reptype_quotient.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19447,9 +19447,9 @@ source_file = "upstream/qpa/lib/pathalgreptype.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quotient_algebra_finite_type; QuotientAlgebraFiniteTypeDecision"
+tests = ["tests/fixtures/reptype_quotient.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19499,9 +19499,9 @@ source_file = "upstream/qpa/lib/pathalgreptype.gi"
 source_start = 114
 source_end = 189
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quotient_algebra_finite_type; QuotientAlgebraFiniteTypeDecision"
+tests = ["tests/fixtures/reptype_quotient.schema-v1.json"]
 deviations = []
 
 [[entries]]

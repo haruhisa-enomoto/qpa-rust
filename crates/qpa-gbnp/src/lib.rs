@@ -117,9 +117,13 @@ pub use reduction::{
 };
 pub use reptype::{
     BONGARTZ_ENTERING_MESSAGE, BongartzTestDecision, DYNKIN_ORIENTED_CYCLE_MESSAGE,
-    FINITE_TYPE_DYNKIN_MESSAGE, FINITE_TYPE_SEMISIMPLE_MESSAGE, INFINITE_TYPE_NON_DYNKIN_MESSAGE,
-    PathAlgebraFiniteTypeDecision, PathAlgebraFiniteTypeReason, RepresentationTypeError,
-    bongartz_test, path_algebra_finite_type,
+    FINITE_TYPE_DYNKIN_MESSAGE, FINITE_TYPE_INCONCLUSIVE_MESSAGE, FINITE_TYPE_SEMISIMPLE_MESSAGE,
+    FINITE_TYPE_SPECIAL_BISERIAL_MESSAGE, INFINITE_TYPE_NON_DYNKIN_MESSAGE,
+    INFINITE_TYPE_SEPARATED_QUIVER_MESSAGE, PathAlgebraFiniteTypeDecision,
+    PathAlgebraFiniteTypeReason, QuotientAlgebraFiniteTypeDecision,
+    QuotientAlgebraFiniteTypeReason, RepresentationTypeError, bongartz_test,
+    path_algebra_finite_type, path_algebra_is_distributive, quotient_algebra_finite_type,
+    quotient_is_distributive,
 };
 pub use sgrobner::{
     SgrobnerError, SgrobnerResult, all_obstructions, sgrobner, sgrobner_loops,
