@@ -6577,9 +6577,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6590,9 +6590,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 5
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6603,9 +6603,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 8
 source_end = 9
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicForest"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6616,9 +6616,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicForest::create"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6629,9 +6629,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::right_rotate"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6642,9 +6642,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::left_rotate"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6655,9 +6655,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::splice"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6668,9 +6668,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::splay"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6681,9 +6681,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::root"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6694,9 +6694,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::link"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6707,9 +6707,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::cut"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6720,9 +6720,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 4
 source_end = 8
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::is_identical; DynamicTree::eq"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6733,9 +6733,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 9
 source_end = 23
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicForest::create"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6746,9 +6746,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 24
 source_end = 49
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::right_rotate"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6759,9 +6759,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 50
 source_end = 75
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::left_rotate"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6772,9 +6772,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 76
 source_end = 89
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::splice"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6785,9 +6785,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 90
 source_end = 152
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::splay"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6798,9 +6798,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 153
 source_end = 167
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::root"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6811,9 +6811,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 168
 source_end = 177
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::link"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6824,9 +6824,9 @@ source_file = "upstream/qpa/lib/groebnerdyntree.gi"
 source_start = 178
 source_end = 188
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "DynamicTree::cut"
+tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]

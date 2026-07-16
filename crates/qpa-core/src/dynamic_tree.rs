@@ -101,6 +101,12 @@ pub struct DynamicTree<Item> {
 }
 
 impl<Item> DynamicTree<Item> {
+    /// Translate QPA's identity-based equality method for dynamic-tree nodes.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        self.index == other.index && Rc::ptr_eq(&self.forest, &other.forest)
+    }
+
     /// Whether the optional `item` component was supplied at construction.
     #[must_use]
     pub fn has_item(&self) -> bool {
@@ -420,7 +426,7 @@ impl<Item> Clone for DynamicTree<Item> {
 
 impl<Item> PartialEq for DynamicTree<Item> {
     fn eq(&self, other: &Self) -> bool {
-        self.index == other.index && Rc::ptr_eq(&self.forest, &other.forest)
+        self.is_identical(other)
     }
 }
 
@@ -513,6 +519,19 @@ mod tests {
         .unwrap();
 
         let forest = DynamicForest::new();
+        let empty = forest.create(None);
+        let item = forest.create(Some("item"));
+        let other = forest.create(Some("item"));
+        assert_eq!(
+            json!({
+                "empty_has_item": empty.has_item(),
+                "item": item.item(),
+                "same": item.is_identical(&item.clone()),
+                "different": item.is_identical(&other)
+            }),
+            expected["construction"]
+        );
+
         let left = forest.create(Some("left"));
         let middle = forest.create(Some("middle"));
         let right = forest.create(Some("right"));
@@ -550,6 +569,20 @@ mod tests {
 
     #[test]
     fn qpa_identity_optional_item_and_failures_are_explicit() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/dynamic_tree_errors.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            expected["failures"],
+            json!({
+                "invalid_arity_success": false,
+                "right_without_left_success": false,
+                "left_without_right_success": false,
+                "splice_auxiliary_child_success": false
+            })
+        );
+
         let forest = DynamicForest::<String>::new();
         assert!(forest.is_empty());
         let empty = forest.create(None);
@@ -560,6 +593,7 @@ mod tests {
         assert_eq!(empty.replace_item(Some("item".into())), None);
         assert_eq!(empty.item().as_deref(), Some("item"));
         assert_eq!(empty, clone);
+        assert!(empty.is_identical(&clone));
         assert_ne!(empty, other);
 
         assert_eq!(

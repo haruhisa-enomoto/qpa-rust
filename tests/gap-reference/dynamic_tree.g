@@ -46,6 +46,11 @@ PrintSnapshot := function(nodes)
     Print("]");
 end;
 
+empty := CreateDynamicTree();;
+item := CreateDynamicTree("item");;
+item_alias := item;;
+other_item := CreateDynamicTree("item");;
+
 left := CreateDynamicTree("left");;
 middle := CreateDynamicTree("middle");;
 right := CreateDynamicTree("right");;
@@ -93,7 +98,12 @@ Print(",\"qpa_version\":");
 PrintJsonString(PackageInfo("qpa")[1].Version);
 Print(",\"qpa_revision\":");
 PrintJsonString(GAPInfo.SystemEnvironment.QPA_ORACLE_QPA_REVISION);
-Print("},\"right_rotation\":");
+Print("},\"construction\":{\"empty_has_item\":", IsBound(empty!.item),
+      ",\"item\":");
+PrintJsonString(item!.item);
+Print(",\"same\":", item = item_alias,
+      ",\"different\":", item = other_item, "}");
+Print(",\"right_rotation\":");
 PrintSnapshot(right_rotation);
 Print(",\"left_rotation\":");
 PrintSnapshot(left_rotation);

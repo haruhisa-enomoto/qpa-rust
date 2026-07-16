@@ -7,6 +7,12 @@
     "qpa_version": "1.37",
     "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
   },
+  "construction": {
+    "empty_has_item": false,
+    "item": "item",
+    "same": true,
+    "different": false
+  },
   "right_rotation": [
     ["left", null, null, "middle"],
     ["middle", "left", null, "right"],
