@@ -153,6 +153,12 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_global_dimension.g" \
     "$repo_root/tests/fixtures/modulehom_global_dimension.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/algebra_homological_properties.g" \
+    "$repo_root/tests/fixtures/algebra_homological_properties.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/algebra_homological_dispatch.g" \
+    "$repo_root/tests/fixtures/algebra_homological_dispatch.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
 compare_catching_fixture \

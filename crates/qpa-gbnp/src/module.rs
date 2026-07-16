@@ -24,7 +24,7 @@ use qpa_core::{
     kernel_of_module_homomorphism, loewy_length_of_module, minimal_generating_set_of_module,
     morphism_on_cokernel, morphism_on_kernel, natural_endomorphism_quotient_by_ideal,
     project_from_product_quiver, radical_of_module, right_module_hom_over_algebra,
-    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor,
+    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor, socle_of_module,
     subrepresentation_inclusion, top_of_module, zero_module, zero_module_mapping,
 };
 use rand::Rng;
@@ -32,7 +32,8 @@ use thiserror::Error;
 
 use crate::{
     PathalgGbnpError, TensorProductError, ensure_quotient_groebner_basis, enveloping_algebra,
-    opposite_path_algebra, opposite_quotient_element, quotient_is_finite_dimensional,
+    opposite_path_algebra, opposite_quotient_element, quotient_is_admissible,
+    quotient_is_finite_dimensional,
 };
 
 /// Translate QPA's cached `AlgebraAsModuleOverEnvelopingAlgebra(A)`
@@ -544,6 +545,168 @@ pub fn global_dimension_of_algebra<F: Field>(
     }
     let _ = quotient.cache_global_dimension(AlgebraGlobalDimension::Finite(dimension));
     Ok(Some(GlobalDimensionOfAlgebraResult::Finite(dimension)))
+}
+
+/// Translate QPA's Nakayama-socle test for `IsSelfinjectiveAlgebra(A)`.
+///
+/// Infinite-dimensional input returns `Some(false)` before path-algebra
+/// dispatch. A finite path algebra is selfinjective exactly when its quiver
+/// has no arrows. For a finite admissible quotient, QPA requires every
+/// indecomposable projective socle to be one-dimensional and every simple to
+/// occur exactly once across their dimension vectors. `None` preserves
+/// `TryNextMethod()` for a finite nonadmissible quotient.
+///
+/// # Errors
+///
+/// Propagates default finite-basis and admissibility computations, projective
+/// and socle construction, and reports an unrepresentable dimension-vector
+/// sum.
+pub fn is_selfinjective_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<bool>, EnvelopingModuleError> {
+    if let QuiverAlgebra::Quotient(quotient) = algebra
+        && let Some(cached) = quotient.cached_is_selfinjective_algebra()
+    {
+        return Ok(Some(cached));
+    }
+    if finite_canonical_basis(algebra)?.is_none() {
+        if let QuiverAlgebra::Quotient(quotient) = algebra {
+            return Ok(Some(quotient.cache_is_selfinjective_algebra(false)));
+        }
+        return Ok(Some(false));
+    }
+    if let QuiverAlgebra::Path(path_algebra) = algebra {
+        return Ok(Some(path_algebra.quiver().number_of_arrows() == 0));
+    }
+    let QuiverAlgebra::Quotient(quotient) = algebra else {
+        unreachable!("every quiver algebra is a path algebra or quotient")
+    };
+    if !quotient_is_admissible(quotient)? {
+        return Ok(None);
+    }
+
+    let socles = indec_projective_modules(algebra)?
+        .into_iter()
+        .map(socle_of_module)
+        .collect::<Result<Vec<_>, _>>()?;
+    if socles.iter().any(|socle| socle.dimension() != 1) {
+        return Ok(Some(quotient.cache_is_selfinjective_algebra(false)));
+    }
+    let mut multiplicities = vec![0usize; algebra.quiver().number_of_vertices()];
+    for socle in socles {
+        for (vertex, (&dimension, total)) in socle
+            .dimension_vector()
+            .iter()
+            .zip(&mut multiplicities)
+            .enumerate()
+        {
+            *total = total
+                .checked_add(dimension)
+                .ok_or(EnvelopingModuleError::SelfinjectiveDimensionVectorOverflow { vertex })?;
+        }
+    }
+    let result = multiplicities.into_iter().all(|entry| entry == 1);
+    let result = quotient.cache_is_selfinjective_algebra(result);
+    if result && quotient.cached_is_semisimple_algebra() == Some(false) {
+        let _ = quotient.cache_global_dimension(AlgebraGlobalDimension::Infinite);
+    }
+    Ok(Some(result))
+}
+
+/// Invoke QPA's immediate `GlobalDimension` methods from already-known
+/// algebra properties.
+///
+/// Path algebras return the constructor-installed value. A quotient first
+/// returns an explicitly cached attribute; otherwise known semisimplicity
+/// gives zero, while known selfinjectivity together with known
+/// nonsemisimplicity gives `infinity`. `None` means neither immediate method
+/// is applicable yet. A successful inferred value is cached like GAP's
+/// attribute call.
+#[must_use]
+pub fn global_dimension_from_known_properties<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Option<AlgebraGlobalDimension> {
+    let QuiverAlgebra::Quotient(quotient) = algebra else {
+        let QuiverAlgebra::Path(path_algebra) = algebra else {
+            unreachable!("every quiver algebra is a path algebra or quotient")
+        };
+        return Some(AlgebraGlobalDimension::Finite(
+            path_algebra.qpa_global_dimension(),
+        ));
+    };
+    if let Some(cached) = quotient.cached_global_dimension() {
+        return Some(cached);
+    }
+    let inferred = if quotient.cached_is_semisimple_algebra() == Some(true) {
+        AlgebraGlobalDimension::Finite(0)
+    } else if quotient.cached_is_selfinjective_algebra() == Some(true)
+        && quotient.cached_is_semisimple_algebra() == Some(false)
+    {
+        AlgebraGlobalDimension::Infinite
+    } else {
+        return None;
+    };
+    Some(quotient.cache_global_dimension(inferred))
+}
+
+/// Translate QPA's `IsHereditaryAlgebra` dispatch for quiver algebras.
+///
+/// Every path algebra is hereditary by QPA's true-method implication. For an
+/// admissible quotient, an already cached global dimension is compared with
+/// two; otherwise `GlobalDimensionOfAlgebra(A, 1)` supplies the exact bounded
+/// test. `None` preserves the absence of this method for a nonadmissible
+/// quotient.
+///
+/// # Errors
+///
+/// Propagates the default admissibility and bounded-global-dimension paths.
+pub fn is_hereditary_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<bool>, EnvelopingModuleError> {
+    let QuiverAlgebra::Quotient(quotient) = algebra else {
+        return Ok(Some(true));
+    };
+    if let Some(cached) = quotient.cached_is_hereditary_algebra() {
+        return Ok(Some(cached));
+    }
+    if !quotient_is_admissible(quotient)? {
+        return Ok(None);
+    }
+    let result = if let Some(cached) = quotient.cached_global_dimension() {
+        matches!(cached, AlgebraGlobalDimension::Finite(dimension) if dimension < 2)
+    } else {
+        match global_dimension_of_algebra(algebra, 1)? {
+            Some(GlobalDimensionOfAlgebraResult::Finite(dimension)) => dimension < 2,
+            Some(
+                GlobalDimensionOfAlgebraResult::Infinite
+                | GlobalDimensionOfAlgebraResult::ExceedsBound,
+            ) => false,
+            None => return Ok(None),
+        }
+    };
+    Ok(Some(quotient.cache_is_hereditary_algebra(result)))
+}
+
+/// Return QPA's true-method implications for
+/// `IsFiniteGlobalDimensionAlgebra`.
+///
+/// Every path algebra carries the property. A quotient acquires it when
+/// either semisimplicity or heredity is already known true. `None` means QPA
+/// has installed no conclusion from these filters; it does not mean false.
+#[must_use]
+pub fn is_finite_global_dimension_from_known_properties<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Option<bool> {
+    match algebra {
+        QuiverAlgebra::Path(_) => Some(true),
+        QuiverAlgebra::Quotient(quotient)
+            if quotient.cached_is_semisimple_algebra() == Some(true)
+                || quotient.cached_is_hereditary_algebra() == Some(true) =>
+        {
+            Some(true)
+        }
+        QuiverAlgebra::Quotient(_) => None,
+    }
 }
 
 /// Translate QPA's cached `AnnihilatorOfModule(M)` basis attribute.
@@ -3189,6 +3352,13 @@ pub enum EnvelopingModuleError {
         /// Entered nonnegative bound.
         bound: usize,
     },
+    /// QPA's sum of indecomposable-projective socle dimension vectors must
+    /// fit Rust's addressable module dimensions.
+    #[error("the selfinjective socle multiplicity at vertex {vertex} overflows usize")]
+    SelfinjectiveDimensionVectorOverflow {
+        /// Zero-based quiver vertex position.
+        vertex: usize,
+    },
     /// An annihilator basis requires QPA's finite canonical algebra basis.
     #[error("AnnihilatorOfModule requires a finite-dimensional algebra")]
     InfiniteAnnihilatorAlgebra,
@@ -3547,9 +3717,10 @@ mod tests {
     };
     use qpa_core::path_module::right_fac_approximation_via_all_basis_images;
     use qpa_core::{
-        ArrowSpec, DenseMatrix, ModuleDimensionSeries, NamedArrowMatrix, NamedArrowSpec,
-        PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleHomomorphism,
-        PathAlgebraModuleMatrix, Quiver, QuiverAlgebra, QuiverAlgebraElement, VertexIndex,
+        AlgebraGlobalDimension, ArrowSpec, DenseMatrix, ModuleDimensionSeries, NamedArrowMatrix,
+        NamedArrowSpec, PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement,
+        PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, QpaCoefficientField, Quiver,
+        QuiverAlgebra, QuiverAlgebraElement, StructureConstantsAlgebra, VertexIndex,
         dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
         from_end_m_to_hom_mm, from_hom_mm_to_end_m, identity_module_mapping,
         include_in_path_algebra, is_semisimple_module, is_simple_qpa_module, kernel_inclusion,
@@ -3570,10 +3741,12 @@ mod tests {
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
-        from_matrix_to_homomorphism_of_projectives, global_dimension_of_algebra,
-        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
-        indec_projective_modules, injective_envelope, is_injective_module, is_projective_module,
-        is_rigid_module, is_tau_rigid_module, lifting_morphism_from_projective,
+        from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
+        global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
+        indec_injective_modules, indec_projective_modules, injective_envelope,
+        is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
+        is_injective_module, is_projective_module, is_rigid_module, is_selfinjective_algebra,
+        is_tau_rigid_module, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, nakayama_functor_of_module,
         nakayama_functor_of_module_homomorphism, opposite_nakayama_functor_of_module,
         opposite_nakayama_functor_of_module_homomorphism, projective_cover, random_module,
@@ -3581,7 +3754,7 @@ mod tests {
         tensor_product_of_modules, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated,
         tr_d_iterated, transpose_of_module, transpose_of_module_homomorphism,
     };
-    use crate::{enveloping_algebra, quotient_by_relations};
+    use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
     fn vertex(index: usize) -> VertexIndex {
         VertexIndex::new(index).unwrap()
@@ -3596,6 +3769,14 @@ mod tests {
             Some(GlobalDimensionOfAlgebraResult::Finite(dimension)) => dimension.into(),
             Some(GlobalDimensionOfAlgebraResult::Infinite) => "infinity".into(),
             Some(GlobalDimensionOfAlgebraResult::ExceedsBound) => false.into(),
+            None => Value::Null,
+        }
+    }
+
+    fn cached_global_dimension_json(result: Option<AlgebraGlobalDimension>) -> Value {
+        match result {
+            Some(AlgebraGlobalDimension::Finite(dimension)) => dimension.into(),
+            Some(AlgebraGlobalDimension::Infinite) => "infinity".into(),
             None => Value::Null,
         }
     }
@@ -6701,5 +6882,247 @@ mod tests {
             "dual_numbers": [global_dimension_json(global_dimension_of_algebra(&dual_numbers, 0).unwrap())]
         });
         assert_eq!(result, expected["f2"]);
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn algebra_homological_property_cases<F: QpaCoefficientField>(field: F) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let semisimple_structure = StructureConstantsAlgebra::new(
+            field.clone(),
+            2,
+            vec![
+                one.clone(),
+                zero.clone(),
+                zero.clone(),
+                zero.clone(),
+                zero.clone(),
+                zero.clone(),
+                zero.clone(),
+                one.clone(),
+            ],
+        )
+        .unwrap();
+        let dual_structure = StructureConstantsAlgebra::new(
+            field.clone(),
+            2,
+            vec![
+                one.clone(),
+                zero.clone(),
+                zero.clone(),
+                one.clone(),
+                zero.clone(),
+                one.clone(),
+                zero.clone(),
+                zero.clone(),
+            ],
+        )
+        .unwrap();
+
+        let structure_semisimple_known_before = semisimple_structure
+            .cached_is_semisimple_algebra()
+            .is_some();
+        let structure_semisimple_value = semisimple_structure.is_semisimple_algebra().unwrap();
+        let structure_semisimple_known_after = semisimple_structure
+            .cached_is_semisimple_algebra()
+            .is_some();
+        let structure_global_known_before =
+            semisimple_structure.cached_global_dimension().is_some();
+        let structure_global_dimension = cached_global_dimension_json(
+            semisimple_structure.global_dimension_from_known_properties(),
+        );
+        let structure_global_known_after = semisimple_structure.cached_global_dimension().is_some();
+
+        let structure_dual_known_before = dual_structure.cached_is_semisimple_algebra().is_some();
+        let structure_dual_value = dual_structure.is_semisimple_algebra().unwrap();
+        let structure_dual_known_after = dual_structure.cached_is_semisimple_algebra().is_some();
+
+        let discrete = isolated_path_algebra(field.clone(), 1);
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2_parent = PathAlgebra::new(field.clone(), a2_quiver).unwrap();
+        let a2 = QuiverAlgebra::Path(a2_parent.clone());
+        let a2_quotient =
+            QuiverAlgebra::Quotient(quotient_by_relations(a2_parent.clone(), &[]).unwrap());
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let loop_path = QuiverAlgebra::Path(loop_parent.clone());
+        let t = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let t_squared = t.multiply(&t).unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent.clone(), std::slice::from_ref(&t_squared)).unwrap(),
+        );
+        let dual_numbers_reverse = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, std::slice::from_ref(&t_squared)).unwrap(),
+        );
+
+        let a3_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(3), "y"),
+            ],
+        )
+        .unwrap();
+        let a3_parent = PathAlgebra::new(field, a3_quiver).unwrap();
+        let arrows = a3_parent.quiver().arrows().collect::<Vec<_>>();
+        let x = a3_parent.element(arrows[0].path()).unwrap();
+        let y = a3_parent.element(arrows[1].path()).unwrap();
+        let radical_square_zero_a3 = QuiverAlgebra::Quotient(
+            quotient_by_relations(a3_parent, &[x.multiply(&y).unwrap()]).unwrap(),
+        );
+
+        let QuiverAlgebra::Quotient(a2_quotient_object) = &a2_quotient else {
+            unreachable!()
+        };
+        let a2_quotient_semisimple = admissible_quotient_is_semisimple(a2_quotient_object).unwrap();
+        let a2_quotient_hereditary = is_hereditary_algebra(&a2_quotient).unwrap().unwrap();
+
+        let QuiverAlgebra::Quotient(dual_numbers_object) = &dual_numbers else {
+            unreachable!()
+        };
+        let dual_global_initially = dual_numbers_object.cached_global_dimension().is_some();
+        let dual_selfinjective = is_selfinjective_algebra(&dual_numbers).unwrap().unwrap();
+        let dual_global_after_selfinjective =
+            dual_numbers_object.cached_global_dimension().is_some();
+        let dual_semisimple = admissible_quotient_is_semisimple(dual_numbers_object).unwrap();
+        let dual_global_after_semisimple = dual_numbers_object.cached_global_dimension().is_some();
+        let dual_global_dimension =
+            cached_global_dimension_json(global_dimension_from_known_properties(&dual_numbers));
+        let dual_global_after_global = dual_numbers_object.cached_global_dimension().is_some();
+        let dual_hereditary = is_hereditary_algebra(&dual_numbers).unwrap().unwrap();
+
+        let QuiverAlgebra::Quotient(dual_reverse_object) = &dual_numbers_reverse else {
+            unreachable!()
+        };
+        let dual_reverse_semisimple =
+            admissible_quotient_is_semisimple(dual_reverse_object).unwrap();
+        let dual_reverse_global_after_semisimple =
+            dual_reverse_object.cached_global_dimension().is_some();
+        let dual_reverse_selfinjective = is_selfinjective_algebra(&dual_numbers_reverse)
+            .unwrap()
+            .unwrap();
+        let dual_reverse_global_after_selfinjective =
+            dual_reverse_object.cached_global_dimension().is_some();
+
+        let QuiverAlgebra::Quotient(a3_object) = &radical_square_zero_a3 else {
+            unreachable!()
+        };
+        let a3_selfinjective = is_selfinjective_algebra(&radical_square_zero_a3)
+            .unwrap()
+            .unwrap();
+        let a3_semisimple = admissible_quotient_is_semisimple(a3_object).unwrap();
+        let a3_hereditary = is_hereditary_algebra(&radical_square_zero_a3)
+            .unwrap()
+            .unwrap();
+        let a3_global_after_hereditary = a3_object.cached_global_dimension().is_some();
+        let a3_bounded =
+            global_dimension_json(global_dimension_of_algebra(&radical_square_zero_a3, 2).unwrap());
+        let a3_global_after_bounded = a3_object.cached_global_dimension().is_some();
+
+        json!({
+            "structure_semisimple": {
+                "known_before": structure_semisimple_known_before,
+                "value": structure_semisimple_value,
+                "known_after": structure_semisimple_known_after,
+                "global_known_before": structure_global_known_before,
+                "global_dimension": structure_global_dimension,
+                "global_known_after": structure_global_known_after,
+                "finite_global_dimension": semisimple_structure
+                    .is_finite_global_dimension_from_known_properties().unwrap()
+            },
+            "structure_dual_numbers": {
+                "known_before": structure_dual_known_before,
+                "value": structure_dual_value,
+                "known_after": structure_dual_known_after,
+                "global_known": dual_structure.cached_global_dimension().is_some()
+            },
+            "path_discrete": {
+                "selfinjective": is_selfinjective_algebra(&discrete).unwrap().unwrap(),
+                "semisimple": discrete.quiver().number_of_arrows() == 0,
+                "hereditary": is_hereditary_algebra(&discrete).unwrap().unwrap(),
+                "finite_global_dimension":
+                    is_finite_global_dimension_from_known_properties(&discrete).unwrap(),
+                "global_dimension": cached_global_dimension_json(
+                    global_dimension_from_known_properties(&discrete))
+            },
+            "path_a2": {
+                "selfinjective": is_selfinjective_algebra(&a2).unwrap().unwrap(),
+                "semisimple": a2.quiver().number_of_arrows() == 0,
+                "hereditary": is_hereditary_algebra(&a2).unwrap().unwrap(),
+                "finite_global_dimension":
+                    is_finite_global_dimension_from_known_properties(&a2).unwrap(),
+                "global_dimension": cached_global_dimension_json(
+                    global_dimension_from_known_properties(&a2))
+            },
+            "path_loop": {
+                "selfinjective": is_selfinjective_algebra(&loop_path).unwrap().unwrap(),
+                "hereditary": is_hereditary_algebra(&loop_path).unwrap().unwrap(),
+                "finite_global_dimension":
+                    is_finite_global_dimension_from_known_properties(&loop_path).unwrap(),
+                "global_dimension": cached_global_dimension_json(
+                    global_dimension_from_known_properties(&loop_path))
+            },
+            "quotient_a2_zero_ideal": {
+                "semisimple": a2_quotient_semisimple,
+                "hereditary": a2_quotient_hereditary,
+                "finite_global_dimension":
+                    is_finite_global_dimension_from_known_properties(&a2_quotient).unwrap(),
+                "global_dimension": cached_global_dimension_json(
+                    global_dimension_from_known_properties(&a2_quotient))
+            },
+            "quotient_dual_numbers": {
+                "global_known_initially": dual_global_initially,
+                "selfinjective": dual_selfinjective,
+                "global_known_after_selfinjective": dual_global_after_selfinjective,
+                "semisimple": dual_semisimple,
+                "global_known_after_semisimple": dual_global_after_semisimple,
+                "global_dimension": dual_global_dimension,
+                "global_known_after_global": dual_global_after_global,
+                "hereditary": dual_hereditary
+            },
+            "quotient_dual_numbers_semisimple_first": {
+                "semisimple": dual_reverse_semisimple,
+                "global_known_after_semisimple": dual_reverse_global_after_semisimple,
+                "selfinjective": dual_reverse_selfinjective,
+                "global_known_after_selfinjective": dual_reverse_global_after_selfinjective,
+                "global_dimension": cached_global_dimension_json(
+                    global_dimension_from_known_properties(&dual_numbers_reverse))
+            },
+            "quotient_radical_square_zero_a3": {
+                "selfinjective": a3_selfinjective,
+                "semisimple": a3_semisimple,
+                "hereditary": a3_hereditary,
+                "global_known_after_hereditary": a3_global_after_hereditary,
+                "bounded_global_dimension": a3_bounded,
+                "global_known_after_bounded": a3_global_after_bounded
+            }
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_algebra_homological_properties_match() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/algebra_homological_properties.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(algebra_homological_property_cases(Z2), expected["f2"]);
+        assert_eq!(algebra_homological_property_cases(Q), expected["rational"]);
+
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let parent = PathAlgebra::new(Z2, quiver).unwrap();
+        let arrow = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let nonadmissible = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, std::slice::from_ref(&arrow)).unwrap(),
+        );
+        assert_eq!(is_selfinjective_algebra(&nonadmissible).unwrap(), None);
+        assert_eq!(is_hereditary_algebra(&nonadmissible).unwrap(), None);
     }
 }

@@ -459,8 +459,16 @@ fn require_admissible_quotient<F: Field>(
 pub fn admissible_quotient_is_semisimple<F: Field>(
     quotient: &QuotientPathAlgebra<F>,
 ) -> Result<bool, PathalgGbnpError> {
+    if let Some(cached) = quotient.cached_is_semisimple_algebra() {
+        return Ok(cached);
+    }
     require_admissible_quotient(quotient)?;
-    Ok(quotient.original_path_algebra().quiver().number_of_arrows() == 0)
+    let result = quotient.original_path_algebra().quiver().number_of_arrows() == 0;
+    let result = quotient.cache_is_semisimple_algebra(result);
+    if result {
+        let _ = quotient.cache_global_dimension(qpa_core::AlgebraGlobalDimension::Finite(0));
+    }
+    Ok(result)
 }
 
 /// Translate QPA's true-method implication from an admissible path-algebra

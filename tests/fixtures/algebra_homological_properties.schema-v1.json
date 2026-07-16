@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "kind": "algebra_homological_properties",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "f2": {
+    "structure_semisimple": {
+      "known_before": false,
+      "value": true,
+      "known_after": true,
+      "global_known_before": true,
+      "global_dimension": 0,
+      "global_known_after": true,
+      "finite_global_dimension": true
+    },
+    "structure_dual_numbers": {
+      "known_before": false,
+      "value": false,
+      "known_after": true,
+      "global_known": false
+    },
+    "path_discrete": {
+      "selfinjective": true,
+      "semisimple": true,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 0
+    },
+    "path_a2": {
+      "selfinjective": false,
+      "semisimple": false,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 1
+    },
+    "path_loop": {
+      "selfinjective": false,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 1
+    },
+    "quotient_a2_zero_ideal": {
+      "semisimple": false,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 1
+    },
+    "quotient_dual_numbers": {
+      "global_known_initially": false,
+      "selfinjective": true,
+      "global_known_after_selfinjective": false,
+      "semisimple": false,
+      "global_known_after_semisimple": false,
+      "global_dimension": "infinity",
+      "global_known_after_global": true,
+      "hereditary": false
+    },
+    "quotient_dual_numbers_semisimple_first": {
+      "semisimple": false,
+      "global_known_after_semisimple": false,
+      "selfinjective": true,
+      "global_known_after_selfinjective": true,
+      "global_dimension": "infinity"
+    },
+    "quotient_radical_square_zero_a3": {
+      "selfinjective": false,
+      "semisimple": false,
+      "hereditary": false,
+      "global_known_after_hereditary": false,
+      "bounded_global_dimension": 2,
+      "global_known_after_bounded": true
+    }
+  },
+  "rational": {
+    "structure_semisimple": {
+      "known_before": false,
+      "value": true,
+      "known_after": true,
+      "global_known_before": true,
+      "global_dimension": 0,
+      "global_known_after": true,
+      "finite_global_dimension": true
+    },
+    "structure_dual_numbers": {
+      "known_before": false,
+      "value": false,
+      "known_after": true,
+      "global_known": false
+    },
+    "path_discrete": {
+      "selfinjective": true,
+      "semisimple": true,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 0
+    },
+    "path_a2": {
+      "selfinjective": false,
+      "semisimple": false,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 1
+    },
+    "path_loop": {
+      "selfinjective": false,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 1
+    },
+    "quotient_a2_zero_ideal": {
+      "semisimple": false,
+      "hereditary": true,
+      "finite_global_dimension": true,
+      "global_dimension": 1
+    },
+    "quotient_dual_numbers": {
+      "global_known_initially": false,
+      "selfinjective": true,
+      "global_known_after_selfinjective": false,
+      "semisimple": false,
+      "global_known_after_semisimple": false,
+      "global_dimension": "infinity",
+      "global_known_after_global": true,
+      "hereditary": false
+    },
+    "quotient_dual_numbers_semisimple_first": {
+      "semisimple": false,
+      "global_known_after_semisimple": false,
+      "selfinjective": true,
+      "global_known_after_selfinjective": true,
+      "global_dimension": "infinity"
+    },
+    "quotient_radical_square_zero_a3": {
+      "selfinjective": false,
+      "semisimple": false,
+      "hereditary": false,
+      "global_known_after_hereditary": false,
+      "bounded_global_dimension": 2,
+      "global_known_after_bounded": true
+    }
+  }
+}

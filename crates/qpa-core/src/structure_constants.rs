@@ -4,13 +4,17 @@
 //! The ordered standard basis and row-vector coefficient conventions are
 //! observable in QPA's higher preprojective-algebra implementation.
 
-use std::{cmp::Ordering, sync::Arc};
+use std::{
+    cmp::Ordering,
+    sync::{Arc, OnceLock},
+};
 
 use numerica::domains::{Field, integer::Integer};
 use thiserror::Error;
 
 use crate::{
-    CoefficientDomainError, DenseMatrix, MatrixError, QpaCoefficientField, QpaFieldCharacteristic,
+    AlgebraGlobalDimension, CoefficientDomainError, DenseMatrix, MatrixError, QpaCoefficientField,
+    QpaFieldCharacteristic,
 };
 
 #[derive(Debug)]
@@ -18,6 +22,8 @@ struct StructureConstantsAlgebraData<F: Field> {
     field: F,
     dimension: usize,
     products: Vec<F::Element>,
+    semisimple: OnceLock<bool>,
+    global_dimension: OnceLock<AlgebraGlobalDimension>,
 }
 
 /// A finite-dimensional associative algebra in its ordered standard basis.
@@ -83,6 +89,8 @@ impl<F: Field> StructureConstantsAlgebra<F> {
             field,
             dimension,
             products,
+            semisimple: OnceLock::new(),
+            global_dimension: OnceLock::new(),
         })))
     }
 
@@ -96,6 +104,46 @@ impl<F: Field> StructureConstantsAlgebra<F> {
     #[must_use]
     pub fn dimension(&self) -> usize {
         self.0.dimension
+    }
+
+    /// Return QPA's cached generic `IsSemisimpleAlgebra` property, when known.
+    #[must_use]
+    pub fn cached_is_semisimple_algebra(&self) -> Option<bool> {
+        self.0.semisimple.get().copied()
+    }
+
+    /// Return QPA's cached `GlobalDimension` attribute, when known.
+    #[must_use]
+    pub fn cached_global_dimension(&self) -> Option<AlgebraGlobalDimension> {
+        self.0.global_dimension.get().copied()
+    }
+
+    /// Invoke QPA's immediate `GlobalDimension` method when semisimplicity is
+    /// already known true.
+    ///
+    /// `None` preserves GAP's missing-applicable-method state when the
+    /// semisimple property is unknown or known false.
+    #[must_use]
+    pub fn global_dimension_from_known_properties(&self) -> Option<AlgebraGlobalDimension> {
+        if let Some(cached) = self.cached_global_dimension() {
+            return Some(cached);
+        }
+        (self.cached_is_semisimple_algebra() == Some(true)).then(|| {
+            *self
+                .0
+                .global_dimension
+                .get_or_init(|| AlgebraGlobalDimension::Finite(0))
+        })
+    }
+
+    /// Return QPA's true-method implication from known semisimplicity to
+    /// `IsFiniteGlobalDimensionAlgebra`.
+    ///
+    /// `None` means the source installs no conclusion from the currently
+    /// known filters; it is not mathematical falsity.
+    #[must_use]
+    pub fn is_finite_global_dimension_from_known_properties(&self) -> Option<bool> {
+        (self.cached_is_semisimple_algebra() == Some(true)).then_some(true)
     }
 
     /// Return the full coordinate row of a standard-basis product.
@@ -359,6 +407,30 @@ impl<F: Field> StructureConstantsAlgebra<F> {
 }
 
 impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
+    /// Translate QPA's generic finite-dimensional `IsSemisimpleAlgebra`
+    /// method as the zero-dimensionality test for `RadicalOfAlgebra(A)`.
+    ///
+    /// The result is cached as a GAP property value on the identical algebra
+    /// object.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the source-translated radical computation.
+    pub fn is_semisimple_algebra(&self) -> Result<bool, StructureConstantsError> {
+        if let Some(cached) = self.cached_is_semisimple_algebra() {
+            return Ok(cached);
+        }
+        let result = self.radical()?.basis().nrows() == 0;
+        let result = *self.0.semisimple.get_or_init(|| result);
+        if result {
+            let _ = self
+                .0
+                .global_dimension
+                .get_or_init(|| AlgebraGlobalDimension::Finite(0));
+        }
+        Ok(result)
+    }
+
     /// Translate QPA's `PowerSubalgebra(A, n)` on the currently supported
     /// prime-field contract.
     ///
