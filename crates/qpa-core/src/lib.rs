@@ -67,7 +67,7 @@ pub use path_module::{
     right_module_over_path_algebra_with_tensor, socle_of_module, socle_of_module_inclusion,
     subrepresentation, subrepresentation_inclusion, sum_of_submodules, sum_of_submodules_list,
     top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
-    underlying_linear_map, zero_module_mapping,
+    underlying_linear_map, zero_module, zero_module_mapping,
 };
 pub use poset::{Poset, PosetError};
 pub use quiver::{

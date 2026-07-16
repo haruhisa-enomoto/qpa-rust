@@ -36,6 +36,7 @@ struct PathAlgebraData<F: Field> {
     dual_enveloping_module_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     dual_enveloping_module_bound: OnceLock<()>,
     dual_enveloping_module_fail: OnceLock<()>,
+    zero_module_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     indec_projective_modules_weak: RwLock<Vec<WeakPathAlgebraModule<F>>>,
     indec_projective_modules_bound: OnceLock<()>,
     trivial_extension_level: OnceLock<usize>,
@@ -130,6 +131,7 @@ impl<F: Field> PathAlgebra<F> {
             dual_enveloping_module_weak: RwLock::new(None),
             dual_enveloping_module_bound: OnceLock::new(),
             dual_enveloping_module_fail: OnceLock::new(),
+            zero_module_weak: RwLock::new(None),
             indec_projective_modules_weak: RwLock::new(Vec::new()),
             indec_projective_modules_bound: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
@@ -245,6 +247,28 @@ impl<F: Field> PathAlgebra<F> {
             .iter()
             .map(WeakPathAlgebraModule::upgrade)
             .collect()
+    }
+
+    pub(crate) fn cached_zero_module(&self) -> Option<PathAlgebraModule<F>> {
+        self.0
+            .zero_module_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModule::upgrade)
+    }
+
+    pub(crate) fn cache_zero_module(&self, module: &PathAlgebraModule<F>) -> PathAlgebraModule<F> {
+        let mut slot = self
+            .0
+            .zero_module_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot.as_ref().and_then(WeakPathAlgebraModule::upgrade) {
+            return cached;
+        }
+        *slot = Some(module.downgrade());
+        module.clone()
     }
 
     pub(crate) fn merge_indec_projective_modules(

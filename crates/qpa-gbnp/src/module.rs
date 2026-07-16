@@ -12,10 +12,11 @@ use qpa_core::{
     PathError, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct,
     QuiverProductError, QuotientError, direct_sum_inclusions, direct_sum_of_qpa_modules,
     direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m, hom_over_algebra,
-    identity_module_mapping, include_in_path_algebra, loewy_length_of_module,
-    minimal_generating_set_of_module, natural_endomorphism_quotient_by_ideal,
-    project_from_product_quiver, right_module_hom_over_algebra, right_module_over_path_algebra,
-    right_module_over_path_algebra_with_tensor, top_of_module, zero_module_mapping,
+    identity_module_mapping, include_in_path_algebra, kernel_of_module_homomorphism,
+    loewy_length_of_module, minimal_generating_set_of_module,
+    natural_endomorphism_quotient_by_ideal, project_from_product_quiver,
+    right_module_hom_over_algebra, right_module_over_path_algebra,
+    right_module_over_path_algebra_with_tensor, top_of_module, zero_module, zero_module_mapping,
 };
 use thiserror::Error;
 
@@ -828,12 +829,7 @@ pub fn projective_cover<F: Field>(
         return Ok(cached);
     }
     let cover = if module.dimension() == 0 {
-        let zero = right_module_over_path_algebra(
-            module.right_acting_algebra().clone(),
-            vec![0; module.dimension_vector().len()],
-            &[],
-        )?
-        .ok_or(EnvelopingModuleError::GeneratedZeroProjectiveViolatesRelations)?;
+        let zero = zero_module(module.right_acting_algebra())?;
         zero_module_mapping(zero, module.clone())?
     } else {
         let generators = minimal_generating_set_of_module(module.clone())?;
@@ -866,6 +862,53 @@ pub fn projective_cover<F: Field>(
         sum
     };
     Ok(module.cache_projective_cover(&cover))
+}
+
+/// Translate QPA's cached `1stSyzygy(M)` attribute.
+///
+/// The zero branch returns the acting algebra's identical cached
+/// [`zero_module`]. Otherwise this is literally `Kernel(ProjectiveCover(M))`,
+/// with the returned kernel module cached on `M` as GAP's attribute does.
+///
+/// # Errors
+///
+/// Propagates zero-module, projective-cover, and kernel construction failures.
+pub fn first_syzygy<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_first_syzygy() {
+        return Ok(cached);
+    }
+    let syzygy = if module.dimension() == 0 {
+        zero_module(module.right_acting_algebra())?
+    } else {
+        let cover = projective_cover(module)?;
+        kernel_of_module_homomorphism(&cover)?
+    };
+    Ok(module.cache_first_syzygy(&syzygy))
+}
+
+/// Translate QPA's cached `InjectiveEnvelope(M)` attribute.
+///
+/// The computation is the exact source expression
+/// `DualOfModuleHomomorphism(ProjectiveCover(DualOfModule(M)))`. Reciprocal
+/// dual-module caching makes the returned map start in the identical entered
+/// module, including for the zero module.
+///
+/// # Errors
+///
+/// Propagates opposite-algebra dualization, projective-cover, and dual-map
+/// construction failures.
+pub fn injective_envelope<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_injective_envelope() {
+        return Ok(cached);
+    }
+    let dual = dual_of_module(module)?;
+    let dual_cover = projective_cover(&dual)?;
+    let envelope = dual_of_module_homomorphism(&dual_cover)?;
+    Ok(module.cache_injective_envelope(&envelope))
 }
 
 /// Translate QPA's `LiftingMorphismFromProjective(f, g)`.
@@ -1078,9 +1121,10 @@ fn module_map_from_physical_flat<F: Field>(
 /// Translate QPA's cached `DualOfModule(M)` for path-algebra matrix modules.
 ///
 /// Arrow matrices are transposed without reordering, the dimension vector is
-/// retained, and the result acts over QPA's opposite algebra. For a nonzero
-/// module, QPA explicitly installs the reciprocal dual attribute on the
-/// result; its zero-module early return does not.
+/// retained, and the result acts over QPA's opposite algebra. QPA's zero
+/// branch returns the opposite algebra's cached [`zero_module`]. For a
+/// nonzero module, QPA explicitly installs the reciprocal dual attribute on
+/// the result; its zero-module early return does not.
 ///
 /// # Errors
 ///
@@ -1099,27 +1143,25 @@ pub fn dual_of_module<F: Field>(
             QuiverAlgebra::Quotient(opposite_path_algebra(algebra)?)
         }
     };
+    if module.dimension() == 0 {
+        let dual = zero_module(&opposite)?;
+        return Ok(module.cache_dual_module(&dual));
+    }
     let dimensions = module.dimension_vector().to_vec();
     let mut specification = Vec::new();
-    if module.dimension() != 0 {
-        for (position, arrow) in opposite.quiver().arrows().enumerate() {
-            let source = dimensions[arrow.source().index().get() - 1];
-            let target = dimensions[arrow.target().index().get() - 1];
-            if source != 0 && target != 0 {
-                specification.push(NamedArrowMatrix::new(
-                    arrow.name(),
-                    module.arrow_matrices()[position].transpose(),
-                ));
-            }
+    for (position, arrow) in opposite.quiver().arrows().enumerate() {
+        let source = dimensions[arrow.source().index().get() - 1];
+        let target = dimensions[arrow.target().index().get() - 1];
+        if source != 0 && target != 0 {
+            specification.push(NamedArrowMatrix::new(
+                arrow.name(),
+                module.arrow_matrices()[position].transpose(),
+            ));
         }
     }
     let dual = right_module_over_path_algebra(opposite, dimensions, &specification)?
         .ok_or(ModuleFunctorError::GeneratedDualViolatesRelations)?;
-    if module.dimension() == 0 {
-        Ok(module.cache_dual_module(&dual))
-    } else {
-        Ok(module.install_dual_module(&dual)?)
-    }
+    Ok(module.install_dual_module(&dual)?)
 }
 
 /// Translate QPA's cached `DualOfModuleHomomorphism(f)` attribute.
@@ -1361,9 +1403,6 @@ pub enum EnvelopingModuleError {
     /// A projective basis cannot be extracted from infinite-dimensional input.
     #[error("BasisOfProjectives returned fail")]
     ProjectiveBasisUnavailable,
-    /// A generated all-zero module must satisfy the acting relations.
-    #[error("the zero projective module does not satisfy the algebra relations")]
-    GeneratedZeroProjectiveViolatesRelations,
     /// Every nonzero module has at least one top/minimal generator.
     #[error("a nonzero projective cover has no summands")]
     EmptyNonzeroProjectiveCover,
@@ -1566,13 +1605,13 @@ mod tests {
     use qpa_core::path_module::right_fac_approximation_via_all_basis_images;
     use qpa_core::{
         ArrowSpec, DenseMatrix, NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule,
-        PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, Quiver, QuiverAlgebra,
-        QuiverAlgebraElement, VertexIndex, direct_sum_of_qpa_modules, end_over_algebra,
-        from_end_m_to_hom_mm, from_hom_mm_to_end_m, include_in_path_algebra,
+        PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, Quiver,
+        QuiverAlgebra, QuiverAlgebraElement, VertexIndex, direct_sum_of_qpa_modules,
+        end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m, include_in_path_algebra,
         lifting_inclusion_morphisms, minimal_generating_set_of_module, right_fac_approximation,
         right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
         socle_of_module_inclusion, top_of_module, top_of_module_projection, trace_of_module,
-        underlying_linear_map, zero_module_mapping,
+        underlying_linear_map, zero_module, zero_module_mapping,
     };
     use serde_json::{Value, json};
 
@@ -1580,9 +1619,9 @@ mod tests {
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
         basis_of_projectives, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
-        element_in_v_a_as_element_in_indec_proj, end_modulo_projectives,
+        element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, first_syzygy,
         from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
-        hom_from_projective, indec_projective_modules, is_projective_module,
+        hom_from_projective, indec_projective_modules, injective_envelope, is_projective_module,
         lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
         projective_cover,
     };
@@ -2351,6 +2390,102 @@ mod tests {
         })
     }
 
+    fn attribute_module_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!({
+            "dimension": module.dimension_vector(),
+            "matrices": module
+                .matrices_of_path_algebra_module()
+                .iter()
+                .map(|entry| match entry {
+                    PathAlgebraModuleMatrix::ZeroScalar => json!("0"),
+                    PathAlgebraModuleMatrix::Matrix(matrix) => matrix_json(matrix, coefficient),
+                })
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_syzygy_injective_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let zero = zero_module(&algebra).unwrap();
+        let zero_again = zero_module(&algebra).unwrap();
+        let simple1 = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple2 = right_module_over_path_algebra(algebra.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let syzygy1 = first_syzygy(&simple1).unwrap();
+        let syzygy2 = first_syzygy(&simple2).unwrap();
+        let syzygy0 = first_syzygy(&zero).unwrap();
+        let envelope1 = injective_envelope(&simple1).unwrap();
+        let envelope2 = injective_envelope(&simple2).unwrap();
+        let envelope0 = injective_envelope(&zero).unwrap();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field, loop_quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let quotient = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let quotient_zero = zero_module(&quotient).unwrap();
+        let quotient_simple = right_module_over_path_algebra(quotient.clone(), vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let quotient_syzygy = first_syzygy(&quotient_simple).unwrap();
+        let quotient_envelope = injective_envelope(&quotient_simple).unwrap();
+
+        json!({
+            "path": {
+                "zero": attribute_module_json(&zero, coefficient),
+                "zero_cache_identity": zero.is_identical(&zero_again),
+                "syzygy_simple1": attribute_module_json(&syzygy1, coefficient),
+                "syzygy_simple2": attribute_module_json(&syzygy2, coefficient),
+                "syzygy_zero": attribute_module_json(&syzygy0, coefficient),
+                "syzygy_cache_identity": [
+                    syzygy1.is_identical(&first_syzygy(&simple1).unwrap()),
+                    syzygy2.is_identical(&first_syzygy(&simple2).unwrap()),
+                    syzygy0.is_identical(&zero),
+                ],
+                "injective_simple1": module_map_json(&envelope1, coefficient),
+                "injective_simple2": module_map_json(&envelope2, coefficient),
+                "injective_zero": module_map_json(&envelope0, coefficient),
+                "injective_cache_identity": [
+                    envelope1.is_identical(&injective_envelope(&simple1).unwrap()),
+                    envelope2.is_identical(&injective_envelope(&simple2).unwrap()),
+                    envelope0.is_identical(&injective_envelope(&zero).unwrap()),
+                ],
+                "injective_source_identity": [
+                    envelope1.source().is_identical(&simple1),
+                    envelope2.source().is_identical(&simple2),
+                    envelope0.source().is_identical(&zero),
+                ],
+            },
+            "quotient": {
+                "zero": attribute_module_json(&quotient_zero, coefficient),
+                "syzygy_simple": attribute_module_json(&quotient_syzygy, coefficient),
+                "injective_simple": module_map_json(&quotient_envelope, coefficient),
+                "cache_identity": [
+                    quotient_zero.is_identical(&zero_module(&quotient).unwrap()),
+                    quotient_syzygy.is_identical(&first_syzygy(&quotient_simple).unwrap()),
+                    quotient_envelope
+                        .is_identical(&injective_envelope(&quotient_simple).unwrap()),
+                ],
+            },
+        })
+    }
+
     fn stable_module_json<F: Field>(
         module: &PathAlgebraModule<F>,
         print_zero_vertex_map: bool,
@@ -2524,6 +2659,24 @@ mod tests {
         .unwrap();
         let rational = modulehom_projective_matrix_case(Q, ToString::to_string);
         let binary = modulehom_projective_matrix_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_syzygy_injective_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_syzygy_injective.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = modulehom_syzygy_injective_case(Q, ToString::to_string);
+        let binary = modulehom_syzygy_injective_case(Z2, |entry| {
             if Z2.is_zero(entry) {
                 "0*Z(2)".to_owned()
             } else {

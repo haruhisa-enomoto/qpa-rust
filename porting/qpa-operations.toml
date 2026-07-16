@@ -13961,9 +13961,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "first_syzygy"
+tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14078,9 +14078,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "injective_envelope"
+tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14715,9 +14715,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 141
 source_end = 152
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "first_syzygy"
+tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14806,9 +14806,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 390
 source_end = 399
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "injective_envelope"
+tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15651,9 +15651,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "zero_module"
+tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15755,9 +15755,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 201
 source_end = 214
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "zero_module"
+tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
 
 [[entries]]

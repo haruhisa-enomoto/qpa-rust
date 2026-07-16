@@ -79,6 +79,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_projective_matrices.g" \
     "$repo_root/tests/fixtures/modulehom_projective_matrices.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_syzygy_injective.g" \
+    "$repo_root/tests/fixtures/modulehom_syzygy_injective.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
 compare_fixture \

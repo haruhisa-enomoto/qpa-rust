@@ -34,9 +34,9 @@ pub use module::{
     algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
     basis_of_projectives, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
     dual_of_module_homomorphism, element_in_indec_projective,
-    element_in_v_a_as_element_in_indec_proj, end_modulo_projectives,
+    element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, first_syzygy,
     from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
-    hom_from_projective, indec_projective_modules, is_projective_module,
+    hom_from_projective, indec_projective_modules, injective_envelope, is_projective_module,
     lifting_morphism_from_projective, loewy_length_of_algebra,
     matrix_of_homomorphism_between_projectives, projective_cover,
 };

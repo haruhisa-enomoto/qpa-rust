@@ -79,6 +79,39 @@ struct PathAlgebraModuleData<F: Field> {
     is_injective: OnceLock<bool>,
     is_indecomposable: OnceLock<bool>,
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    first_syzygy: OnceLock<PathAlgebraModule<F>>,
+}
+
+impl<F: Field> PathAlgebraModuleData<F> {
+    fn new(
+        acting_algebra: QuiverAlgebra<F>,
+        dimension_vector: Vec<usize>,
+        dimension: usize,
+        arrow_matrices: Vec<DenseMatrix<F>>,
+        retained_tensor: Option<TensorProductAlgebra<F>>,
+    ) -> Self {
+        Self {
+            acting_algebra,
+            dimension_vector,
+            dimension,
+            arrow_matrices,
+            retained_tensor,
+            dual_weak: RwLock::new(None),
+            dual_strong: OnceLock::new(),
+            endomorphism_algebra: OnceLock::new(),
+            top_module: OnceLock::new(),
+            top_projection_weak: RwLock::new(None),
+            direct_sum: OnceLock::new(),
+            minimal_generators: OnceLock::new(),
+            is_projective: OnceLock::new(),
+            is_injective: OnceLock::new(),
+            is_indecomposable: OnceLock::new(),
+            projective_cover_weak: RwLock::new(None),
+            injective_envelope_weak: RwLock::new(None),
+            first_syzygy: OnceLock::new(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -345,6 +378,55 @@ impl<F: Field> PathAlgebraModule<F> {
         }
         *slot = Some(cover.downgrade());
         cover.clone()
+    }
+
+    /// Return an already-live cached `InjectiveEnvelope` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_injective_envelope(&self) -> Option<PathAlgebraModuleHomomorphism<F>> {
+        self.0
+            .injective_envelope_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    /// Install QPA's `InjectiveEnvelope` attribute without retaining the map's
+    /// source module through an `Arc` cycle.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_injective_envelope(
+        &self,
+        envelope: &PathAlgebraModuleHomomorphism<F>,
+    ) -> PathAlgebraModuleHomomorphism<F> {
+        let mut slot = self
+            .0
+            .injective_envelope_weak
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(cached) = slot
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+        {
+            return cached;
+        }
+        *slot = Some(envelope.downgrade());
+        envelope.clone()
+    }
+
+    /// Return QPA's cached `1stSyzygy` attribute, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_first_syzygy(&self) -> Option<Self> {
+        self.0.first_syzygy.get().cloned()
+    }
+
+    /// Install and return QPA's `1stSyzygy` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_first_syzygy(&self, syzygy: &Self) -> Self {
+        self.0.first_syzygy.get_or_init(|| syzygy.clone()).clone()
     }
 
     /// Retain tensor-product metadata when an attribute-created module acts
@@ -1825,6 +1907,31 @@ pub fn right_module_hom_over_algebra<F: Field>(
             cokernel_of_what: RwLock::new(None),
         },
     )))
+}
+
+/// Translate QPA's cached `ZeroModule(A)` attribute.
+///
+/// The module has one zero dimension for every vertex and no entered arrow
+/// matrices. A weak algebra-side cache preserves GAP object identity while a
+/// returned zero module remains live without leaking an algebra/module cycle.
+///
+/// # Errors
+///
+/// Reports the theoretically impossible rejection of the all-zero
+/// representation by the checked module constructor.
+pub fn zero_module<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    if let Some(cached) = algebra.cached_zero_module() {
+        return Ok(cached);
+    }
+    let generated = right_module_over_path_algebra(
+        algebra.clone(),
+        vec![0; algebra.quiver().number_of_vertices()],
+        &[],
+    )?
+    .ok_or(PathAlgebraModuleError::GeneratedZeroModuleViolatesRelations)?;
+    Ok(algebra.cache_zero_module(&generated))
 }
 
 /// Translate QPA's zero mapping between two modules.
@@ -4888,24 +4995,15 @@ fn right_module_over_path_algebra_impl<F: Field>(
         return Ok(None);
     }
 
-    Ok(Some(PathAlgebraModule(Arc::new(PathAlgebraModuleData {
-        acting_algebra: algebra,
-        dimension_vector,
-        dimension,
-        arrow_matrices,
-        retained_tensor,
-        dual_weak: RwLock::new(None),
-        dual_strong: OnceLock::new(),
-        endomorphism_algebra: OnceLock::new(),
-        top_module: OnceLock::new(),
-        top_projection_weak: RwLock::new(None),
-        direct_sum: OnceLock::new(),
-        minimal_generators: OnceLock::new(),
-        is_projective: OnceLock::new(),
-        is_injective: OnceLock::new(),
-        is_indecomposable: OnceLock::new(),
-        projective_cover_weak: RwLock::new(None),
-    }))))
+    Ok(Some(PathAlgebraModule(Arc::new(
+        PathAlgebraModuleData::new(
+            algebra,
+            dimension_vector,
+            dimension,
+            arrow_matrices,
+            retained_tensor,
+        ),
+    ))))
 }
 
 fn physical_dimension(dimension: usize) -> usize {

@@ -344,6 +344,27 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Return QPA's live cached `ZeroModule` attribute, if present.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_zero_module(&self) -> Option<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_zero_module(),
+            Self::Quotient(algebra) => algebra.cached_zero_module(),
+        }
+    }
+
+    /// Install QPA's `ZeroModule` attribute without leaking an algebra/module
+    /// reference cycle.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_zero_module(&self, module: &PathAlgebraModule<F>) -> PathAlgebraModule<F> {
+        match self {
+            Self::Path(algebra) => algebra.cache_zero_module(module),
+            Self::Quotient(algebra) => algebra.cache_zero_module(module),
+        }
+    }
+
     /// Translate QPA's defaulting `TrivialExtensionOfQuiverAlgebraLevel`
     /// method. An unbound attribute has level zero.
     #[must_use]
