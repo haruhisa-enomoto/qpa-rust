@@ -630,7 +630,7 @@ pub fn cartan_matrix<F: Field>(
 ) -> Result<Option<Vec<Vec<usize>>>, EnvelopingModuleError> {
     match algebra.cached_cartan_matrix_attribute() {
         CachedAttribute::Value(value) => return Ok(Some(value)),
-        CachedAttribute::Fail => return Ok(None),
+        CachedAttribute::Fail | CachedAttribute::False => return Ok(None),
         CachedAttribute::Unbound => {}
     }
     if !is_finite_dimensional(algebra)? {
@@ -664,7 +664,7 @@ pub fn coxeter_matrix<F: Field>(
 ) -> Result<Option<DenseMatrix<RationalField>>, EnvelopingModuleError> {
     match algebra.cached_coxeter_matrix_attribute() {
         CachedAttribute::Value(value) => return Ok(Some(value)),
-        CachedAttribute::Fail => return Ok(None),
+        CachedAttribute::Fail | CachedAttribute::False => return Ok(None),
         CachedAttribute::Unbound => {}
     }
     let Some(cartan_rows) = cartan_matrix(algebra)? else {
@@ -707,7 +707,7 @@ pub fn coxeter_polynomial<F: Field>(
 ) -> Result<Option<Vec<Rational>>, EnvelopingModuleError> {
     match algebra.cached_coxeter_polynomial_attribute() {
         CachedAttribute::Value(value) => return Ok(Some(value)),
-        CachedAttribute::Fail => return Ok(None),
+        CachedAttribute::Fail | CachedAttribute::False => return Ok(None),
         CachedAttribute::Unbound => {}
     }
     let Some(matrix) = coxeter_matrix(algebra)? else {
@@ -715,6 +715,182 @@ pub fn coxeter_polynomial<F: Field>(
     };
     let coefficients = matrix.characteristic_polynomial_coefficients()?;
     Ok(algebra.cache_coxeter_polynomial_attribute(Some(coefficients)))
+}
+
+/// The two closures returned by QPA's `NakayamaPermutation(A)` attribute.
+///
+/// `image_of_module` is the first closure on simple modules and
+/// `image_of_index` is the second closure on the one-based indexing set. The
+/// quotient case retains the exact socle modules captured by the source
+/// method; the selfinjective path-algebra case is the identity closure.
+#[derive(Clone, Debug)]
+pub struct NakayamaPermutation<F: Field> {
+    algebra: QuiverAlgebra<F>,
+    index_images: Vec<usize>,
+    quotient_socles: Option<Vec<PathAlgebraModule<F>>>,
+}
+
+impl<F: Field> NakayamaPermutation<F> {
+    /// Return the algebra whose attribute produced these closures.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuiverAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return the one-based image of every simple-module index.
+    #[must_use]
+    pub fn index_images(&self) -> &[usize] {
+        &self.index_images
+    }
+
+    /// Apply QPA's simple-module closure.
+    ///
+    /// The source checks only that the entered module has total dimension one;
+    /// it does not require the module to act over the captured algebra. A path
+    /// algebra returns the entered module itself. A quotient selects the
+    /// captured projective socle at the position of the dimension-vector `1`.
+    ///
+    /// # Errors
+    ///
+    /// Preserves QPA's error for a nonsimple module and reports the source's
+    /// eventual list-index failure if a foreign simple has too many vertices.
+    pub fn image_of_module(
+        &self,
+        module: &PathAlgebraModule<F>,
+    ) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+        if module.dimension() != 1 {
+            return Err(EnvelopingModuleError::NakayamaPermutationModuleNotSimple);
+        }
+        let Some(socles) = &self.quotient_socles else {
+            return Ok(module.clone());
+        };
+        let position = module
+            .dimension_vector()
+            .iter()
+            .position(|&dimension| dimension == 1)
+            .ok_or(EnvelopingModuleError::NakayamaPermutationModuleNotSimple)?;
+        socles.get(position).cloned().ok_or(
+            EnvelopingModuleError::NakayamaPermutationModulePositionOutOfRange {
+                position: position + 1,
+                vertex_count: socles.len(),
+            },
+        )
+    }
+
+    /// Apply QPA's one-based index closure.
+    ///
+    /// # Errors
+    ///
+    /// Preserves the explicit source error for every integer outside the
+    /// algebra's simple-module indexing set.
+    pub fn image_of_index(&self, index: &Integer) -> Result<usize, EnvelopingModuleError> {
+        let position = (0..self.index_images.len())
+            .find(|&position| index == &Integer::from(position + 1))
+            .ok_or_else(
+                || EnvelopingModuleError::IncorrectNakayamaPermutationIndex {
+                    index: index.clone(),
+                    vertex_count: self.index_images.len(),
+                },
+            )?;
+        Ok(self.index_images[position])
+    }
+}
+
+/// Translate QPA's cached `NakayamaPermutation(A)` attribute.
+///
+/// `Ok(None)` is the attribute's cached boolean `false` for a nonselfinjective
+/// algebra. An admissible selfinjective quotient captures the ordered socles
+/// of its indecomposable projectives and their simple indices. A selfinjective
+/// path algebra has no arrows, so both closures are identities.
+///
+/// # Errors
+///
+/// Preserves the absence of a selfinjectivity method on a nonadmissible
+/// quotient and propagates projective/socle construction.
+pub fn nakayama_permutation<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<NakayamaPermutation<F>>, EnvelopingModuleError> {
+    match algebra.cached_nakayama_permutation_attribute() {
+        CachedAttribute::Value(index_images) => {
+            return Ok(Some(rebuild_nakayama_permutation(algebra, index_images)?));
+        }
+        CachedAttribute::False => return Ok(None),
+        CachedAttribute::Unbound => {}
+        CachedAttribute::Fail => {
+            return Err(EnvelopingModuleError::InvalidNakayamaPermutationCacheState);
+        }
+    }
+
+    match is_selfinjective_algebra(algebra)? {
+        Some(false) => {
+            let _ = algebra.cache_nakayama_permutation_attribute(None);
+            return Ok(None);
+        }
+        None => return Err(EnvelopingModuleError::NakayamaPermutationSelfinjectivityUnavailable),
+        Some(true) => {}
+    }
+
+    let (index_images, quotient_socles) = match algebra {
+        QuiverAlgebra::Path(_) => ((1..=algebra.quiver().number_of_vertices()).collect(), None),
+        QuiverAlgebra::Quotient(_) => {
+            let socles = indec_projective_modules(algebra)?
+                .into_iter()
+                .map(socle_of_module)
+                .collect::<Result<Vec<_>, _>>()?;
+            let indices = nakayama_indices_from_socles(&socles)?;
+            (indices, Some(socles))
+        }
+    };
+    let index_images = algebra
+        .cache_nakayama_permutation_attribute(Some(index_images))
+        .ok_or(EnvelopingModuleError::NakayamaPermutationCacheConflict)?;
+    Ok(Some(NakayamaPermutation {
+        algebra: algebra.clone(),
+        index_images,
+        quotient_socles,
+    }))
+}
+
+fn rebuild_nakayama_permutation<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    index_images: Vec<usize>,
+) -> Result<NakayamaPermutation<F>, EnvelopingModuleError> {
+    let quotient_socles = if matches!(algebra, QuiverAlgebra::Quotient(_)) {
+        Some(
+            indec_projective_modules(algebra)?
+                .into_iter()
+                .map(socle_of_module)
+                .collect::<Result<Vec<_>, _>>()?,
+        )
+    } else {
+        None
+    };
+    Ok(NakayamaPermutation {
+        algebra: algebra.clone(),
+        index_images,
+        quotient_socles,
+    })
+}
+
+fn nakayama_indices_from_socles<F: Field>(
+    socles: &[PathAlgebraModule<F>],
+) -> Result<Vec<usize>, EnvelopingModuleError> {
+    socles
+        .iter()
+        .enumerate()
+        .map(|(projective, socle)| {
+            socle
+                .dimension_vector()
+                .iter()
+                .position(|&dimension| dimension == 1)
+                .map(|position| position + 1)
+                .ok_or(
+                    EnvelopingModuleError::SelfinjectiveProjectiveSocleHasNoSimplePosition {
+                        projective: projective + 1,
+                    },
+                )
+        })
+        .collect()
 }
 
 /// Invoke QPA's immediate `GlobalDimension` methods from already-known
@@ -3673,6 +3849,44 @@ pub enum EnvelopingModuleError {
     /// invertible in QPA's following source step.
     #[error("a Cartan matrix with nonzero determinant unexpectedly had no rational inverse")]
     NonzeroCartanDeterminantNotInvertible,
+    /// QPA's selfinjectivity call has no applicable method on this quotient.
+    #[error("NakayamaPermutation cannot dispatch IsSelfinjectiveAlgebra on this algebra")]
+    NakayamaPermutationSelfinjectivityUnavailable,
+    /// The dedicated cache can contain only an unbound state, boolean false,
+    /// or one list of index images.
+    #[error("the NakayamaPermutation attribute cache contains an invalid fail state")]
+    InvalidNakayamaPermutationCacheState,
+    /// Concurrent attribute evaluation cannot bind both false and a value.
+    #[error("the NakayamaPermutation attribute was concurrently cached as false")]
+    NakayamaPermutationCacheConflict,
+    /// The source closure accepts only modules of total dimension one.
+    #[error("not a simple module was entered as an argument for the Nakayama permutation")]
+    NakayamaPermutationModuleNotSimple,
+    /// A foreign simple module can select beyond the captured projective list.
+    #[error("Nakayama permutation module position {position} is outside 1..={vertex_count}")]
+    NakayamaPermutationModulePositionOutOfRange {
+        /// One-based position of the dimension-vector entry equal to one.
+        position: usize,
+        /// Number of captured projective socles.
+        vertex_count: usize,
+    },
+    /// QPA's index closure accepts only the algebra's one-based simple indices.
+    #[error(
+        "incorrect Nakayama permutation index {index}; expected an integer in 1..={vertex_count}"
+    )]
+    IncorrectNakayamaPermutationIndex {
+        /// Rejected arbitrary-precision integer.
+        index: Integer,
+        /// Number of simple-module indices.
+        vertex_count: usize,
+    },
+    /// Selfinjectivity guarantees that every projective socle is a vertex
+    /// simple and therefore has one dimension-vector entry equal to one.
+    #[error("projective {projective} has no simple socle position in NakayamaPermutation")]
+    SelfinjectiveProjectiveSocleHasNoSimplePosition {
+        /// One-based indecomposable-projective position.
+        projective: usize,
+    },
     /// An annihilator basis requires QPA's finite canonical algebra basis.
     #[error("AnnihilatorOfModule requires a finite-dimensional algebra")]
     InfiniteAnnihilatorAlgebra,
@@ -4064,11 +4278,12 @@ mod tests {
         is_selfinjective_algebra, is_semicommutative_algebra, is_symmetric_algebra,
         is_tau_rigid_module, is_weakly_symmetric_algebra, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, nakayama_functor_of_module,
-        nakayama_functor_of_module_homomorphism, opposite_nakayama_functor_of_module,
-        opposite_nakayama_functor_of_module_homomorphism, projective_cover, random_module,
-        simple_modules, socle_series, star_of_module, star_of_module_homomorphism,
-        tensor_product_of_modules, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated,
-        tr_d_iterated, transpose_of_module, transpose_of_module_homomorphism,
+        nakayama_functor_of_module_homomorphism, nakayama_permutation,
+        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
+        projective_cover, random_module, simple_modules, socle_series, star_of_module,
+        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
+        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -7463,11 +7678,12 @@ mod tests {
             Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
         let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
         let loop_path = QuiverAlgebra::Path(loop_parent.clone());
-        let t = loop_parent
+        let loop_arrow = loop_parent
             .element(loop_parent.quiver().arrows().next().unwrap().path())
             .unwrap();
         let dual_numbers = QuiverAlgebra::Quotient(
-            quotient_by_relations(loop_parent, &[t.multiply(&t).unwrap()]).unwrap(),
+            quotient_by_relations(loop_parent, &[loop_arrow.multiply(&loop_arrow).unwrap()])
+                .unwrap(),
         );
 
         let diamond_quiver = Quiver::from_indexed(
@@ -7753,6 +7969,205 @@ mod tests {
         assert_eq!(
             singular.cached_coxeter_polynomial_attribute(),
             CachedAttribute::Fail
+        );
+    }
+
+    fn nakayama_permutation_case_json<F: Field>(algebra: &QuiverAlgebra<F>) -> Value {
+        let initially_known = algebra.cached_nakayama_permutation_attribute().is_bound();
+        let Some(permutation) = nakayama_permutation(algebra).unwrap() else {
+            return json!({
+                "initially_known": initially_known,
+                "value": false,
+                "known_after": algebra
+                    .cached_nakayama_permutation_attribute()
+                    .is_bound()
+            });
+        };
+        let simples = simple_modules(algebra).unwrap();
+        let module_images = simples
+            .iter()
+            .map(|simple| {
+                permutation
+                    .image_of_module(simple)
+                    .unwrap()
+                    .dimension_vector()
+                    .to_vec()
+            })
+            .collect::<Vec<_>>();
+        let module_identical = simples
+            .iter()
+            .map(|simple| {
+                permutation
+                    .image_of_module(simple)
+                    .unwrap()
+                    .is_identical(simple)
+            })
+            .collect::<Vec<_>>();
+        let index_images = (1..=simples.len())
+            .map(|index| permutation.image_of_index(&Integer::from(index)).unwrap())
+            .collect::<Vec<_>>();
+        json!({
+            "initially_known": initially_known,
+            "index_images": index_images,
+            "module_images": module_images,
+            "module_identical": module_identical,
+            "known_after": algebra
+                .cached_nakayama_permutation_attribute()
+                .is_bound()
+        })
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn pathalg_nakayama_permutation_cases<F: Field>(field: F) -> Value {
+        let discrete = isolated_path_algebra(field.clone(), 3);
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), a2_quiver).unwrap());
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let loop_arrow = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[loop_arrow.multiply(&loop_arrow).unwrap()])
+                .unwrap(),
+        );
+
+        let a3_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "u"),
+                ArrowSpec::named(vertex(2), vertex(3), "v"),
+            ],
+        )
+        .unwrap();
+        let a3_parent = PathAlgebra::new(field.clone(), a3_quiver).unwrap();
+        let a3_arrows = a3_parent.quiver().arrows().collect::<Vec<_>>();
+        let first_arrow = a3_parent.element(a3_arrows[0].path()).unwrap();
+        let second_arrow = a3_parent.element(a3_arrows[1].path()).unwrap();
+        let nonselfinjective = QuiverAlgebra::Quotient(
+            quotient_by_relations(a3_parent, &[first_arrow.multiply(&second_arrow).unwrap()])
+                .unwrap(),
+        );
+
+        let cycle_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(3), "y"),
+                ArrowSpec::named(vertex(3), vertex(1), "z"),
+            ],
+        )
+        .unwrap();
+        let cycle_parent = PathAlgebra::new(field, cycle_quiver).unwrap();
+        let arrows = cycle_parent.quiver().arrows().collect::<Vec<_>>();
+        let cycle_x = cycle_parent.element(arrows[0].path()).unwrap();
+        let cycle_y = cycle_parent.element(arrows[1].path()).unwrap();
+        let cycle_z = cycle_parent.element(arrows[2].path()).unwrap();
+        let cycle = QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                cycle_parent,
+                &[
+                    cycle_x.multiply(&cycle_y).unwrap(),
+                    cycle_y.multiply(&cycle_z).unwrap(),
+                    cycle_z.multiply(&cycle_x).unwrap(),
+                ],
+            )
+            .unwrap(),
+        );
+
+        json!({
+            "path_discrete": nakayama_permutation_case_json(&discrete),
+            "path_a2": nakayama_permutation_case_json(&a2),
+            "quotient_dual_numbers": nakayama_permutation_case_json(&dual_numbers),
+            "quotient_nonselfinjective": nakayama_permutation_case_json(&nonselfinjective),
+            "quotient_radical_square_zero_cycle": nakayama_permutation_case_json(&cycle)
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_pathalg_nakayama_permutation_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_nakayama_permutation.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(pathalg_nakayama_permutation_cases(Z2), expected["f2"]);
+        assert_eq!(
+            pathalg_nakayama_permutation_cases(Zp::new(5)),
+            expected["f5"]
+        );
+        assert_eq!(pathalg_nakayama_permutation_cases(Q), expected["rational"]);
+
+        let cycle_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(3), "y"),
+                ArrowSpec::named(vertex(3), vertex(1), "z"),
+            ],
+        )
+        .unwrap();
+        let cycle_parent = PathAlgebra::new(Z2, cycle_quiver).unwrap();
+        let arrows = cycle_parent.quiver().arrows().collect::<Vec<_>>();
+        let x = cycle_parent.element(arrows[0].path()).unwrap();
+        let y = cycle_parent.element(arrows[1].path()).unwrap();
+        let z = cycle_parent.element(arrows[2].path()).unwrap();
+        let cycle = QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                cycle_parent,
+                &[
+                    x.multiply(&y).unwrap(),
+                    y.multiply(&z).unwrap(),
+                    z.multiply(&x).unwrap(),
+                ],
+            )
+            .unwrap(),
+        );
+        let permutation = nakayama_permutation(&cycle).unwrap().unwrap();
+        let cycle_simples = simple_modules(&cycle).unwrap();
+        let nonsimple = direct_sum_of_qpa_modules(&cycle_simples[..2])
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            permutation.image_of_module(&nonsimple),
+            Err(EnvelopingModuleError::NakayamaPermutationModuleNotSimple)
+        );
+        for index in [0, -1, 4] {
+            assert_eq!(
+                permutation.image_of_index(&Integer::from(index)),
+                Err(EnvelopingModuleError::IncorrectNakayamaPermutationIndex {
+                    index: Integer::from(index),
+                    vertex_count: 3
+                })
+            );
+        }
+
+        let foreign = isolated_path_algebra(Z2, 4);
+        let foreign_simple = simple_modules(&foreign).unwrap()[3].clone();
+        assert_eq!(
+            permutation.image_of_module(&foreign_simple),
+            Err(
+                EnvelopingModuleError::NakayamaPermutationModulePositionOutOfRange {
+                    position: 4,
+                    vertex_count: 3
+                }
+            )
+        );
+
+        let arrow_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let parent = PathAlgebra::new(Z2, arrow_quiver).unwrap();
+        let arrow = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let nonadmissible = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, std::slice::from_ref(&arrow)).unwrap(),
+        );
+        assert_eq!(
+            nakayama_permutation(&nonadmissible).unwrap_err(),
+            EnvelopingModuleError::NakayamaPermutationSelfinjectivityUnavailable
         );
     }
 }

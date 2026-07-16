@@ -186,6 +186,12 @@ compare_cartan_coxeter_dispatch_fixture \
     "$repo_root/tests/gap-reference/pathalg_cartan_coxeter_dispatch.g" \
     "$repo_root/tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_nakayama_permutation.g" \
+    "$repo_root/tests/fixtures/pathalg_nakayama_permutation.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/pathalg_nakayama_permutation_dispatch.g" \
+    "$repo_root/tests/fixtures/pathalg_nakayama_permutation_dispatch.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
 compare_catching_fixture \

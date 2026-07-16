@@ -16691,9 +16691,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 91
 source_end = 91
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_permutation; NakayamaPermutation"
+tests = ["tests/fixtures/pathalg_nakayama_permutation.schema-v1.json","tests/fixtures/pathalg_nakayama_permutation_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18186,9 +18186,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2347
 source_end = 2379
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_permutation; NakayamaPermutation"
+tests = ["tests/fixtures/pathalg_nakayama_permutation.schema-v1.json","tests/fixtures/pathalg_nakayama_permutation_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18199,9 +18199,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2381
 source_end = 2413
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_permutation; NakayamaPermutation"
+tests = ["tests/fixtures/pathalg_nakayama_permutation.schema-v1.json","tests/fixtures/pathalg_nakayama_permutation_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -468,6 +468,30 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Return the explicit unbound/`false`/value state of QPA's
+    /// `NakayamaPermutation` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_nakayama_permutation_attribute(&self) -> CachedAttribute<Vec<usize>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_nakayama_permutation_attribute(),
+            Self::Quotient(algebra) => algebra.cached_nakayama_permutation_attribute(),
+        }
+    }
+
+    /// Bind and return QPA's Nakayama index images or boolean `false`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_nakayama_permutation_attribute(
+        &self,
+        value: Option<Vec<usize>>,
+    ) -> Option<Vec<usize>> {
+        match self {
+            Self::Path(algebra) => algebra.cache_nakayama_permutation_attribute(value),
+            Self::Quotient(algebra) => algebra.cache_nakayama_permutation_attribute(value),
+        }
+    }
+
     /// Return QPA's live cached `ZeroModule` attribute, if present.
     #[doc(hidden)]
     #[must_use]

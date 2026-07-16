@@ -452,6 +452,7 @@ struct QuotientPathAlgebraData<F: Field> {
     cartan_matrix: OnceLock<Option<Vec<Vec<usize>>>>,
     coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
     coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
+    nakayama_permutation: OnceLock<Option<Vec<usize>>>,
     opposite_weak: RwLock<Option<Weak<QuotientPathAlgebraData<F>>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
     enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
@@ -575,6 +576,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
+            nakayama_permutation: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -626,6 +628,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
+            nakayama_permutation: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -869,6 +872,21 @@ impl<F: Field> QuotientPathAlgebra<F> {
         value: Option<Vec<Rational>>,
     ) -> Option<Vec<Rational>> {
         self.0.coxeter_polynomial.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_nakayama_permutation_attribute(&self) -> CachedAttribute<Vec<usize>> {
+        match self.0.nakayama_permutation.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_nakayama_permutation_attribute(
+        &self,
+        value: Option<Vec<usize>>,
+    ) -> Option<Vec<usize>> {
+        self.0.nakayama_permutation.get_or_init(|| value).clone()
     }
 
     /// Return the quotient zero.
@@ -1488,6 +1506,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
+            nakayama_permutation: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),

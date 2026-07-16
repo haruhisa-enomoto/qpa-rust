@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_nakayama_permutation",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "f2": {
+    "path_discrete": {
+      "initially_known": false,
+      "index_images": [1, 2, 3],
+      "module_images": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      "module_identical": [true, true, true],
+      "known_after": true
+    },
+    "path_a2": {
+      "initially_known": false,
+      "value": false,
+      "known_after": true
+    },
+    "quotient_dual_numbers": {
+      "initially_known": false,
+      "index_images": [1],
+      "module_images": [[1]],
+      "module_identical": [false],
+      "known_after": true
+    },
+    "quotient_nonselfinjective": {
+      "initially_known": false,
+      "value": false,
+      "known_after": true
+    },
+    "quotient_radical_square_zero_cycle": {
+      "initially_known": false,
+      "index_images": [2, 3, 1],
+      "module_images": [[0, 1, 0], [0, 0, 1], [1, 0, 0]],
+      "module_identical": [false, false, false],
+      "known_after": true
+    }
+  },
+  "f5": {
+    "path_discrete": {
+      "initially_known": false,
+      "index_images": [1, 2, 3],
+      "module_images": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      "module_identical": [true, true, true],
+      "known_after": true
+    },
+    "path_a2": {
+      "initially_known": false,
+      "value": false,
+      "known_after": true
+    },
+    "quotient_dual_numbers": {
+      "initially_known": false,
+      "index_images": [1],
+      "module_images": [[1]],
+      "module_identical": [false],
+      "known_after": true
+    },
+    "quotient_nonselfinjective": {
+      "initially_known": false,
+      "value": false,
+      "known_after": true
+    },
+    "quotient_radical_square_zero_cycle": {
+      "initially_known": false,
+      "index_images": [2, 3, 1],
+      "module_images": [[0, 1, 0], [0, 0, 1], [1, 0, 0]],
+      "module_identical": [false, false, false],
+      "known_after": true
+    }
+  },
+  "rational": {
+    "path_discrete": {
+      "initially_known": false,
+      "index_images": [1, 2, 3],
+      "module_images": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      "module_identical": [true, true, true],
+      "known_after": true
+    },
+    "path_a2": {
+      "initially_known": false,
+      "value": false,
+      "known_after": true
+    },
+    "quotient_dual_numbers": {
+      "initially_known": false,
+      "index_images": [1],
+      "module_images": [[1]],
+      "module_identical": [false],
+      "known_after": true
+    },
+    "quotient_nonselfinjective": {
+      "initially_known": false,
+      "value": false,
+      "known_after": true
+    },
+    "quotient_radical_square_zero_cycle": {
+      "initially_known": false,
+      "index_images": [2, 3, 1],
+      "module_images": [[0, 1, 0], [0, 0, 1], [1, 0, 0]],
+      "module_identical": [false, false, false],
+      "known_after": true
+    }
+  }
+}

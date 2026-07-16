@@ -47,6 +47,7 @@ struct PathAlgebraData<F: Field> {
     cartan_matrix: OnceLock<Option<Vec<Vec<usize>>>>,
     coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
     coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
+    nakayama_permutation: OnceLock<Option<Vec<usize>>>,
     trivial_extension_level: OnceLock<usize>,
     trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
     trivial_extension_bound: OnceLock<()>,
@@ -146,6 +147,7 @@ impl<F: Field> PathAlgebra<F> {
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
+            nakayama_permutation: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
             trivial_extension_bound: OnceLock::new(),
@@ -350,6 +352,21 @@ impl<F: Field> PathAlgebra<F> {
         value: Option<Vec<Rational>>,
     ) -> Option<Vec<Rational>> {
         self.0.coxeter_polynomial.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_nakayama_permutation_attribute(&self) -> CachedAttribute<Vec<usize>> {
+        match self.0.nakayama_permutation.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_nakayama_permutation_attribute(
+        &self,
+        value: Option<Vec<usize>>,
+    ) -> Option<Vec<usize>> {
+        self.0.nakayama_permutation.get_or_init(|| value).clone()
     }
 
     pub(crate) fn has_dual_enveloping_module_attribute(&self) -> bool {

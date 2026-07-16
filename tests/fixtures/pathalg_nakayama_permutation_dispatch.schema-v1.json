@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "cycle_nonsimple_success": false,
+  "cycle_zero_index_success": false,
+  "cycle_negative_index_success": false,
+  "cycle_large_index_success": false,
+  "foreign_simple_success": false,
+  "discrete_nonsimple_success": false,
+  "discrete_zero_index_success": false,
+  "nonadmissible_success": false
+}

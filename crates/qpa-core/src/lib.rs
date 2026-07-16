@@ -39,6 +39,8 @@ pub enum CachedAttribute<T> {
     Unbound,
     /// The source method ran and cached GAP's `fail` value.
     Fail,
+    /// The source method ran and cached GAP's boolean `false` sentinel.
+    False,
     /// The source method computed and cached a value.
     Value(T),
 }
@@ -54,6 +56,12 @@ impl<T> CachedAttribute<T> {
     #[must_use]
     pub const fn is_fail(&self) -> bool {
         matches!(self, Self::Fail)
+    }
+
+    /// Return whether the bound value is GAP's boolean `false` sentinel.
+    #[must_use]
+    pub const fn is_false(&self) -> bool {
+        matches!(self, Self::False)
     }
 }
 
