@@ -32,7 +32,20 @@
     "less": [false, true],
     "underlying_less": [false, true],
     "external_equal": true,
-    "recreated": [0, 1, 0]
+    "recreated": [0, 1, 0],
+    "element_print": "op( v.2 )",
+    "sum_print": "op( v.2+v.3 )",
+    "scalar_print": "op( (Z(5))*v.2 )",
+    "negative_print": "op( (Z(5)^2)*v.2 )",
+    "zero_print": "op( 0*v.1 )"
+  },
+  "rational_print": {
+    "sum": "op( v.1+v.2 )",
+    "double": "op( (2)*v.2 )",
+    "half": "op( (1/2)*v.2 )",
+    "negative": "op( (-1)*v.2 )",
+    "mixed": "op( v.1+(-2)*v.2 )",
+    "zero": "op( 0*v.1 )"
   },
   "dual_numbers_f5": {
     "identical": true,

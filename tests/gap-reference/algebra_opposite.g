@@ -9,6 +9,16 @@ PrintJsonString := function(value)
     Print("\"", escaped, "\"");
 end;
 
+PrintObjectString := function(value)
+    local result, stream;
+    result := "";
+    stream := OutputTextString(result, true);
+    SetPrintFormattingStatus(stream, false);
+    PrintTo(stream, value);
+    CloseStream(stream);
+    return result;
+end;
+
 UpperTriangularTwoByTwo := function(field)
     local table;
     table := EmptySCTable(3, Zero(field));
@@ -91,6 +101,28 @@ PrintOpposite := function(field)
         basis[2] < basis[1], "]");
     Print(",\"external_equal\":", ExtRepOfObj(y) = ExtRepOfObj(basis[2]));
     Print(",\"recreated\":", IntCoordinates(basis, recreated![1]));
+    Print(",\"element_print\":"); PrintJsonString(PrintObjectString(y));
+    Print(",\"sum_print\":"); PrintJsonString(PrintObjectString(y + z));
+    Print(",\"scalar_print\":"); PrintJsonString(PrintObjectString(2 * y));
+    Print(",\"negative_print\":"); PrintJsonString(PrintObjectString(-y));
+    Print(",\"zero_print\":"); PrintJsonString(PrintObjectString(Zero(y)));
+    Print("}");
+end;
+
+PrintRationalForms := function()
+    local algebra, opposite, basis, x, y;
+    algebra := UpperTriangularTwoByTwo(Rationals);
+    IsCommutative(algebra);
+    opposite := OppositeAlgebra(algebra);
+    basis := BasisVectors(Basis(opposite));
+    x := basis[1];
+    y := basis[2];
+    Print("{\"sum\":"); PrintJsonString(PrintObjectString(x + y));
+    Print(",\"double\":"); PrintJsonString(PrintObjectString(2 * y));
+    Print(",\"half\":"); PrintJsonString(PrintObjectString((1/2) * y));
+    Print(",\"negative\":"); PrintJsonString(PrintObjectString(-y));
+    Print(",\"mixed\":"); PrintJsonString(PrintObjectString(x - 2 * y));
+    Print(",\"zero\":"); PrintJsonString(PrintObjectString(Zero(x)));
     Print("}");
 end;
 
@@ -119,6 +151,8 @@ Print(",\"gbnp_revision\":");
 PrintJsonString(GAPInfo.SystemEnvironment.QPA_ORACLE_GBNP_REVISION);
 Print("},\"upper_triangular_f5\":");
 PrintOpposite(GF(5));
+Print(",\"rational_print\":");
+PrintRationalForms();
 Print(",\"dual_numbers_f5\":");
 PrintCommutative(GF(5));
 Print("}\n");

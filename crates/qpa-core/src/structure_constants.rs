@@ -6,7 +6,9 @@
 
 use std::{
     cmp::Ordering,
-    sync::{Arc, OnceLock},
+    collections::BTreeMap,
+    fmt,
+    sync::{Arc, OnceLock, RwLock},
 };
 
 use numerica::domains::{Field, integer::Integer};
@@ -22,6 +24,7 @@ struct StructureConstantsAlgebraData<F: Field> {
     field: F,
     dimension: usize,
     products: Vec<F::Element>,
+    named_elements: RwLock<BTreeMap<Box<str>, Vec<F::Element>>>,
     semisimple: OnceLock<bool>,
     global_dimension: OnceLock<AlgebraGlobalDimension>,
 }
@@ -89,6 +92,7 @@ impl<F: Field> StructureConstantsAlgebra<F> {
             field,
             dimension,
             products,
+            named_elements: RwLock::new(BTreeMap::new()),
             semisimple: OnceLock::new(),
             global_dimension: OnceLock::new(),
         })))
@@ -199,6 +203,50 @@ impl<F: Field> StructureConstantsAlgebra<F> {
             algebra: self.clone(),
             coordinates,
         })
+    }
+
+    /// Bind a named algebra element for QPA's record-component lookup.
+    ///
+    /// GAP algebra objects may expose generators as dynamic components such as
+    /// `A.x`. Rust records that optional surface explicitly and uses it for the
+    /// generic opposite-algebra `A.name` method.
+    ///
+    /// # Errors
+    ///
+    /// Rejects an element from a different algebra object.
+    pub fn bind_named_element(
+        &self,
+        name: impl Into<Box<str>>,
+        element: &StructureConstantsAlgebraElement<F>,
+    ) -> Result<(), StructureConstantsError> {
+        if element.algebra() != self {
+            return Err(StructureConstantsError::DifferentParents);
+        }
+        self.0
+            .named_elements
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .insert(name.into(), element.coordinates().to_vec());
+        Ok(())
+    }
+
+    /// Return a dynamically named element, when QPA's component is bound.
+    ///
+    /// # Errors
+    ///
+    /// Propagates checked reconstruction of the stored coordinate row.
+    pub fn element_by_name(
+        &self,
+        name: &str,
+    ) -> Result<Option<StructureConstantsAlgebraElement<F>>, StructureConstantsError> {
+        self.0
+            .named_elements
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .get(name)
+            .cloned()
+            .map(|coordinates| self.element(coordinates))
+            .transpose()
     }
 
     /// Translate QPA's generic `OppositeAlgebra(A)` construction.
@@ -1980,6 +2028,24 @@ impl<F: Field> OppositeStructureConstantsAlgebra<F> {
         self.element_from_underlying(self.underlying_algebra().element(coordinates)?)
     }
 
+    /// Translate QPA's generic opposite-algebra `A.name` lookup.
+    ///
+    /// The source delegates the record-name lookup to `UnderlyingAlgebra(A)`
+    /// and wraps the returned element in the opposite family.
+    ///
+    /// # Errors
+    ///
+    /// Propagates checked named lookup and opposite-family wrapping.
+    pub fn element_by_name(
+        &self,
+        name: &str,
+    ) -> Result<Option<OppositeStructureConstantsAlgebraElement<F>>, StructureConstantsError> {
+        self.underlying_algebra()
+            .element_by_name(name)?
+            .map(|element| self.element_from_underlying(element))
+            .transpose()
+    }
+
     /// Return QPA's wrapped `BasisVectors(Basis(A))` in underlying basis order.
     #[must_use]
     pub fn basis_elements(&self) -> Vec<OppositeStructureConstantsAlgebraElement<F>> {
@@ -2061,6 +2127,16 @@ impl<F: Field> PartialEq for OppositeStructureConstantsAlgebra<F> {
 }
 
 impl<F: Field> Eq for OppositeStructureConstantsAlgebra<F> {}
+
+impl<F: Field> fmt::Display for OppositeStructureConstantsAlgebra<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            formatter,
+            "OppositeAlgebra( <structure-constants algebra of dimension {}> )",
+            self.dimension()
+        )
+    }
+}
 
 /// An element of a [`StructureConstantsAlgebra`].
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -2244,6 +2320,65 @@ impl<F: Field> PartialEq for OppositeStructureConstantsAlgebraElement<F> {
 }
 
 impl<F: Field> Eq for OppositeStructureConstantsAlgebraElement<F> {}
+
+impl<F> fmt::Display for OppositeStructureConstantsAlgebraElement<F>
+where
+    F: QpaCoefficientField,
+    F::Element: fmt::Display,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let field = self.algebra.field();
+        let nonzero = self
+            .coordinates()
+            .iter()
+            .enumerate()
+            .filter(|(_, coefficient)| !field.is_zero(coefficient))
+            .collect::<Vec<_>>();
+        if nonzero.is_empty() {
+            return if self.coordinates().is_empty() {
+                write!(formatter, "op( 0 )")
+            } else {
+                write!(formatter, "op( 0*v.1 )")
+            };
+        }
+
+        let characteristic = field.qpa_characteristic();
+        let finite_elements = match characteristic {
+            QpaFieldCharacteristic::Zero => None,
+            QpaFieldCharacteristic::Prime(_) => field.qpa_elements().map_err(|_| fmt::Error)?,
+        };
+        write!(formatter, "op( ")?;
+        for (term, (index, coefficient)) in nonzero.into_iter().enumerate() {
+            if term != 0 {
+                write!(formatter, "+")?;
+            }
+            if field.is_one(coefficient) {
+                write!(formatter, "v.{}", index + 1)?;
+                continue;
+            }
+            write!(formatter, "(")?;
+            match characteristic {
+                QpaFieldCharacteristic::Zero => write!(formatter, "{coefficient}")?,
+                QpaFieldCharacteristic::Prime(prime) => {
+                    let position = finite_elements
+                        .as_ref()
+                        .and_then(|elements| {
+                            elements.iter().position(|element| element == coefficient)
+                        })
+                        .ok_or(fmt::Error)?;
+                    let exponent = position.checked_sub(1).ok_or(fmt::Error)?;
+                    if exponent == 1 {
+                        write!(formatter, "Z({prime})")?;
+                    } else {
+                        write!(formatter, "Z({prime})^{exponent}")?;
+                    }
+                }
+            }
+            write!(formatter, ")*v.{}", index + 1)?;
+        }
+        write!(formatter, " )")
+    }
+}
 
 /// Failure to construct or operate on a structure-constant algebra.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -2934,6 +3069,10 @@ mod tests {
         let recreated = opposite
             .element_from_underlying(underlying_basis[1].clone())
             .unwrap();
+        algebra
+            .bind_named_element("y", &underlying_basis[1])
+            .unwrap();
+        let named = opposite.element_by_name("y").unwrap().unwrap();
         let products = [
             x.multiply(y).unwrap(),
             y.multiply(x).unwrap(),
@@ -2963,9 +3102,41 @@ mod tests {
             "less": [x.compare(y).unwrap() == Ordering::Less, y.compare(x).unwrap() == Ordering::Less],
             "underlying_less": [underlying_basis[0].coordinates() < underlying_basis[1].coordinates(), underlying_basis[1].coordinates() < underlying_basis[0].coordinates()],
             "external_equal": y.external_representation() == underlying_basis[1].coordinates(),
-            "recreated": row_json(&field, recreated.coordinates(), &coefficient_json)
+            "recreated": row_json(&field, recreated.coordinates(), &coefficient_json),
+            "element_print": y.to_string(),
+            "sum_print": y.add(z).unwrap().to_string(),
+            "scalar_print": y.scale(&field.nth(2.into())).unwrap().to_string(),
+            "negative_print": y.negate().unwrap().to_string(),
+            "zero_print": y.zero_same_parent().to_string()
         });
         assert_eq!(upper, fixture["upper_triangular_f5"]);
+        assert_eq!(named, *y);
+        assert!(opposite.element_by_name("missing").unwrap().is_none());
+        assert_eq!(
+            opposite.to_string(),
+            "OppositeAlgebra( <structure-constants algebra of dimension 3> )"
+        );
+
+        let rational = upper_triangular_two_by_two(Q).opposite().unwrap();
+        let rational_basis = rational.basis_elements();
+        let [r1, r2, _] = [&rational_basis[0], &rational_basis[1], &rational_basis[2]];
+        assert_eq!(
+            json!({
+                "sum": r1.add(r2).unwrap().to_string(),
+                "double": r2.scale(&Q.nth(2.into())).unwrap().to_string(),
+                "half": r2
+                    .scale(&Q.div(&Q.one(), &Q.nth(2.into())))
+                    .unwrap()
+                    .to_string(),
+                "negative": r2.negate().unwrap().to_string(),
+                "mixed": r1
+                    .add(&r2.scale(&Q.nth((-2).into())).unwrap())
+                    .unwrap()
+                    .to_string(),
+                "zero": r1.zero_same_parent().to_string()
+            }),
+            fixture["rational_print"]
+        );
 
         let commutative = dual_numbers(field).opposite().unwrap();
         assert_eq!(

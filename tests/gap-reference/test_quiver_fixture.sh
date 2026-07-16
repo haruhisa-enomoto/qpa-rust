@@ -101,6 +101,32 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/algebra_opposite.g" \
     "$repo_root/tests/fixtures/algebra_opposite.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/algebra_mapping_radical.g" \
+    "$repo_root/tests/fixtures/algebra_mapping_radical.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/algebra_mapping_radical_f2_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly computed a GF(2) linear-mapping radical" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`IsZero'" "$actual"
+grep -Fq "The 1st argument is 'fail'" "$actual"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/algebra_opposite_print.g" \
+    >"$actual" 2>&1
+grep -Fq "OppositeAlgebra( OppositeAlgebra(" "$actual"
+grep -Fq "printing stopped, too many recursion levels!" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/algebra_opposite_dot_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an absent opposite-algebra component" >&2
+    exit 1
+fi
+grep -Fq "illegal access to record component \`obj.missing'" "$actual"
+grep -Fq "algebra.gi:198" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/algebra_structure_constants_empty_error.g" \
     >"$actual" 2>&1

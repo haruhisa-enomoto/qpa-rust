@@ -15,8 +15,9 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    DenseMatrix, Generator, MatrixError, Path, PathEndpoint, QuiverAlgebra, QuiverAlgebraElement,
-    QuiverAlgebraElementError, QuotientError, TensorProductAlgebra,
+    DenseMatrix, Generator, MatrixError, Path, PathEndpoint, QpaCoefficientField, QuiverAlgebra,
+    QuiverAlgebraElement, QuiverAlgebraElementError, QuotientError, StructureConstantsAlgebra,
+    StructureConstantsError, TensorProductAlgebra,
 };
 
 /// One labeled arrow matrix in QPA's three-argument module constructor.
@@ -1310,6 +1311,47 @@ impl<F: Field> ModuleEndomorphismAlgebra<F> {
         right: &DenseMatrix<F>,
     ) -> Result<DenseMatrix<F>, MatrixError> {
         left.multiply(right)
+    }
+}
+
+impl<F: QpaCoefficientField> ModuleEndomorphismAlgebra<F> {
+    /// Translate QPA's `RadicalOfAlgebra` conversion for an algebra represented
+    /// by linear mappings.
+    ///
+    /// QPA transposes the mapping matrices, computes the radical in the
+    /// resulting ordinary matrix algebra, and transposes the radical basis
+    /// back. The represented endomorphism algebra already stores the logical
+    /// ordinary matrices, so Rust constructs the identical multiplication
+    /// table directly and lifts the radical coordinates to those matrices.
+    ///
+    /// # Errors
+    ///
+    /// Propagates matrix multiplication/coordinate failures and the exact
+    /// structure-constant radical computation.
+    pub fn radical_basis_matrices(&self) -> Result<Vec<DenseMatrix<F>>, PathAlgebraModuleError> {
+        let dimension = self.dimension();
+        let capacity = dimension
+            .checked_mul(dimension)
+            .and_then(|square| square.checked_mul(dimension))
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let mut products = Vec::with_capacity(capacity);
+        for left in self.basis_matrices() {
+            for right in self.basis_matrices() {
+                let product = self.multiply(left, right)?;
+                products.extend(
+                    self.coefficients(&product)?
+                        .ok_or(PathAlgebraModuleError::EndomorphismAlgebraProductOutsideBasis)?,
+                );
+            }
+        }
+        let algebra = StructureConstantsAlgebra::new(self.field().clone(), dimension, products)?;
+        let radical = algebra.radical()?;
+        (0..radical.basis().nrows())
+            .map(|row| {
+                self.matrix_from_coefficients(radical.basis().row(row))
+                    .map_err(PathAlgebraModuleError::from)
+            })
+            .collect()
     }
 }
 
@@ -5601,6 +5643,10 @@ pub enum PathAlgebraModuleError {
     /// Products of parent and ideal elements must remain in the parent.
     #[error("an endomorphism-ideal product left the represented parent algebra")]
     EndomorphismIdealProductOutsideAlgebra,
+    /// Multiplication in a represented endomorphism algebra must remain in its
+    /// retained basis before the radical conversion can be applied.
+    #[error("an endomorphism-algebra product left the represented basis")]
+    EndomorphismAlgebraProductOutsideBasis,
     /// Quotient multiplication requires one identical quotient family.
     #[error("the quotient elements belong to different endomorphism quotient families")]
     ForeignEndomorphismQuotientElement,
@@ -5877,6 +5923,9 @@ pub enum PathAlgebraModuleError {
     /// Quotient computation or normal-form reduction failed.
     #[error(transparent)]
     Quotient(#[from] QuotientError),
+    /// Exact structure-constant conversion or radical computation failed.
+    #[error(transparent)]
+    StructureConstants(#[from] StructureConstantsError),
 }
 
 #[cfg(test)]
@@ -5897,22 +5946,23 @@ mod tests {
     };
 
     use super::{
-        MoreMinimalVersionResult, NamedArrowMatrix, PathAlgebraModuleError,
-        PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, cokernel_projection,
-        direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
-        hom_over_algebra, hom_over_algebra_with_basis_function, homomorphism_from_images,
-        identity_module_mapping, image_projection_inclusion, intersection_of_submodules,
-        intersection_of_submodules_list, inverse_of_isomorphism, is_split_epimorphism,
-        is_split_monomorphism, isomorphism_of_modules, kernel_inclusion,
-        left_inverse_of_homomorphism, left_minimal_version, minimal_generating_set_of_module,
-        more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
-        morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
-        natural_endomorphism_quotient_by_ideal, pull_back, push_out, radical_of_module_inclusion,
-        reject_of_module, right_fac_approximation, right_fac_approximation_via_all_basis_images,
-        right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
-        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
-        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
-        top_of_module_projection, trace_of_module, zero_module_mapping,
+        ModuleEndomorphismAlgebra, ModuleEndomorphismAlgebraData, MoreMinimalVersionResult,
+        NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
+        PathAlgebraModuleMatrix, cokernel_projection, direct_sum_inclusions,
+        direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, hom_over_algebra,
+        hom_over_algebra_with_basis_function, homomorphism_from_images, identity_module_mapping,
+        image_projection_inclusion, intersection_of_submodules, intersection_of_submodules_list,
+        inverse_of_isomorphism, is_split_epimorphism, is_split_monomorphism,
+        isomorphism_of_modules, kernel_inclusion, left_inverse_of_homomorphism,
+        left_minimal_version, minimal_generating_set_of_module, more_left_minimal_version,
+        more_right_minimal_version, morphism_on_cokernel, morphism_on_image, morphism_on_kernel,
+        multiply_lists_of_maps, natural_endomorphism_quotient_by_ideal, pull_back, push_out,
+        radical_of_module_inclusion, reject_of_module, right_fac_approximation,
+        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
+        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
+        socle_of_module, socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list,
+        top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
+        zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -5921,6 +5971,84 @@ mod tests {
 
     fn q(value: i64) -> Rational {
         Q.nth(value.into())
+    }
+
+    #[test]
+    fn linear_mapping_algebra_radical_uses_qpa_transpose_conversion_semantics() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/algebra_mapping_radical.schema-v1.json"
+        ))
+        .unwrap();
+        let identity = DenseMatrix::identity(2, Q);
+        let nilpotent =
+            DenseMatrix::from_rows(vec![vec![q(0), q(1)], vec![q(0), q(0)]], Q).unwrap();
+        let flattened_basis = DenseMatrix::from_rows(
+            vec![identity.as_flat().to_vec(), nilpotent.as_flat().to_vec()],
+            Q,
+        )
+        .unwrap();
+        let algebra = ModuleEndomorphismAlgebra(Arc::new(ModuleEndomorphismAlgebraData {
+            field: Q,
+            basis_matrices: vec![identity.clone(), nilpotent.clone()],
+            flattened_basis,
+            one: identity,
+        }));
+
+        let radical = algebra.radical_basis_matrices().unwrap();
+        assert_eq!(radical, [nilpotent]);
+        let actual = json!({
+            "dimension": radical.len(),
+            "basis_matrices": radical.iter().map(|matrix| {
+                (0..matrix.nrows()).map(|row| {
+                    matrix.row(row).iter().map(|entry| {
+                        entry.to_string().parse::<i64>().unwrap()
+                    }).collect::<Vec<_>>()
+                }).collect::<Vec<_>>()
+            }).collect::<Vec<_>>(),
+            "all_square_zero": radical.iter().all(|matrix| {
+                matrix.multiply(matrix).unwrap().is_zero()
+            }),
+        });
+        assert_eq!(actual["dimension"], fixture["dimension"]);
+        assert_eq!(actual["basis_matrices"], fixture["basis_matrices"]);
+        assert_eq!(actual["all_square_zero"], fixture["all_square_zero"]);
+        assert_eq!(fixture["had_basis_before"], false);
+    }
+
+    #[test]
+    fn linear_mapping_algebra_radical_supports_numerica_prime_fields() {
+        let e11 = DenseMatrix::from_rows(
+            vec![vec![Z2.one(), Z2.zero()], vec![Z2.zero(), Z2.zero()]],
+            Z2,
+        )
+        .unwrap();
+        let e12 = DenseMatrix::from_rows(
+            vec![vec![Z2.zero(), Z2.one()], vec![Z2.zero(), Z2.zero()]],
+            Z2,
+        )
+        .unwrap();
+        let e22 = DenseMatrix::from_rows(
+            vec![vec![Z2.zero(), Z2.zero()], vec![Z2.zero(), Z2.one()]],
+            Z2,
+        )
+        .unwrap();
+        let basis_matrices = vec![e11.clone(), e12.clone(), e22.clone()];
+        let flattened_basis = DenseMatrix::from_rows(
+            basis_matrices
+                .iter()
+                .map(|matrix| matrix.as_flat().to_vec())
+                .collect(),
+            Z2,
+        )
+        .unwrap();
+        let algebra = ModuleEndomorphismAlgebra(Arc::new(ModuleEndomorphismAlgebraData {
+            field: Z2,
+            basis_matrices,
+            flattened_basis,
+            one: e11.add(&e22).unwrap(),
+        }));
+
+        assert_eq!(algebra.radical_basis_matrices().unwrap(), [e12]);
     }
 
     fn matrix_json<F: Field>(

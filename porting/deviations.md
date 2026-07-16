@@ -4,6 +4,70 @@ This ledger records places where Rust's public boundary intentionally differs
 from the pinned GAP/QPA surface. It does not authorize algorithmic deviations:
 the computations remain translations of the cited source methods.
 
+## ALG-001 — Finite opposite-algebra display repairs recursive QPA method
+
+- Source: QPA `lib/algebra.gi`, `PrintObj` at lines 109–115.
+- Affected Rust surface: `Display` for
+  `OppositeStructureConstantsAlgebra`.
+- Difference: the QPA method prints `A` while already printing `A`, recursively
+  invoking itself until GAP stops at its recursion limit. Rust emits the finite
+  form `OppositeAlgebra( <structure-constants algebra of dimension n> )`.
+- Reason: the source evidently intended to print the underlying algebra, but
+  its self-reference cannot produce a usable representation. Rust preserves
+  the wrapper and a deterministic description without recursion.
+- Compatibility impact: valid computations are unaffected. Code that captures
+  the accidental GAP recursion diagnostic instead receives a finite string.
+  Opposite elements retain QPA's exact `op( v.i )` form for canonical basis
+  elements.
+- Evidence: `tests/gap-reference/algebra_opposite_print.g` pins the source
+  recursion, `tests/fixtures/algebra_opposite.schema-v1.json` pins element
+  printing, and the structure-constant tests pin Rust's finite algebra display.
+
+## ALG-002 — Explicit named lookup replaces GAP record-component dispatch
+
+- Source: QPA `lib/algebra.gi`, the opposite-algebra `\.` method at lines
+  189–199.
+- Affected Rust operations: `StructureConstantsAlgebra::bind_named_element`
+  and `OppositeStructureConstantsAlgebra::element_by_name`.
+- Difference: GAP converts an integer record-name token with `NameRNam`, asks
+  the underlying algebra for that dynamic component, and raises a record error
+  when it is absent. Rust binds names explicitly as strings and returns
+  `Ok(None)` for an absent name; a present element is reconstructed in the
+  opposite family exactly as QPA does.
+- Reason: Rust has neither GAP's global record-name integers nor dynamic record
+  component syntax. An owner-checked name table makes the same lookup explicit
+  and prevents components from containing an element of another algebra.
+- Compatibility impact: successful named lookup has the same coordinates and
+  opposite parent. Rust callers handle absence as an option instead of a GAP
+  interpreter error.
+- Evidence: `tests/gap-reference/algebra_opposite_dot_error.g` pins QPA's
+  absent-component failure at `algebra.gi:198`, and the opposite-algebra fixture
+  test covers successful wrapping plus the optional Rust absence result.
+
+## ALG-003 — Prime-field linear-mapping radical repairs GAP basis failure
+
+- Source: QPA `lib/algebra.gi`, `RadicalOfAlgebra` at lines 288–320.
+- Affected Rust operation:
+  `ModuleEndomorphismAlgebra::radical_basis_matrices`.
+- Difference: QPA's transpose-to-matrix-algebra adapter succeeds over the
+  rationals, but on the same dual-number mapping algebra over `GF(2)` the pinned
+  GAP basis machinery passes `fail` to `IsZero` and aborts. Rust supports both
+  characteristic zero and Numerica prime fields.
+- Reason: Rust already translates the exact GAP structure-constant radical
+  algorithms: trace-form nullspace in characteristic zero and the
+  Cohen--Ivanyos--Wales ideal sequence in positive characteristic. The mapping
+  adapter constructs that multiplication table from its retained matrix basis
+  and lifts the resulting radical rows back, which is the computation QPA's
+  transposition adapter requests without relying on the failing GAP dispatch.
+- Compatibility impact: rational results and basis order agree with QPA. A
+  supported prime-field call succeeds in Rust where pinned QPA/GAP aborts; no
+  extension-field behavior is claimed.
+- Evidence: `tests/fixtures/algebra_mapping_radical.schema-v1.json` pins the
+  successful rational result,
+  `tests/gap-reference/algebra_mapping_radical_f2_error.g` pins the upstream
+  finite-field failure, and the path-module tests verify the Rust radical over
+  both `QQ` and `GF(2)`.
+
 ## DT-001 — Explicit dynamic-tree ownership arena
 
 - Source: `upstream/qpa/lib/groebnerdyntree.gd` and
