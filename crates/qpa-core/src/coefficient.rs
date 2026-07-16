@@ -1,5 +1,7 @@
 //! Runtime descriptions of the initially supported exact coefficient fields.
 
+use std::cmp::Ordering;
+
 use numerica::domains::{
     Field, Ring, RingOps,
     finite_field::{FiniteFieldCore, PrimitiveRootIterator, Z2, Zp},
@@ -92,6 +94,18 @@ pub trait QpaCoefficientField: Field {
     /// Rejects a nonprime Numerica modular domain, an unaddressable field, or
     /// a missing multiplicative generator.
     fn qpa_elements(&self) -> Result<Option<Vec<Self::Element>>, CoefficientDomainError>;
+
+    /// Compare two field elements using GAP's object order.
+    ///
+    /// # Errors
+    ///
+    /// Propagates finite-field enumeration failures needed to recover GAP's
+    /// canonical finite-field element order.
+    fn qpa_compare(
+        &self,
+        left: &Self::Element,
+        right: &Self::Element,
+    ) -> Result<Ordering, CoefficientDomainError>;
 }
 
 impl QpaCoefficientField for RationalField {
@@ -102,6 +116,16 @@ impl QpaCoefficientField for RationalField {
     fn qpa_elements(&self) -> Result<Option<Vec<Self::Element>>, CoefficientDomainError> {
         Ok(None)
     }
+
+    fn qpa_compare(
+        &self,
+        left: &Self::Element,
+        right: &Self::Element,
+    ) -> Result<Ordering, CoefficientDomainError> {
+        let left_scaled = left.numerator_ref().clone() * right.denominator_ref();
+        let right_scaled = right.numerator_ref().clone() * left.denominator_ref();
+        Ok(left_scaled.cmp(&right_scaled))
+    }
 }
 
 impl QpaCoefficientField for Z2 {
@@ -111,6 +135,18 @@ impl QpaCoefficientField for Z2 {
 
     fn qpa_elements(&self) -> Result<Option<Vec<Self::Element>>, CoefficientDomainError> {
         Ok(Some(vec![self.zero(), self.one()]))
+    }
+
+    fn qpa_compare(
+        &self,
+        left: &Self::Element,
+        right: &Self::Element,
+    ) -> Result<Ordering, CoefficientDomainError> {
+        Ok(match (self.is_zero(left), self.is_zero(right)) {
+            (true, true) | (false, false) => Ordering::Equal,
+            (true, false) => Ordering::Less,
+            (false, true) => Ordering::Greater,
+        })
     }
 }
 
@@ -144,11 +180,25 @@ impl QpaCoefficientField for Zp {
         }
         Ok(Some(elements))
     }
+
+    fn qpa_compare(
+        &self,
+        left: &Self::Element,
+        right: &Self::Element,
+    ) -> Result<Ordering, CoefficientDomainError> {
+        let elements = self.qpa_elements()?.expect("Zp is finite");
+        let left_position = elements.iter().position(|element| element == left);
+        let right_position = elements.iter().position(|element| element == right);
+        Ok(left_position.cmp(&right_position))
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::cmp::Ordering;
+
     use numerica::domains::{
+        Field, Ring,
         finite_field::{FiniteFieldCore, Z2, Zp},
         rational::Q,
     };
@@ -173,16 +223,23 @@ mod tests {
         assert!(Q.qpa_elements().unwrap().is_none());
 
         let field5 = Zp::new(5);
+        let elements5 = field5.qpa_elements().unwrap().unwrap();
         assert_eq!(
-            field5
-                .qpa_elements()
-                .unwrap()
-                .unwrap()
+            elements5
                 .iter()
                 .map(|element| field5.from_element(element))
                 .collect::<Vec<_>>(),
             [0, 1, 2, 4, 3]
         );
+        assert_eq!(
+            field5
+                .qpa_compare(&field5.to_element(4), &field5.to_element(3))
+                .unwrap(),
+            Ordering::Less
+        );
+        let half = Q.div(&Q.one(), &Q.nth(2.into()));
+        let two_thirds = Q.div(&Q.nth(2.into()), &Q.nth(3.into()));
+        assert_eq!(Q.qpa_compare(&half, &two_thirds).unwrap(), Ordering::Less);
         let field7 = Zp::new(7);
         assert_eq!(
             field7

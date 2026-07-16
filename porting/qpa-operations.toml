@@ -12,9 +12,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -25,9 +25,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vec<OppositeStructureConstantsAlgebraElement>"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -38,9 +38,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -51,9 +51,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::is_opposite_algebra"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -64,9 +64,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 9
 source_end = 9
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -77,9 +77,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::underlying_algebra"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -90,9 +90,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::opposite"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -389,9 +389,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 64
 source_end = 101
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::opposite"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -402,9 +402,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 102
 source_end = 108
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::contains"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -428,9 +428,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 116
 source_end = 122
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::dimension"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -441,9 +441,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 123
 source_end = 129
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::is_finite_dimensional"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -454,9 +454,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 130
 source_end = 131
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::basis_elements"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -467,9 +467,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 132
 source_end = 147
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::basis_elements"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -480,9 +480,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 148
 source_end = 167
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::canonical_basis_elements"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -493,9 +493,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 169
 source_end = 176
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::coefficients"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -506,9 +506,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 178
 source_end = 188
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::basis_elements; OppositeStructureConstantsAlgebra::canonical_basis_elements"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -532,9 +532,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 200
 source_end = 207
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::eq"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -545,9 +545,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 208
 source_end = 215
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::compare"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -558,9 +558,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 216
 source_end = 223
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::add"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -571,9 +571,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 224
 source_end = 231
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::multiply"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -584,9 +584,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 232
 source_end = 239
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::scale"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -597,9 +597,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 240
 source_end = 247
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::scale"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -610,9 +610,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 248
 source_end = 254
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::negate"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -623,9 +623,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 255
 source_end = 261
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::zero_same_parent"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -649,9 +649,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 269
 source_end = 275
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebraElement::external_representation"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -662,9 +662,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 276
 source_end = 285
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "OppositeStructureConstantsAlgebra::element_from_underlying"
+tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
 
 [[entries]]

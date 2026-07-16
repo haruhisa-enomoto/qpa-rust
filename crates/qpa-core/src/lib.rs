@@ -98,6 +98,7 @@ pub use static_dictionary::{
     STATIC_DICTIONARY_CREATING_AUTOMATA_INFO, StaticDictionary, StaticDictionaryError,
 };
 pub use structure_constants::{
+    OppositeStructureConstantsAlgebra, OppositeStructureConstantsAlgebraElement,
     StructureConstantsAlgebra, StructureConstantsAlgebraElement, StructureConstantsError,
     StructureConstantsQuotient, StructureConstantsSubalgebra,
 };

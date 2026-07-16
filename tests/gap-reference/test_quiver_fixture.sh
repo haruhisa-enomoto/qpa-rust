@@ -77,6 +77,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/algebra_structure_constants.g" \
     "$repo_root/tests/fixtures/algebra_structure_constants.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/algebra_opposite.g" \
+    "$repo_root/tests/fixtures/algebra_opposite.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/algebra_structure_constants_empty_error.g" \
     >"$actual" 2>&1

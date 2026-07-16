@@ -27,6 +27,34 @@ struct StructureConstantsAlgebraData<F: Field> {
 #[derive(Clone, Debug)]
 pub struct StructureConstantsAlgebra<F: Field>(Arc<StructureConstantsAlgebraData<F>>);
 
+#[doc(hidden)]
+#[derive(Debug)]
+pub struct OppositeStructureConstantsAlgebraData<F: Field> {
+    underlying: StructureConstantsAlgebra<F>,
+    reversed: StructureConstantsAlgebra<F>,
+}
+
+/// QPA's generic `OppositeAlgebra(A)` result for a structure-constant algebra.
+///
+/// The `Original` variant preserves QPA's identical-object return when
+/// commutativity is known. The `Opposite` variant is a fresh algebra object
+/// whose elements wrap elements of the retained underlying algebra.
+#[derive(Clone, Debug)]
+pub enum OppositeStructureConstantsAlgebra<F: Field> {
+    /// QPA returned the entered commutative algebra unchanged.
+    Original(StructureConstantsAlgebra<F>),
+    /// QPA constructed a noncommutative opposite algebra.
+    Opposite(Arc<OppositeStructureConstantsAlgebraData<F>>),
+}
+
+/// An element of an [`OppositeStructureConstantsAlgebra`] together with the
+/// exact underlying algebra element wrapped by QPA.
+#[derive(Clone, Debug)]
+pub struct OppositeStructureConstantsAlgebraElement<F: Field> {
+    algebra: OppositeStructureConstantsAlgebra<F>,
+    underlying: StructureConstantsAlgebraElement<F>,
+}
+
 impl<F: Field> StructureConstantsAlgebra<F> {
     /// Construct an algebra from a flattened `dimension × dimension ×
     /// dimension` multiplication tensor.
@@ -123,6 +151,38 @@ impl<F: Field> StructureConstantsAlgebra<F> {
             algebra: self.clone(),
             coordinates,
         })
+    }
+
+    /// Translate QPA's generic `OppositeAlgebra(A)` construction.
+    ///
+    /// QPA returns `A` itself when commutativity is known. Otherwise it wraps
+    /// the entered generators and defines `op(a) * op(b) = op(b * a)`. The
+    /// induced structure-constant table therefore swaps its first two tensor
+    /// indices while retaining standard-basis order.
+    ///
+    /// # Errors
+    ///
+    /// Propagates checked construction of the reversed multiplication tensor.
+    pub fn opposite(
+        &self,
+    ) -> Result<OppositeStructureConstantsAlgebra<F>, StructureConstantsError> {
+        if is_commutative(self) {
+            return Ok(OppositeStructureConstantsAlgebra::Original(self.clone()));
+        }
+        let dimension = self.dimension();
+        let mut products = Vec::with_capacity(self.0.products.len());
+        for left in 0..dimension {
+            for right in 0..dimension {
+                products.extend_from_slice(self.basis_product(right, left));
+            }
+        }
+        let reversed = StructureConstantsAlgebra::new(self.field().clone(), dimension, products)?;
+        Ok(OppositeStructureConstantsAlgebra::Opposite(Arc::new(
+            OppositeStructureConstantsAlgebraData {
+                underlying: self.clone(),
+                reversed,
+            },
+        )))
     }
 
     /// Translate QPA's `FindMultiplicativeIdentity(A)` method.
@@ -1764,6 +1824,172 @@ impl<F: Field> PartialEq for StructureConstantsAlgebra<F> {
 
 impl<F: Field> Eq for StructureConstantsAlgebra<F> {}
 
+impl<F: Field> OppositeStructureConstantsAlgebra<F> {
+    /// Return whether QPA constructed an actual opposite-algebra wrapper.
+    #[must_use]
+    pub const fn is_opposite_algebra(&self) -> bool {
+        matches!(self, Self::Opposite(_))
+    }
+
+    /// Return whether QPA's commutative fast path returned the original object.
+    #[must_use]
+    pub const fn is_identical_to_underlying(&self) -> bool {
+        matches!(self, Self::Original(_))
+    }
+
+    /// Return QPA's retained `UnderlyingAlgebra` object.
+    #[must_use]
+    pub fn underlying_algebra(&self) -> &StructureConstantsAlgebra<F> {
+        match self {
+            Self::Original(algebra) => algebra,
+            Self::Opposite(data) => &data.underlying,
+        }
+    }
+
+    /// Return the structure-constant algebra implementing this object's
+    /// multiplication.
+    #[must_use]
+    pub fn as_structure_constants_algebra(&self) -> &StructureConstantsAlgebra<F> {
+        match self {
+            Self::Original(algebra) => algebra,
+            Self::Opposite(data) => &data.reversed,
+        }
+    }
+
+    /// Return the exact coefficient field.
+    #[must_use]
+    pub fn field(&self) -> &F {
+        self.underlying_algebra().field()
+    }
+
+    /// Return QPA's delegated opposite-algebra dimension.
+    #[must_use]
+    pub fn dimension(&self) -> usize {
+        self.underlying_algebra().dimension()
+    }
+
+    /// Finite structure-constant algebras remain finite dimensional under
+    /// QPA's opposite construction.
+    #[must_use]
+    pub const fn is_finite_dimensional(&self) -> bool {
+        true
+    }
+
+    /// Wrap an element of the identical underlying algebra.
+    ///
+    /// This is QPA's `ObjByExtRep` family check specialized to the typed
+    /// structure-constant representation.
+    ///
+    /// # Errors
+    ///
+    /// Rejects an element from a different underlying parent object.
+    pub fn element_from_underlying(
+        &self,
+        underlying: StructureConstantsAlgebraElement<F>,
+    ) -> Result<OppositeStructureConstantsAlgebraElement<F>, StructureConstantsError> {
+        if underlying.algebra() != self.underlying_algebra() {
+            return Err(StructureConstantsError::DifferentParents);
+        }
+        Ok(OppositeStructureConstantsAlgebraElement {
+            algebra: self.clone(),
+            underlying,
+        })
+    }
+
+    /// Construct an opposite element from underlying-basis coordinates.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a coordinate row of the wrong dimension.
+    pub fn element(
+        &self,
+        coordinates: Vec<F::Element>,
+    ) -> Result<OppositeStructureConstantsAlgebraElement<F>, StructureConstantsError> {
+        self.element_from_underlying(self.underlying_algebra().element(coordinates)?)
+    }
+
+    /// Return QPA's wrapped `BasisVectors(Basis(A))` in underlying basis order.
+    #[must_use]
+    pub fn basis_elements(&self) -> Vec<OppositeStructureConstantsAlgebraElement<F>> {
+        self.underlying_algebra()
+            .basis_elements()
+            .into_iter()
+            .map(|underlying| OppositeStructureConstantsAlgebraElement {
+                algebra: self.clone(),
+                underlying,
+            })
+            .collect()
+    }
+
+    /// Return QPA's wrapped canonical basis vectors.
+    ///
+    /// Structure-constant algebras use their ordered standard basis as the
+    /// canonical basis, so QPA's generic opposite-basis wrapper retains the
+    /// same list as [`Self::basis_elements`].
+    #[must_use]
+    pub fn canonical_basis_elements(&self) -> Vec<OppositeStructureConstantsAlgebraElement<F>> {
+        self.basis_elements()
+    }
+
+    /// Return coefficients in QPA's wrapped underlying basis.
+    ///
+    /// # Errors
+    ///
+    /// Rejects an element from a different opposite-algebra object.
+    pub fn coefficients(
+        &self,
+        element: &OppositeStructureConstantsAlgebraElement<F>,
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        if !self.contains(element) {
+            return Err(StructureConstantsError::DifferentParents);
+        }
+        Ok(element.coordinates().to_vec())
+    }
+
+    /// Return the additive zero opposite element.
+    #[must_use]
+    pub fn zero(&self) -> OppositeStructureConstantsAlgebraElement<F> {
+        OppositeStructureConstantsAlgebraElement {
+            algebra: self.clone(),
+            underlying: self.underlying_algebra().zero(),
+        }
+    }
+
+    /// Return the wrapped multiplicative identity, or QPA's `fail` as `None`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the underlying exact identity computation.
+    pub fn one(
+        &self,
+    ) -> Result<Option<OppositeStructureConstantsAlgebraElement<F>>, StructureConstantsError> {
+        self.underlying_algebra()
+            .find_multiplicative_identity()?
+            .map(|underlying| self.element_from_underlying(underlying))
+            .transpose()
+    }
+
+    /// Test QPA family membership in this exact opposite-algebra object.
+    #[must_use]
+    pub fn contains(&self, element: &OppositeStructureConstantsAlgebraElement<F>) -> bool {
+        self == element.algebra()
+    }
+}
+
+impl<F: Field> PartialEq for OppositeStructureConstantsAlgebra<F> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Original(left), Self::Original(right)) => left == right,
+            (Self::Opposite(left), Self::Opposite(right)) => Arc::ptr_eq(left, right),
+            (Self::Original(_), Self::Opposite(_)) | (Self::Opposite(_), Self::Original(_)) => {
+                false
+            }
+        }
+    }
+}
+
+impl<F: Field> Eq for OppositeStructureConstantsAlgebra<F> {}
+
 /// An element of a [`StructureConstantsAlgebra`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StructureConstantsAlgebraElement<F: Field> {
@@ -1815,6 +2041,137 @@ impl<F: Field> StructureConstantsAlgebraElement<F> {
         self.algebra.element(coordinates)
     }
 }
+
+impl<F: Field> OppositeStructureConstantsAlgebraElement<F> {
+    /// Return the parent opposite algebra.
+    #[must_use]
+    pub const fn algebra(&self) -> &OppositeStructureConstantsAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return whether this is one of QPA's wrapped opposite elements.
+    #[must_use]
+    pub const fn is_opposite_algebra_element(&self) -> bool {
+        self.algebra.is_opposite_algebra()
+    }
+
+    /// Return the exact element wrapped from QPA's underlying algebra.
+    #[must_use]
+    pub const fn underlying_element(&self) -> &StructureConstantsAlgebraElement<F> {
+        &self.underlying
+    }
+
+    /// Return coefficients in the wrapped underlying basis.
+    #[must_use]
+    pub fn coordinates(&self) -> &[F::Element] {
+        self.underlying.coordinates()
+    }
+
+    fn check_same_parent(&self, other: &Self) -> Result<(), StructureConstantsError> {
+        if self.algebra != other.algebra {
+            return Err(StructureConstantsError::DifferentParents);
+        }
+        Ok(())
+    }
+
+    /// Add two elements by wrapping QPA's underlying sum.
+    ///
+    /// # Errors
+    ///
+    /// Rejects elements from distinct opposite-algebra objects.
+    pub fn add(&self, right: &Self) -> Result<Self, StructureConstantsError> {
+        self.check_same_parent(right)?;
+        let coordinates = self
+            .coordinates()
+            .iter()
+            .zip(right.coordinates())
+            .map(|(left, right)| self.algebra.field().add(left, right))
+            .collect();
+        self.algebra.element(coordinates)
+    }
+
+    /// Multiply using QPA's `op(a) * op(b) = op(b * a)` rule.
+    ///
+    /// # Errors
+    ///
+    /// Rejects elements from distinct opposite-algebra objects.
+    pub fn multiply(&self, right: &Self) -> Result<Self, StructureConstantsError> {
+        self.check_same_parent(right)?;
+        let underlying = if self.algebra.is_opposite_algebra() {
+            right.underlying.multiply(&self.underlying)?
+        } else {
+            self.underlying.multiply(&right.underlying)?
+        };
+        self.algebra.element_from_underlying(underlying)
+    }
+
+    /// Multiply by a coefficient-field scalar on either side.
+    ///
+    /// # Errors
+    ///
+    /// Propagates checked construction of the scaled element.
+    pub fn scale(&self, scalar: &F::Element) -> Result<Self, StructureConstantsError> {
+        self.algebra.element(
+            self.coordinates()
+                .iter()
+                .map(|coefficient| self.algebra.field().mul(coefficient, scalar))
+                .collect(),
+        )
+    }
+
+    /// Return QPA's same-mutability additive inverse.
+    ///
+    /// # Errors
+    ///
+    /// Propagates checked construction of the negated element.
+    pub fn negate(&self) -> Result<Self, StructureConstantsError> {
+        self.algebra.element(
+            self.coordinates()
+                .iter()
+                .map(|coefficient| self.algebra.field().neg(coefficient))
+                .collect(),
+        )
+    }
+
+    /// Return QPA's `ZeroOp` result in the identical opposite parent.
+    #[must_use]
+    pub fn zero_same_parent(&self) -> Self {
+        self.algebra.zero()
+    }
+
+    /// Return QPA's `ExtRepOfObj` payload for an opposite element.
+    #[must_use]
+    pub fn external_representation(&self) -> &[F::Element] {
+        self.underlying.coordinates()
+    }
+}
+
+impl<F: QpaCoefficientField> OppositeStructureConstantsAlgebraElement<F> {
+    /// Compare by QPA's delegated underlying-element order.
+    ///
+    /// # Errors
+    ///
+    /// Rejects elements from distinct opposite-algebra objects and propagates
+    /// exact coefficient-order construction.
+    pub fn compare(&self, other: &Self) -> Result<Ordering, StructureConstantsError> {
+        self.check_same_parent(other)?;
+        for (left, right) in self.coordinates().iter().zip(other.coordinates()) {
+            match self.algebra.field().qpa_compare(left, right)? {
+                Ordering::Equal => {}
+                ordering => return Ok(ordering),
+            }
+        }
+        Ok(Ordering::Equal)
+    }
+}
+
+impl<F: Field> PartialEq for OppositeStructureConstantsAlgebraElement<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.algebra == other.algebra && self.underlying == other.underlying
+    }
+}
+
+impl<F: Field> Eq for OppositeStructureConstantsAlgebraElement<F> {}
 
 /// Failure to construct or operate on a structure-constant algebra.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -1971,6 +2328,8 @@ pub enum StructureConstantsError {
 
 #[cfg(test)]
 mod tests {
+    use std::cmp::Ordering;
+
     use numerica::domains::{
         Field, Ring,
         finite_field::{FiniteFieldCore, Z2, Zp},
@@ -2168,6 +2527,14 @@ mod tests {
                     .collect::<Vec<_>>())
                 .collect::<Vec<_>>()
         )
+    }
+
+    fn row_json<F: Field>(
+        _field: &F,
+        row: &[F::Element],
+        coefficient_json: &impl Fn(&F::Element) -> Value,
+    ) -> Value {
+        json!(row.iter().map(coefficient_json).collect::<Vec<_>>())
     }
 
     fn algebra_properties_json<F: QpaCoefficientField>(
@@ -2467,6 +2834,74 @@ mod tests {
                     .collect::<Vec<_>>()
             ),
             expected["complete"]
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_generic_opposite_algebra_matches() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/algebra_opposite.schema-v1.json"
+        ))
+        .unwrap();
+        let field = Zp::new(5);
+        let coefficient_json = |coefficient: &_| -> Value {
+            field
+                .to_integer(coefficient)
+                .to_string()
+                .parse::<i64>()
+                .unwrap()
+                .into()
+        };
+        let algebra = upper_triangular_two_by_two(field.clone());
+        let underlying_basis = algebra.basis_elements();
+        let opposite = algebra.opposite().unwrap();
+        let opposite2 = algebra.opposite().unwrap();
+        let basis = opposite.basis_elements();
+        let canonical_basis = opposite.canonical_basis_elements();
+        let [x, y, z] = [&basis[0], &basis[1], &basis[2]];
+        let recreated = opposite
+            .element_from_underlying(underlying_basis[1].clone())
+            .unwrap();
+        let products = [
+            x.multiply(y).unwrap(),
+            y.multiply(x).unwrap(),
+            y.multiply(z).unwrap(),
+            z.multiply(y).unwrap(),
+        ];
+        let upper = json!({
+            "is_opposite": opposite.is_opposite_algebra(),
+            "is_algebra": true,
+            "underlying_with_one": false,
+            "opposite_with_one": false,
+            "underlying_identical": opposite.underlying_algebra() == &algebra,
+            "fresh": opposite != opposite2,
+            "dimension": opposite.dimension(),
+            "finite_dimensional": opposite.is_finite_dimensional(),
+            "basis": basis.iter().map(|element| row_json(&field, element.coordinates(), &coefficient_json)).collect::<Vec<_>>(),
+            "canonical_basis": canonical_basis.iter().map(|element| row_json(&field, element.coordinates(), &coefficient_json)).collect::<Vec<_>>(),
+            "coefficients": row_json(&field, &opposite.coefficients(y).unwrap(), &coefficient_json),
+            "member": opposite.contains(y),
+            "products": products.iter().map(|element| row_json(&field, element.coordinates(), &coefficient_json)).collect::<Vec<_>>(),
+            "sum": row_json(&field, y.add(z).unwrap().coordinates(), &coefficient_json),
+            "left_scalar": row_json(&field, y.scale(&field.nth(2.into())).unwrap().coordinates(), &coefficient_json),
+            "right_scalar": row_json(&field, y.scale(&field.nth(2.into())).unwrap().coordinates(), &coefficient_json),
+            "negative": row_json(&field, y.negate().unwrap().coordinates(), &coefficient_json),
+            "zero": row_json(&field, y.zero_same_parent().coordinates(), &coefficient_json),
+            "equal": recreated == *y,
+            "less": [x.compare(y).unwrap() == Ordering::Less, y.compare(x).unwrap() == Ordering::Less],
+            "underlying_less": [underlying_basis[0].coordinates() < underlying_basis[1].coordinates(), underlying_basis[1].coordinates() < underlying_basis[0].coordinates()],
+            "external_equal": y.external_representation() == underlying_basis[1].coordinates(),
+            "recreated": row_json(&field, recreated.coordinates(), &coefficient_json)
+        });
+        assert_eq!(upper, fixture["upper_triangular_f5"]);
+
+        let commutative = dual_numbers(field).opposite().unwrap();
+        assert_eq!(
+            json!({
+                "identical": commutative.is_identical_to_underlying(),
+                "has_is_opposite": commutative.is_opposite_algebra()
+            }),
+            fixture["dual_numbers_f5"]
         );
     }
 }
