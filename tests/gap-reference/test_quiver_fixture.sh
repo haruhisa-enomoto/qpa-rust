@@ -18,7 +18,8 @@ compare_last_json_fixture() {
 
     "$repo_root/scripts/gap-reference" "$source_script" >"$raw"
     grep -Fq "Computing step 1..." "$raw"
-    tail -n 1 "$raw" | jq --sort-keys . >"$actual"
+    sed -n '/^{"schema_version":/,$p' "$raw" |
+        jq --sort-keys . >"$actual"
     jq --sort-keys . "$fixture" >"$expected"
     diff --unified "$expected" "$actual"
 }
@@ -111,9 +112,15 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/functors_transpose.g" \
     "$repo_root/tests/fixtures/functors_transpose.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/functors_ar_maps.g" \
+    "$repo_root/tests/fixtures/functors_ar_maps.schema-v1.json"
 compare_last_json_fixture \
     "$repo_root/tests/gap-reference/functors_iterations.g" \
     "$repo_root/tests/fixtures/functors_iterations.schema-v1.json"
+compare_last_json_fixture \
+    "$repo_root/tests/gap-reference/functors_ar_map_iterations.g" \
+    "$repo_root/tests/fixtures/functors_ar_map_iterations.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"

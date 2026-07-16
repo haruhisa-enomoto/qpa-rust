@@ -1058,6 +1058,9 @@ struct PathAlgebraModuleHomomorphismData<F: Field> {
     cokernel_projection: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     dual_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     star_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    transpose_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    d_tr_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    tr_d_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     nakayama_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     opposite_nakayama_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     is_injective: OnceLock<bool>,
@@ -1605,6 +1608,57 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
     pub fn cache_star_homomorphism(&self, value: &Self) -> Self {
         self.0
             .star_homomorphism
+            .get_or_init(|| value.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached `TransposeOfModuleHomomorphism` attribute, if set.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_transpose_homomorphism(&self) -> Option<Self> {
+        self.0.transpose_homomorphism.get().cloned()
+    }
+
+    /// Install QPA's one-way `TransposeOfModuleHomomorphism` attribute cache.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_transpose_homomorphism(&self, value: &Self) -> Self {
+        self.0
+            .transpose_homomorphism
+            .get_or_init(|| value.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached `DTr` homomorphism attribute, if set.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_d_tr_homomorphism(&self) -> Option<Self> {
+        self.0.d_tr_homomorphism.get().cloned()
+    }
+
+    /// Install QPA's one-way `DTr` homomorphism attribute cache.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_d_tr_homomorphism(&self, value: &Self) -> Self {
+        self.0
+            .d_tr_homomorphism
+            .get_or_init(|| value.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached `TrD` homomorphism attribute, if set.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_tr_d_homomorphism(&self) -> Option<Self> {
+        self.0.tr_d_homomorphism.get().cloned()
+    }
+
+    /// Install QPA's one-way `TrD` homomorphism attribute cache.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_tr_d_homomorphism(&self, value: &Self) -> Self {
+        self.0
+            .tr_d_homomorphism
             .get_or_init(|| value.clone())
             .clone()
     }
@@ -2203,6 +2257,9 @@ pub fn right_module_hom_over_algebra<F: Field>(
             cokernel_projection: OnceLock::new(),
             dual_homomorphism: OnceLock::new(),
             star_homomorphism: OnceLock::new(),
+            transpose_homomorphism: OnceLock::new(),
+            d_tr_homomorphism: OnceLock::new(),
+            tr_d_homomorphism: OnceLock::new(),
             nakayama_homomorphism: OnceLock::new(),
             opposite_nakayama_homomorphism: OnceLock::new(),
             is_injective: OnceLock::new(),

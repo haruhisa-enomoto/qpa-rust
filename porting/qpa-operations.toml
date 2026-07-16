@@ -4835,9 +4835,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "transpose_of_module_homomorphism"
+tests = ["tests/fixtures/functors_ar_maps.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4848,9 +4848,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tr_d_homomorphism; tr_d_homomorphism_iterated"
+tests = ["tests/fixtures/functors_ar_maps.schema-v1.json","tests/fixtures/functors_ar_map_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4861,9 +4861,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "d_tr_homomorphism; d_tr_homomorphism_iterated"
+tests = ["tests/fixtures/functors_ar_maps.schema-v1.json","tests/fixtures/functors_ar_map_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5043,9 +5043,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 821
 source_end = 849
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "transpose_of_module_homomorphism"
+tests = ["tests/fixtures/functors_ar_maps.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5056,9 +5056,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 851
 source_end = 865
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tr_d_homomorphism"
+tests = ["tests/fixtures/functors_ar_maps.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5069,9 +5069,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 867
 source_end = 883
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "d_tr_homomorphism"
+tests = ["tests/fixtures/functors_ar_maps.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5082,9 +5082,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 893
 source_end = 917
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "d_tr_homomorphism_iterated"
+tests = ["tests/fixtures/functors_ar_map_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5095,9 +5095,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 928
 source_end = 952
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tr_d_homomorphism_iterated"
+tests = ["tests/fixtures/functors_ar_map_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
