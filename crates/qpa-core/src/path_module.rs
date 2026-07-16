@@ -83,6 +83,9 @@ struct PathAlgebraModuleData<F: Field> {
     retained_tensor: Option<TensorProductAlgebra<F>>,
     dual_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     dual_strong: OnceLock<PathAlgebraModule<F>>,
+    transpose_of_module: OnceLock<PathAlgebraModule<F>>,
+    d_tr: OnceLock<PathAlgebraModule<F>>,
+    tr_d: OnceLock<PathAlgebraModule<F>>,
     star_of_module: OnceLock<PathAlgebraModule<F>>,
     nakayama_functor: OnceLock<PathAlgebraModule<F>>,
     opposite_nakayama_functor: OnceLock<PathAlgebraModule<F>>,
@@ -97,6 +100,7 @@ struct PathAlgebraModuleData<F: Field> {
     is_simple_qpa: OnceLock<bool>,
     is_semisimple: OnceLock<bool>,
     is_rigid: OnceLock<bool>,
+    is_tau_rigid: OnceLock<bool>,
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     first_syzygy: OnceLock<PathAlgebraModule<F>>,
@@ -119,6 +123,9 @@ impl<F: Field> PathAlgebraModuleData<F> {
             retained_tensor,
             dual_weak: RwLock::new(None),
             dual_strong: OnceLock::new(),
+            transpose_of_module: OnceLock::new(),
+            d_tr: OnceLock::new(),
+            tr_d: OnceLock::new(),
             star_of_module: OnceLock::new(),
             nakayama_functor: OnceLock::new(),
             opposite_nakayama_functor: OnceLock::new(),
@@ -133,6 +140,7 @@ impl<F: Field> PathAlgebraModuleData<F> {
             is_simple_qpa: OnceLock::new(),
             is_semisimple: OnceLock::new(),
             is_rigid: OnceLock::new(),
+            is_tau_rigid: OnceLock::new(),
             projective_cover_weak: RwLock::new(None),
             injective_envelope_weak: RwLock::new(None),
             first_syzygy: OnceLock::new(),
@@ -313,6 +321,65 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_is_rigid_module(&self, value: bool) -> bool {
         *self.0.is_rigid.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `TransposeOfModule` attribute, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_transpose_of_module(&self) -> Option<Self> {
+        self.0.transpose_of_module.get().cloned()
+    }
+
+    /// Install QPA's `TransposeOfModule` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_transpose_of_module(&self, value: &Self) -> Self {
+        self.0
+            .transpose_of_module
+            .get_or_init(|| value.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached module `DTr` attribute, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_d_tr(&self) -> Option<Self> {
+        self.0.d_tr.get().cloned()
+    }
+
+    /// Install QPA's module `DTr` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_d_tr(&self, value: &Self) -> Self {
+        self.0.d_tr.get_or_init(|| value.clone()).clone()
+    }
+
+    /// Return QPA's cached module `TrD` attribute, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_tr_d(&self) -> Option<Self> {
+        self.0.tr_d.get().cloned()
+    }
+
+    /// Install QPA's module `TrD` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_tr_d(&self, value: &Self) -> Self {
+        self.0.tr_d.get_or_init(|| value.clone()).clone()
+    }
+
+    /// Return QPA's cached `IsTauRigidModule` property, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_tau_rigid_module(&self) -> Option<bool> {
+        self.0.is_tau_rigid.get().copied()
+    }
+
+    /// Install QPA's `IsTauRigidModule` property.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_tau_rigid_module(&self, value: bool) -> bool {
+        *self.0.is_tau_rigid.get_or_init(|| value)
     }
 
     /// Return QPA's cached `StarOfModule` attribute, if installed.

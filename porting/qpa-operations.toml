@@ -4679,9 +4679,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "transpose_of_module"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4692,9 +4692,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "d_tr; d_tr_iterated"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json","tests/fixtures/functors_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4705,9 +4705,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tr_d; tr_d_iterated"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json","tests/fixtures/functors_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4718,9 +4718,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "d_tr"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4731,9 +4731,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tr_d"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4887,9 +4887,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 73
 source_end = 312
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "transpose_of_module"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json","tests/fixtures/functors_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4900,9 +4900,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 322
 source_end = 329
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "d_tr"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json","tests/fixtures/functors_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4913,9 +4913,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 339
 source_end = 346
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tr_d"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json","tests/fixtures/functors_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4926,9 +4926,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 356
 source_end = 380
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "d_tr_iterated"
+tests = ["tests/fixtures/functors_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4939,9 +4939,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 391
 source_end = 415
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tr_d_iterated"
+tests = ["tests/fixtures/functors_iterations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10321,9 +10321,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 43
 source_end = 43
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_tau_rigid_module"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11049,9 +11049,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 2066
 source_end = 2073
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_tau_rigid_module"
+tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
 
 [[entries]]

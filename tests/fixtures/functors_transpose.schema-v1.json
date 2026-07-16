@@ -1,0 +1,1020 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp": "1.1.0@e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "a2_s1": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "a2_s2_projective": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": false,
+        "indecomposable_value": null
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1,
+            0
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "a2_mixed": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": false,
+        "indecomposable_value": null
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "kronecker_s1": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            3,
+            2
+          ],
+          "matrices": [
+            {
+              "shape": [
+                2,
+                3
+              ],
+              "rows": [
+                [
+                  "1",
+                  "0",
+                  "0"
+                ],
+                [
+                  "0",
+                  "0",
+                  "1"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                2,
+                3
+              ],
+              "rows": [
+                [
+                  "0",
+                  "1",
+                  "0"
+                ],
+                [
+                  "-1",
+                  "0",
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            3,
+            2
+          ],
+          "matrices": [
+            {
+              "shape": [
+                3,
+                2
+              ],
+              "rows": [
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "0",
+                  "0"
+                ],
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                3,
+                2
+              ],
+              "rows": [
+                [
+                  "0",
+                  "-1"
+                ],
+                [
+                  "1",
+                  "0"
+                ],
+                [
+                  "0",
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0",
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "dual_simple": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": false,
+        "has_after": true
+      }
+    },
+    "bound_a3_s1": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1,
+            0
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1,
+            0
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0,
+            0
+          ],
+          "matrices": [
+            "0",
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    }
+  },
+  "binary": {
+    "a2_s1": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "a2_s2_projective": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": false,
+        "indecomposable_value": null
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1,
+            0
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "a2_mixed": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": false,
+        "indecomposable_value": null
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "kronecker_s1": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            3,
+            2
+          ],
+          "matrices": [
+            {
+              "shape": [
+                2,
+                3
+              ],
+              "rows": [
+                [
+                  "Z(2)^0",
+                  "0*Z(2)",
+                  "0*Z(2)"
+                ],
+                [
+                  "0*Z(2)",
+                  "0*Z(2)",
+                  "Z(2)^0"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                2,
+                3
+              ],
+              "rows": [
+                [
+                  "0*Z(2)",
+                  "Z(2)^0",
+                  "0*Z(2)"
+                ],
+                [
+                  "Z(2)^0",
+                  "0*Z(2)",
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            3,
+            2
+          ],
+          "matrices": [
+            {
+              "shape": [
+                3,
+                2
+              ],
+              "rows": [
+                [
+                  "Z(2)^0",
+                  "0*Z(2)"
+                ],
+                [
+                  "0*Z(2)",
+                  "0*Z(2)"
+                ],
+                [
+                  "0*Z(2)",
+                  "Z(2)^0"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                3,
+                2
+              ],
+              "rows": [
+                [
+                  "0*Z(2)",
+                  "Z(2)^0"
+                ],
+                [
+                  "Z(2)^0",
+                  "0*Z(2)"
+                ],
+                [
+                  "0*Z(2)",
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0
+          ],
+          "matrices": [
+            "0",
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    },
+    "dual_simple": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": false,
+        "has_after": true
+      }
+    },
+    "bound_a3_s1": {
+      "transpose": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1,
+            0
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true,
+        "indecomposable_bound": true,
+        "indecomposable_value": true
+      },
+      "dtr": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            1,
+            0
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "trd": {
+        "has_before": false,
+        "value": {
+          "dimension": [
+            0,
+            0,
+            0
+          ],
+          "matrices": [
+            "0",
+            "0"
+          ]
+        },
+        "has_after": true,
+        "repeat_identity": true
+      },
+      "tau_rigid": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
+    }
+  }
+}

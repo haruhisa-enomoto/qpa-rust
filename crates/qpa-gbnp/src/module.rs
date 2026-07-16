@@ -11,19 +11,20 @@ use qpa_core::{
     PathAlgebraModuleElement, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
     PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra, QuiverAlgebraElement,
     QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
-    direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
-    from_hom_mm_to_end_m, hom_over_algebra, identity_module_mapping, include_in_path_algebra,
-    kernel_inclusion, kernel_of_module_homomorphism, loewy_length_of_module,
-    minimal_generating_set_of_module, natural_endomorphism_quotient_by_ideal,
-    project_from_product_quiver, radical_of_module, right_module_hom_over_algebra,
-    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor, top_of_module,
+    cokernel_of_module_homomorphism, direct_sum_inclusions, direct_sum_of_qpa_modules,
+    direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m, hom_over_algebra,
+    identity_module_mapping, include_in_path_algebra, kernel_inclusion,
+    kernel_of_module_homomorphism, loewy_length_of_module, minimal_generating_set_of_module,
+    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, radical_of_module,
+    right_module_hom_over_algebra, right_module_over_path_algebra,
+    right_module_over_path_algebra_with_tensor, subrepresentation_inclusion, top_of_module,
     zero_module, zero_module_mapping,
 };
 use thiserror::Error;
 
 use crate::{
     PathalgGbnpError, TensorProductError, ensure_quotient_groebner_basis, enveloping_algebra,
-    opposite_path_algebra, quotient_is_finite_dimensional,
+    opposite_path_algebra, opposite_quotient_element, quotient_is_finite_dimensional,
 };
 
 /// Translate QPA's cached `AlgebraAsModuleOverEnvelopingAlgebra(A)`
@@ -1560,6 +1561,368 @@ pub fn dual_of_module<F: Field>(
     Ok(dual)
 }
 
+/// Translate QPA's cached `TransposeOfModule(M)` construction.
+///
+/// This follows `functors.gi` directly: expand the projective-cover map in
+/// the global canonical algebra basis, take its GAP row nullspace, quotient
+/// the syzygy by the arrow-generated radical with GAP's mutable-basis
+/// complement order, transpose and opposite every resulting presentation
+/// entry, and form the cokernel inside the corresponding opposite
+/// projective cover.
+///
+/// # Errors
+///
+/// Requires the same finite projective/canonical-basis domain as QPA and
+/// propagates exact algebra, nullspace, direct-sum, subrepresentation, and
+/// cokernel failures.
+#[allow(clippy::too_many_lines)]
+pub fn transpose_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_transpose_of_module() {
+        return Ok(cached);
+    }
+    let algebra = module.right_acting_algebra();
+    let opposite = match algebra {
+        QuiverAlgebra::Path(path_algebra) => QuiverAlgebra::Path(path_algebra.opposite()?),
+        QuiverAlgebra::Quotient(quotient) => {
+            QuiverAlgebra::Quotient(opposite_path_algebra(quotient)?)
+        }
+    };
+    if is_projective_module(module)? {
+        let zero = zero_module(&opposite)?;
+        return Ok(module.cache_transpose_of_module(&zero));
+    }
+
+    let basis =
+        finite_canonical_basis(algebra)?.ok_or(EnvelopingModuleError::InfiniteTransposeAlgebra)?;
+    let field = algebra.field().clone();
+    let vertex_elements = algebra
+        .quiver()
+        .vertices()
+        .map(|vertex| include_in_path_algebra(&vertex.path(), algebra))
+        .collect::<Result<Vec<_>, _>>()?;
+    let arrow_elements = algebra
+        .quiver()
+        .arrows()
+        .map(|arrow| include_in_path_algebra(&arrow.path(), algebra))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    // QPA's local BB uses global CanonicalBasis(A) order, filtered by left
+    // vertex multiplication; it is intentionally not the target-grouped
+    // BasisOfProjectives order.
+    let mut projective_basis_indices = vec![Vec::new(); vertex_elements.len()];
+    for (vertex, vertex_element) in vertex_elements.iter().enumerate() {
+        for (basis_index, basis_element) in basis.iter().enumerate() {
+            if !vertex_element.multiply(basis_element)?.is_zero() {
+                projective_basis_indices[vertex].push(basis_index);
+            }
+        }
+    }
+
+    // CanonicalBasis(M) is assigned in the source even though the value is
+    // not subsequently read.
+    let _module_basis = module.basis_elements();
+    let generators = minimal_generating_set_of_module(module.clone())?;
+    let mut cover_vertices = Vec::with_capacity(generators.len());
+    let mut cover_basis_images = Vec::new();
+    for generator in &generators {
+        let mut supported_vertex = None;
+        for (vertex, vertex_element) in vertex_elements.iter().enumerate() {
+            if !generator.act(vertex_element)?.is_zero() {
+                supported_vertex = Some(vertex);
+                break;
+            }
+        }
+        let vertex =
+            supported_vertex.ok_or(EnvelopingModuleError::MissingTransposeGeneratorSupport)?;
+        cover_vertices.push(vertex);
+        for &basis_index in &projective_basis_indices[vertex] {
+            cover_basis_images.push(generator.act(&basis[basis_index])?);
+        }
+    }
+
+    let cover_matrix = DenseMatrix::from_rows(
+        cover_basis_images
+            .iter()
+            .map(PathAlgebraModuleElement::flat_external_representation)
+            .collect(),
+        field.clone(),
+    )?;
+    let solution_rows = cover_matrix.nullspace_rows();
+    if solution_rows.nrows() == 0 {
+        let zero = zero_module(&opposite)?;
+        return Ok(module.cache_transpose_of_module(&zero));
+    }
+    let solution_vectors = projective_algebra_vectors_from_rows(
+        algebra,
+        &basis,
+        &projective_basis_indices,
+        &cover_vertices,
+        (0..solution_rows.nrows()).map(|row| solution_rows.row(row)),
+    )?;
+
+    let mut radical_vectors = Vec::new();
+    for solution in &solution_vectors {
+        for arrow in &arrow_elements {
+            let product = solution
+                .iter()
+                .map(|entry| entry.multiply(arrow))
+                .collect::<Result<Vec<_>, _>>()?;
+            if product.iter().any(|entry| !entry.is_zero()) {
+                radical_vectors.push(product);
+            }
+        }
+    }
+    let radical_rows = radical_vectors
+        .iter()
+        .map(|vector| {
+            let mut row = Vec::with_capacity(solution_rows.ncols());
+            for (entry, &cover_vertex) in vector.iter().zip(&cover_vertices) {
+                let coefficients = canonical_basis_coefficients(algebra, &basis, entry)?;
+                row.extend(
+                    projective_basis_indices[cover_vertex]
+                        .iter()
+                        .map(|&basis_index| coefficients[basis_index].clone()),
+                );
+            }
+            Ok(row)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+
+    let syzygy_basis = solution_rows.semi_echelon_transformation().vectors;
+    let radical_basis = if radical_rows.is_empty() {
+        DenseMatrix::from_flat(0, solution_rows.ncols(), Vec::new(), field.clone())?
+    } else {
+        DenseMatrix::from_rows(radical_rows, field.clone())?
+            .semi_echelon_transformation()
+            .vectors
+    };
+    let top_rows = if radical_basis.nrows() == 0 {
+        // GAP's high-rank trivial-subspace method returns IdentityMapping(V).
+        // The source then asks for CanonicalBasis(Range(f)) = CanonicalBasis(V),
+        // which uses full triangulation rather than the ordinary Basis(V)
+        // used by the nontrivial quotient method.
+        let canonical = solution_rows.canonical_row_space_basis();
+        (0..canonical.nrows())
+            .map(|row| canonical.row(row).to_vec())
+            .collect()
+    } else {
+        quotient_complement_in_space(&syzygy_basis, &radical_basis)?.representatives
+    };
+    let top_vectors = projective_algebra_vectors_from_rows(
+        algebra,
+        &basis,
+        &projective_basis_indices,
+        &cover_vertices,
+        top_rows.iter().map(Vec::as_slice),
+    )?;
+
+    let projectives = indec_projective_modules(algebra)?;
+    let cover_summands = cover_vertices
+        .iter()
+        .map(|&vertex| projectives[vertex].clone())
+        .collect::<Vec<_>>();
+    let _projective_cover = direct_sum_of_qpa_modules(&cover_summands)?
+        .ok_or(EnvelopingModuleError::InternalTransposeDirectSumFailed)?;
+
+    let mut syzygy_generator_vertices = Vec::with_capacity(top_vectors.len());
+    for generator in &top_vectors {
+        let mut support = Vec::new();
+        for (vertex, vertex_element) in vertex_elements.iter().enumerate() {
+            let supported = generator.iter().try_fold(false, |supported, entry| {
+                Ok::<_, EnvelopingModuleError>(
+                    supported || !entry.multiply(vertex_element)?.is_zero(),
+                )
+            })?;
+            if supported {
+                support.push(vertex);
+            }
+        }
+        let [vertex] = support.as_slice() else {
+            return Err(EnvelopingModuleError::NonuniformTransposeSyzygyGenerator);
+        };
+        syzygy_generator_vertices.push(*vertex);
+    }
+
+    let opposite_projectives = indec_projective_modules(&opposite)?;
+    let opposite_cover_summands = syzygy_generator_vertices
+        .iter()
+        .map(|&vertex| opposite_projectives[vertex].clone())
+        .collect::<Vec<_>>();
+    let opposite_cover = direct_sum_of_qpa_modules(&opposite_cover_summands)?
+        .ok_or(EnvelopingModuleError::InternalTransposeDirectSumFailed)?;
+    let inclusions = direct_sum_inclusions(&opposite_cover)?;
+    let embedded_generators = inclusions
+        .iter()
+        .zip(&opposite_cover_summands)
+        .map(|(inclusion, summand)| {
+            let generator = minimal_generating_set_of_module(summand.clone())?
+                .into_iter()
+                .next()
+                .ok_or(EnvelopingModuleError::EmptyTransposeProjectiveGenerator)?;
+            Ok(inclusion.image(&generator)?)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+
+    let mut image_generators = Vec::with_capacity(generators.len());
+    for cover_generator in 0..generators.len() {
+        let mut image = opposite_cover.zero_element();
+        for (top_generator, embedded_generator) in top_vectors.iter().zip(&embedded_generators) {
+            let opposite_entry = opposite_quiver_algebra_element(&top_generator[cover_generator])?;
+            image = image.add(&embedded_generator.act(&opposite_entry)?)?;
+        }
+        image_generators.push(image);
+    }
+    let inclusion = subrepresentation_inclusion(opposite_cover, &image_generators)?;
+    let transpose = cokernel_of_module_homomorphism(&inclusion)?;
+    if transpose.dimension() != 0 && module.cached_is_indecomposable_module() == Some(true) {
+        let _ = transpose.cache_is_indecomposable_module(true);
+    }
+    Ok(module.cache_transpose_of_module(&transpose))
+}
+
+fn projective_algebra_vectors_from_rows<'a, F: Field + 'a>(
+    algebra: &QuiverAlgebra<F>,
+    basis: &[QuiverAlgebraElement<F>],
+    projective_basis_indices: &[Vec<usize>],
+    cover_vertices: &[usize],
+    rows: impl IntoIterator<Item = &'a [F::Element]>,
+) -> Result<Vec<Vec<QuiverAlgebraElement<F>>>, EnvelopingModuleError>
+where
+    F::Element: 'a,
+{
+    rows.into_iter()
+        .map(|row| {
+            let mut offset = 0;
+            cover_vertices
+                .iter()
+                .map(|&vertex| {
+                    let mut element = algebra.zero();
+                    for &basis_index in &projective_basis_indices[vertex] {
+                        let term = basis[basis_index].scale_left(&row[offset])?;
+                        element = element.add(&term)?;
+                        offset += 1;
+                    }
+                    Ok(element)
+                })
+                .collect::<Result<Vec<_>, EnvelopingModuleError>>()
+        })
+        .collect()
+}
+
+fn opposite_quiver_algebra_element<F: Field>(
+    element: &QuiverAlgebraElement<F>,
+) -> Result<QuiverAlgebraElement<F>, EnvelopingModuleError> {
+    match element {
+        QuiverAlgebraElement::Path(element) => Ok(QuiverAlgebraElement::Path(element.opposite()?)),
+        QuiverAlgebraElement::Quotient(element) => Ok(QuiverAlgebraElement::Quotient(
+            opposite_quotient_element(element)?,
+        )),
+    }
+}
+
+/// Translate QPA's cached module `DTr(M) = DualOfModule(TransposeOfModule(M))`.
+///
+/// # Errors
+///
+/// Propagates transpose and dual construction.
+pub fn d_tr<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_d_tr() {
+        return Ok(cached);
+    }
+    let transpose = transpose_of_module(module)?;
+    let result = dual_of_module(&transpose)?;
+    Ok(module.cache_d_tr(&result))
+}
+
+/// Translate QPA's cached module `TrD(M) = TransposeOfModule(DualOfModule(M))`.
+///
+/// # Errors
+///
+/// Propagates dual and transpose construction.
+pub fn tr_d<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_tr_d() {
+        return Ok(cached);
+    }
+    let dual = dual_of_module(module)?;
+    let result = transpose_of_module(&dual)?;
+    Ok(module.cache_tr_d(&result))
+}
+
+/// Translate QPA's integer-power `DTr(M, n)` dispatch.
+///
+/// Negative powers apply [`tr_d`], while zero returns the identical entered
+/// module.
+///
+/// # Errors
+///
+/// Propagates every iteration's functor construction.
+pub fn d_tr_iterated<F: Field>(
+    module: &PathAlgebraModule<F>,
+    exponent: i64,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    let mut result = module.clone();
+    if exponent < 0 {
+        for _ in 0..exponent.unsigned_abs() {
+            result = tr_d(&result)?;
+        }
+    } else {
+        for _ in 0..exponent.unsigned_abs() {
+            result = d_tr(&result)?;
+        }
+    }
+    Ok(result)
+}
+
+/// Translate QPA's integer-power `TrD(M, n)` dispatch.
+///
+/// Negative powers apply [`d_tr`], while zero returns the identical entered
+/// module.
+///
+/// # Errors
+///
+/// Propagates every iteration's functor construction.
+pub fn tr_d_iterated<F: Field>(
+    module: &PathAlgebraModule<F>,
+    exponent: i64,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    let mut result = module.clone();
+    if exponent < 0 {
+        for _ in 0..exponent.unsigned_abs() {
+            result = d_tr(&result)?;
+        }
+    } else {
+        for _ in 0..exponent.unsigned_abs() {
+            result = tr_d(&result)?;
+        }
+    }
+    Ok(result)
+}
+
+/// Translate QPA's cached `IsTauRigidModule(M)` property.
+///
+/// This is exactly `Length(HomOverAlgebra(M, DTr(M))) = 0`.
+///
+/// # Errors
+///
+/// Propagates `DTr` and Hom-space construction.
+pub fn is_tau_rigid_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<bool, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_is_tau_rigid_module() {
+        return Ok(cached);
+    }
+    let translate = d_tr(module)?;
+    let hom = hom_over_algebra(module, &translate)?
+        .ok_or(EnvelopingModuleError::InternalTauRigidHomRejected)?;
+    Ok(module.cache_is_tau_rigid_module(hom.is_empty()))
+}
+
 /// Translate QPA's cached `DualOfModuleHomomorphism(f)` attribute.
 ///
 /// The source transposes every vertex map in place, dualizes the source and
@@ -2091,6 +2454,24 @@ pub enum EnvelopingModuleError {
     /// Source-generated star actions satisfy the opposite relations.
     #[error("the generated StarOfModule does not satisfy the opposite-algebra relations")]
     GeneratedStarViolatesRelations,
+    /// The explicit transpose construction requires QPA's finite canonical basis.
+    #[error("TransposeOfModule requires a finite-dimensional algebra")]
+    InfiniteTransposeAlgebra,
+    /// Every minimal module generator is supported at a quiver vertex.
+    #[error("a minimal generator has no vertex support in TransposeOfModule")]
+    MissingTransposeGeneratorSupport,
+    /// The source's internal projective sums are nonempty in this branch.
+    #[error("an internal TransposeOfModule projective direct sum returned fail")]
+    InternalTransposeDirectSumFailed,
+    /// Minimal syzygy generators must have exactly one right-support vertex.
+    #[error("a minimal syzygy generator is not uniform in TransposeOfModule")]
+    NonuniformTransposeSyzygyGenerator,
+    /// Every opposite projective summand has its distinguished generator.
+    #[error("an opposite projective has no generator in TransposeOfModule")]
+    EmptyTransposeProjectiveGenerator,
+    /// `DTr(M)` remains over the identical acting algebra of `M`.
+    #[error("HomOverAlgebra rejected the internal tau-rigidity Hom space")]
+    InternalTauRigidHomRejected,
     /// `SimpleModules` accepts quotients only after QPA's admissibility filter
     /// has been established.
     #[error("SimpleModules requires an admissible quotient of a path algebra")]
@@ -2333,18 +2714,19 @@ mod tests {
     use super::{
         ExtOverAlgebraResult, algebra_as_module_of_enveloping_algebra,
         algebra_as_module_over_enveloping_algebra, annihilator_of_module, basis_of_projectives,
-        canonical_basis_coefficients, dual_of_algebra_as_module_over_enveloping_algebra,
-        dual_of_module, dual_of_module_homomorphism, element_in_indec_projective,
+        canonical_basis_coefficients, d_tr, d_tr_iterated,
+        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
         from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
         hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
-        is_injective_module, is_projective_module, is_rigid_module,
+        is_injective_module, is_projective_module, is_rigid_module, is_tau_rigid_module,
         lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
         nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         projective_cover, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism,
+        star_of_module_homomorphism, tr_d, tr_d_iterated, transpose_of_module,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -3274,6 +3656,107 @@ mod tests {
         })
     }
 
+    fn transpose_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = module.cached_transpose_of_module().is_some();
+        let value = transpose_of_module(module).unwrap();
+        let has_after = module.cached_transpose_of_module().is_some();
+        let repeated = transpose_of_module(module).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": attribute_module_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+            "indecomposable_bound": value.cached_is_indecomposable_module().is_some(),
+            "indecomposable_value": value.cached_is_indecomposable_module(),
+        })
+    }
+
+    fn d_tr_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = module.cached_d_tr().is_some();
+        let value = d_tr(module).unwrap();
+        let has_after = module.cached_d_tr().is_some();
+        let repeated = d_tr(module).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": attribute_module_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn tr_d_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = module.cached_tr_d().is_some();
+        let value = tr_d(module).unwrap();
+        let has_after = module.cached_tr_d().is_some();
+        let repeated = tr_d(module).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": attribute_module_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn transpose_functor_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let transpose = transpose_attribute_json(module, coefficient);
+        let dtr = d_tr_attribute_json(module, coefficient);
+        let trd = tr_d_attribute_json(module, coefficient);
+        let tau_has_before = module.cached_is_tau_rigid_module().is_some();
+        let tau_value = is_tau_rigid_module(module).unwrap();
+        let tau_has_after = module.cached_is_tau_rigid_module().is_some();
+        json!({
+            "transpose": transpose,
+            "dtr": dtr,
+            "trd": trd,
+            "tau_rigid": {
+                "has_before": tau_has_before,
+                "value": tau_value,
+                "has_after": tau_has_after,
+            },
+        })
+    }
+
+    fn functor_iterations_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let d_zero = d_tr_iterated(module, 0).unwrap();
+        let d_one = d_tr_iterated(module, 1).unwrap();
+        let d_one_generators = minimal_generating_set_of_module(d_one.clone()).unwrap();
+        let d_minus_one = d_tr_iterated(module, -1).unwrap();
+        let d_two = d_tr_iterated(module, 2).unwrap();
+        let t_zero = tr_d_iterated(module, 0).unwrap();
+        let t_one = tr_d_iterated(module, 1).unwrap();
+        let t_minus_one = tr_d_iterated(module, -1).unwrap();
+        let t_two = tr_d_iterated(module, 2).unwrap();
+        json!({
+            "dtr_zero_identity": d_zero.is_identical(module),
+            "dtr_one_identity": d_one.is_identical(&d_tr(module).unwrap()),
+            "dtr_one_generators": d_one_generators.iter().map(|element|
+                element.external_representation().iter().map(|row|
+                    row.iter().map(coefficient).collect::<Vec<_>>()).collect::<Vec<_>>())
+                .collect::<Vec<_>>(),
+            "dtr_minus_one_identity": d_minus_one.is_identical(&tr_d(module).unwrap()),
+            "dtr_two": attribute_module_json(&d_two, coefficient),
+            "trd_zero_identity": t_zero.is_identical(module),
+            "trd_one_identity": t_one.is_identical(&tr_d(module).unwrap()),
+            "trd_minus_one_identity": t_minus_one.is_identical(&d_tr(module).unwrap()),
+            "trd_two": attribute_module_json(&t_two, coefficient),
+        })
+    }
+
     fn property_bound<F: Field>(module: &PathAlgebraModule<F>) -> Vec<bool> {
         vec![
             module.cached_is_injective_module().is_some(),
@@ -3816,6 +4299,117 @@ mod tests {
     }
 
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn functors_transpose_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let simples = simple_modules(&algebra).unwrap();
+        let mixed = right_module_over_path_algebra(
+            algebra,
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![field.one()], vec![field.zero()]], field.clone())
+                    .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let kronecker_quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "p"),
+                ArrowSpec::named(vertex(1), vertex(2), "q"),
+            ],
+        )
+        .unwrap();
+        let kronecker =
+            QuiverAlgebra::Path(PathAlgebra::new(field.clone(), kronecker_quiver).unwrap());
+        let kronecker_simple = simple_modules(&kronecker).unwrap()[0].clone();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let x = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let dual_simple = simple_modules(&dual_numbers).unwrap()[0].clone();
+
+        let bound_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        )
+        .unwrap();
+        let bound_parent = PathAlgebra::new(field, bound_quiver).unwrap();
+        let bound_arrows = bound_parent.quiver().arrows().collect::<Vec<_>>();
+        let a = bound_parent.element(bound_arrows[0].path()).unwrap();
+        let b = bound_parent.element(bound_arrows[1].path()).unwrap();
+        let bound = QuiverAlgebra::Quotient(
+            quotient_by_relations(bound_parent, &[a.multiply(&b).unwrap()]).unwrap(),
+        );
+        let bound_simple = simple_modules(&bound).unwrap()[0].clone();
+
+        json!({
+            "a2_s1": transpose_functor_attribute_json(&simples[0], coefficient),
+            "a2_s2_projective": transpose_functor_attribute_json(&simples[1], coefficient),
+            "a2_mixed": transpose_functor_attribute_json(&mixed, coefficient),
+            "kronecker_s1": transpose_functor_attribute_json(&kronecker_simple, coefficient),
+            "dual_simple": transpose_functor_attribute_json(&dual_simple, coefficient),
+            "bound_a3_s1": transpose_functor_attribute_json(&bound_simple, coefficient),
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
+    fn functors_iterations_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let a2_simple = simple_modules(&algebra).unwrap()[0].clone();
+
+        let kronecker_quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "p"),
+                ArrowSpec::named(vertex(1), vertex(2), "q"),
+            ],
+        )
+        .unwrap();
+        let kronecker =
+            QuiverAlgebra::Path(PathAlgebra::new(field.clone(), kronecker_quiver).unwrap());
+        let kronecker_simple = simple_modules(&kronecker).unwrap()[0].clone();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field, loop_quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let dual_simple = simple_modules(&dual_numbers).unwrap()[0].clone();
+
+        json!({
+            "a2_s1": functor_iterations_json(&a2_simple, coefficient),
+            "kronecker_s1": functor_iterations_json(&kronecker_simple, coefficient),
+            "dual_simple": functor_iterations_json(&dual_simple, coefficient),
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
     fn modulehom_ext_case<F: Field>(
         field: F,
         coefficient: impl Fn(&F::Element) -> String + Copy,
@@ -4247,6 +4841,42 @@ mod tests {
         .unwrap();
         let rational = functors_star_nakayama_case(Q, ToString::to_string);
         let binary = functors_star_nakayama_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_transpose_and_ar_functor_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/functors_transpose.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = functors_transpose_case(Q, ToString::to_string);
+        let binary = functors_transpose_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_ar_functor_iterations_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/functors_iterations.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = functors_iterations_case(Q, ToString::to_string);
+        let binary = functors_iterations_case(Z2, |entry| {
             if Z2.is_zero(entry) {
                 "0*Z(2)".to_owned()
             } else {

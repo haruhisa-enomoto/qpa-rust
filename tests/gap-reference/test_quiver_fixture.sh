@@ -7,8 +7,20 @@ repo_root=$(CDPATH='' cd -- "$script_dir/../.." && pwd)
 
 actual=$(mktemp "${TMPDIR:-/tmp}/qpa-rust-quiver-actual.XXXXXX")
 expected=$(mktemp "${TMPDIR:-/tmp}/qpa-rust-quiver-expected.XXXXXX")
+raw=$(mktemp "${TMPDIR:-/tmp}/qpa-rust-quiver-raw.XXXXXX")
 cleanup() {
-    rm -f -- "$actual" "$expected"
+    rm -f -- "$actual" "$expected" "$raw"
+}
+
+compare_last_json_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" "$source_script" >"$raw"
+    grep -Fq "Computing step 1..." "$raw"
+    tail -n 1 "$raw" | jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
 }
 trap cleanup EXIT HUP INT TERM
 
@@ -96,6 +108,12 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/functors_star_nakayama.g" \
     "$repo_root/tests/fixtures/functors_star_nakayama.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/functors_transpose.g" \
+    "$repo_root/tests/fixtures/functors_transpose.schema-v1.json"
+compare_last_json_fixture \
+    "$repo_root/tests/gap-reference/functors_iterations.g" \
+    "$repo_root/tests/fixtures/functors_iterations.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
