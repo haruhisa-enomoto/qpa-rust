@@ -5251,9 +5251,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 1
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gbnp_groebner_basis"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5264,9 +5264,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 4
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gbnp_groebner_basis_nc"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5277,9 +5277,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 7
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gbnp_groebner_basis_of_ideal"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5290,9 +5290,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 10
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_to_cohen; CohenPolynomial"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5303,9 +5303,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 13
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_to_cohen_free; CohenPolynomial"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5316,9 +5316,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 16
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "cohen_to_path"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5329,9 +5329,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 19
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "make_uniform"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5342,9 +5342,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 22
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "make_uniform_list"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5355,9 +5355,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 25
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_in_arrow_ideal"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5368,9 +5368,9 @@ source_file = "upstream/qpa/lib/gbnp.gd"
 source_start = 28
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "relations_for_path_algebra"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5381,9 +5381,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 1
 source_end = 22
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gbnp_groebner_basis_of_ideal"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5394,9 +5394,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 25
 source_end = 70
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gbnp_groebner_basis"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5407,9 +5407,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 73
 source_end = 150
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "gbnp_groebner_basis_nc"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5420,9 +5420,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 154
 source_end = 180
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_to_cohen; CohenPolynomial"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5433,9 +5433,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 189
 source_end = 225
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "path_to_cohen_free; CohenPolynomial"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5446,9 +5446,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 229
 source_end = 276
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "cohen_to_path"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5459,9 +5459,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 279
 source_end = 318
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "make_uniform"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5472,9 +5472,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 321
 source_end = 329
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "make_uniform_list"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5485,9 +5485,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 332
 source_end = 384
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_in_arrow_ideal"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5498,9 +5498,9 @@ source_file = "upstream/qpa/lib/gbnp.gi"
 source_start = 391
 source_end = 527
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "relations_for_path_algebra"
+tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
 
 [[entries]]

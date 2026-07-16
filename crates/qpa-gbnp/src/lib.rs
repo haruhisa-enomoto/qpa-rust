@@ -109,7 +109,8 @@ pub use preprocessing::{
 };
 pub use qpa_conversion::{
     CohenPolynomial, CohenRepresentation, QpaGbnpError, cohen_to_path, gbnp_groebner_basis,
-    gbnp_groebner_basis_nc, path_to_cohen, path_to_cohen_free, relations_for_path_algebra,
+    gbnp_groebner_basis_nc, gbnp_groebner_basis_of_ideal, path_to_cohen, path_to_cohen_free,
+    relations_for_path_algebra,
 };
 pub use reduction::{
     ReductionError, left_occurrence, normal_form_np, occur, occur_in_list, right_occurrence,

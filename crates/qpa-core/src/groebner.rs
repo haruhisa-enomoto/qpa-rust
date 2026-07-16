@@ -721,21 +721,32 @@ pub fn make_uniform<F: Field>(
                 .multiply(element)?
                 .multiply(&target_idempotent)?;
             if !component.is_zero() {
-                add_set(&mut uniform, component)?;
+                uniform.push(component);
             }
         }
     }
     Ok(uniform)
 }
 
-fn make_uniform_list<F: Field>(
+/// Translate QPA's `MakeUniform` list overload.
+///
+/// Components from every input element are flattened and passed through GAP's
+/// stable `Unique` duplicate removal.
+///
+/// # Errors
+///
+/// Returns an error for a foreign element or failed exact path-algebra
+/// arithmetic.
+pub fn make_uniform_list<F: Field>(
     elements: &[PathAlgebraElement<F>],
     algebra: &PathAlgebra<F>,
 ) -> Result<Vec<PathAlgebraElement<F>>, GroebnerError> {
     let mut result = Vec::new();
     for element in elements {
         for component in make_uniform(element, algebra)? {
-            add_set(&mut result, component)?;
+            if !result.contains(&component) {
+                result.push(component);
+            }
         }
     }
     Ok(result)

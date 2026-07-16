@@ -6,8 +6,8 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    GroebnerError, PathAlgebra, PathAlgebraElement, PathAlgebraError, make_uniform,
-    qpa_in_arrow_ideal,
+    GroebnerError, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal,
+    make_uniform_list, qpa_in_arrow_ideal,
 };
 use thiserror::Error;
 
@@ -311,6 +311,20 @@ pub fn gbnp_groebner_basis<F: Field>(
     cohen_to_path(&sgrobner(&input)?, algebra)
 }
 
+/// Translate QPA's `GBNPGroebnerBasis(I)` ideal overload.
+///
+/// The source reads `LeftActingRingOfIdeal(I)` and `GeneratorsOfIdeal(I)`, then
+/// dispatches unchanged to the checked list/path-algebra overload.
+///
+/// # Errors
+///
+/// Propagates the checked QPA/GBNP conversion and computation failures.
+pub fn gbnp_groebner_basis_of_ideal<F: Field>(
+    ideal: &PathAlgebraIdeal<F>,
+) -> Result<Vec<PathAlgebraElement<F>>, QpaGbnpError> {
+    gbnp_groebner_basis(ideal.generators(), ideal.algebra())
+}
+
 /// Translate QPA `GBNPGroebnerBasisNC`, including the source's structural path
 /// algebra relations for quivers with more than one vertex.
 ///
@@ -347,26 +361,6 @@ pub fn gbnp_groebner_basis_nc<F: Field>(
         .into_iter()
         .filter(|element| !element.is_zero())
         .collect())
-}
-
-fn make_uniform_list<F: Field>(
-    elements: &[PathAlgebraElement<F>],
-    algebra: &PathAlgebra<F>,
-) -> Result<Vec<PathAlgebraElement<F>>, QpaGbnpError> {
-    ensure_elements(elements, algebra)?;
-    let mut result = Vec::new();
-    for element in elements {
-        for component in make_uniform(element, algebra)? {
-            if !result.contains(&component) {
-                result.push(component);
-            }
-        }
-    }
-    result.sort_by(|left, right| {
-        left.compare(right)
-            .expect("uniform components belong to one path algebra")
-    });
-    Ok(result)
 }
 
 fn ensure_elements<F: Field>(
@@ -428,13 +422,15 @@ mod tests {
         rational::{Q, RationalField},
     };
     use qpa_core::{
-        ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex, qpa_in_arrow_ideal,
+        ArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal, Quiver, VertexIndex,
+        make_uniform, make_uniform_list, qpa_in_arrow_ideal,
     };
     use serde_json::{Value, json};
 
     use super::{
-        CohenPolynomial, cohen_to_path, gbnp_groebner_basis, gbnp_groebner_basis_nc, path_to_cohen,
-        path_to_cohen_free, relations_for_path_algebra,
+        CohenPolynomial, cohen_to_path, gbnp_groebner_basis, gbnp_groebner_basis_nc,
+        gbnp_groebner_basis_of_ideal, path_to_cohen, path_to_cohen_free,
+        relations_for_path_algebra,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -607,6 +603,9 @@ mod tests {
             rational.a.multiply(&rational.b).unwrap(),
         ];
         let rational_checked = gbnp_groebner_basis(&checked_input, &rational.algebra).unwrap();
+        let checked_ideal =
+            PathAlgebraIdeal::new(rational.algebra.clone(), checked_input.to_vec()).unwrap();
+        let rational_ideal = gbnp_groebner_basis_of_ideal(&checked_ideal).unwrap();
         let vertex_is_in_arrow_ideal =
             qpa_in_arrow_ideal(std::slice::from_ref(&rational.vertex), &rational.algebra).unwrap();
 
@@ -629,7 +628,15 @@ mod tests {
         let line =
             Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "c")]).unwrap();
         let line_algebra = PathAlgebra::new(Q, line).unwrap();
-        let c = line_algebra.generators()[2].clone();
+        let line_generators = line_algebra.generators();
+        let c = line_generators[2].clone();
+        let line_nonuniform = line_generators[0]
+            .add(&c)
+            .unwrap()
+            .add(&line_generators[1])
+            .unwrap();
+        let uniform_element = make_uniform(&line_nonuniform, &line_algebra).unwrap();
+        let uniform_list = make_uniform_list(&[line_nonuniform, c.clone()], &line_algebra).unwrap();
         let structure = relations_for_path_algebra(&line_algebra).unwrap();
         let structure_as_paths = cohen_to_path(&structure, &line_algebra).unwrap();
         let line_nc = gbnp_groebner_basis_nc(std::slice::from_ref(&c), &line_algebra).unwrap();
@@ -647,6 +654,10 @@ mod tests {
                         &rational_checked,
                         &rational_coefficient_json
                     ),
+                    "ideal_basis": element_list_json(
+                        &rational_ideal,
+                        &rational_coefficient_json
+                    ),
                     "vertex_is_in_arrow_ideal": vertex_is_in_arrow_ideal
                 },
                 "f5": {
@@ -660,6 +671,14 @@ mod tests {
                 "multi_vertex": {
                     "structure_relations": cohen_list_json(
                         &structure,
+                        &rational_coefficient_json
+                    ),
+                    "uniform_element": element_list_json(
+                        &uniform_element,
+                        &rational_coefficient_json
+                    ),
+                    "uniform_list": element_list_json(
+                        &uniform_list,
                         &rational_coefficient_json
                     ),
                     "structure_as_paths": element_list_json(

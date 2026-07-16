@@ -44,6 +44,10 @@
       [{"path": [2, 2], "coefficient": [1, 1]}],
       [{"path": [2, 3], "coefficient": [1, 1]}]
     ],
+    "ideal_basis": [
+      [{"path": [2, 2], "coefficient": [1, 1]}],
+      [{"path": [2, 3], "coefficient": [1, 1]}]
+    ],
     "vertex_is_in_arrow_ideal": false
   },
   "f5": {
@@ -116,6 +120,16 @@
         {"monomial": [3], "coefficient": [-1, 1]}
       ],
       [{"monomial": [3, 3], "coefficient": [1, 1]}]
+    ],
+    "uniform_element": [
+      [{"path": [1], "coefficient": [1, 1]}],
+      [{"path": [3], "coefficient": [1, 1]}],
+      [{"path": [2], "coefficient": [1, 1]}]
+    ],
+    "uniform_list": [
+      [{"path": [1], "coefficient": [1, 1]}],
+      [{"path": [3], "coefficient": [1, 1]}],
+      [{"path": [2], "coefficient": [1, 1]}]
     ],
     "structure_as_paths": [[], [], [], [], [], [], [], []],
     "nc_basis": [
