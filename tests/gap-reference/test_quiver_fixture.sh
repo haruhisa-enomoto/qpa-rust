@@ -810,7 +810,7 @@ then
     exit 1
 fi
 grep -Fq "no 1st choice method found for \`ProjectivePresentation'" "$actual"
-compare_fixture \
+compare_catching_fixture \
     "$repo_root/tests/gap-reference/groebner_objects.g" \
     "$repo_root/tests/fixtures/groebner_objects.schema-v1.json"
 compare_catching_fixture \

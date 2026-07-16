@@ -28,13 +28,75 @@
     "final_flags": [true, true, true],
     "nontips": [[1], [2], [2, 2]],
     "nontip_size": 3,
+    "finite_admits": true,
     "prefix": [false, false, true],
     "right_relations": [
       [{"path": [2, 2, 2], "coefficient": [1, 1]}]
     ],
     "right_reduction": [
       {"path": [2], "coefficient": [1, 1]}
-    ]
+    ],
+    "surface": {
+      "view": "<complete two-sided Groebner basis containing 2 elements>",
+      "print": "GroebnerBasis( <Path algebra of the quiver <quiver with 1 vertices and 1 arrows> over the field Rationals>, [ (1)*x, (1)*x^2 ] )",
+      "homogeneous_success": false,
+      "homogeneous_after_set": [true, true],
+      "zero_tip_reduction_success": false,
+      "zero_prefix": [true, true],
+      "iterator": [
+        [{"path": [2], "coefficient": [1, 1]}]
+      ],
+      "unreduced_setter": {
+        "flags": [false, false],
+        "enumerator": [
+          [{"path": [2, 2], "coefficient": [1, 1]}]
+        ],
+        "as_list": [
+          [{"path": [2, 2], "coefficient": [1, 1]}]
+        ]
+      },
+      "enumerator_setter": {
+        "flags": [true, true],
+        "enumerator": [
+          [{"path": [1], "coefficient": [1, 1]}]
+        ],
+        "as_list": [
+          [{"path": [1], "coefficient": [1, 1]}]
+        ]
+      },
+      "as_list_setter": {
+        "flags": [true, true],
+        "enumerator": [
+          [{"path": [1], "coefficient": [1, 1]}]
+        ],
+        "as_list": [
+          [{"path": [1], "coefficient": [1, 1]}]
+        ]
+      },
+      "right_view": "<complete right Groebner basis containing 1 elements>",
+      "right_print_success": false,
+      "ideal_after_right_completely_reduced": true,
+      "duplicate_right_relations": [
+        [{"path": [2, 2], "coefficient": [1, 1]}],
+        [{"path": [2, 2], "coefficient": [1, 1]}]
+      ],
+      "manual_right": {
+        "success": true,
+        "relations": [
+          [{"path": [2, 2], "coefficient": [1, 1]}],
+          [{"path": [3, 3], "coefficient": [1, 1]}]
+        ],
+        "flags": [true, false],
+        "prefix_success": false,
+        "empty_success": false
+      },
+      "infinite": {
+        "admits": false,
+        "nontips_is_fail": true,
+        "size_is_infinity": true,
+        "right_success": false
+      }
+    }
   },
   "f5": {
     "tip_reduced": [

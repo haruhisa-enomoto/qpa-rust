@@ -180,3 +180,26 @@ the computations remain translations of the cited source methods.
 - Evidence: `tests/gap-reference/invlenlex.g` and
   `tests/fixtures/invlenlex.schema-v1.json` pin the zero monomial sentinel and
   zero-walk failure alongside the Rust optional results.
+
+## GROEBNER-001 — Owned transformed values replace standalone GAP mutation
+
+- Source: QPA `lib/groebner.gi`, `TipReduceGroebnerBasis` at lines 198–352
+  and `CompletelyReduceGroebnerBasis` at lines 58–82.
+- Affected Rust operations: `GroebnerBasis::tip_reduced_basis` and
+  `GroebnerBasis::completely_reduced_basis`.
+- Difference: QPA rewrites the relation component and cached properties of the
+  identical mutable basis object. Rust returns an owned transformed clone and
+  leaves the input value unchanged. The ideal-level
+  `PathAlgebraIdeal::right_groebner_basis` explicitly writes the completely
+  reduced value back to the ideal cache, preserving QPA's observable cached
+  state at that public boundary.
+- Reason: an owned value transformation avoids alias-dependent mutation while
+  retaining exact relation order, property states, and source failures. Callers
+  must use the returned basis, as they do for other fallible Rust transforms.
+- Compatibility impact: computations and cached ideal results agree with QPA;
+  a separately retained standalone Rust basis handle does not change behind an
+  alias when another handle is reduced.
+- Evidence: `tests/gap-reference/groebner_objects.g`,
+  `tests/fixtures/groebner_objects.schema-v1.json`, and the Gröbner object tests
+  in `crates/qpa-core/src/groebner.rs` pin transformations, flags, iterators,
+  setters, right-basis construction, and the ideal cache after reduction.

@@ -157,10 +157,12 @@ impl<F: Field> PathAlgebraIdeal<F> {
     /// Returns an error if no basis is attached, the quotient has infinitely
     /// many nontips, or source-translated reduction fails.
     pub fn right_groebner_basis(&self) -> Result<GroebnerBasis<F>, QuotientError> {
-        Ok(self
+        let reduced = self
             .groebner_basis()
             .ok_or(QuotientError::MissingGroebnerBasis)?
-            .right_basis()?)
+            .completely_reduced_basis()?;
+        self.set_groebner_basis(reduced.clone());
+        Ok(reduced.right_basis()?)
     }
 
     /// Translate QPA ideal membership as complete Groebner reduction to zero.

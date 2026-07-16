@@ -5511,9 +5511,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5524,9 +5524,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 6
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5537,9 +5537,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "INFO_GROEBNER_BASIS"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5550,9 +5550,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::with_complete_groebner_basis; GroebnerBasis::from_complete_relations"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5563,9 +5563,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::completely_reduce"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5576,10 +5576,10 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "GroebnerBasis::completely_reduced_basis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
+deviations = ["GROEBNER-001"]
 
 [[entries]]
 id = "groebner:DeclareOperation:TipReduce:1"
@@ -5589,9 +5589,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::tip_reduce"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5602,10 +5602,10 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "GroebnerBasis::tip_reduced_basis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
+deviations = ["GROEBNER-001"]
 
 [[entries]]
 id = "groebner:DeclareProperty:IsTipReducedGroebnerBasis:1"
@@ -5615,9 +5615,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::tip_reduced_property"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5628,9 +5628,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::homogeneous_property; GroebnerBasis::set_homogeneous_property"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5641,9 +5641,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::is_complete"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5654,9 +5654,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::completely_reduced_property"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5667,9 +5667,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 23
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "std::slice::Iter<PathAlgebraElement>"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5680,9 +5680,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 26
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::nontips"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5693,9 +5693,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 27
 source_end = 27
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::admits_finitely_many_nontips"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5706,9 +5706,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 28
 source_end = 28
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::nontip_size"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5719,9 +5719,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 29
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::is_prefix_of_tip_in_tip_ideal"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5732,9 +5732,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 32
 source_end = 32
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasisKind::Right; GroebnerBasis::kind"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5745,9 +5745,9 @@ source_file = "upstream/qpa/lib/groebner.gd"
 source_start = 34
 source_end = 34
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::right_groebner_basis; GroebnerBasis::right_basis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5758,9 +5758,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 4
 source_end = 31
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::with_complete_groebner_basis; GroebnerBasis::from_complete_relations"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5771,9 +5771,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 34
 source_end = 55
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::completely_reduce"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5784,10 +5784,10 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 58
 source_end = 82
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "GroebnerBasis::completely_reduced_basis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
+deviations = ["GROEBNER-001"]
 
 [[entries]]
 id = "groebner:InstallMethod:TipReduce:1"
@@ -5797,9 +5797,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 125
 source_end = 160
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::tip_reduce"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5810,9 +5810,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 163
 source_end = 195
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::tip_reduce"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5823,10 +5823,10 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 198
 source_end = 276
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "GroebnerBasis::tip_reduced_basis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
+deviations = ["GROEBNER-001"]
 
 [[entries]]
 id = "groebner:InstallMethod:TipReduceGroebnerBasis:2"
@@ -5836,10 +5836,10 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 279
 source_end = 352
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "GroebnerBasis::from_unreduced_right_relations; GroebnerBasis::tip_reduced_basis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
+deviations = ["GROEBNER-001"]
 
 [[entries]]
 id = "groebner:InstallTrueMethod:IsTipReducedGroebnerBasis:1"
@@ -5849,9 +5849,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 355
 source_end = 356
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::completely_reduced_basis; GroebnerBasis::tip_reduced_property"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5862,9 +5862,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 359
 source_end = 368
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::iter"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5875,9 +5875,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 371
 source_end = 378
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "std::slice::Iter::as_slice"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5888,9 +5888,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 381
 source_end = 391
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Iterator::next"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5901,9 +5901,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 394
 source_end = 401
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::enumerator"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5914,9 +5914,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 404
 source_end = 417
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::set_enumerator"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5927,9 +5927,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 420
 source_end = 433
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::set_as_list"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5940,9 +5940,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 436
 source_end = 444
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::nontips"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5953,9 +5953,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 447
 source_end = 455
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::admits_finitely_many_nontips"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5966,9 +5966,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 458
 source_end = 466
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::nontip_size"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5979,9 +5979,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 469
 source_end = 493
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::view_string"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5992,9 +5992,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 496
 source_end = 508
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::print_string_with"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6005,9 +6005,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 511
 source_end = 538
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "GroebnerBasis::is_prefix_of_tip_in_tip_ideal"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6018,9 +6018,9 @@ source_file = "upstream/qpa/lib/groebner.gi"
 source_start = 541
 source_end = 587
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraIdeal::right_groebner_basis; GroebnerBasis::right_basis"
+tests = ["tests/fixtures/groebner_objects.schema-v1.json"]
 deviations = []
 
 [[entries]]

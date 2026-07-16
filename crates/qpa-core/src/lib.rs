@@ -90,9 +90,9 @@ pub use element_utilities::{
     QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, VertexQuotientPresentation,
 };
 pub use groebner::{
-    GroebnerBasis, GroebnerBasisKind, GroebnerError, high_level_groebner_basis,
-    leftmost_occurrence, make_uniform, make_uniform_list, qpa_in_arrow_ideal, reduced_list_qpa,
-    remainder_of_division, tip_reduced_list, tip_walk,
+    GroebnerBasis, GroebnerBasisKind, GroebnerError, INFO_GROEBNER_BASIS,
+    high_level_groebner_basis, leftmost_occurrence, make_uniform, make_uniform_list,
+    qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division, tip_reduced_list, tip_walk,
 };
 pub use homomorphism::{QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError};
 pub use koszul::{

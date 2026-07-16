@@ -12,6 +12,9 @@ use crate::{
     QuiverStaticDictionary, StaticDictionaryError, SuffixTree, SuffixTreeError,
 };
 
+/// Rust logging target corresponding to QPA's `InfoGroebnerBasis` class.
+pub const INFO_GROEBNER_BASIS: &str = "InfoGroebnerBasis";
+
 /// Whether QPA treats a basis as two-sided or right-sided.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum GroebnerBasisKind {
@@ -30,6 +33,8 @@ pub struct GroebnerBasis<F: Field> {
     complete: bool,
     tip_reduced: Option<bool>,
     completely_reduced: Option<bool>,
+    homogeneous: Option<bool>,
+    list_cache: Option<Vec<PathAlgebraElement<F>>>,
 }
 
 impl<F: Field> GroebnerBasis<F> {
@@ -56,6 +61,36 @@ impl<F: Field> GroebnerBasis<F> {
             complete: true,
             tip_reduced: None,
             completely_reduced: None,
+            homogeneous: None,
+            list_cache: None,
+        })
+    }
+
+    /// Construct the state accepted by QPA's independently installed
+    /// right-basis `TipReduceGroebnerBasis` overload.
+    ///
+    /// QPA has no named constructor for this state: it is obtained by manually
+    /// objectifying a default-representation right basis. The entered relation
+    /// order and unknown completeness property are retained until tip
+    /// reduction runs.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a relation from another path algebra.
+    pub fn from_unreduced_right_relations(
+        algebra: &PathAlgebra<F>,
+        relations: &[PathAlgebraElement<F>],
+    ) -> Result<Self, GroebnerError> {
+        ensure_elements(relations, algebra)?;
+        Ok(Self {
+            algebra: algebra.clone(),
+            relations: relations.to_vec(),
+            kind: GroebnerBasisKind::Right,
+            complete: false,
+            tip_reduced: None,
+            completely_reduced: None,
+            homogeneous: None,
+            list_cache: None,
         })
     }
 
@@ -90,6 +125,55 @@ impl<F: Field> GroebnerBasis<F> {
         self.relations.iter()
     }
 
+    /// Return QPA's `Enumerator` value.
+    ///
+    /// Ordinarily this is the immutable stored relation list. QPA permits its
+    /// special setter to replace the enumerator only after the basis is known
+    /// completely reduced; that cache is reflected here.
+    #[must_use]
+    pub fn enumerator(&self) -> &[PathAlgebraElement<F>] {
+        self.list_cache.as_deref().unwrap_or(&self.relations)
+    }
+
+    /// Return QPA's `AsList` value.
+    ///
+    /// GAP links the `Enumerator` and `AsList` caches for this collection, so
+    /// either accepted special setter changes both views.
+    #[must_use]
+    pub fn as_list(&self) -> &[PathAlgebraElement<F>] {
+        self.enumerator()
+    }
+
+    /// Return whether QPA's shared `Enumerator`/`AsList` cache is installed.
+    #[must_use]
+    pub const fn has_cached_enumerator(&self) -> bool {
+        self.list_cache.is_some()
+    }
+
+    /// Return whether QPA's shared `AsList`/`Enumerator` cache is installed.
+    #[must_use]
+    pub const fn has_cached_as_list(&self) -> bool {
+        self.list_cache.is_some()
+    }
+
+    /// Translate QPA's guarded special `SetEnumerator` method.
+    ///
+    /// The source silently ignores the setter unless the cached
+    /// `IsCompletelyReducedGroebnerBasis` property is known true. The return
+    /// value reports whether the cache was installed.
+    pub fn set_enumerator(&mut self, relations: Vec<PathAlgebraElement<F>>) -> bool {
+        self.set_list_cache(relations)
+    }
+
+    /// Translate QPA's guarded special `SetAsList` method.
+    ///
+    /// The source silently ignores the setter unless the cached
+    /// `IsCompletelyReducedGroebnerBasis` property is known true. The return
+    /// value reports whether the cache was installed.
+    pub fn set_as_list(&mut self, relations: Vec<PathAlgebraElement<F>>) -> bool {
+        self.set_list_cache(relations)
+    }
+
     /// Return whether this is QPA's two-sided or right basis category.
     #[must_use]
     pub const fn kind(&self) -> GroebnerBasisKind {
@@ -118,6 +202,73 @@ impl<F: Field> GroebnerBasis<F> {
         self.completely_reduced
     }
 
+    /// Return the cached `IsHomogeneousGroebnerBasis` property.
+    ///
+    /// QPA declares this property but installs no method for computing it in
+    /// `groebner.gi`; `None` therefore reproduces its initially unknown state.
+    #[must_use]
+    pub const fn homogeneous_property(&self) -> Option<bool> {
+        self.homogeneous
+    }
+
+    /// Install QPA's explicitly set `IsHomogeneousGroebnerBasis` property.
+    ///
+    /// The source provides no computing method, but GAP's generated property
+    /// setter lets callers supply the value.
+    pub fn set_homogeneous_property(&mut self, value: bool) {
+        self.homogeneous = Some(value);
+    }
+
+    /// Return QPA's concise `ViewObj` text.
+    #[must_use]
+    pub fn view_string(&self) -> String {
+        format!(
+            "<{}{} Groebner basis containing {} elements>",
+            if self.complete {
+                "complete "
+            } else {
+                "partial "
+            },
+            match self.kind {
+                GroebnerBasisKind::TwoSided => "two-sided",
+                GroebnerBasisKind::Right => "right",
+            },
+            self.relations.len()
+        )
+    }
+
+    /// Translate QPA's `PrintObj` layout using caller-supplied GAP-compatible
+    /// renderers for the containing algebra and its elements.
+    ///
+    /// QPA's right-basis constructor omits the `algebra` record component, so
+    /// printing a right basis fails after writing its `Right` prefix. Rust
+    /// reports that source failure explicitly instead of returning a partial
+    /// string.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GroebnerError::MissingRightPrintAlgebra`] for a right basis.
+    pub fn print_string_with(
+        &self,
+        render_algebra: impl FnOnce(&PathAlgebra<F>) -> String,
+        render_element: impl Fn(&PathAlgebraElement<F>) -> String,
+    ) -> Result<String, GroebnerError> {
+        if self.kind == GroebnerBasisKind::Right {
+            return Err(GroebnerError::MissingRightPrintAlgebra);
+        }
+        let relations = self
+            .relations
+            .iter()
+            .map(render_element)
+            .collect::<Vec<_>>()
+            .join(", ");
+        Ok(format!(
+            "GroebnerBasis( {}, [ {} ] )",
+            render_algebra(&self.algebra),
+            relations
+        ))
+    }
+
     /// Translate QPA `TipReduceGroebnerBasis` for a complete two-sided basis.
     ///
     /// Rust returns a transformed clone instead of mutating the original GAP
@@ -131,11 +282,11 @@ impl<F: Field> GroebnerBasis<F> {
         if self.tip_reduced == Some(true) {
             return Ok(self.clone());
         }
-        if !self.complete {
+        if !self.complete && self.kind == GroebnerBasisKind::TwoSided {
             return Err(GroebnerError::IncompleteBasis);
         }
-        if self.kind != GroebnerBasisKind::TwoSided {
-            return Err(GroebnerError::UnsupportedRightTipReductionConstruction);
+        if self.kind == GroebnerBasisKind::Right {
+            return self.tip_reduced_right_basis();
         }
 
         let mut pending = Vec::new();
@@ -199,6 +350,8 @@ impl<F: Field> GroebnerBasis<F> {
             complete: self.complete,
             tip_reduced: Some(true),
             completely_reduced: self.completely_reduced,
+            homogeneous: self.homogeneous,
+            list_cache: self.list_cache.clone(),
         })
     }
 
@@ -216,9 +369,6 @@ impl<F: Field> GroebnerBasis<F> {
     ) -> Result<PathAlgebraElement<F>, GroebnerError> {
         ensure_algebra(&relation, &self.algebra)?;
         self.require_tip_reduced()?;
-        if relation.is_zero() {
-            return Ok(relation);
-        }
         let dictionary = self.static_dictionary_from_relations()?;
 
         loop {
@@ -268,6 +418,9 @@ impl<F: Field> GroebnerBasis<F> {
         relation: PathAlgebraElement<F>,
     ) -> Result<PathAlgebraElement<F>, GroebnerError> {
         ensure_algebra(&relation, &self.algebra)?;
+        if !self.complete {
+            return Err(GroebnerError::IncompleteBasis);
+        }
         self.require_tip_reduced()?;
         let mut remaining = relation;
         let mut reduced = self.algebra.zero();
@@ -346,10 +499,10 @@ impl<F: Field> GroebnerBasis<F> {
         let mut relations = Vec::new();
         for path in nontips {
             let prefix = reduced.algebra.element(path)?;
-            for generator in &reduced.relations {
+            for generator in reduced.as_list() {
                 let candidate = prefix.multiply(generator)?;
                 if !reduced.is_prefix_of_tip_in_tip_ideal(&candidate)? {
-                    add_set(&mut relations, candidate)?;
+                    relations.push(candidate);
                 }
             }
         }
@@ -361,6 +514,8 @@ impl<F: Field> GroebnerBasis<F> {
             complete: true,
             tip_reduced: Some(true),
             completely_reduced: None,
+            homogeneous: None,
+            list_cache: None,
         })
     }
 
@@ -399,7 +554,7 @@ impl<F: Field> GroebnerBasis<F> {
     }
 
     fn require_tip_reduced(&self) -> Result<(), GroebnerError> {
-        if !self.complete {
+        if !self.complete && self.kind == GroebnerBasisKind::TwoSided {
             Err(GroebnerError::IncompleteBasis)
         } else if self.tip_reduced != Some(true) {
             Err(GroebnerError::BasisNotTipReduced)
@@ -436,6 +591,65 @@ impl<F: Field> GroebnerBasis<F> {
     /// Propagates static-dictionary construction failures.
     pub fn nontips(&self) -> Result<Option<Vec<Path>>, GroebnerError> {
         Ok(self.static_dictionary()?.difference_words())
+    }
+
+    fn set_list_cache(&mut self, relations: Vec<PathAlgebraElement<F>>) -> bool {
+        if self.completely_reduced == Some(true) {
+            self.list_cache = Some(relations);
+            true
+        } else {
+            false
+        }
+    }
+
+    fn tip_reduced_right_basis(&self) -> Result<Self, GroebnerError> {
+        let mut pending = Vec::new();
+        for relation in &self.relations {
+            add_set(&mut pending, relation.clone())?;
+        }
+        let mut relations = Vec::new();
+        while !pending.is_empty() {
+            let relation = pending.remove(0);
+            if relation.is_zero() {
+                continue;
+            }
+            let relation_walk = tip_walk(&relation)?;
+
+            for retained in &relations {
+                let retained_walk = tip_walk(retained)?;
+                if leftmost_occurrence(&retained_walk, &relation_walk)
+                    .is_some_and(|occurrence| occurrence.start == 0)
+                {
+                    return Err(GroebnerError::PinnedRightRelationLength);
+                }
+            }
+            for retained in &relations {
+                let retained_walk = tip_walk(retained)?;
+                if leftmost_occurrence(&relation_walk, &retained_walk)
+                    .is_some_and(|occurrence| occurrence.start == 0)
+                {
+                    return Err(GroebnerError::PinnedRightRelationLength);
+                }
+            }
+            add_set(&mut relations, relation)?;
+        }
+
+        if relations.is_empty() {
+            return Err(GroebnerError::EmptyRightBasis);
+        }
+        sort_elements(&mut relations)?;
+        let result = Self {
+            algebra: self.algebra.clone(),
+            relations,
+            kind: self.kind,
+            complete: self.complete,
+            tip_reduced: Some(true),
+            completely_reduced: self.completely_reduced,
+            homogeneous: self.homogeneous,
+            list_cache: self.list_cache.clone(),
+        };
+        result.static_dictionary_from_relations()?;
+        Ok(result)
     }
 }
 
@@ -897,10 +1111,17 @@ pub enum GroebnerError {
     /// The requested construction applies only to two-sided bases.
     #[error("the operation requires a two-sided Groebner basis")]
     NotTwoSidedBasis,
-    /// QPA's direct construction of a non-tip-reduced right basis is not
-    /// reachable through `RightGroebnerBasis` and retains source defects.
-    #[error("QPA does not provide a sound non-tip-reduced right-basis constructor")]
-    UnsupportedRightTipReductionConstruction,
+    /// QPA's right tip-reduction overload calls `Length` on a path-algebra
+    /// element whenever two retained tips have a prefix relationship.
+    #[error("QPA right TipReduceGroebnerBasis called Length on a path-algebra element")]
+    PinnedRightRelationLength,
+    /// QPA reads relation one while constructing the dictionary of an empty
+    /// manually objectified right basis.
+    #[error("QPA right TipReduceGroebnerBasis cannot construct a dictionary for an empty basis")]
+    EmptyRightBasis,
+    /// QPA's right-basis constructor omits the component read by `PrintObj`.
+    #[error("QPA cannot print a right Groebner basis because its algebra component is unbound")]
+    MissingRightPrintAlgebra,
     /// `RightGroebnerBasis` requires a finite-dimensional quotient.
     #[error("the quotient must admit finitely many nontips")]
     InfiniteNontips,
@@ -928,11 +1149,14 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use crate::{ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
+    use crate::{
+        ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal, Quiver,
+        VertexIndex,
+    };
 
     use super::{
-        GroebnerBasis, GroebnerError, leftmost_occurrence, make_uniform, reduced_list_qpa,
-        remainder_of_division, tip_reduced_list, tip_walk,
+        GroebnerBasis, GroebnerError, INFO_GROEBNER_BASIS, leftmost_occurrence, make_uniform,
+        reduced_list_qpa, remainder_of_division, tip_reduced_list, tip_walk,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1391,6 +1615,124 @@ mod tests {
         let right_reduction = right_basis
             .tip_reduce(x_cubed.multiply(&x).unwrap().add(&x).unwrap())
             .unwrap();
+        let zero_prefix = cubic_basis
+            .is_prefix_of_tip_in_tip_ideal(&algebra.zero())
+            .unwrap();
+
+        assert_eq!(INFO_GROEBNER_BASIS, "InfoGroebnerBasis");
+        let initial_print = basis
+            .print_string_with(
+                |_| {
+                    "<Path algebra of the quiver <quiver with 1 vertices and 1 arrows> over the field Rationals>"
+                        .to_owned()
+                },
+                |element| {
+                    if element == &x {
+                        "(1)*x".to_owned()
+                    } else if element == &x_squared {
+                        "(1)*x^2".to_owned()
+                    } else {
+                        unreachable!("the display fixture has exactly x and x^2")
+                    }
+                },
+            )
+            .unwrap();
+        let iterator_values = completely_reduced.iter().cloned().collect::<Vec<_>>();
+        let mut homogeneous_basis = basis.clone();
+        homogeneous_basis.set_homogeneous_property(true);
+
+        let mut unreduced_setter =
+            GroebnerBasis::from_complete_relations(&algebra, std::slice::from_ref(&x_squared))
+                .unwrap();
+        let unreduced_accepted = unreduced_setter.set_enumerator(vec![vertex.clone()]);
+
+        let mut enumerator_setter =
+            GroebnerBasis::from_complete_relations(&algebra, std::slice::from_ref(&x_squared))
+                .unwrap()
+                .completely_reduced_basis()
+                .unwrap();
+        let enumerator_accepted = enumerator_setter.set_enumerator(vec![vertex.clone()]);
+
+        let mut as_list_setter =
+            GroebnerBasis::from_complete_relations(&algebra, std::slice::from_ref(&x_squared))
+                .unwrap()
+                .completely_reduced_basis()
+                .unwrap();
+        let as_list_accepted = as_list_setter.set_as_list(vec![vertex.clone()]);
+        assert!(!unreduced_accepted);
+        assert!(enumerator_accepted);
+        assert!(as_list_accepted);
+
+        let mut duplicate_basis =
+            GroebnerBasis::from_complete_relations(&algebra, std::slice::from_ref(&x_squared))
+                .unwrap()
+                .completely_reduced_basis()
+                .unwrap();
+        assert!(duplicate_basis.set_as_list(vec![x_squared.clone(), x_squared.clone()]));
+        let duplicate_right_basis = duplicate_basis.right_basis().unwrap();
+
+        let ideal = PathAlgebraIdeal::new(algebra.clone(), vec![x_cubed.clone()])
+            .unwrap()
+            .with_complete_groebner_basis(std::slice::from_ref(&x_cubed))
+            .unwrap();
+        ideal.right_groebner_basis().unwrap();
+        let ideal_after_right_completely_reduced = ideal
+            .groebner_basis()
+            .unwrap()
+            .completely_reduced_property()
+            == Some(true);
+
+        let infinite_quiver = Quiver::from_indexed(
+            1,
+            vec![
+                ArrowSpec::named(
+                    VertexIndex::new(1).unwrap(),
+                    VertexIndex::new(1).unwrap(),
+                    "x",
+                ),
+                ArrowSpec::named(
+                    VertexIndex::new(1).unwrap(),
+                    VertexIndex::new(1).unwrap(),
+                    "y",
+                ),
+            ],
+        )
+        .unwrap();
+        let infinite_algebra = PathAlgebra::new(Q, infinite_quiver).unwrap();
+        let infinite_generators = infinite_algebra.generators();
+        let infinite_x = infinite_generators[1].clone();
+        let infinite_y = infinite_generators[2].clone();
+        let infinite_x_squared = infinite_x.multiply(&infinite_x).unwrap();
+        let infinite_y_squared = infinite_y.multiply(&infinite_y).unwrap();
+        let infinite_basis = GroebnerBasis::from_complete_relations(
+            &infinite_algebra,
+            std::slice::from_ref(&infinite_x_squared),
+        )
+        .unwrap();
+        let manual_right = GroebnerBasis::from_unreduced_right_relations(
+            &infinite_algebra,
+            &[infinite_x_squared.clone(), infinite_y_squared],
+        )
+        .unwrap()
+        .tip_reduced_basis()
+        .unwrap();
+        let manual_prefix = GroebnerBasis::from_unreduced_right_relations(
+            &infinite_algebra,
+            &[infinite_x, infinite_x_squared.clone()],
+        )
+        .unwrap()
+        .tip_reduced_basis();
+        assert_eq!(
+            manual_prefix.as_ref().unwrap_err(),
+            &GroebnerError::PinnedRightRelationLength
+        );
+        let manual_empty = GroebnerBasis::from_unreduced_right_relations(&infinite_algebra, &[])
+            .unwrap()
+            .tip_reduced_basis();
+        assert_eq!(
+            manual_empty.as_ref().unwrap_err(),
+            &GroebnerError::EmptyRightBasis
+        );
 
         let field5 = Zp::new(5);
         let algebra5 = PathAlgebra::new(field5.clone(), quiver.clone()).unwrap();
@@ -1463,6 +1805,7 @@ mod tests {
                         .map(crate::Path::external_representation)
                         .collect::<Vec<_>>(),
                     "nontip_size": small_integer(&nontip_size),
+                    "finite_admits": cubic_basis.admits_finitely_many_nontips().unwrap(),
                     "prefix": prefixes,
                     "right_relations": external_element_list_json(
                         right_basis.relations(),
@@ -1471,7 +1814,100 @@ mod tests {
                     "right_reduction": external_element_json(
                         &right_reduction,
                         &rational_coefficient_json
-                    )
+                    ),
+                    "surface": {
+                        "view": basis.view_string(),
+                        "print": initial_print,
+                        "homogeneous_success": basis.homogeneous_property().is_some(),
+                        "homogeneous_after_set": [
+                            homogeneous_basis.homogeneous_property().is_some(),
+                            homogeneous_basis.homogeneous_property() == Some(true)
+                        ],
+                        "zero_tip_reduction_success": tip_reduced
+                            .tip_reduce(algebra.zero())
+                            .is_ok(),
+                        "zero_prefix": [true, zero_prefix],
+                        "iterator": external_element_list_json(
+                            &iterator_values,
+                            &rational_coefficient_json
+                        ),
+                        "unreduced_setter": {
+                            "flags": [
+                                unreduced_setter.has_cached_enumerator(),
+                                unreduced_setter.has_cached_as_list()
+                            ],
+                            "enumerator": external_element_list_json(
+                                unreduced_setter.enumerator(),
+                                &rational_coefficient_json
+                            ),
+                            "as_list": external_element_list_json(
+                                unreduced_setter.as_list(),
+                                &rational_coefficient_json
+                            )
+                        },
+                        "enumerator_setter": {
+                            "flags": [
+                                enumerator_setter.has_cached_enumerator(),
+                                enumerator_setter.has_cached_as_list()
+                            ],
+                            "enumerator": external_element_list_json(
+                                enumerator_setter.enumerator(),
+                                &rational_coefficient_json
+                            ),
+                            "as_list": external_element_list_json(
+                                enumerator_setter.as_list(),
+                                &rational_coefficient_json
+                            )
+                        },
+                        "as_list_setter": {
+                            "flags": [
+                                as_list_setter.has_cached_enumerator(),
+                                as_list_setter.has_cached_as_list()
+                            ],
+                            "enumerator": external_element_list_json(
+                                as_list_setter.enumerator(),
+                                &rational_coefficient_json
+                            ),
+                            "as_list": external_element_list_json(
+                                as_list_setter.as_list(),
+                                &rational_coefficient_json
+                            )
+                        },
+                        "right_view": right_basis.view_string(),
+                        "right_print_success": right_basis
+                            .print_string_with(|_| String::new(), |_| String::new())
+                            .is_ok(),
+                        "ideal_after_right_completely_reduced":
+                            ideal_after_right_completely_reduced,
+                        "duplicate_right_relations": external_element_list_json(
+                            duplicate_right_basis.relations(),
+                            &rational_coefficient_json
+                        ),
+                        "manual_right": {
+                            "success": true,
+                            "relations": external_element_list_json(
+                                manual_right.relations(),
+                                &rational_coefficient_json
+                            ),
+                            "flags": [
+                                manual_right.tip_reduced_property() == Some(true),
+                                manual_right.is_complete()
+                            ],
+                            "prefix_success": manual_prefix.is_ok(),
+                            "empty_success": manual_empty.is_ok()
+                        },
+                        "infinite": {
+                            "admits": infinite_basis
+                                .admits_finitely_many_nontips()
+                                .unwrap(),
+                            "nontips_is_fail": infinite_basis.nontips().unwrap().is_none(),
+                            "size_is_infinity": infinite_basis
+                                .nontip_size()
+                                .unwrap()
+                                .is_none(),
+                            "right_success": infinite_basis.right_basis().is_ok()
+                        }
+                    }
                 },
                 "f5": {
                     "tip_reduced": external_element_list_json(
