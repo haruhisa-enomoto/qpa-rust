@@ -4822,9 +4822,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_product_of_modules; TensorProductOfModulesResult"
+tests = ["tests/fixtures/functors_tensor_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5030,9 +5030,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 661
 source_end = 819
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tensor_product_of_modules; TensorProductOfModulesResult::elementary_tensor"
+tests = ["tests/fixtures/functors_tensor_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -1099,6 +1099,154 @@ pub struct ExtOverAlgebraResult<F: Field> {
     coordinate_basis: Option<DenseMatrix<F>>,
 }
 
+#[derive(Clone, Debug)]
+enum ModuleTensorProductElementary<F: Field> {
+    AlwaysAmbientZero,
+    UnboundSizeMatrix,
+    Presentation {
+        cover: PathAlgebraModuleHomomorphism<F>,
+        projections: Vec<PathAlgebraModuleHomomorphism<F>>,
+        projective_vertices: Vec<usize>,
+        closure_projection_count: usize,
+    },
+}
+
+/// QPA's two-part `TensorProductOfModules(M, N)` result.
+///
+/// QPA returns a vector space together with an elementary-tensor closure. The
+/// Rust value retains the same natural-quotient presentation: relation rows
+/// inside the ambient free vector space, the selected standard-vector basis
+/// lifts, and the projection into quotient coordinates.
+#[derive(Clone, Debug)]
+pub struct TensorProductOfModulesResult<F: Field> {
+    dimension: usize,
+    ambient_dimension: usize,
+    relation_basis: DenseMatrix<F>,
+    basis_lifts: DenseMatrix<F>,
+    projection: DenseMatrix<F>,
+    elementary: ModuleTensorProductElementary<F>,
+}
+
+impl<F: Field> TensorProductOfModulesResult<F> {
+    /// Return the dimension of QPA's returned vector space.
+    #[must_use]
+    pub const fn dimension(&self) -> usize {
+        self.dimension
+    }
+
+    /// Return the dimension of the ambient free vector space before taking
+    /// QPA's relation subspace.
+    #[must_use]
+    pub const fn ambient_dimension(&self) -> usize {
+        self.ambient_dimension
+    }
+
+    /// Return GAP's semi-echelon basis of the relation subspace.
+    #[must_use]
+    pub const fn relation_basis(&self) -> &DenseMatrix<F> {
+        &self.relation_basis
+    }
+
+    /// Return the ambient representatives of QPA's selected quotient basis.
+    #[must_use]
+    pub const fn basis_lifts(&self) -> &DenseMatrix<F> {
+        &self.basis_lifts
+    }
+
+    /// Return the matrix sending ambient row vectors to quotient coordinates.
+    #[must_use]
+    pub const fn projection(&self) -> &DenseMatrix<F> {
+        &self.projection
+    }
+
+    /// Return QPA's standard coordinate basis of the resulting vector space.
+    #[must_use]
+    pub fn basis_vectors(&self) -> Vec<Vec<F::Element>> {
+        (0..self.dimension)
+            .map(|coordinate| {
+                let mut row = vec![self.projection.field().zero(); self.dimension];
+                row[coordinate] = self.projection.field().one();
+                row
+            })
+            .collect()
+    }
+
+    /// Apply the elementary-tensor closure returned by QPA.
+    ///
+    /// The easy zero branch deliberately ignores both arguments and returns
+    /// QPA's one-coordinate ambient zero. The projective-presentation branch
+    /// preserves the source bug where `size_matrix` is unassigned as a typed
+    /// error.
+    ///
+    /// # Errors
+    ///
+    /// Propagates projective-cover preimages, opposite-element conversion,
+    /// module action, and exact projection failures. It also reports QPA's
+    /// unassigned-local failure in the corresponding source branch.
+    pub fn elementary_tensor(
+        &self,
+        left: &PathAlgebraModuleElement<F>,
+        right: &PathAlgebraModuleElement<F>,
+    ) -> Result<Vec<F::Element>, EnvelopingModuleError> {
+        match &self.elementary {
+            ModuleTensorProductElementary::AlwaysAmbientZero => {
+                Ok(vec![self.projection.field().zero()])
+            }
+            ModuleTensorProductElementary::UnboundSizeMatrix => {
+                Err(EnvelopingModuleError::TensorProductUnboundSizeMatrix)
+            }
+            ModuleTensorProductElementary::Presentation {
+                cover,
+                projections,
+                projective_vertices,
+                closure_projection_count,
+            } => {
+                let projective_element = cover
+                    .preimage_representative(left)?
+                    .ok_or(EnvelopingModuleError::MissingTensorProjectiveCoverPreimage)?;
+                let algebra = cover.range().right_acting_algebra();
+                let mut acted_summands = Vec::with_capacity(*closure_projection_count);
+                if *closure_projection_count > projections.len() {
+                    return Err(
+                        EnvelopingModuleError::TensorProductClosureProjectionOutOfRange {
+                            index: projections.len() + 1,
+                            count: projections.len(),
+                        },
+                    );
+                }
+                for (projection, &vertex) in projections
+                    .iter()
+                    .zip(projective_vertices)
+                    .take(*closure_projection_count)
+                {
+                    let summand_element = projection.image(&projective_element)?;
+                    let path_element =
+                        element_in_indec_projective(algebra, &summand_element, vertex)?;
+                    let opposite = opposite_projective_path_element(algebra, &path_element)?;
+                    acted_summands.push(right.act(&opposite)?);
+                }
+                let mut ambient = Vec::with_capacity(self.ambient_dimension);
+                for (index, &vertex) in projective_vertices.iter().enumerate() {
+                    let acted = acted_summands.get(index).ok_or(
+                        EnvelopingModuleError::TensorProductClosureActedIndexOutOfRange {
+                            index: index + 1,
+                            count: acted_summands.len(),
+                        },
+                    )?;
+                    ambient.extend_from_slice(&acted.external_representation()[vertex - 1]);
+                }
+                let ambient_row = DenseMatrix::from_flat(
+                    1,
+                    self.ambient_dimension,
+                    ambient,
+                    self.projection.field().clone(),
+                )?;
+                Ok(ambient_row.multiply(&self.projection)?.row(0).to_vec())
+            }
+        }
+    }
+}
+
 impl<F: Field> ExtOverAlgebraResult<F> {
     /// Return QPA's kernel inclusion `Omega(M) -> P(M)`.
     #[must_use]
@@ -2327,6 +2475,299 @@ pub fn opposite_nakayama_functor_of_module_homomorphism<F: Field>(
     Ok(homomorphism.cache_opposite_nakayama_functor_homomorphism(&nakayama))
 }
 
+struct NaturalTensorQuotient<F: Field> {
+    relation_basis: DenseMatrix<F>,
+    basis_lifts: DenseMatrix<F>,
+    projection: DenseMatrix<F>,
+}
+
+fn natural_tensor_quotient<F: Field>(
+    relation_rows: &DenseMatrix<F>,
+) -> Result<NaturalTensorQuotient<F>, EnvelopingModuleError> {
+    let field = relation_rows.field().clone();
+    let ambient_dimension = relation_rows.ncols();
+    let relation_basis = relation_rows.semi_echelon_transformation().vectors;
+    let mut mutable_basis = relation_basis.clone();
+    let mut complement = Vec::new();
+    for coordinate in 0..ambient_dimension {
+        let mut standard = vec![field.zero(); ambient_dimension];
+        standard[coordinate] = field.one();
+        let mut entries = mutable_basis.as_flat().to_vec();
+        entries.extend_from_slice(&standard);
+        let candidate = DenseMatrix::from_flat(
+            mutable_basis.nrows() + 1,
+            ambient_dimension,
+            entries,
+            field.clone(),
+        )?
+        .semi_echelon_transformation()
+        .vectors;
+        if candidate.nrows() > mutable_basis.nrows() {
+            complement.push(standard);
+            mutable_basis = candidate;
+        }
+    }
+    if relation_basis.nrows() + complement.len() != ambient_dimension {
+        return Err(EnvelopingModuleError::IncompleteTensorProductQuotientBasis);
+    }
+
+    let quotient_dimension = complement.len();
+    let basis_lifts = DenseMatrix::from_flat(
+        quotient_dimension,
+        ambient_dimension,
+        complement.iter().flatten().cloned().collect(),
+        field.clone(),
+    )?;
+    let mut full_basis_entries = relation_basis.as_flat().to_vec();
+    full_basis_entries.extend(complement.iter().flatten().cloned());
+    let full_basis = DenseMatrix::from_flat(
+        ambient_dimension,
+        ambient_dimension,
+        full_basis_entries,
+        field.clone(),
+    )?;
+    let mut projection_entries = Vec::with_capacity(ambient_dimension * quotient_dimension);
+    for coordinate in 0..ambient_dimension {
+        let mut standard = vec![field.zero(); ambient_dimension];
+        standard[coordinate] = field.one();
+        let coefficients = full_basis
+            .solution_row(&standard)?
+            .ok_or(EnvelopingModuleError::IncompleteTensorProductQuotientBasis)?;
+        projection_entries.extend_from_slice(
+            &coefficients[ambient_dimension - quotient_dimension..ambient_dimension],
+        );
+    }
+    let projection = DenseMatrix::from_flat(
+        ambient_dimension,
+        quotient_dimension,
+        projection_entries,
+        field,
+    )?;
+    Ok(NaturalTensorQuotient {
+        relation_basis,
+        basis_lifts,
+        projection,
+    })
+}
+
+fn tensor_dimension_pairing(
+    left: &[usize],
+    right: &[usize],
+) -> Result<usize, EnvelopingModuleError> {
+    left.iter().zip(right).try_fold(0_usize, |total, (&a, &b)| {
+        total
+            .checked_add(
+                a.checked_mul(b)
+                    .ok_or(EnvelopingModuleError::TensorProductDimensionOverflow)?,
+            )
+            .ok_or(EnvelopingModuleError::TensorProductDimensionOverflow)
+    })
+}
+
+fn opposite_module_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<QuiverAlgebra<F>, EnvelopingModuleError> {
+    match algebra {
+        QuiverAlgebra::Path(algebra) => Ok(QuiverAlgebra::Path(algebra.opposite()?)),
+        QuiverAlgebra::Quotient(algebra) => {
+            Ok(QuiverAlgebra::Quotient(opposite_path_algebra(algebra)?))
+        }
+    }
+}
+
+fn opposite_projective_path_element<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    element: &PathAlgebraElement<F>,
+) -> Result<QuiverAlgebraElement<F>, EnvelopingModuleError> {
+    let opposite = element.opposite()?;
+    match algebra {
+        QuiverAlgebra::Path(_) => Ok(QuiverAlgebraElement::Path(opposite)),
+        QuiverAlgebra::Quotient(algebra) => Ok(QuiverAlgebraElement::Quotient(
+            opposite_path_algebra(algebra)?.element(opposite)?,
+        )),
+    }
+}
+
+fn tensor_projective_vertex<F: Field>(
+    projective: &PathAlgebraModule<F>,
+) -> Result<usize, EnvelopingModuleError> {
+    let generator = minimal_generating_set_of_module(projective.clone())?
+        .into_iter()
+        .next()
+        .ok_or(EnvelopingModuleError::EmptyTensorProjectiveGenerator)?;
+    let support = generator.support_vertices();
+    let [vertex] = support.as_slice() else {
+        return Err(EnvelopingModuleError::NonuniformTensorProjectiveGenerator);
+    };
+    Ok(*vertex)
+}
+
+/// Translate QPA's `TensorProductOfModules(M, N)` operation.
+///
+/// The method uses exactly the first two differentials of QPA's minimal
+/// projective resolution of `M`: its projective cover and the projective cover
+/// of that map's kernel. It tensors the resulting presentation with `N`,
+/// forms GAP's natural quotient by the row space of `d1 tensor 1`, and retains
+/// the returned elementary-tensor closure data.
+///
+/// The source's two broken branches remain observable as typed errors from
+/// [`TensorProductOfModulesResult::elementary_tensor`] or this constructor:
+/// an unassigned `size_matrix` when `P1 tensor N` is zero, and quotient-only
+/// projective-generator extraction in the nontrivial path-algebra branch.
+///
+/// # Errors
+///
+/// Requires the second module to act over the opposite of the first module's
+/// algebra. Propagates projective-presentation, opposite-algebra, exact module
+/// action, relation-space, and matrix failures, plus typed versions of QPA's
+/// source-level failures.
+#[allow(clippy::too_many_lines)]
+pub fn tensor_product_of_modules<F: Field>(
+    left: &PathAlgebraModule<F>,
+    right: &PathAlgebraModule<F>,
+) -> Result<TensorProductOfModulesResult<F>, EnvelopingModuleError> {
+    let algebra = left.right_acting_algebra();
+    if algebra != &opposite_module_algebra(right.right_acting_algebra())? {
+        return Err(EnvelopingModuleError::TensorProductModulesOverWrongAlgebras);
+    }
+    let field = algebra.field().clone();
+    let top_left = top_of_module(left.clone())?.dimension_vector().to_vec();
+    let right_dimensions = right.dimension_vector();
+    let top_pairing = tensor_dimension_pairing(&top_left, right_dimensions)?;
+    if top_pairing == 0 {
+        return Ok(TensorProductOfModulesResult {
+            dimension: 0,
+            ambient_dimension: 1,
+            relation_basis: DenseMatrix::from_flat(0, 1, Vec::new(), field.clone())?,
+            basis_lifts: DenseMatrix::from_flat(0, 1, Vec::new(), field.clone())?,
+            projection: DenseMatrix::from_flat(1, 0, Vec::new(), field)?,
+            elementary: ModuleTensorProductElementary::AlwaysAmbientZero,
+        });
+    }
+
+    // `ProjectiveResolution(left)` is forced through degree one before QPA
+    // reads its degree-zero and degree-one differentials.
+    let cover = projective_cover(left)?;
+    let kernel = kernel_inclusion(&cover)?;
+    let first_syzygy_cover = projective_cover(kernel.source())?;
+    let first_differential = first_syzygy_cover.compose(&kernel)?;
+
+    let projections = direct_sum_projections(first_differential.range())?;
+    let projective_zero_vertices = projections
+        .iter()
+        .map(|projection| tensor_projective_vertex(projection.range()))
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+
+    if tensor_dimension_pairing(
+        first_differential.source().dimension_vector(),
+        right_dimensions,
+    )? == 0
+    {
+        return Ok(TensorProductOfModulesResult {
+            dimension: top_pairing,
+            ambient_dimension: top_pairing,
+            relation_basis: DenseMatrix::from_flat(0, top_pairing, Vec::new(), field.clone())?,
+            basis_lifts: DenseMatrix::identity(top_pairing, field.clone()),
+            projection: DenseMatrix::identity(top_pairing, field),
+            elementary: ModuleTensorProductElementary::UnboundSizeMatrix,
+        });
+    }
+
+    let inclusions = direct_sum_inclusions(first_differential.source())?;
+    let mut images_of_generators = Vec::with_capacity(inclusions.len());
+    let mut projective_one_vertices = Vec::with_capacity(inclusions.len());
+    for inclusion in &inclusions {
+        let generator = minimal_generating_set_of_module(inclusion.source().clone())?
+            .into_iter()
+            .next()
+            .ok_or(EnvelopingModuleError::EmptyTensorProjectiveGenerator)?;
+        let included = inclusion.image(&generator)?;
+        images_of_generators.push(first_differential.image(&included)?);
+        projective_one_vertices.push(tensor_projective_vertex(inclusion.source())?);
+    }
+    if matches!(algebra, QuiverAlgebra::Path(_)) {
+        return Err(EnvelopingModuleError::TensorProductPathAlgebraP1Extraction);
+    }
+
+    let mut opposite_matrix = Vec::with_capacity(images_of_generators.len());
+    for image in &images_of_generators {
+        let mut row = Vec::with_capacity(projections.len());
+        for (projection, &vertex) in projections.iter().zip(&projective_zero_vertices) {
+            let component = projection.image(image)?;
+            let element = element_in_indec_projective(algebra, &component, vertex)?;
+            row.push(opposite_projective_path_element(algebra, &element)?);
+        }
+        opposite_matrix.push(row);
+    }
+
+    // QPA computes these three values even though it never subsequently reads
+    // them in this method.
+    let _top_of_p1 = top_of_module(first_differential.source().clone())?;
+    let _top_of_p0 = top_of_module(first_differential.range().clone())?;
+    let _left_dimensions = left.dimension_vector();
+
+    let right_basis = right.basis_elements();
+    let mut relation_rows = Vec::new();
+    for (row_index, &source_vertex) in projective_one_vertices.iter().enumerate() {
+        let source_dimension = right_dimensions[source_vertex - 1];
+        let source_offset = right_dimensions[..source_vertex - 1].iter().sum::<usize>();
+        let mut blocks = Vec::with_capacity(projective_zero_vertices.len());
+        for (column_index, &target_vertex) in projective_zero_vertices.iter().enumerate() {
+            let block = if source_dimension == 0 {
+                vec![vec![
+                    field.zero();
+                    right_dimensions[target_vertex - 1].max(1)
+                ]]
+            } else {
+                right_basis[source_offset..source_offset + source_dimension]
+                    .iter()
+                    .map(|basis_element| {
+                        Ok(basis_element
+                            .act(&opposite_matrix[row_index][column_index])?
+                            .external_representation()[target_vertex - 1]
+                            .clone())
+                    })
+                    .collect::<Result<Vec<_>, EnvelopingModuleError>>()?
+            };
+            blocks.push(block);
+        }
+        let row_count = blocks
+            .first()
+            .ok_or(EnvelopingModuleError::EmptyTensorProjectivePresentation)?
+            .len();
+        for physical_row in 0..row_count {
+            relation_rows.push(
+                blocks
+                    .iter()
+                    .flat_map(|block| block[physical_row].iter().cloned())
+                    .collect::<Vec<_>>(),
+            );
+        }
+    }
+    let ambient_dimension = relation_rows
+        .first()
+        .ok_or(EnvelopingModuleError::EmptyTensorRelationMatrix)?
+        .len();
+    let relation_matrix = DenseMatrix::from_rows(relation_rows, field)?;
+    let quotient = natural_tensor_quotient(&relation_matrix)?;
+    let dimension = quotient.basis_lifts.nrows();
+    Ok(TensorProductOfModulesResult {
+        dimension,
+        ambient_dimension,
+        relation_basis: quotient.relation_basis,
+        basis_lifts: quotient.basis_lifts,
+        projection: quotient.projection,
+        elementary: ModuleTensorProductElementary::Presentation {
+            cover,
+            projections,
+            projective_vertices: projective_zero_vertices,
+            closure_projection_count: *projective_one_vertices
+                .last()
+                .ok_or(EnvelopingModuleError::EmptyTensorProjectivePresentation)?,
+        },
+    })
+}
+
 /// Translate QPA's cached
 /// `DualOfAlgebraAsModuleOverEnvelopingAlgebra(A)` attribute.
 ///
@@ -2562,6 +3003,64 @@ pub enum EnvelopingModuleError {
     /// QPA's finite canonical path basis starts with all vertex idempotents.
     #[error("the finite canonical algebra basis does not start with the quiver vertices")]
     MissingCanonicalVertexBasis,
+    /// `TensorProductOfModules(M, N)` requires `N` over the opposite algebra.
+    #[error("the entered modules are not over the appropriate algebras")]
+    TensorProductModulesOverWrongAlgebras,
+    /// Tensor-presentation dimensions must fit Rust's addressable size.
+    #[error("a TensorProductOfModules dimension pairing overflows usize")]
+    TensorProductDimensionOverflow,
+    /// Every internal indecomposable projective has one distinguished generator.
+    #[error("an internal TensorProductOfModules projective has no generator")]
+    EmptyTensorProjectiveGenerator,
+    /// Distinguished internal projective generators are vertex-uniform.
+    #[error("an internal TensorProductOfModules projective generator is not uniform")]
+    NonuniformTensorProjectiveGenerator,
+    /// The source applies quotient-only nested element extraction to `P1`
+    /// generators even when the acting algebra is a path algebra.
+    #[error(
+        "QPA's nontrivial path-algebra TensorProductOfModules branch cannot extract P1 vertices"
+    )]
+    TensorProductPathAlgebraP1Extraction,
+    /// Both internal projective terms are nonempty in this source branch.
+    #[error("an internal TensorProductOfModules projective presentation is empty")]
+    EmptyTensorProjectivePresentation,
+    /// A nonzero `P1 tensor N` supplies at least one physical relation row.
+    #[error("the internal TensorProductOfModules relation matrix is empty")]
+    EmptyTensorRelationMatrix,
+    /// GAP's Steinitz extension must complete the tensor relation basis.
+    #[error(
+        "NaturalHomomorphismBySubspace did not produce a complete tensor-product quotient basis"
+    )]
+    IncompleteTensorProductQuotientBasis,
+    /// QPA's `P1 tensor N = 0` closure references a never-assigned local.
+    #[error("QPA TensorProductOfModules elementary closure has unassigned local size_matrix")]
+    TensorProductUnboundSizeMatrix,
+    /// QPA overwrites the closure's captured projection count with the last
+    /// `P1` vertex and can consequently index `projectionsP0` out of range.
+    #[error(
+        "QPA TensorProductOfModules closure requests projection {index}, but only {count} exist"
+    )]
+    TensorProductClosureProjectionOutOfRange {
+        /// One-based projection requested by QPA.
+        index: usize,
+        /// Number of projective-cover projections.
+        count: usize,
+    },
+    /// The same captured-local bug can make QPA build too few acted summands
+    /// for its subsequent `size_matrix[2]` loop.
+    #[error(
+        "QPA TensorProductOfModules closure requests acted summand {index}, but only {count} exist"
+    )]
+    TensorProductClosureActedIndexOutOfRange {
+        /// One-based acted summand requested by QPA.
+        index: usize,
+        /// Number of acted summands constructed by the overwritten count.
+        count: usize,
+    },
+    /// The projective cover is surjective, so every entered left element has
+    /// a preimage when it belongs to the captured module.
+    #[error("a tensor-product left element unexpectedly has no projective-cover preimage")]
+    MissingTensorProjectiveCoverPreimage,
     /// `ExtOverAlgebra` requires one common acting algebra.
     #[error("the two modules entered are not modules over the same algebra")]
     ExtModulesOverDifferentAlgebras,
@@ -2864,10 +3363,11 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        ExtOverAlgebraResult, algebra_as_module_of_enveloping_algebra,
-        algebra_as_module_over_enveloping_algebra, annihilator_of_module, basis_of_projectives,
-        canonical_basis_coefficients, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
-        d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        ExtOverAlgebraResult, TensorProductOfModulesResult,
+        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
+        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, d_tr,
+        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
+        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
@@ -2878,8 +3378,9 @@ mod tests {
         nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         projective_cover, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated,
-        tr_d_iterated, transpose_of_module, transpose_of_module_homomorphism,
+        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
+        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        transpose_of_module_homomorphism,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -4008,6 +4509,35 @@ mod tests {
         })
     }
 
+    fn tensor_space_json<F: Field>(
+        tensor: &TensorProductOfModulesResult<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!({
+            "dimension": tensor.dimension(),
+            "basis": tensor
+                .basis_vectors()
+                .iter()
+                .map(|row| row.iter().map(coefficient).collect::<Vec<_>>())
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn caught_tensor_element_json<F: Field>(
+        tensor: &TensorProductOfModulesResult<F>,
+        left: &PathAlgebraModuleElement<F>,
+        right: &PathAlgebraModuleElement<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        match tensor.elementary_tensor(left, right) {
+            Ok(value) => json!({
+                "success": true,
+                "value": value.iter().map(coefficient).collect::<Vec<_>>(),
+            }),
+            Err(_) => json!({"success": false, "value": Value::Null}),
+        }
+    }
+
     fn property_bound<F: Field>(module: &PathAlgebraModule<F>) -> Vec<bool> {
         vec![
             module.cached_is_injective_module().is_some(),
@@ -4793,6 +5323,160 @@ mod tests {
         })
     }
 
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn functors_tensor_modules_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), a2_quiver).unwrap());
+        let simples = simple_modules(&a2).unwrap();
+        let projectives = indec_projective_modules(&a2).unwrap();
+
+        let zero_right = dual_of_module(&simples[1]).unwrap();
+        let zero_tensor = tensor_product_of_modules(&simples[0], &zero_right).unwrap();
+        let zero_element = zero_tensor
+            .elementary_tensor(
+                &simples[0].basis_elements()[0],
+                &zero_right.basis_elements()[0],
+            )
+            .unwrap();
+
+        let projective_right = dual_of_module(&simples[0]).unwrap();
+        let projective_tensor =
+            tensor_product_of_modules(&projectives[0], &projective_right).unwrap();
+        let projective_element = caught_tensor_element_json(
+            &projective_tensor,
+            &projectives[0].basis_elements()[0],
+            &projective_right.basis_elements()[0],
+            coefficient,
+        );
+        assert_eq!(
+            projective_tensor
+                .elementary_tensor(
+                    &projectives[0].basis_elements()[0],
+                    &projective_right.basis_elements()[0],
+                )
+                .unwrap_err(),
+            super::EnvelopingModuleError::TensorProductUnboundSizeMatrix
+        );
+
+        let path_main =
+            tensor_product_of_modules(&simples[0], &dual_of_module(&projectives[0]).unwrap());
+        assert_eq!(
+            path_main.as_ref().unwrap_err(),
+            &super::EnvelopingModuleError::TensorProductPathAlgebraP1Extraction
+        );
+        let wrong_algebras = tensor_product_of_modules(&simples[0], &simples[0]);
+        assert_eq!(
+            wrong_algebras.as_ref().unwrap_err(),
+            &super::EnvelopingModuleError::TensorProductModulesOverWrongAlgebras
+        );
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let x = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let cubic = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(3).unwrap()]).unwrap(),
+        );
+        let cubic_module = right_module_over_path_algebra(
+            cubic.clone(),
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![field.zero(), field.one()],
+                        vec![field.zero(), field.zero()],
+                    ],
+                    field.clone(),
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let cubic_projective = indec_projective_modules(&cubic).unwrap()[0].clone();
+        let cubic_right = dual_of_module(&cubic_projective).unwrap();
+        let cubic_tensor = tensor_product_of_modules(&cubic_module, &cubic_right).unwrap();
+        let cubic_elements = cubic_module
+            .basis_elements()
+            .iter()
+            .map(|left| {
+                cubic_right
+                    .basis_elements()
+                    .iter()
+                    .map(|right| {
+                        caught_tensor_element_json(&cubic_tensor, left, right, coefficient)
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+
+        let bound_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        )
+        .unwrap();
+        let bound_parent = PathAlgebra::new(field, bound_quiver).unwrap();
+        let bound_arrows = bound_parent.quiver().arrows().collect::<Vec<_>>();
+        let a = bound_parent.element(bound_arrows[0].path()).unwrap();
+        let b = bound_parent.element(bound_arrows[1].path()).unwrap();
+        let bound = QuiverAlgebra::Quotient(
+            quotient_by_relations(bound_parent, &[a.multiply(&b).unwrap()]).unwrap(),
+        );
+        let bound_simple = simple_modules(&bound).unwrap()[0].clone();
+        let bound_projective = indec_projective_modules(&bound).unwrap()[0].clone();
+        let bound_right = dual_of_module(&bound_projective).unwrap();
+        let bound_tensor = tensor_product_of_modules(&bound_simple, &bound_right).unwrap();
+        let bound_element = caught_tensor_element_json(
+            &bound_tensor,
+            &bound_simple.basis_elements()[0],
+            &bound_right.basis_elements()[0],
+            coefficient,
+        );
+        assert!(matches!(
+            bound_tensor.elementary_tensor(
+                &bound_simple.basis_elements()[0],
+                &bound_right.basis_elements()[0]
+            ),
+            Err(
+                super::EnvelopingModuleError::TensorProductClosureProjectionOutOfRange {
+                    index: 2,
+                    count: 1
+                }
+            )
+        ));
+
+        json!({
+            "easy_zero": {
+                "space": tensor_space_json(&zero_tensor, coefficient),
+                "element": zero_element.iter().map(coefficient).collect::<Vec<_>>(),
+            },
+            "projective_branch": {
+                "space": tensor_space_json(&projective_tensor, coefficient),
+                "element": projective_element,
+            },
+            "path_main_constructor_success": path_main.is_ok(),
+            "wrong_algebra_constructor_success": wrong_algebras.is_ok(),
+            "cubic_quotient": {
+                "space": tensor_space_json(&cubic_tensor, coefficient),
+                "elements": cubic_elements,
+            },
+            "bound_capture_bug": {
+                "space": tensor_space_json(&bound_tensor, coefficient),
+                "element": bound_element,
+            },
+        })
+    }
+
     #[allow(clippy::needless_pass_by_value)]
     fn functors_iterations_case<F: Field>(
         field: F,
@@ -5319,6 +6003,24 @@ mod tests {
         .unwrap();
         let rational = functors_ar_map_iterations_case(Q, ToString::to_string);
         let binary = functors_ar_map_iterations_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_tensor_product_of_modules_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/functors_tensor_modules.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = functors_tensor_modules_case(Q, ToString::to_string);
+        let binary = functors_tensor_modules_case(Z2, |entry| {
             if Z2.is_zero(entry) {
                 "0*Z(2)".to_owned()
             } else {

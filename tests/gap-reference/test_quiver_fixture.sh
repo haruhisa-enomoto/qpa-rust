@@ -35,6 +35,16 @@ compare_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_catching_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw"
+    jq --sort-keys . "$raw" >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_text_fixture() {
     source_script=$1
     fixture=$2
@@ -115,6 +125,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/functors_ar_maps.g" \
     "$repo_root/tests/fixtures/functors_ar_maps.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/functors_tensor_modules.g" \
+    "$repo_root/tests/fixtures/functors_tensor_modules.schema-v1.json"
 compare_last_json_fixture \
     "$repo_root/tests/gap-reference/functors_iterations.g" \
     "$repo_root/tests/fixtures/functors_iterations.schema-v1.json"
