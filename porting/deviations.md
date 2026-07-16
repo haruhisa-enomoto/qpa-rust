@@ -203,3 +203,52 @@ the computations remain translations of the cited source methods.
   `tests/fixtures/groebner_objects.schema-v1.json`, and the Gröbner object tests
   in `crates/qpa-core/src/groebner.rs` pin transformations, flags, iterators,
   setters, right-basis construction, and the ideal cache after reduction.
+
+## IDEMPOTENT-001 — Explicit reproducible randomness replaces GAP global state
+
+- Source: QPA `lib/idempotent.gi`, `HOPF_ZeroDivisor` at lines 116–141,
+  `HOPF_SingularIdempotent` at lines 198–215, and `PrimitiveIdempotents` at
+  lines 21–67; GAP `lib/polyfinf.gi`, finite-field `Factors` and
+  `FactorsCommonDegreePol`.
+- Affected Rust operations:
+  `StructureConstantsAlgebra::hopf_zero_divisor`,
+  `StructureConstantsAlgebra::hopf_singular_idempotent`, and
+  `StructureConstantsAlgebra::primitive_idempotents`.
+- Difference: QPA and its finite-field factorization consume GAP's mutable
+  global random source. Rust's `_with_rng` variants consume an explicit caller
+  RNG, while the convenience entry points start `StdRng` from
+  `HOPF_DEFAULT_SEED` on each uncached computation.
+- Reason: the Rust API must make probabilistic state controllable and provide a
+  reproducible default. The translated algorithm still samples field
+  coefficients, computes the same minimum polynomial, applies GAP's
+  square-free/distinct-degree/equal-degree factorization stages, and performs
+  QPA's identical recursive corner construction.
+- Compatibility impact: returned zero divisors, singular idempotents, and
+  complete primitive systems can differ from a GAP session's particular random
+  representatives. Their defining products, right-ideal dimensions,
+  completeness, orthogonality, factorization stages, and failure conditions
+  agree.
+- Evidence: `tests/gap-reference/idempotent.g`,
+  `tests/fixtures/idempotent.schema-v1.json`, and the idempotent tests in
+  `crates/qpa-core/src/idempotent.rs` verify the structural result over
+  `GF(2)` and odd prime fields, including `M_2` and a recursive `M_3` corner.
+
+## IDEMPOTENT-002 — Attribute coordinates are cached behind owned Rust results
+
+- Source: QPA `lib/idempotent.gd`, generated `PrimitiveIdempotents` attribute,
+  and `lib/idempotent.gi` lines 21–67.
+- Affected Rust operation:
+  `StructureConstantsAlgebra::primitive_idempotents`.
+- Difference: GAP returns the identical cached mutable list object. Rust caches
+  the primitive coordinate rows on the shared algebra allocation and
+  reconstructs an owned `Vec<StructureConstantsAlgebraElement<_>>` for each
+  call; `cached_primitive_idempotents` exposes the bound cache state directly.
+- Reason: callers should not be able to mutate an algebra attribute by editing
+  a returned collection, while clones of the algebra must share the computed
+  attribute.
+- Compatibility impact: repeated calls return equal elements with the
+  identical parent algebra and do not rerun the probabilistic computation, but
+  the outer Rust `Vec` has a fresh allocation.
+- Evidence: the pinned idempotent fixture checks GAP's identical cache, while
+  Rust tests check unbound/bound transitions, stable repeated values, and
+  shared algebra-parent identity.

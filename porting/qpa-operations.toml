@@ -8293,10 +8293,10 @@ source_file = "upstream/qpa/lib/idempotent.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::primitive_idempotents; StructureConstantsAlgebra::primitive_idempotents_with_rng; StructureConstantsAlgebra::cached_primitive_idempotents"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
+deviations = ["IDEMPOTENT-001","IDEMPOTENT-002"]
 
 [[entries]]
 id = "idempotent:DeclareGlobalFunction:HOPF_MinPoly:1"
@@ -8306,9 +8306,9 @@ source_file = "upstream/qpa/lib/idempotent.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_minimum_polynomial"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8319,10 +8319,10 @@ source_file = "upstream/qpa/lib/idempotent.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_zero_divisor; StructureConstantsAlgebra::hopf_zero_divisor_with_rng"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
+deviations = ["IDEMPOTENT-001"]
 
 [[entries]]
 id = "idempotent:DeclareGlobalFunction:HOPF_LeftIdentity:1"
@@ -8332,9 +8332,9 @@ source_file = "upstream/qpa/lib/idempotent.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_left_identity"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8345,10 +8345,10 @@ source_file = "upstream/qpa/lib/idempotent.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_singular_idempotent; StructureConstantsAlgebra::hopf_singular_idempotent_with_rng"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
+deviations = ["IDEMPOTENT-001"]
 
 [[entries]]
 id = "idempotent:InstallMethod:PrimitiveIdempotents:1"
@@ -8358,10 +8358,10 @@ source_file = "upstream/qpa/lib/idempotent.gi"
 source_start = 21
 source_end = 67
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::primitive_idempotents; StructureConstantsAlgebra::primitive_idempotents_with_rng"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
+deviations = ["IDEMPOTENT-001","IDEMPOTENT-002"]
 
 [[entries]]
 id = "idempotent:InstallGlobalFunction:HOPF_MinPoly:1"
@@ -8371,9 +8371,9 @@ source_file = "upstream/qpa/lib/idempotent.gi"
 source_start = 78
 source_end = 98
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_minimum_polynomial"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8384,10 +8384,10 @@ source_file = "upstream/qpa/lib/idempotent.gi"
 source_start = 116
 source_end = 141
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_zero_divisor; StructureConstantsAlgebra::hopf_zero_divisor_with_rng"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
+deviations = ["IDEMPOTENT-001"]
 
 [[entries]]
 id = "idempotent:InstallGlobalFunction:HOPF_LeftIdentity:1"
@@ -8397,9 +8397,9 @@ source_file = "upstream/qpa/lib/idempotent.gi"
 source_start = 151
 source_end = 182
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_left_identity"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8410,10 +8410,10 @@ source_file = "upstream/qpa/lib/idempotent.gi"
 source_start = 198
 source_end = 215
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::hopf_singular_idempotent; StructureConstantsAlgebra::hopf_singular_idempotent_with_rng"
+tests = ["tests/fixtures/idempotent.schema-v1.json"]
+deviations = ["IDEMPOTENT-001"]
 
 [[entries]]
 id = "inflist:BindGlobal:PositiveInfinity:1"

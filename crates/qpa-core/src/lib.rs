@@ -11,6 +11,7 @@ pub mod element_inverse;
 pub mod element_utilities;
 pub mod groebner;
 pub mod homomorphism;
+pub mod idempotent;
 pub mod koszul;
 pub mod matrix;
 pub mod ordering;
@@ -95,6 +96,7 @@ pub use groebner::{
     qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division, tip_reduced_list, tip_walk,
 };
 pub use homomorphism::{QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError};
+pub use idempotent::{HOPF_DEFAULT_SEED, HopfError};
 pub use koszul::{
     KoszulError, QuadraticPerpendicular, is_quadratic_ideal, paths_of_length_two,
     quadratic_perpendicular_of_path_algebra_ideal,

@@ -27,6 +27,7 @@ struct StructureConstantsAlgebraData<F: Field> {
     named_elements: RwLock<BTreeMap<Box<str>, Vec<F::Element>>>,
     semisimple: OnceLock<bool>,
     global_dimension: OnceLock<AlgebraGlobalDimension>,
+    primitive_idempotents: OnceLock<Vec<Vec<F::Element>>>,
 }
 
 /// A finite-dimensional associative algebra in its ordered standard basis.
@@ -95,6 +96,7 @@ impl<F: Field> StructureConstantsAlgebra<F> {
             named_elements: RwLock::new(BTreeMap::new()),
             semisimple: OnceLock::new(),
             global_dimension: OnceLock::new(),
+            primitive_idempotents: OnceLock::new(),
         })))
     }
 
@@ -120,6 +122,23 @@ impl<F: Field> StructureConstantsAlgebra<F> {
     #[must_use]
     pub fn cached_global_dimension(&self) -> Option<AlgebraGlobalDimension> {
         self.0.global_dimension.get().copied()
+    }
+
+    /// Return QPA's cached `PrimitiveIdempotents` attribute coordinates, when
+    /// the attribute has already been evaluated.
+    #[must_use]
+    pub fn cached_primitive_idempotents(&self) -> Option<&[Vec<F::Element>]> {
+        self.0.primitive_idempotents.get().map(Vec::as_slice)
+    }
+
+    pub(crate) fn cache_primitive_idempotents(
+        &self,
+        coordinates: Vec<Vec<F::Element>>,
+    ) -> &[Vec<F::Element>] {
+        self.0
+            .primitive_idempotents
+            .get_or_init(|| coordinates)
+            .as_slice()
     }
 
     /// Invoke QPA's immediate `GlobalDimension` method when semisimplicity is
@@ -361,7 +380,11 @@ impl<F: Field> StructureConstantsAlgebra<F> {
         StructureConstantsSubalgebra::from_basis(self.clone(), basis)
     }
 
-    fn coordinate_product(&self, left: &[F::Element], right: &[F::Element]) -> Vec<F::Element> {
+    pub(crate) fn coordinate_product(
+        &self,
+        left: &[F::Element],
+        right: &[F::Element],
+    ) -> Vec<F::Element> {
         debug_assert_eq!(left.len(), self.dimension());
         debug_assert_eq!(right.len(), self.dimension());
         let mut coordinates = vec![self.field().zero(); self.dimension()];
@@ -1100,7 +1123,7 @@ fn idempotent_ideal_basis<F: Field>(
     .vectors)
 }
 
-fn minimum_polynomial<F: Field>(
+pub(crate) fn minimum_polynomial<F: Field>(
     algebra: &StructureConstantsAlgebra<F>,
     identity: &[F::Element],
     element: &[F::Element],
@@ -1192,7 +1215,7 @@ fn evaluate_scalar_polynomial<F: Field>(
     result
 }
 
-fn evaluate_algebra_polynomial<F: Field>(
+pub(crate) fn evaluate_algebra_polynomial<F: Field>(
     algebra: &StructureConstantsAlgebra<F>,
     polynomial: &[F::Element],
     element: &[F::Element],
@@ -1249,7 +1272,7 @@ fn algebra_power<F: Field>(
     result
 }
 
-fn subtract_rows<F: Field>(
+pub(crate) fn subtract_rows<F: Field>(
     field: &F,
     left: &[F::Element],
     right: &[F::Element],
@@ -1260,7 +1283,11 @@ fn subtract_rows<F: Field>(
         .collect()
 }
 
-fn add_rows<F: Field>(field: &F, left: &[F::Element], right: &[F::Element]) -> Vec<F::Element> {
+pub(crate) fn add_rows<F: Field>(
+    field: &F,
+    left: &[F::Element],
+    right: &[F::Element],
+) -> Vec<F::Element> {
     left.iter()
         .zip(right)
         .map(|(left, right)| field.add(left, right))
@@ -1816,7 +1843,7 @@ fn is_zero_row<F: Field>(field: &F, row: &[F::Element]) -> bool {
     row.iter().all(|entry| field.is_zero(entry))
 }
 
-fn span_rows<F: Field>(
+pub(crate) fn span_rows<F: Field>(
     field: &F,
     width: usize,
     rows: Vec<Vec<F::Element>>,
@@ -1830,7 +1857,7 @@ fn span_rows<F: Field>(
     .map(|matrix| matrix.semi_echelon_transformation().vectors)
 }
 
-fn is_commutative<F: Field>(algebra: &StructureConstantsAlgebra<F>) -> bool {
+pub(crate) fn is_commutative<F: Field>(algebra: &StructureConstantsAlgebra<F>) -> bool {
     for left in 0..algebra.dimension() {
         for right in left + 1..algebra.dimension() {
             if algebra.basis_product(left, right) != algebra.basis_product(right, left) {
@@ -1857,7 +1884,7 @@ fn multiply_row_matrix<F: Field>(row: &[F::Element], matrix: &DenseMatrix<F>) ->
 }
 
 impl<F: Field> StructureConstantsSubalgebra<F> {
-    fn from_basis(
+    pub(crate) fn from_basis(
         ambient: StructureConstantsAlgebra<F>,
         basis: DenseMatrix<F>,
     ) -> Result<Self, StructureConstantsError> {
