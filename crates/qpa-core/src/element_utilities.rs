@@ -5,12 +5,16 @@
 //! vertex idempotent on the indicated side, rather than inferred from the
 //! stored paths.
 
-use numerica::domains::Field;
+use numerica::domains::{
+    Field,
+    rational::{Rational, RationalField},
+};
 use thiserror::Error;
 
 use crate::{
-    NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraModule,
-    Quiver, QuotientError, QuotientPathAlgebra, QuotientPathAlgebraElement, TensorProductAlgebra,
+    CachedAttribute, DenseMatrix, NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement,
+    PathAlgebraError, PathAlgebraModule, Quiver, QuotientError, QuotientPathAlgebra,
+    QuotientPathAlgebraElement, TensorProductAlgebra,
 };
 
 /// A QPA quiver algebra that may be a path algebra or a proper quotient.
@@ -389,6 +393,78 @@ impl<F: Field> QuiverAlgebra<F> {
         match self {
             Self::Path(algebra) => algebra.merge_simple_modules(generated),
             Self::Quotient(algebra) => algebra.merge_simple_modules(generated),
+        }
+    }
+
+    /// Return the bound state and value of GAP's `CartanMatrix` attribute.
+    ///
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_cartan_matrix_attribute(&self) -> CachedAttribute<Vec<Vec<usize>>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_cartan_matrix_attribute(),
+            Self::Quotient(algebra) => algebra.cached_cartan_matrix_attribute(),
+        }
+    }
+
+    /// Bind and return GAP's `CartanMatrix` attribute value or `fail`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_cartan_matrix_attribute(
+        &self,
+        value: Option<Vec<Vec<usize>>>,
+    ) -> Option<Vec<Vec<usize>>> {
+        match self {
+            Self::Path(algebra) => algebra.cache_cartan_matrix_attribute(value),
+            Self::Quotient(algebra) => algebra.cache_cartan_matrix_attribute(value),
+        }
+    }
+
+    /// Return the bound state and rational value of QPA's `CoxeterMatrix`
+    /// attribute, retaining its explicit unbound/`fail`/value state.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_coxeter_matrix_attribute(&self) -> CachedAttribute<DenseMatrix<RationalField>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_coxeter_matrix_attribute(),
+            Self::Quotient(algebra) => algebra.cached_coxeter_matrix_attribute(),
+        }
+    }
+
+    /// Bind and return QPA's rational `CoxeterMatrix` value or `fail`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_coxeter_matrix_attribute(
+        &self,
+        value: Option<DenseMatrix<RationalField>>,
+    ) -> Option<DenseMatrix<RationalField>> {
+        match self {
+            Self::Path(algebra) => algebra.cache_coxeter_matrix_attribute(value),
+            Self::Quotient(algebra) => algebra.cache_coxeter_matrix_attribute(value),
+        }
+    }
+
+    /// Return the bound state and ascending rational coefficients of QPA's
+    /// `CoxeterPolynomial` attribute, retaining cached `fail`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_coxeter_polynomial_attribute(&self) -> CachedAttribute<Vec<Rational>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_coxeter_polynomial_attribute(),
+            Self::Quotient(algebra) => algebra.cached_coxeter_polynomial_attribute(),
+        }
+    }
+
+    /// Bind and return QPA's `CoxeterPolynomial` coefficient value or `fail`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_coxeter_polynomial_attribute(
+        &self,
+        value: Option<Vec<Rational>>,
+    ) -> Option<Vec<Rational>> {
+        match self {
+            Self::Path(algebra) => algebra.cache_coxeter_polynomial_attribute(value),
+            Self::Quotient(algebra) => algebra.cache_coxeter_polynomial_attribute(value),
         }
     }
 

@@ -12,16 +12,20 @@ use std::{
     sync::{Arc, OnceLock, RwLock, Weak},
 };
 
-use numerica::domains::{Field, InternalOrdering};
+use numerica::domains::{
+    Field, InternalOrdering,
+    rational::{Rational, RationalField},
+};
 use thiserror::Error;
 
-use crate::TensorProductAlgebra;
 use crate::{
-    OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverError, QuiverOrdering, Vertex,
+    CachedAttribute, OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverError,
+    QuiverOrdering, Vertex,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule, WeakPathAlgebraModuleListCache},
     quotient::{QuotientPathAlgebra, WeakQuotientPathAlgebra},
     tensor::WeakTensorProductAlgebra,
 };
+use crate::{DenseMatrix, TensorProductAlgebra};
 
 struct PathAlgebraData<F: Field> {
     field: F,
@@ -40,6 +44,9 @@ struct PathAlgebraData<F: Field> {
     indec_projective_modules: WeakPathAlgebraModuleListCache<F>,
     indec_injective_modules: WeakPathAlgebraModuleListCache<F>,
     simple_modules: WeakPathAlgebraModuleListCache<F>,
+    cartan_matrix: OnceLock<Option<Vec<Vec<usize>>>>,
+    coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
+    coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
     trivial_extension_level: OnceLock<usize>,
     trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
     trivial_extension_bound: OnceLock<()>,
@@ -136,6 +143,9 @@ impl<F: Field> PathAlgebra<F> {
             indec_projective_modules: WeakPathAlgebraModuleListCache::new(),
             indec_injective_modules: WeakPathAlgebraModuleListCache::new(),
             simple_modules: WeakPathAlgebraModuleListCache::new(),
+            cartan_matrix: OnceLock::new(),
+            coxeter_matrix: OnceLock::new(),
+            coxeter_polynomial: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
             trivial_extension_bound: OnceLock::new(),
@@ -293,6 +303,53 @@ impl<F: Field> PathAlgebra<F> {
         generated: &[PathAlgebraModule<F>],
     ) -> Vec<PathAlgebraModule<F>> {
         self.0.simple_modules.merge(generated)
+    }
+
+    pub(crate) fn cached_cartan_matrix_attribute(&self) -> CachedAttribute<Vec<Vec<usize>>> {
+        match self.0.cartan_matrix.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::Fail,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_cartan_matrix_attribute(
+        &self,
+        value: Option<Vec<Vec<usize>>>,
+    ) -> Option<Vec<Vec<usize>>> {
+        self.0.cartan_matrix.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_coxeter_matrix_attribute(
+        &self,
+    ) -> CachedAttribute<DenseMatrix<RationalField>> {
+        match self.0.coxeter_matrix.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::Fail,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_coxeter_matrix_attribute(
+        &self,
+        value: Option<DenseMatrix<RationalField>>,
+    ) -> Option<DenseMatrix<RationalField>> {
+        self.0.coxeter_matrix.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_coxeter_polynomial_attribute(&self) -> CachedAttribute<Vec<Rational>> {
+        match self.0.coxeter_polynomial.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::Fail,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_coxeter_polynomial_attribute(
+        &self,
+        value: Option<Vec<Rational>>,
+    ) -> Option<Vec<Rational>> {
+        self.0.coxeter_polynomial.get_or_init(|| value).clone()
     }
 
     pub(crate) fn has_dual_enveloping_module_attribute(&self) -> bool {

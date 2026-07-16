@@ -13,13 +13,17 @@ use std::{
     sync::{Arc, OnceLock, RwLock, Weak},
 };
 
-use numerica::domains::{Field, integer::Integer};
+use numerica::domains::{
+    Field,
+    integer::Integer,
+    rational::{Rational, RationalField},
+};
 use thiserror::Error;
 
 use crate::{
-    DenseMatrix, GroebnerBasis, GroebnerError, MatrixError, Path, PathAlgebra, PathAlgebraElement,
-    PathAlgebraError, PathAlgebraExternalRepresentation, PathEndpoint, Quiver, QuiverError,
-    TensorProductAlgebra,
+    CachedAttribute, DenseMatrix, GroebnerBasis, GroebnerError, MatrixError, Path, PathAlgebra,
+    PathAlgebraElement, PathAlgebraError, PathAlgebraExternalRepresentation, PathEndpoint, Quiver,
+    QuiverError, TensorProductAlgebra,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule, WeakPathAlgebraModuleListCache},
     tensor::WeakTensorProductAlgebra,
 };
@@ -445,6 +449,9 @@ struct QuotientPathAlgebraData<F: Field> {
     schurian: OnceLock<bool>,
     semicommutative: OnceLock<bool>,
     global_dimension: OnceLock<AlgebraGlobalDimension>,
+    cartan_matrix: OnceLock<Option<Vec<Vec<usize>>>>,
+    coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
+    coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
     opposite_weak: RwLock<Option<Weak<QuotientPathAlgebraData<F>>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
     enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
@@ -565,6 +572,9 @@ impl<F: Field> QuotientPathAlgebra<F> {
             schurian: OnceLock::new(),
             semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
+            cartan_matrix: OnceLock::new(),
+            coxeter_matrix: OnceLock::new(),
+            coxeter_polynomial: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -613,6 +623,9 @@ impl<F: Field> QuotientPathAlgebra<F> {
             schurian: OnceLock::new(),
             semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
+            cartan_matrix: OnceLock::new(),
+            coxeter_matrix: OnceLock::new(),
+            coxeter_polynomial: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -809,6 +822,53 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn cache_global_dimension(&self, value: AlgebraGlobalDimension) -> AlgebraGlobalDimension {
         *self.0.global_dimension.get_or_init(|| value)
+    }
+
+    pub(crate) fn cached_cartan_matrix_attribute(&self) -> CachedAttribute<Vec<Vec<usize>>> {
+        match self.0.cartan_matrix.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::Fail,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_cartan_matrix_attribute(
+        &self,
+        value: Option<Vec<Vec<usize>>>,
+    ) -> Option<Vec<Vec<usize>>> {
+        self.0.cartan_matrix.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_coxeter_matrix_attribute(
+        &self,
+    ) -> CachedAttribute<DenseMatrix<RationalField>> {
+        match self.0.coxeter_matrix.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::Fail,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_coxeter_matrix_attribute(
+        &self,
+        value: Option<DenseMatrix<RationalField>>,
+    ) -> Option<DenseMatrix<RationalField>> {
+        self.0.coxeter_matrix.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_coxeter_polynomial_attribute(&self) -> CachedAttribute<Vec<Rational>> {
+        match self.0.coxeter_polynomial.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::Fail,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_coxeter_polynomial_attribute(
+        &self,
+        value: Option<Vec<Rational>>,
+    ) -> Option<Vec<Rational>> {
+        self.0.coxeter_polynomial.get_or_init(|| value).clone()
     }
 
     /// Return the quotient zero.
@@ -1425,6 +1485,9 @@ impl<F: Field> QuotientPathAlgebra<F> {
             schurian: OnceLock::new(),
             semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
+            cartan_matrix: OnceLock::new(),
+            coxeter_matrix: OnceLock::new(),
+            coxeter_polynomial: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),

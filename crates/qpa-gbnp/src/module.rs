@@ -7,13 +7,13 @@
 use std::num::NonZeroUsize;
 
 use numerica::domains::{
-    Field, Ring,
+    Field, Ring, RingOps,
     finite_field::{Z2, Zp},
     integer::Integer,
-    rational::RationalField,
+    rational::{Q, Rational, RationalField},
 };
 use qpa_core::{
-    AlgebraGlobalDimension, DenseMatrix, MatrixError, ModuleDimensionSeries,
+    AlgebraGlobalDimension, CachedAttribute, DenseMatrix, MatrixError, ModuleDimensionSeries,
     ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix, PathAlgebraElement, PathAlgebraError,
     PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleError,
     PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra,
@@ -612,6 +612,109 @@ pub fn is_selfinjective_algebra<F: Field>(
         let _ = quotient.cache_global_dimension(AlgebraGlobalDimension::Infinite);
     }
     Ok(Some(result))
+}
+
+/// Translate QPA's `CartanMatrix(A)` method for finite bound quiver algebras.
+///
+/// Rows are the dimension vectors of `IndecProjectiveModules(A)` in quiver
+/// vertex order. The matrix is integral and independent of the coefficient
+/// characteristic. `Ok(None)` is QPA's cached `fail` for an infinite algebra
+/// or for a finite quotient that is not admissible.
+///
+/// # Errors
+///
+/// Propagates QPA's finite-dimensionality/admissibility backend and exact
+/// indecomposable-projective construction.
+pub fn cartan_matrix<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<Vec<Vec<usize>>>, EnvelopingModuleError> {
+    match algebra.cached_cartan_matrix_attribute() {
+        CachedAttribute::Value(value) => return Ok(Some(value)),
+        CachedAttribute::Fail => return Ok(None),
+        CachedAttribute::Unbound => {}
+    }
+    if !is_finite_dimensional(algebra)? {
+        return Ok(algebra.cache_cartan_matrix_attribute(None));
+    }
+    if let QuiverAlgebra::Quotient(quotient) = algebra
+        && !quotient_is_admissible(quotient)?
+    {
+        return Ok(algebra.cache_cartan_matrix_attribute(None));
+    }
+    let matrix = indec_projective_modules(algebra)?
+        .into_iter()
+        .map(|projective| projective.dimension_vector().to_vec())
+        .collect();
+    Ok(algebra.cache_cartan_matrix_attribute(Some(matrix)))
+}
+
+/// Translate QPA's `CoxeterMatrix(A) = -C^-1 C^T` method.
+///
+/// GAP constructs `C` as an integer matrix, so this result is always an exact
+/// rational matrix, including when `A` is defined over a prime field. This is
+/// deliberately not computed in the coefficient field. `Ok(None)` preserves
+/// cached `fail` from `CartanMatrix` or a singular Cartan matrix.
+///
+/// # Errors
+///
+/// Propagates Cartan construction and checked exact rational matrix
+/// construction, inversion, and multiplication.
+pub fn coxeter_matrix<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<DenseMatrix<RationalField>>, EnvelopingModuleError> {
+    match algebra.cached_coxeter_matrix_attribute() {
+        CachedAttribute::Value(value) => return Ok(Some(value)),
+        CachedAttribute::Fail => return Ok(None),
+        CachedAttribute::Unbound => {}
+    }
+    let Some(cartan_rows) = cartan_matrix(algebra)? else {
+        return Ok(algebra.cache_coxeter_matrix_attribute(None));
+    };
+    let rational_rows = cartan_rows
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|entry| Q.nth(Integer::from(entry)))
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    let cartan = DenseMatrix::from_rows(rational_rows, Q)?;
+    if Q.is_zero(&cartan.determinant()?) {
+        return Ok(algebra.cache_coxeter_matrix_attribute(None));
+    }
+    let inverse = cartan
+        .inverse()?
+        .ok_or(EnvelopingModuleError::NonzeroCartanDeterminantNotInvertible)?;
+    let negative_one = Q.neg(&Q.one());
+    let matrix = inverse
+        .multiply(&cartan.transpose())?
+        .scale_left(&negative_one);
+    Ok(algebra.cache_coxeter_matrix_attribute(Some(matrix)))
+}
+
+/// Translate QPA's cached `CoxeterPolynomial(A)` attribute.
+///
+/// The returned exact rational coefficients are in ascending degree order,
+/// matching `CoefficientsOfUnivariatePolynomial` in the oracle fixtures.
+/// `Ok(None)` preserves a cached failed Coxeter-matrix computation.
+///
+/// # Errors
+///
+/// Propagates Coxeter-matrix construction and GAP's source-translated exact
+/// characteristic-polynomial algorithm.
+pub fn coxeter_polynomial<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<Vec<Rational>>, EnvelopingModuleError> {
+    match algebra.cached_coxeter_polynomial_attribute() {
+        CachedAttribute::Value(value) => return Ok(Some(value)),
+        CachedAttribute::Fail => return Ok(None),
+        CachedAttribute::Unbound => {}
+    }
+    let Some(matrix) = coxeter_matrix(algebra)? else {
+        return Ok(algebra.cache_coxeter_polynomial_attribute(None));
+    };
+    let coefficients = matrix.characteristic_polynomial_coefficients()?;
+    Ok(algebra.cache_coxeter_polynomial_attribute(Some(coefficients)))
 }
 
 /// Invoke QPA's immediate `GlobalDimension` methods from already-known
@@ -3566,6 +3669,10 @@ pub enum EnvelopingModuleError {
         /// Number of quiver vertices.
         vertex_count: usize,
     },
+    /// A nonzero exact determinant must make the rational Cartan matrix
+    /// invertible in QPA's following source step.
+    #[error("a Cartan matrix with nonzero determinant unexpectedly had no rational inverse")]
+    NonzeroCartanDeterminantNotInvertible,
     /// An annihilator basis requires QPA's finite canonical algebra basis.
     #[error("AnnihilatorOfModule requires a finite-dimensional algebra")]
     InfiniteAnnihilatorAlgebra,
@@ -3920,12 +4027,12 @@ mod tests {
         Field, Ring,
         finite_field::{FiniteFieldCore, Z2, Zp},
         integer::Integer,
-        rational::{Q, Rational},
+        rational::{Q, Rational, RationalField},
     };
     use qpa_core::path_module::right_fac_approximation_via_all_basis_images;
     use qpa_core::{
-        AlgebraGlobalDimension, ArrowSpec, DenseMatrix, ModuleDimensionSeries, NamedArrowMatrix,
-        NamedArrowSpec, PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement,
+        AlgebraGlobalDimension, ArrowSpec, CachedAttribute, DenseMatrix, ModuleDimensionSeries,
+        NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement,
         PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, QpaCoefficientField, Quiver,
         QuiverAlgebra, QuiverAlgebraElement, StructureConstantsAlgebra, VertexIndex,
         dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
@@ -3943,8 +4050,9 @@ mod tests {
         EnvelopingModuleError, ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult,
         TensorProductOfModulesResult, algebra_as_module_of_enveloping_algebra,
         algebra_as_module_over_enveloping_algebra, annihilator_of_module, basis_of_projectives,
-        canonical_basis_coefficients, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
-        d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        canonical_basis_coefficients, cartan_matrix, coxeter_matrix, coxeter_polynomial, d_tr,
+        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
+        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
@@ -7464,5 +7572,187 @@ mod tests {
         assert_eq!(is_weakly_symmetric_algebra(&nonadmissible).unwrap(), None);
         assert_eq!(is_schurian_algebra(&nonadmissible).unwrap(), None);
         assert_eq!(is_semicommutative_algebra(&nonadmissible).unwrap(), None);
+    }
+
+    fn rational_matrix_rows_json(matrix: &DenseMatrix<RationalField>) -> Value {
+        Value::Array(
+            (0..matrix.nrows())
+                .map(|row| {
+                    Value::Array(
+                        matrix
+                            .row(row)
+                            .iter()
+                            .map(|entry| Value::String(entry.to_string()))
+                            .collect(),
+                    )
+                })
+                .collect(),
+        )
+    }
+
+    fn cartan_coxeter_case_json<F: Field>(algebra: &QuiverAlgebra<F>) -> Value {
+        let cartan_initially_known = algebra.cached_cartan_matrix_attribute().is_bound();
+        let matrix_initially_known = algebra.cached_coxeter_matrix_attribute().is_bound();
+        let polynomial_initially_known = algebra.cached_coxeter_polynomial_attribute().is_bound();
+        let cartan = cartan_matrix(algebra).unwrap().unwrap();
+        let matrix = coxeter_matrix(algebra).unwrap().unwrap();
+        let polynomial = coxeter_polynomial(algebra).unwrap().unwrap();
+        json!({
+            "cartan_initially_known": cartan_initially_known,
+            "matrix_initially_known": matrix_initially_known,
+            "polynomial_initially_known": polynomial_initially_known,
+            "cartan": cartan,
+            "coxeter": rational_matrix_rows_json(&matrix),
+            "polynomial_coefficients": polynomial
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>(),
+            "cartan_known_after": algebra.cached_cartan_matrix_attribute().is_bound(),
+            "matrix_known_after": algebra.cached_coxeter_matrix_attribute().is_bound(),
+            "polynomial_known_after": algebra.cached_coxeter_polynomial_attribute().is_bound()
+        })
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn pathalg_cartan_coxeter_cases<F: Field>(field: F) -> Value {
+        let discrete = isolated_path_algebra(field.clone(), 2);
+        let a3_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(3), "y"),
+            ],
+        )
+        .unwrap();
+        let a3 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), a3_quiver).unwrap());
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let t = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[t.multiply(&t).unwrap()]).unwrap(),
+        );
+
+        let diamond_quiver = Quiver::from_indexed(
+            4,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(1), vertex(3), "b"),
+                ArrowSpec::named(vertex(2), vertex(4), "c"),
+                ArrowSpec::named(vertex(3), vertex(4), "d"),
+            ],
+        )
+        .unwrap();
+        let diamond_parent = PathAlgebra::new(field, diamond_quiver).unwrap();
+        let arrows = diamond_parent.quiver().arrows().collect::<Vec<_>>();
+        let diamond_a = diamond_parent.element(arrows[0].path()).unwrap();
+        let diamond_b = diamond_parent.element(arrows[1].path()).unwrap();
+        let diamond_c = diamond_parent.element(arrows[2].path()).unwrap();
+        let diamond_d = diamond_parent.element(arrows[3].path()).unwrap();
+        let relation = diamond_a
+            .multiply(&diamond_c)
+            .unwrap()
+            .sub(&diamond_b.multiply(&diamond_d).unwrap())
+            .unwrap();
+        let commutative_diamond =
+            QuiverAlgebra::Quotient(quotient_by_relations(diamond_parent, &[relation]).unwrap());
+
+        json!({
+            "path_discrete": cartan_coxeter_case_json(&discrete),
+            "path_a3": cartan_coxeter_case_json(&a3),
+            "quotient_dual_numbers": cartan_coxeter_case_json(&dual_numbers),
+            "quotient_commutative_diamond":
+                cartan_coxeter_case_json(&commutative_diamond)
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_pathalg_cartan_coxeter_match() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_cartan_coxeter.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(pathalg_cartan_coxeter_cases(Z2), expected["f2"]);
+        assert_eq!(pathalg_cartan_coxeter_cases(Zp::new(5)), expected["f5"]);
+        assert_eq!(pathalg_cartan_coxeter_cases(Q), expected["rational"]);
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_path = QuiverAlgebra::Path(PathAlgebra::new(Z2, loop_quiver).unwrap());
+        assert_eq!(
+            loop_path.cached_cartan_matrix_attribute(),
+            CachedAttribute::Unbound
+        );
+        assert_eq!(cartan_matrix(&loop_path).unwrap(), None);
+        assert_eq!(
+            loop_path.cached_cartan_matrix_attribute(),
+            CachedAttribute::Fail
+        );
+        assert_eq!(coxeter_matrix(&loop_path).unwrap(), None);
+        assert_eq!(
+            loop_path.cached_coxeter_matrix_attribute(),
+            CachedAttribute::Fail
+        );
+        assert_eq!(coxeter_polynomial(&loop_path).unwrap(), None);
+        assert_eq!(
+            loop_path.cached_coxeter_polynomial_attribute(),
+            CachedAttribute::Fail
+        );
+
+        let arrow_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let nonadmissible_parent = PathAlgebra::new(Z2, arrow_quiver).unwrap();
+        let arrow = nonadmissible_parent
+            .element(
+                nonadmissible_parent
+                    .quiver()
+                    .arrows()
+                    .next()
+                    .unwrap()
+                    .path(),
+            )
+            .unwrap();
+        let nonadmissible =
+            QuiverAlgebra::Quotient(quotient_by_relations(nonadmissible_parent, &[arrow]).unwrap());
+        assert_eq!(cartan_matrix(&nonadmissible).unwrap(), None);
+        assert_eq!(coxeter_matrix(&nonadmissible).unwrap(), None);
+        assert_eq!(coxeter_polynomial(&nonadmissible).unwrap(), None);
+
+        let cycle_quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(1), "y"),
+            ],
+        )
+        .unwrap();
+        let cycle_parent = PathAlgebra::new(Z2, cycle_quiver).unwrap();
+        let cycle_arrows = cycle_parent.quiver().arrows().collect::<Vec<_>>();
+        let x = cycle_parent.element(cycle_arrows[0].path()).unwrap();
+        let y = cycle_parent.element(cycle_arrows[1].path()).unwrap();
+        let singular = QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                cycle_parent,
+                &[x.multiply(&y).unwrap(), y.multiply(&x).unwrap()],
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            cartan_matrix(&singular).unwrap(),
+            Some(vec![vec![1, 1], vec![1, 1]])
+        );
+        assert_eq!(coxeter_matrix(&singular).unwrap(), None);
+        assert_eq!(
+            singular.cached_coxeter_matrix_attribute(),
+            CachedAttribute::Fail
+        );
+        assert_eq!(coxeter_polynomial(&singular).unwrap(), None);
+        assert_eq!(
+            singular.cached_coxeter_polynomial_attribute(),
+            CachedAttribute::Fail
+        );
     }
 }

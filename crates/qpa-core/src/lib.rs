@@ -28,6 +28,35 @@ pub mod triangular_reduced;
 pub mod util;
 pub mod vector_reduction;
 
+/// Bound state of a GAP attribute whose computed value may itself be `fail`.
+///
+/// This distinguishes an attribute that has not been evaluated from one whose
+/// source method ran and cached `fail`, without encoding three states as a
+/// nested `Option`.
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum CachedAttribute<T> {
+    /// No attribute value has been computed or installed.
+    Unbound,
+    /// The source method ran and cached GAP's `fail` value.
+    Fail,
+    /// The source method computed and cached a value.
+    Value(T),
+}
+
+impl<T> CachedAttribute<T> {
+    /// Return GAP's `HasAttribute` state.
+    #[must_use]
+    pub const fn is_bound(&self) -> bool {
+        !matches!(self, Self::Unbound)
+    }
+
+    /// Return whether the bound value is GAP's `fail`.
+    #[must_use]
+    pub const fn is_fail(&self) -> bool {
+        matches!(self, Self::Fail)
+    }
+}
+
 pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
 pub use coefficient::{
     CoefficientDomain, CoefficientDomainError, QpaCoefficientField, QpaFieldCharacteristic,

@@ -60,6 +60,21 @@ compare_prefixed_catching_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_cartan_coxeter_dispatch_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw"
+    test "$(grep -Fc 'Algebra is not finite dimensional!' "$raw")" -eq 1
+    test "$(grep -Fc 'Not a bound quiver algebra!' "$raw")" -eq 1
+    test "$(grep -Fc 'Unable to determine the Cartan matrix!' "$raw")" -eq 2
+    test "$(grep -Fc 'The Cartan matrix is not invertible!' "$raw")" -eq 1
+    sed -n '/^{"schema_version":/,$p' "$raw" |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_text_fixture() {
     source_script=$1
     fixture=$2
@@ -164,6 +179,12 @@ compare_fixture \
 compare_catching_fixture \
     "$repo_root/tests/gap-reference/pathalg_symmetry_dispatch.g" \
     "$repo_root/tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_cartan_coxeter.g" \
+    "$repo_root/tests/fixtures/pathalg_cartan_coxeter.schema-v1.json"
+compare_cartan_coxeter_dispatch_fixture \
+    "$repo_root/tests/gap-reference/pathalg_cartan_coxeter_dispatch.g" \
+    "$repo_root/tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"

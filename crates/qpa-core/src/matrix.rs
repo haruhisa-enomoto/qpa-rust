@@ -452,6 +452,64 @@ impl<F: Field> DenseMatrix<F> {
         )?))
     }
 
+    /// Translate GAP's fraction-free `DeterminantMatDestructive` method.
+    ///
+    /// This is the method selected for QPA's integral Cartan matrices. It
+    /// performs the same first-nonzero pivot search, row swaps, fraction-free
+    /// elimination, and accumulated sign correction as the pinned GAP source.
+    ///
+    /// # Errors
+    ///
+    /// GAP rejects empty and nonsquare determinant inputs.
+    pub fn determinant(&self) -> Result<F::Element, MatrixError> {
+        if self.nrows == 0 || self.nrows != self.ncols {
+            return Err(MatrixError::InvalidDeterminantShape {
+                shape: (self.nrows, self.ncols),
+            });
+        }
+
+        let mut matrix = self.clone();
+        let mut determinant = self.field.one();
+        let mut sign = self.field.one();
+        for column in 0..self.ncols {
+            let Some(pivot_index) =
+                (column..self.nrows).find(|&row| !self.field.is_zero(&matrix[(row, column)]))
+            else {
+                return Ok(self.field.zero());
+            };
+            if pivot_index != column {
+                for entry_column in 0..self.ncols {
+                    let left = matrix[(column, entry_column)].clone();
+                    matrix[(column, entry_column)] = matrix[(pivot_index, entry_column)].clone();
+                    matrix[(pivot_index, entry_column)] = left;
+                }
+                sign = self.field.neg(&sign);
+            }
+
+            let pivot_row = matrix.row(column).to_vec();
+            let pivot = pivot_row[column].clone();
+            let determinant_inverse = self.field.inv(&determinant);
+            for row in column + 1..self.nrows {
+                let multiplier = self.field.neg(&matrix[(row, column)]);
+                if self.field.is_zero(&multiplier) {
+                    let scale = self.field.mul(&pivot, &determinant_inverse);
+                    scale_row(&self.field, matrix.row_mut(row), &scale);
+                    continue;
+                }
+                scale_row(&self.field, matrix.row_mut(row), &pivot);
+                add_scaled_row(
+                    &self.field,
+                    &mut matrix.row_mut(row)[column..],
+                    &pivot_row[column..],
+                    &multiplier,
+                );
+                scale_row(&self.field, matrix.row_mut(row), &determinant_inverse);
+            }
+            determinant = pivot;
+        }
+        Ok(self.field.mul(&sign, &determinant))
+    }
+
     /// Translate GAP's `Matrix_CharacteristicPolynomialSameField` spinning
     /// algorithm.
     ///
@@ -598,6 +656,12 @@ pub enum MatrixError {
     #[error("cannot invert a nonsquare matrix of shape {shape:?}")]
     NonSquareInverse {
         /// Entered row and column counts.
+        shape: (usize, usize),
+    },
+    /// GAP's determinant primitive requires a nonempty square matrix.
+    #[error("DeterminantMat requires a nonempty square matrix, got {shape:?}")]
+    InvalidDeterminantShape {
+        /// Rejected row and column counts.
         shape: (usize, usize),
     },
     /// Characteristic polynomials require square matrices.
@@ -901,6 +965,31 @@ mod tests {
         assert_eq!(
             DenseMatrix::zero(1, 2, Q).inverse().unwrap_err(),
             MatrixError::NonSquareInverse { shape: (1, 2) }
+        );
+    }
+
+    #[test]
+    fn determinant_uses_gap_fraction_free_elimination() {
+        let matrix =
+            DenseMatrix::from_rows(vec![vec![q(1, 1), q(2, 1)], vec![q(3, 1), q(5, 1)]], Q)
+                .unwrap();
+        let swapped =
+            DenseMatrix::from_rows(vec![vec![q(0, 1), q(2, 1)], vec![q(3, 1), q(5, 1)]], Q)
+                .unwrap();
+        let singular =
+            DenseMatrix::from_rows(vec![vec![q(1, 1), q(1, 1)], vec![q(1, 1), q(1, 1)]], Q)
+                .unwrap();
+
+        assert_eq!(matrix.determinant().unwrap(), q(-1, 1));
+        assert_eq!(swapped.determinant().unwrap(), q(-6, 1));
+        assert_eq!(singular.determinant().unwrap(), q(0, 1));
+        assert_eq!(
+            DenseMatrix::zero(0, 0, Q).determinant().unwrap_err(),
+            MatrixError::InvalidDeterminantShape { shape: (0, 0) }
+        );
+        assert_eq!(
+            DenseMatrix::zero(1, 2, Q).determinant().unwrap_err(),
+            MatrixError::InvalidDeterminantShape { shape: (1, 2) }
         );
     }
 

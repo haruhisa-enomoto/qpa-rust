@@ -16600,9 +16600,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 84
 source_end = 84
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "coxeter_polynomial"
+tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16613,9 +16613,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 85
 source_end = 85
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "coxeter_matrix"
+tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18004,9 +18004,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1805
 source_end = 1828
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "cartan_matrix"
+tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18017,9 +18017,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1830
 source_end = 1849
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "coxeter_matrix"
+tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18030,9 +18030,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1851
 source_end = 1865
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "coxeter_polynomial"
+tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]

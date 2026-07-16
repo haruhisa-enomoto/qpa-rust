@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_cartan_coxeter",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "f2": {
+    "path_discrete": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 0], [0, 1]],
+      "coxeter": [["-1", "0"], ["0", "-1"]],
+      "polynomial_coefficients": ["1", "2", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "path_a3": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 1, 1], [0, 1, 1], [0, 0, 1]],
+      "coxeter": [["0", "1", "0"], ["0", "0", "1"], ["-1", "-1", "-1"]],
+      "polynomial_coefficients": ["1", "1", "1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "quotient_dual_numbers": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[2]],
+      "coxeter": [["-1"]],
+      "polynomial_coefficients": ["1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "quotient_commutative_diamond": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 1, 1, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+      "coxeter": [["0", "0", "0", "-1"], ["0", "0", "1", "1"], ["0", "1", "0", "1"], ["-1", "-1", "-1", "-1"]],
+      "polynomial_coefficients": ["1", "1", "0", "1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    }
+  },
+  "f5": {
+    "path_discrete": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 0], [0, 1]],
+      "coxeter": [["-1", "0"], ["0", "-1"]],
+      "polynomial_coefficients": ["1", "2", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "path_a3": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 1, 1], [0, 1, 1], [0, 0, 1]],
+      "coxeter": [["0", "1", "0"], ["0", "0", "1"], ["-1", "-1", "-1"]],
+      "polynomial_coefficients": ["1", "1", "1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "quotient_dual_numbers": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[2]],
+      "coxeter": [["-1"]],
+      "polynomial_coefficients": ["1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "quotient_commutative_diamond": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 1, 1, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+      "coxeter": [["0", "0", "0", "-1"], ["0", "0", "1", "1"], ["0", "1", "0", "1"], ["-1", "-1", "-1", "-1"]],
+      "polynomial_coefficients": ["1", "1", "0", "1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    }
+  },
+  "rational": {
+    "path_discrete": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 0], [0, 1]],
+      "coxeter": [["-1", "0"], ["0", "-1"]],
+      "polynomial_coefficients": ["1", "2", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "path_a3": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 1, 1], [0, 1, 1], [0, 0, 1]],
+      "coxeter": [["0", "1", "0"], ["0", "0", "1"], ["-1", "-1", "-1"]],
+      "polynomial_coefficients": ["1", "1", "1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "quotient_dual_numbers": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[2]],
+      "coxeter": [["-1"]],
+      "polynomial_coefficients": ["1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    },
+    "quotient_commutative_diamond": {
+      "cartan_initially_known": false,
+      "matrix_initially_known": false,
+      "polynomial_initially_known": false,
+      "cartan": [[1, 1, 1, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+      "coxeter": [["0", "0", "0", "-1"], ["0", "0", "1", "1"], ["0", "1", "0", "1"], ["-1", "-1", "-1", "-1"]],
+      "polynomial_coefficients": ["1", "1", "0", "1", "1"],
+      "cartan_known_after": true,
+      "matrix_known_after": true,
+      "polynomial_known_after": true
+    }
+  }
+}
