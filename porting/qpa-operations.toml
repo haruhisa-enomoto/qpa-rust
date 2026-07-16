@@ -4668,7 +4668,7 @@ source_end = 4
 classification = "declared_surface"
 status = "verified"
 rust_symbol = "dual_of_module; PathAlgebraModule::cached_dual_module"
-tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
+tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json","tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4876,7 +4876,7 @@ source_end = 60
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "dual_of_module"
-tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
+tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json","tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10165,9 +10165,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 31
 source_end = 31
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_injective_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10178,9 +10178,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 32
 source_end = 32
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_simple_qpa_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10191,9 +10191,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 33
 source_end = 33
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::cache_is_simple_qpa_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10204,9 +10204,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 34
 source_end = 34
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_semisimple_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10217,9 +10217,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 35
 source_end = 35
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::cache_is_simple_qpa_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10958,9 +10958,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1752
 source_end = 1759
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_injective_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10971,9 +10971,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1767
 source_end = 1778
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_simple_qpa_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10984,9 +10984,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1786
 source_end = 1797
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_semisimple_module"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15625,9 +15625,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "indec_injective_modules"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15638,9 +15638,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "simple_modules"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json","tests/gap-reference/module_simple_infinite_error.g","tests/gap-reference/module_simple_nonadmissible_error.g"]
 deviations = []
 
 [[entries]]
@@ -15729,9 +15729,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 143
 source_end = 154
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "indec_injective_modules"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15742,9 +15742,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 165
 source_end = 192
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "simple_modules"
+tests = ["tests/fixtures/module_families_properties.schema-v1.json","tests/gap-reference/module_simple_infinite_error.g","tests/gap-reference/module_simple_nonadmissible_error.g"]
 deviations = []
 
 [[entries]]

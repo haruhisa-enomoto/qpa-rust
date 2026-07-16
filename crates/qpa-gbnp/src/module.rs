@@ -292,6 +292,72 @@ pub fn indec_projective_modules<F: Field>(
     Ok(algebra.merge_indec_projective_modules(&projectives))
 }
 
+/// Translate QPA's cached `IndecInjectiveModules(A)` attribute.
+///
+/// The method literally constructs the opposite algebra's ordered
+/// indecomposable projectives and applies [`dual_of_module`] to each one.
+/// Dual property propagation installs both indecomposability and injectivity
+/// on every result, exactly as in QPA.
+///
+/// # Errors
+///
+/// Propagates opposite-algebra, projective-family, and module-dual failures.
+pub fn indec_injective_modules<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Vec<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    if let Some(cached) = algebra.cached_indec_injective_modules() {
+        return Ok(cached);
+    }
+    let opposite = match algebra {
+        QuiverAlgebra::Path(algebra) => QuiverAlgebra::Path(algebra.opposite()?),
+        QuiverAlgebra::Quotient(algebra) => {
+            QuiverAlgebra::Quotient(opposite_path_algebra(algebra)?)
+        }
+    };
+    let opposite_projectives = indec_projective_modules(&opposite)?;
+    let injectives = opposite_projectives
+        .iter()
+        .map(dual_of_module)
+        .collect::<Result<Vec<_>, ModuleFunctorError>>()?;
+    Ok(algebra.merge_indec_injective_modules(&injectives))
+}
+
+/// Translate QPA's cached `SimpleModules(A)` attribute.
+///
+/// One vertex-simple representation is constructed per vertex in quiver
+/// order. Each has a single one in its dimension vector, no entered arrow
+/// matrices, and QPA's `IsSimpleQPAModule` property installed together with
+/// its true-method implications.
+///
+/// # Errors
+///
+/// Requires a finite path algebra or finite admissible quotient and
+/// propagates the checked module constructor.
+pub fn simple_modules<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Vec<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    if let Some(cached) = algebra.cached_simple_modules() {
+        return Ok(cached);
+    }
+    if finite_canonical_basis(algebra)?.is_none() {
+        return Err(EnvelopingModuleError::InfiniteSimpleModuleAlgebra);
+    }
+    if matches!(algebra, QuiverAlgebra::Quotient(quotient) if !quotient.is_admissible()?) {
+        return Err(EnvelopingModuleError::NonadmissibleSimpleModuleAlgebra);
+    }
+    let vertex_count = algebra.quiver().number_of_vertices();
+    let mut simples = Vec::with_capacity(vertex_count);
+    for vertex in 0..vertex_count {
+        let mut dimensions = vec![0; vertex_count];
+        dimensions[vertex] = 1;
+        let simple = right_module_over_path_algebra(algebra.clone(), dimensions, &[])?
+            .ok_or(EnvelopingModuleError::GeneratedSimpleViolatesRelations)?;
+        let _ = simple.cache_is_simple_qpa_module(true);
+        simples.push(simple);
+    }
+    Ok(algebra.merge_simple_modules(&simples))
+}
+
 fn projective_basis_data<F: Field>(
     algebra: &QuiverAlgebra<F>,
 ) -> Result<Option<ProjectiveBasisData<F>>, EnvelopingModuleError> {
@@ -339,6 +405,24 @@ pub fn is_projective_module<F: Field>(
             .ok_or(EnvelopingModuleError::ProjectiveDimensionOverflow)?;
     }
     Ok(module.cache_is_projective_module(expected_dimension == module.dimension()))
+}
+
+/// Translate QPA's cached `IsInjectiveModule(M)` property.
+///
+/// This is the source expression `IsProjectiveModule(DualOfModule(M))`.
+///
+/// # Errors
+///
+/// Propagates module dualization and the projectivity dimension test.
+pub fn is_injective_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<bool, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_is_injective_module() {
+        return Ok(cached);
+    }
+    let dual = dual_of_module(module)?;
+    let injective = is_projective_module(&dual)?;
+    Ok(module.cache_is_injective_module(injective))
 }
 
 /// Translate QPA's `HomFromProjective(m, M)` construction.
@@ -1124,7 +1208,9 @@ fn module_map_from_physical_flat<F: Field>(
 /// retained, and the result acts over QPA's opposite algebra. QPA's zero
 /// branch returns the opposite algebra's cached [`zero_module`]. For a
 /// nonzero module, QPA explicitly installs the reciprocal dual attribute on
-/// the result; its zero-module early return does not.
+/// the result and propagates already-true indecomposable, projective, and
+/// injective properties in the corresponding dual directions; its
+/// zero-module early return does not.
 ///
 /// # Errors
 ///
@@ -1161,7 +1247,17 @@ pub fn dual_of_module<F: Field>(
     }
     let dual = right_module_over_path_algebra(opposite, dimensions, &specification)?
         .ok_or(ModuleFunctorError::GeneratedDualViolatesRelations)?;
-    Ok(module.install_dual_module(&dual)?)
+    let dual = module.install_dual_module(&dual)?;
+    if module.cached_is_indecomposable_module() == Some(true) {
+        let _ = dual.cache_is_indecomposable_module(true);
+    }
+    if module.cached_is_projective_module() == Some(true) {
+        let _ = dual.cache_is_injective_module(true);
+    }
+    if module.cached_is_injective_module() == Some(true) {
+        let _ = dual.cache_is_projective_module(true);
+    }
+    Ok(dual)
 }
 
 /// Translate QPA's cached `DualOfModuleHomomorphism(f)` attribute.
@@ -1385,6 +1481,17 @@ pub enum EnvelopingModuleError {
     /// QPA's method requires an admissible quotient when input is not a path algebra.
     #[error("LoewyLength requires an admissible quotient of a path algebra")]
     NonadmissibleLoewyAlgebra,
+    /// `SimpleModules` rejects infinite-dimensional input before constructing
+    /// vertex representations.
+    #[error("SimpleModules requires a finite-dimensional algebra")]
+    InfiniteSimpleModuleAlgebra,
+    /// `SimpleModules` accepts quotients only after QPA's admissibility filter
+    /// has been established.
+    #[error("SimpleModules requires an admissible quotient of a path algebra")]
+    NonadmissibleSimpleModuleAlgebra,
+    /// A vertex-simple representation must satisfy every admissible relation.
+    #[error("a generated vertex-simple module does not satisfy the algebra relations")]
+    GeneratedSimpleViolatesRelations,
     /// A projective action generated from canonical basis multiplication must satisfy relations.
     #[error("a generated indecomposable projective does not satisfy the algebra relations")]
     GeneratedProjectiveViolatesRelations,
@@ -1608,10 +1715,11 @@ mod tests {
         PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, Quiver,
         QuiverAlgebra, QuiverAlgebraElement, VertexIndex, direct_sum_of_qpa_modules,
         end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m, include_in_path_algebra,
-        lifting_inclusion_morphisms, minimal_generating_set_of_module, right_fac_approximation,
-        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
-        socle_of_module_inclusion, top_of_module, top_of_module_projection, trace_of_module,
-        underlying_linear_map, zero_module, zero_module_mapping,
+        is_semisimple_module, is_simple_qpa_module, lifting_inclusion_morphisms,
+        minimal_generating_set_of_module, right_fac_approximation, right_module_hom_over_algebra,
+        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion, top_of_module,
+        top_of_module_projection, trace_of_module, underlying_linear_map, zero_module,
+        zero_module_mapping,
     };
     use serde_json::{Value, json};
 
@@ -1621,9 +1729,9 @@ mod tests {
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, first_syzygy,
         from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
-        hom_from_projective, indec_projective_modules, injective_envelope, is_projective_module,
-        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
-        projective_cover,
+        hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
+        is_injective_module, is_projective_module, lifting_morphism_from_projective,
+        matrix_of_homomorphism_between_projectives, projective_cover, simple_modules,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -2407,6 +2515,177 @@ mod tests {
         })
     }
 
+    fn attribute_module_list_json<F: Field>(
+        modules: &[PathAlgebraModule<F>],
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Vec<Value> {
+        modules
+            .iter()
+            .map(|module| attribute_module_json(module, coefficient))
+            .collect()
+    }
+
+    fn property_bound<F: Field>(module: &PathAlgebraModule<F>) -> Vec<bool> {
+        vec![
+            module.cached_is_injective_module().is_some(),
+            module.cached_is_simple_qpa_module().is_some(),
+            module.cached_is_semisimple_module().is_some(),
+        ]
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn module_families_properties_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let injectives = indec_injective_modules(&algebra).unwrap();
+        let injectives_again = indec_injective_modules(&algebra).unwrap();
+        let simples = simple_modules(&algebra).unwrap();
+        let simples_again = simple_modules(&algebra).unwrap();
+        let projectives = indec_projective_modules(&algebra).unwrap();
+        let zero = zero_module(&algebra).unwrap();
+        let semisimple_sum = direct_sum_of_qpa_modules(&simples).unwrap().unwrap();
+        let injective_installed = injectives
+            .iter()
+            .map(|module| {
+                vec![
+                    module.cached_is_injective_module() == Some(true),
+                    module.cached_is_indecomposable_module() == Some(true),
+                    module.cached_is_projective_module().is_some(),
+                ]
+            })
+            .collect::<Vec<_>>();
+        let simple_installed = simples
+            .iter()
+            .map(|module| {
+                vec![
+                    module.cached_is_simple_qpa_module() == Some(true),
+                    module.cached_is_indecomposable_module() == Some(true),
+                    module.cached_is_semisimple_module() == Some(true),
+                ]
+            })
+            .collect::<Vec<_>>();
+        let injective_values = injectives
+            .iter()
+            .chain(&simples)
+            .chain(&projectives)
+            .chain(std::iter::once(&zero))
+            .map(|module| is_injective_module(module).unwrap())
+            .collect::<Vec<_>>();
+        let simple_values = simples
+            .iter()
+            .chain(&projectives)
+            .chain([&zero, &semisimple_sum])
+            .map(is_simple_qpa_module)
+            .collect::<Vec<_>>();
+        let semisimple_values = simples
+            .iter()
+            .chain(&projectives)
+            .chain([&zero, &semisimple_sum])
+            .map(|module| is_semisimple_module(module).unwrap())
+            .collect::<Vec<_>>();
+        let properties_bound = injectives
+            .iter()
+            .chain(&simples)
+            .chain(&projectives)
+            .chain([&zero, &semisimple_sum])
+            .map(property_bound)
+            .collect::<Vec<_>>();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field, loop_quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let quotient = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let quotient_injectives = indec_injective_modules(&quotient).unwrap();
+        let quotient_injectives_again = indec_injective_modules(&quotient).unwrap();
+        let quotient_simples = simple_modules(&quotient).unwrap();
+        let quotient_simples_again = simple_modules(&quotient).unwrap();
+        let quotient_projective = indec_projective_modules(&quotient).unwrap()[0].clone();
+        let quotient_zero = zero_module(&quotient).unwrap();
+        let quotient_injective_installed = quotient_injectives
+            .iter()
+            .map(|module| {
+                vec![
+                    module.cached_is_injective_module() == Some(true),
+                    module.cached_is_indecomposable_module() == Some(true),
+                    module.cached_is_projective_module().is_some(),
+                ]
+            })
+            .collect::<Vec<_>>();
+        let quotient_simple_installed = quotient_simples
+            .iter()
+            .map(|module| {
+                vec![
+                    module.cached_is_simple_qpa_module() == Some(true),
+                    module.cached_is_indecomposable_module() == Some(true),
+                    module.cached_is_semisimple_module() == Some(true),
+                ]
+            })
+            .collect::<Vec<_>>();
+        let quotient_injective_values = quotient_injectives
+            .iter()
+            .chain(&quotient_simples)
+            .chain([&quotient_projective, &quotient_zero])
+            .map(|module| is_injective_module(module).unwrap())
+            .collect::<Vec<_>>();
+        let quotient_simple_values = quotient_simples
+            .iter()
+            .chain([&quotient_projective, &quotient_zero])
+            .map(is_simple_qpa_module)
+            .collect::<Vec<_>>();
+        let quotient_semisimple_values = quotient_simples
+            .iter()
+            .chain([&quotient_projective, &quotient_zero])
+            .map(|module| is_semisimple_module(module).unwrap())
+            .collect::<Vec<_>>();
+        let quotient_properties_bound = quotient_injectives
+            .iter()
+            .chain(&quotient_simples)
+            .chain([&quotient_projective, &quotient_zero])
+            .map(property_bound)
+            .collect::<Vec<_>>();
+
+        json!({
+            "path": {
+                "injectives": attribute_module_list_json(&injectives, coefficient),
+                "injective_cache_identity": injectives.iter().zip(&injectives_again)
+                    .map(|(first, second)| first.is_identical(second)).collect::<Vec<_>>(),
+                "injective_installed": injective_installed,
+                "simples": attribute_module_list_json(&simples, coefficient),
+                "simple_cache_identity": simples.iter().zip(&simples_again)
+                    .map(|(first, second)| first.is_identical(second)).collect::<Vec<_>>(),
+                "simple_installed": simple_installed,
+                "injective_values": injective_values,
+                "simple_values": simple_values,
+                "semisimple_values": semisimple_values,
+                "property_bound": properties_bound,
+            },
+            "quotient": {
+                "injectives": attribute_module_list_json(&quotient_injectives, coefficient),
+                "injective_cache_identity": quotient_injectives.iter()
+                    .zip(&quotient_injectives_again).map(|(first, second)|
+                        first.is_identical(second)).collect::<Vec<_>>(),
+                "injective_installed": quotient_injective_installed,
+                "simples": attribute_module_list_json(&quotient_simples, coefficient),
+                "simple_cache_identity": quotient_simples.iter().zip(&quotient_simples_again)
+                    .map(|(first, second)| first.is_identical(second)).collect::<Vec<_>>(),
+                "simple_installed": quotient_simple_installed,
+                "injective_values": quotient_injective_values,
+                "simple_values": quotient_simple_values,
+                "semisimple_values": quotient_semisimple_values,
+                "property_bound": quotient_properties_bound,
+            },
+        })
+    }
+
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
     fn modulehom_syzygy_injective_case<F: Field>(
         field: F,
@@ -2685,6 +2964,43 @@ mod tests {
         });
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_module_families_properties_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_families_properties.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = module_families_properties_case(Q, ToString::to_string);
+        let binary = module_families_properties_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn simple_modules_preserves_qpa_source_domain_errors() {
+        let quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(Q, quiver).unwrap();
+        assert_eq!(
+            simple_modules(&QuiverAlgebra::Path(parent.clone())).unwrap_err(),
+            super::EnvelopingModuleError::InfiniteSimpleModuleAlgebra
+        );
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let quotient = QuiverAlgebra::Quotient(quotient_by_relations(parent, &[x]).unwrap());
+        assert_eq!(
+            simple_modules(&quotient).unwrap_err(),
+            super::EnvelopingModuleError::NonadmissibleSimpleModuleAlgebra
+        );
     }
 
     #[test]

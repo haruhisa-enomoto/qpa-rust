@@ -344,6 +344,54 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Return QPA's cached `IndecInjectiveModules` attribute when every
+    /// component is still live.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_indec_injective_modules(&self) -> Option<Vec<PathAlgebraModule<F>>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_indec_injective_modules(),
+            Self::Quotient(algebra) => algebra.cached_indec_injective_modules(),
+        }
+    }
+
+    /// Merge generated injectives with QPA's live weak attribute cache.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn merge_indec_injective_modules(
+        &self,
+        generated: &[PathAlgebraModule<F>],
+    ) -> Vec<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.merge_indec_injective_modules(generated),
+            Self::Quotient(algebra) => algebra.merge_indec_injective_modules(generated),
+        }
+    }
+
+    /// Return QPA's cached `SimpleModules` attribute when every component is
+    /// still live.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_simple_modules(&self) -> Option<Vec<PathAlgebraModule<F>>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_simple_modules(),
+            Self::Quotient(algebra) => algebra.cached_simple_modules(),
+        }
+    }
+
+    /// Merge generated simples with QPA's live weak attribute cache.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn merge_simple_modules(
+        &self,
+        generated: &[PathAlgebraModule<F>],
+    ) -> Vec<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.merge_simple_modules(generated),
+            Self::Quotient(algebra) => algebra.merge_simple_modules(generated),
+        }
+    }
+
     /// Return QPA's live cached `ZeroModule` attribute, if present.
     #[doc(hidden)]
     #[must_use]

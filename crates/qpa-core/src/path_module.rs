@@ -78,6 +78,8 @@ struct PathAlgebraModuleData<F: Field> {
     is_projective: OnceLock<bool>,
     is_injective: OnceLock<bool>,
     is_indecomposable: OnceLock<bool>,
+    is_simple_qpa: OnceLock<bool>,
+    is_semisimple: OnceLock<bool>,
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     first_syzygy: OnceLock<PathAlgebraModule<F>>,
@@ -107,6 +109,8 @@ impl<F: Field> PathAlgebraModuleData<F> {
             is_projective: OnceLock::new(),
             is_injective: OnceLock::new(),
             is_indecomposable: OnceLock::new(),
+            is_simple_qpa: OnceLock::new(),
+            is_semisimple: OnceLock::new(),
             projective_cover_weak: RwLock::new(None),
             injective_envelope_weak: RwLock::new(None),
             first_syzygy: OnceLock::new(),
@@ -300,6 +304,40 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_is_indecomposable_module(&self, value: bool) -> bool {
         *self.0.is_indecomposable.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsSimpleQPAModule` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_simple_qpa_module(&self) -> Option<bool> {
+        self.0.is_simple_qpa.get().copied()
+    }
+
+    /// Install QPA's `IsSimpleQPAModule` property and its true-method
+    /// implications to indecomposability and semisimplicity.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_simple_qpa_module(&self, value: bool) -> bool {
+        let installed = *self.0.is_simple_qpa.get_or_init(|| value);
+        if installed {
+            let _ = self.cache_is_indecomposable_module(true);
+            let _ = self.cache_is_semisimple_module(true);
+        }
+        installed
+    }
+
+    /// Return QPA's cached `IsSemisimpleModule` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_semisimple_module(&self) -> Option<bool> {
+        self.0.is_semisimple.get().copied()
+    }
+
+    /// Install QPA's `IsSemisimpleModule` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_semisimple_module(&self, value: bool) -> bool {
+        *self.0.is_semisimple.get_or_init(|| value)
     }
 
     /// Return QPA's installed minimal-generator attribute as module elements.
@@ -784,6 +822,57 @@ pub(crate) struct WeakPathAlgebraModule<F: Field>(Weak<PathAlgebraModuleData<F>>
 impl<F: Field> WeakPathAlgebraModule<F> {
     pub(crate) fn upgrade(&self) -> Option<PathAlgebraModule<F>> {
         self.0.upgrade().map(PathAlgebraModule)
+    }
+}
+
+/// A cycle-free cache for a GAP algebra attribute whose value is a list of
+/// modules over that same algebra.
+#[derive(Debug)]
+pub(crate) struct WeakPathAlgebraModuleListCache<F: Field> {
+    modules: RwLock<Vec<WeakPathAlgebraModule<F>>>,
+    bound: OnceLock<()>,
+}
+
+impl<F: Field> WeakPathAlgebraModuleListCache<F> {
+    pub(crate) const fn new() -> Self {
+        Self {
+            modules: RwLock::new(Vec::new()),
+            bound: OnceLock::new(),
+        }
+    }
+
+    pub(crate) fn cached(&self) -> Option<Vec<PathAlgebraModule<F>>> {
+        self.bound.get()?;
+        self.modules
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .iter()
+            .map(WeakPathAlgebraModule::upgrade)
+            .collect()
+    }
+
+    pub(crate) fn merge(&self, generated: &[PathAlgebraModule<F>]) -> Vec<PathAlgebraModule<F>> {
+        let mut slot = self
+            .modules
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if self.bound.get().is_none() || slot.len() != generated.len() {
+            *slot = generated.iter().map(PathAlgebraModule::downgrade).collect();
+            let _ = self.bound.set(());
+            return generated.to_vec();
+        }
+        generated
+            .iter()
+            .enumerate()
+            .map(|(index, module)| {
+                if let Some(cached) = slot[index].upgrade() {
+                    cached
+                } else {
+                    slot[index] = module.downgrade();
+                    module.clone()
+                }
+            })
+            .collect()
     }
 }
 
@@ -3386,6 +3475,34 @@ pub fn radical_of_module<F: Field>(
     module: PathAlgebraModule<F>,
 ) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
     Ok(radical_of_module_inclusion(module)?.source().clone())
+}
+
+/// Translate QPA's cached `IsSimpleQPAModule(M)` dimension test.
+///
+/// QPA defines this property to be true exactly in total dimension one. A
+/// true result also installs its declared implications to
+/// `IsIndecomposableModule` and `IsSemisimpleModule`.
+#[must_use]
+pub fn is_simple_qpa_module<F: Field>(module: &PathAlgebraModule<F>) -> bool {
+    if let Some(cached) = module.cached_is_simple_qpa_module() {
+        return cached;
+    }
+    module.cache_is_simple_qpa_module(module.dimension() == 1)
+}
+
+/// Translate QPA's cached `IsSemisimpleModule(M)` radical test.
+///
+/// # Errors
+///
+/// Propagates the exact radical-module construction.
+pub fn is_semisimple_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<bool, PathAlgebraModuleError> {
+    if let Some(cached) = module.cached_is_semisimple_module() {
+        return Ok(cached);
+    }
+    let radical = radical_of_module(module.clone())?;
+    Ok(module.cache_is_semisimple_module(radical.dimension() == 0))
 }
 
 /// Translate QPA's module `LoewyLength` method by repeated radicals.

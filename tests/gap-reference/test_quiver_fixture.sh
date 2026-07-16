@@ -82,6 +82,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_syzygy_injective.g" \
     "$repo_root/tests/fixtures/modulehom_syzygy_injective.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/module_families_properties.g" \
+    "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
 compare_fixture \
@@ -123,6 +126,24 @@ then
 fi
 grep -Fq "Discrepancy between entered list of vertices and support" "$actual"
 grep -Fq "modulehom.gi:4318" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/module_simple_infinite_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly constructed simples for an infinite algebra" >&2
+    exit 1
+fi
+grep -Fq "argument entered is not a finite dimensional algebra" "$actual"
+grep -Fq "modulespecial.gi:173" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/module_simple_nonadmissible_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly constructed simples for a nonadmissible quotient" >&2
+    exit 1
+fi
+grep -Fq "argument entered is not a quotient of a path algebra by an admissible ideal" "$actual"
+grep -Fq "modulespecial.gi:176" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_projective_zero_element_error.g" \
     >"$actual" 2>&1
