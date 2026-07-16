@@ -604,6 +604,43 @@ then
 fi
 grep -Fq "no 1st choice method found for \`NullspaceMat'" "$actual"
 compare_fixture \
+    "$repo_root/tests/gap-reference/present2.g" \
+    "$repo_root/tests/fixtures/present2.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/present2_valid_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly constructed a legacy projective presentation" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`CoefficientsAndMagmaElements'" "$actual"
+grep -Fq "lib/pathalg.gi:588" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/present2_zero_row_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an all-zero projective-presentation row" >&2
+    exit 1
+fi
+grep -Fq "The 1st argument is 'fail'" "$actual"
+grep -Fq "lib/present2.gi:41" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/present2_ragged_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a ragged projective-presentation matrix" >&2
+    exit 1
+fi
+grep -Fq "Matrix must have rows of equal length." "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/present2_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly dispatched ProjectivePresentation on an empty list" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`ProjectivePresentation'" "$actual"
+compare_fixture \
     "$repo_root/tests/gap-reference/groebner_objects.g" \
     "$repo_root/tests/fixtures/groebner_objects.schema-v1.json"
 compare_fixture \

@@ -20175,9 +20175,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20188,9 +20188,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::parent_algebra"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20201,9 +20201,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::matrix_representation"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20214,9 +20214,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::matrix_num_cols"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20227,9 +20227,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::matrix_num_rows"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20240,9 +20240,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::p0_vertex_list"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20253,9 +20253,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::p1_vertex_list"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20266,9 +20266,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 23
 source_end = 25
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation; ProjectivePresentation::from_attributes"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20279,9 +20279,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 27
 source_end = 29
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation"
+tests = ["tests/fixtures/present2.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20292,9 +20292,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 32
 source_end = 32
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::from_matrix"
+tests = ["tests/gap-reference/present2_valid_error.g","tests/gap-reference/present2_zero_row_error.g","tests/gap-reference/present2_ragged_error.g","tests/gap-reference/present2_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -20331,9 +20331,9 @@ source_file = "upstream/qpa/lib/present2.gi"
 source_start = 7
 source_end = 74
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectivePresentation::from_matrix"
+tests = ["tests/gap-reference/present2_valid_error.g","tests/gap-reference/present2_zero_row_error.g","tests/gap-reference/present2_ragged_error.g","tests/gap-reference/present2_empty_error.g"]
 deviations = []
 
 [[entries]]

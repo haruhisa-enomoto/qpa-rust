@@ -17,6 +17,7 @@ pub mod ordering;
 pub mod path_algebra;
 pub mod path_module;
 pub mod poset;
+pub mod projective_presentation;
 pub mod quiver;
 pub mod quotient;
 pub mod static_dictionary;
@@ -77,6 +78,7 @@ pub use path_module::{
     underlying_linear_map, zero_module, zero_module_mapping,
 };
 pub use poset::{Poset, PosetError};
+pub use projective_presentation::{ProjectivePresentation, ProjectivePresentationError};
 pub use quiver::{
     Arrow, ArrowIndex, ArrowSpec, DYNKIN_NOT_CONNECTED_MESSAGE, DYNKIN_UNORIENTED_CYCLE_MESSAGE,
     DynkinDecision, DynkinFamily, DynkinOrientation, DynkinType, Generator, NamedArrowSpec, Path,

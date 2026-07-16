@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "present2",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "category": true,
+  "default_rep": true,
+  "global_family": true,
+  "parent_identical": true,
+  "matrix_equal": true,
+  "matrix": [
+    [
+      [
+        {"path": "a", "coefficient": [1, 1]},
+        {"path": "b", "coefficient": [1, 1]}
+      ],
+      []
+    ],
+    [
+      [{"path": "c", "coefficient": [1, 1]}],
+      [{"path": "v2", "coefficient": [1, 1]}]
+    ]
+  ],
+  "shape": [2, 2],
+  "p0": ["v1", "v2"],
+  "has_p1": false
+}
