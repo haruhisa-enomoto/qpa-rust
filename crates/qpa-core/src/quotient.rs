@@ -440,6 +440,10 @@ struct QuotientPathAlgebraData<F: Field> {
     semisimple: OnceLock<bool>,
     selfinjective: OnceLock<bool>,
     hereditary: OnceLock<bool>,
+    symmetric: OnceLock<bool>,
+    weakly_symmetric: OnceLock<bool>,
+    schurian: OnceLock<bool>,
+    semicommutative: OnceLock<bool>,
     global_dimension: OnceLock<AlgebraGlobalDimension>,
     opposite_weak: RwLock<Option<Weak<QuotientPathAlgebraData<F>>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
@@ -556,6 +560,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             semisimple: OnceLock::new(),
             selfinjective: OnceLock::new(),
             hereditary: OnceLock::new(),
+            symmetric: OnceLock::new(),
+            weakly_symmetric: OnceLock::new(),
+            schurian: OnceLock::new(),
+            semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
@@ -600,6 +608,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             semisimple: OnceLock::new(),
             selfinjective: OnceLock::new(),
             hereditary: OnceLock::new(),
+            symmetric: OnceLock::new(),
+            weakly_symmetric: OnceLock::new(),
+            schurian: OnceLock::new(),
+            semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
@@ -737,6 +749,54 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn cache_is_hereditary_algebra(&self, value: bool) -> bool {
         *self.0.hereditary.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsSymmetricAlgebra` property, when known.
+    #[must_use]
+    pub fn cached_is_symmetric_algebra(&self) -> Option<bool> {
+        self.0.symmetric.get().copied()
+    }
+
+    /// Install and return QPA's `IsSymmetricAlgebra` property value.
+    #[must_use]
+    pub fn cache_is_symmetric_algebra(&self, value: bool) -> bool {
+        *self.0.symmetric.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsWeaklySymmetricAlgebra` property, when known.
+    #[must_use]
+    pub fn cached_is_weakly_symmetric_algebra(&self) -> Option<bool> {
+        self.0.weakly_symmetric.get().copied()
+    }
+
+    /// Install and return QPA's `IsWeaklySymmetricAlgebra` property value.
+    #[must_use]
+    pub fn cache_is_weakly_symmetric_algebra(&self, value: bool) -> bool {
+        *self.0.weakly_symmetric.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsSchurianAlgebra` property, when known.
+    #[must_use]
+    pub fn cached_is_schurian_algebra(&self) -> Option<bool> {
+        self.0.schurian.get().copied()
+    }
+
+    /// Install and return QPA's `IsSchurianAlgebra` property value.
+    #[must_use]
+    pub fn cache_is_schurian_algebra(&self, value: bool) -> bool {
+        *self.0.schurian.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsSemicommutativeAlgebra` property, when known.
+    #[must_use]
+    pub fn cached_is_semicommutative_algebra(&self) -> Option<bool> {
+        self.0.semicommutative.get().copied()
+    }
+
+    /// Install and return QPA's `IsSemicommutativeAlgebra` property value.
+    #[must_use]
+    pub fn cache_is_semicommutative_algebra(&self, value: bool) -> bool {
+        *self.0.semicommutative.get_or_init(|| value)
     }
 
     /// Return QPA's cached `GlobalDimension` attribute, when known.
@@ -1360,6 +1420,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             semisimple: OnceLock::new(),
             selfinjective: OnceLock::new(),
             hereditary: OnceLock::new(),
+            symmetric: OnceLock::new(),
+            weakly_symmetric: OnceLock::new(),
+            schurian: OnceLock::new(),
+            semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),

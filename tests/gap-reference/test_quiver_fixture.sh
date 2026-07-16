@@ -159,6 +159,12 @@ compare_catching_fixture \
     "$repo_root/tests/gap-reference/algebra_homological_dispatch.g" \
     "$repo_root/tests/fixtures/algebra_homological_dispatch.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_symmetry_properties.g" \
+    "$repo_root/tests/fixtures/pathalg_symmetry_properties.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/pathalg_symmetry_dispatch.g" \
+    "$repo_root/tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
 compare_catching_fixture \

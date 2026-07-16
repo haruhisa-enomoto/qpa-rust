@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "loop_schurian_success": false,
+  "loop_semicommutative_success": false,
+  "nonadmissible": false,
+  "nonadmissible_symmetric_success": false,
+  "nonadmissible_weak_success": false,
+  "nonadmissible_schurian_success": false,
+  "nonadmissible_semicommutative_success": false
+}

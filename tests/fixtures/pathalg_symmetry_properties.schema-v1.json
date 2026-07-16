@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_symmetry_properties",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "f2": {
+    "path_discrete": {
+      "symmetric": true,
+      "weakly_symmetric": true,
+      "schurian": true,
+      "semicommutative": true
+    },
+    "path_a2": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": true
+    },
+    "path_loop": {
+      "symmetric": false,
+      "weakly_symmetric": false
+    },
+    "path_diamond": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": false,
+      "semicommutative": false
+    },
+    "quotient_dual_numbers": {
+      "symmetric": true,
+      "weakly_symmetric": true,
+      "schurian": false,
+      "semicommutative": false
+    },
+    "quotient_radical_square_zero_cycle": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": false
+    },
+    "quotient_diamond_commutative": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": true
+    },
+    "quotient_diamond_one_path_zero": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": false
+    }
+  },
+  "rational": {
+    "path_discrete": {
+      "symmetric": true,
+      "weakly_symmetric": true,
+      "schurian": true,
+      "semicommutative": true
+    },
+    "path_a2": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": true
+    },
+    "path_loop": {
+      "symmetric": false,
+      "weakly_symmetric": false
+    },
+    "path_diamond": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": false,
+      "semicommutative": false
+    },
+    "quotient_dual_numbers": {
+      "symmetric": true,
+      "weakly_symmetric": true,
+      "schurian": false,
+      "semicommutative": false
+    },
+    "quotient_radical_square_zero_cycle": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": false
+    },
+    "quotient_diamond_commutative": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": true
+    },
+    "quotient_diamond_one_path_zero": {
+      "symmetric": false,
+      "weakly_symmetric": false,
+      "schurian": true,
+      "semicommutative": false
+    }
+  }
+}

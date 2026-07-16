@@ -20,12 +20,13 @@ use qpa_core::{
     QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct, QuiverProductError,
     QuotientError, cokernel_of_module_homomorphism, direct_sum_inclusions,
     direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m,
-    hom_over_algebra, identity_module_mapping, include_in_path_algebra, kernel_inclusion,
-    kernel_of_module_homomorphism, loewy_length_of_module, minimal_generating_set_of_module,
-    morphism_on_cokernel, morphism_on_kernel, natural_endomorphism_quotient_by_ideal,
-    project_from_product_quiver, radical_of_module, right_module_hom_over_algebra,
-    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor, socle_of_module,
-    subrepresentation_inclusion, top_of_module, zero_module, zero_module_mapping,
+    hom_over_algebra, identity_module_mapping, include_in_path_algebra, isomorphism_of_modules,
+    kernel_inclusion, kernel_of_module_homomorphism, loewy_length_of_module,
+    minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_kernel,
+    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, radical_of_module,
+    right_module_hom_over_algebra, right_module_over_path_algebra,
+    right_module_over_path_algebra_with_tensor, socle_of_module, subrepresentation_inclusion,
+    top_of_module, zero_module, zero_module_mapping,
 };
 use rand::Rng;
 use thiserror::Error;
@@ -707,6 +708,194 @@ pub fn is_finite_global_dimension_from_known_properties<F: Field>(
         }
         QuiverAlgebra::Quotient(_) => None,
     }
+}
+
+/// Translate QPA's enveloping-module test for `IsSymmetricAlgebra(A)`.
+///
+/// Infinite-dimensional input is false. A finite path algebra is symmetric
+/// exactly when its quiver has no arrows. For a quotient, QPA first requires
+/// selfinjectivity and then compares the regular bimodule with its dual over
+/// the enveloping algebra. `None` preserves the selfinjectivity method's
+/// nonadmissible quotient fall-through.
+///
+/// # Errors
+///
+/// Propagates the finite-basis, selfinjectivity, enveloping-module, dual, and
+/// module-isomorphism algorithms.
+pub fn is_symmetric_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<bool>, EnvelopingModuleError> {
+    if let QuiverAlgebra::Quotient(quotient) = algebra
+        && let Some(cached) = quotient.cached_is_symmetric_algebra()
+    {
+        return Ok(Some(cached));
+    }
+    if finite_canonical_basis(algebra)?.is_none() {
+        if let QuiverAlgebra::Quotient(quotient) = algebra {
+            return Ok(Some(quotient.cache_is_symmetric_algebra(false)));
+        }
+        return Ok(Some(false));
+    }
+    if let QuiverAlgebra::Path(path_algebra) = algebra {
+        return Ok(Some(path_algebra.quiver().number_of_arrows() == 0));
+    }
+    let QuiverAlgebra::Quotient(quotient) = algebra else {
+        unreachable!("every quiver algebra is a path algebra or quotient")
+    };
+    match is_selfinjective_algebra(algebra)? {
+        Some(false) => return Ok(Some(quotient.cache_is_symmetric_algebra(false))),
+        Some(true) => {}
+        None => return Ok(None),
+    }
+    let regular = algebra_as_module_over_enveloping_algebra(algebra)?
+        .ok_or(EnvelopingModuleError::InternalSymmetricRegularModuleFailed)?;
+    let dual = dual_of_algebra_as_module_over_enveloping_algebra(algebra)?
+        .ok_or(EnvelopingModuleError::InternalSymmetricDualModuleFailed)?;
+    let result = isomorphism_of_modules(&regular, &dual)?.is_some();
+    Ok(Some(quotient.cache_is_symmetric_algebra(result)))
+}
+
+/// Translate QPA's projective top/socle test for
+/// `IsWeaklySymmetricAlgebra(A)`.
+///
+/// A selfinjective algebra is weakly symmetric precisely when every
+/// indecomposable projective has the same dimension vector in its socle and
+/// top. `None` preserves the selfinjectivity method's nonadmissible quotient
+/// fall-through.
+///
+/// # Errors
+///
+/// Propagates selfinjectivity, projective, socle, and top computations.
+pub fn is_weakly_symmetric_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<bool>, EnvelopingModuleError> {
+    if let QuiverAlgebra::Quotient(quotient) = algebra
+        && let Some(cached) = quotient.cached_is_weakly_symmetric_algebra()
+    {
+        return Ok(Some(cached));
+    }
+    let Some(selfinjective) = is_selfinjective_algebra(algebra)? else {
+        return Ok(None);
+    };
+    if !selfinjective {
+        if let QuiverAlgebra::Quotient(quotient) = algebra {
+            return Ok(Some(quotient.cache_is_weakly_symmetric_algebra(false)));
+        }
+        return Ok(Some(false));
+    }
+    let mut result = true;
+    for projective in indec_projective_modules(algebra)? {
+        let socle = socle_of_module(projective.clone())?;
+        let top = top_of_module(projective)?;
+        if socle.dimension_vector() != top.dimension_vector() {
+            result = false;
+            break;
+        }
+    }
+    if let QuiverAlgebra::Quotient(quotient) = algebra {
+        result = quotient.cache_is_weakly_symmetric_algebra(result);
+    }
+    Ok(Some(result))
+}
+
+/// Translate QPA's `IsSchurianAlgebra(A)` dimension-vector method.
+///
+/// The method applies to path algebras and admissible quotients. It requires
+/// finite dimension and flattens the indecomposable-projective dimension
+/// vectors, accepting exactly when every entry is at most one. `None`
+/// preserves `TryNextMethod()` for a nonadmissible quotient.
+///
+/// # Errors
+///
+/// Reports QPA's explicit infinite-dimensional error and propagates the
+/// default admissibility, basis, and projective computations.
+pub fn is_schurian_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<bool>, EnvelopingModuleError> {
+    if let QuiverAlgebra::Quotient(quotient) = algebra {
+        if let Some(cached) = quotient.cached_is_schurian_algebra() {
+            return Ok(Some(cached));
+        }
+        if !quotient_is_admissible(quotient)? {
+            return Ok(None);
+        }
+    }
+    if finite_canonical_basis(algebra)?.is_none() {
+        return Err(EnvelopingModuleError::InfiniteSchurianAlgebra);
+    }
+    let result = indec_projective_modules(algebra)?
+        .iter()
+        .flat_map(PathAlgebraModule::dimension_vector)
+        .all(|&dimension| dimension <= 1);
+    if let QuiverAlgebra::Quotient(quotient) = algebra {
+        return Ok(Some(quotient.cache_is_schurian_algebra(result)));
+    }
+    Ok(Some(result))
+}
+
+/// Translate both QPA `IsSemicommutativeAlgebra` methods.
+///
+/// A path algebra must be schurian and acyclic. A quotient first rejects a
+/// cyclic original quiver, then requires the specialized schurian property,
+/// and finally checks for each ordered vertex pair that either every
+/// nontrivial path lies in the defining ideal or none does. `None` preserves
+/// the nested schurian method's nonadmissible fall-through.
+///
+/// # Errors
+///
+/// Propagates schurian, path-embedding, and exact ideal-membership failures.
+pub fn is_semicommutative_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<bool>, EnvelopingModuleError> {
+    if let QuiverAlgebra::Path(path_algebra) = algebra {
+        if !is_schurian_algebra(algebra)?.unwrap_or(false) {
+            return Ok(Some(false));
+        }
+        return Ok(Some(path_algebra.quiver().is_acyclic()));
+    }
+    let QuiverAlgebra::Quotient(quotient) = algebra else {
+        unreachable!("every quiver algebra is a path algebra or quotient")
+    };
+    if let Some(cached) = quotient.cached_is_semicommutative_algebra() {
+        return Ok(Some(cached));
+    }
+    let original = quotient.original_path_algebra();
+    if !original.quiver().is_acyclic() {
+        return Ok(Some(quotient.cache_is_semicommutative_algebra(false)));
+    }
+    match is_schurian_algebra(algebra)? {
+        Some(false) => return Ok(Some(quotient.cache_is_semicommutative_algebra(false))),
+        Some(true) => {}
+        None => return Ok(None),
+    }
+
+    let vertex_count = original.quiver().number_of_vertices();
+    let pair_count = vertex_count
+        .checked_mul(vertex_count)
+        .ok_or(EnvelopingModuleError::SemicommutativePairCountOverflow { vertex_count })?;
+    let mut membership = vec![(false, false); pair_count];
+    for path in original
+        .quiver()
+        .paths()
+        .filter(|path| path.length().is_some_and(|length| length > 0))
+    {
+        let (PathEndpoint::Vertex(source), PathEndpoint::Vertex(target)) =
+            (path.source(), path.target())
+        else {
+            unreachable!("a nontrivial path has vertex endpoints")
+        };
+        let position = (source.index().get() - 1) * vertex_count + target.index().get() - 1;
+        let lies_in_ideal = quotient.ideal().contains(original.element(path)?)?;
+        if lies_in_ideal {
+            membership[position].0 = true;
+        } else {
+            membership[position].1 = true;
+        }
+        if membership[position].0 && membership[position].1 {
+            return Ok(Some(quotient.cache_is_semicommutative_algebra(false)));
+        }
+    }
+    Ok(Some(quotient.cache_is_semicommutative_algebra(true)))
 }
 
 /// Translate QPA's cached `AnnihilatorOfModule(M)` basis attribute.
@@ -3359,6 +3548,24 @@ pub enum EnvelopingModuleError {
         /// Zero-based quiver vertex position.
         vertex: usize,
     },
+    /// QPA explicitly rejects infinite-dimensional input to its schurian
+    /// property method.
+    #[error("the entered algebra is not finite dimensional")]
+    InfiniteSchurianAlgebra,
+    /// A finite selfinjective quotient must construct its regular bimodule.
+    #[error("the internal symmetric-algebra regular bimodule construction returned fail")]
+    InternalSymmetricRegularModuleFailed,
+    /// A finite selfinjective quotient must construct its dual regular
+    /// bimodule.
+    #[error("the internal symmetric-algebra dual bimodule construction returned fail")]
+    InternalSymmetricDualModuleFailed,
+    /// The ordered vertex-pair table used by QPA's semicommutativity loop
+    /// must fit Rust's address space.
+    #[error("the semicommutative vertex-pair count for {vertex_count} vertices overflows usize")]
+    SemicommutativePairCountOverflow {
+        /// Number of quiver vertices.
+        vertex_count: usize,
+    },
     /// An annihilator basis requires QPA's finite canonical algebra basis.
     #[error("AnnihilatorOfModule requires a finite-dimensional algebra")]
     InfiniteAnnihilatorAlgebra,
@@ -3733,11 +3940,11 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult, TensorProductOfModulesResult,
-        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, d_tr,
-        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
-        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        EnvelopingModuleError, ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult,
+        TensorProductOfModulesResult, algebra_as_module_of_enveloping_algebra,
+        algebra_as_module_over_enveloping_algebra, annihilator_of_module, basis_of_projectives,
+        canonical_basis_coefficients, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
+        d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
@@ -3745,8 +3952,9 @@ mod tests {
         global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
         indec_injective_modules, indec_projective_modules, injective_envelope,
         is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
-        is_injective_module, is_projective_module, is_rigid_module, is_selfinjective_algebra,
-        is_tau_rigid_module, lifting_morphism_from_projective,
+        is_injective_module, is_projective_module, is_rigid_module, is_schurian_algebra,
+        is_selfinjective_algebra, is_semicommutative_algebra, is_symmetric_algebra,
+        is_tau_rigid_module, is_weakly_symmetric_algebra, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, nakayama_functor_of_module,
         nakayama_functor_of_module_homomorphism, opposite_nakayama_functor_of_module,
         opposite_nakayama_functor_of_module_homomorphism, projective_cover, random_module,
@@ -6860,11 +7068,12 @@ mod tests {
         let loop_quiver =
             Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
         let loop_parent = PathAlgebra::new(Z2, loop_quiver).unwrap();
-        let t = loop_parent
+        let loop_arrow = loop_parent
             .element(loop_parent.quiver().arrows().next().unwrap().path())
             .unwrap();
         let dual_numbers = QuiverAlgebra::Quotient(
-            quotient_by_relations(loop_parent, &[t.multiply(&t).unwrap()]).unwrap(),
+            quotient_by_relations(loop_parent, &[loop_arrow.multiply(&loop_arrow).unwrap()])
+                .unwrap(),
         );
 
         let result = json!({
@@ -7124,5 +7333,136 @@ mod tests {
         );
         assert_eq!(is_selfinjective_algebra(&nonadmissible).unwrap(), None);
         assert_eq!(is_hereditary_algebra(&nonadmissible).unwrap(), None);
+    }
+
+    fn symmetry_property_json<F: Field>(algebra: &QuiverAlgebra<F>) -> Value {
+        json!({
+            "symmetric": is_symmetric_algebra(algebra).unwrap().unwrap(),
+            "weakly_symmetric": is_weakly_symmetric_algebra(algebra).unwrap().unwrap(),
+            "schurian": is_schurian_algebra(algebra).unwrap().unwrap(),
+            "semicommutative": is_semicommutative_algebra(algebra).unwrap().unwrap()
+        })
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn pathalg_symmetry_property_cases<F: Field>(field: F) -> Value {
+        let discrete = isolated_path_algebra(field.clone(), 1);
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), a2_quiver).unwrap());
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let loop_path = QuiverAlgebra::Path(loop_parent.clone());
+        let t = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[t.multiply(&t).unwrap()]).unwrap(),
+        );
+
+        let diamond_quiver = Quiver::from_indexed(
+            4,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(1), vertex(3), "b"),
+                ArrowSpec::named(vertex(2), vertex(4), "c"),
+                ArrowSpec::named(vertex(3), vertex(4), "d"),
+            ],
+        )
+        .unwrap();
+        let diamond_parent = PathAlgebra::new(field.clone(), diamond_quiver).unwrap();
+        let diamond_arrows = diamond_parent.quiver().arrows().collect::<Vec<_>>();
+        let diamond_a = diamond_parent.element(diamond_arrows[0].path()).unwrap();
+        let diamond_b = diamond_parent.element(diamond_arrows[1].path()).unwrap();
+        let diamond_c = diamond_parent.element(diamond_arrows[2].path()).unwrap();
+        let diamond_d = diamond_parent.element(diamond_arrows[3].path()).unwrap();
+        let ac = diamond_a.multiply(&diamond_c).unwrap();
+        let bd = diamond_b.multiply(&diamond_d).unwrap();
+        let diamond_commutative = QuiverAlgebra::Quotient(
+            quotient_by_relations(diamond_parent.clone(), &[ac.sub(&bd).unwrap()]).unwrap(),
+        );
+        let diamond_one_path_zero = QuiverAlgebra::Quotient(
+            quotient_by_relations(diamond_parent.clone(), std::slice::from_ref(&ac)).unwrap(),
+        );
+        let diamond_path = QuiverAlgebra::Path(diamond_parent);
+
+        let cycle_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(3), "y"),
+                ArrowSpec::named(vertex(3), vertex(1), "z"),
+            ],
+        )
+        .unwrap();
+        let cycle_parent = PathAlgebra::new(field, cycle_quiver).unwrap();
+        let cycle_arrows = cycle_parent.quiver().arrows().collect::<Vec<_>>();
+        let cycle_x = cycle_parent.element(cycle_arrows[0].path()).unwrap();
+        let cycle_y = cycle_parent.element(cycle_arrows[1].path()).unwrap();
+        let cycle_z = cycle_parent.element(cycle_arrows[2].path()).unwrap();
+        let radical_square_zero_cycle = QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                cycle_parent,
+                &[
+                    cycle_x.multiply(&cycle_y).unwrap(),
+                    cycle_y.multiply(&cycle_z).unwrap(),
+                    cycle_z.multiply(&cycle_x).unwrap(),
+                ],
+            )
+            .unwrap(),
+        );
+
+        json!({
+            "path_discrete": symmetry_property_json(&discrete),
+            "path_a2": symmetry_property_json(&a2),
+            "path_loop": {
+                "symmetric": is_symmetric_algebra(&loop_path).unwrap().unwrap(),
+                "weakly_symmetric": is_weakly_symmetric_algebra(&loop_path).unwrap().unwrap()
+            },
+            "path_diamond": symmetry_property_json(&diamond_path),
+            "quotient_dual_numbers": symmetry_property_json(&dual_numbers),
+            "quotient_radical_square_zero_cycle":
+                symmetry_property_json(&radical_square_zero_cycle),
+            "quotient_diamond_commutative": symmetry_property_json(&diamond_commutative),
+            "quotient_diamond_one_path_zero": symmetry_property_json(&diamond_one_path_zero)
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_pathalg_symmetry_properties_match() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_symmetry_properties.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(pathalg_symmetry_property_cases(Z2), expected["f2"]);
+        assert_eq!(pathalg_symmetry_property_cases(Q), expected["rational"]);
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_path = QuiverAlgebra::Path(PathAlgebra::new(Z2, loop_quiver).unwrap());
+        assert_eq!(
+            is_schurian_algebra(&loop_path),
+            Err(EnvelopingModuleError::InfiniteSchurianAlgebra)
+        );
+        assert_eq!(
+            is_semicommutative_algebra(&loop_path),
+            Err(EnvelopingModuleError::InfiniteSchurianAlgebra)
+        );
+
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let parent = PathAlgebra::new(Z2, quiver).unwrap();
+        let arrow = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let nonadmissible = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, std::slice::from_ref(&arrow)).unwrap(),
+        );
+        assert_eq!(is_symmetric_algebra(&nonadmissible).unwrap(), None);
+        assert_eq!(is_weakly_symmetric_algebra(&nonadmissible).unwrap(), None);
+        assert_eq!(is_schurian_algebra(&nonadmissible).unwrap(), None);
+        assert_eq!(is_semicommutative_algebra(&nonadmissible).unwrap(), None);
     }
 }

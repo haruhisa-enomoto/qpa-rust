@@ -16509,9 +16509,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 76
 source_end = 76
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_symmetric_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16522,9 +16522,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 77
 source_end = 77
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_weakly_symmetric_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16535,9 +16535,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 78
 source_end = 78
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_schurian_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16548,9 +16548,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 79
 source_end = 79
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_semicommutative_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16561,9 +16561,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 80
 source_end = 80
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_semicommutative_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18082,9 +18082,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1973
 source_end = 1997
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_symmetric_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18095,9 +18095,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2037
 source_end = 2051
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_weakly_symmetric_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18121,9 +18121,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2090
 source_end = 2108
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_schurian_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18134,9 +18134,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2119
 source_end = 2134
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_semicommutative_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18147,9 +18147,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2151
 source_end = 2216
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_semicommutative_algebra"
+tests = ["tests/fixtures/pathalg_symmetry_properties.schema-v1.json","tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
