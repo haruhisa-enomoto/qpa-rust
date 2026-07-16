@@ -1587,6 +1587,242 @@ pub fn dual_of_module_homomorphism<F: Field>(
     Ok(homomorphism.cache_dual_homomorphism(&dual))
 }
 
+/// Translate QPA's cached `StarOfModule(M) = Hom_A(M, A)` construction.
+///
+/// The vertex at `i` is represented by QPA's ordered basis of
+/// `Hom_A(M, e_i A)`.  For every arrow `i -> j`, the opposite-arrow action is
+/// obtained by composing `Hom_A(M, e_j A)` with QPA's map `e_j A -> e_i A`
+/// induced by left multiplication by that arrow, then solving in the original
+/// raw physical Hom basis.
+///
+/// # Errors
+///
+/// Requires QPA's finite projective bases and propagates opposite-algebra,
+/// Hom, projective-map, exact coordinate, and checked-module failures.
+pub fn star_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_star_of_module() {
+        return Ok(cached);
+    }
+    let algebra = module.right_acting_algebra();
+    let opposite = match algebra {
+        QuiverAlgebra::Path(path_algebra) => QuiverAlgebra::Path(path_algebra.opposite()?),
+        QuiverAlgebra::Quotient(quotient) => {
+            QuiverAlgebra::Quotient(opposite_path_algebra(quotient)?)
+        }
+    };
+    let field = algebra.field().clone();
+    let projectives = indec_projective_modules(algebra)?;
+    let hom_spaces = projectives
+        .iter()
+        .map(|projective| {
+            hom_over_algebra(module, projective)?
+                .ok_or(EnvelopingModuleError::InternalStarHomRejected)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+    let hom_bases = hom_spaces
+        .iter()
+        .map(|basis| {
+            let Some(first) = basis.first() else {
+                return Ok(None);
+            };
+            Ok(Some(DenseMatrix::from_flat(
+                basis.len(),
+                first.flat_vertex_matrix_entries().len(),
+                basis
+                    .iter()
+                    .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+                    .collect(),
+                field.clone(),
+            )?))
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+    let dimensions = hom_spaces.iter().map(Vec::len).collect::<Vec<_>>();
+
+    // The source computes these subspace bases even though the local `Bproj`
+    // value is not subsequently read.
+    let _projective_bases =
+        basis_of_projectives(algebra)?.ok_or(EnvelopingModuleError::ProjectiveBasisUnavailable)?;
+
+    let arrows = algebra.quiver().arrows().collect::<Vec<_>>();
+    let opposite_arrows = opposite.quiver().arrows().collect::<Vec<_>>();
+    let mut left_multiplications = Vec::with_capacity(arrows.len());
+    for arrow in &arrows {
+        let source = arrow.source().index().get() - 1;
+        let generator = minimal_generating_set_of_module(projectives[source].clone())?
+            .into_iter()
+            .next()
+            .ok_or(EnvelopingModuleError::EmptyStarProjectiveGenerator)?;
+        let arrow_element = include_in_path_algebra(&arrow.path(), algebra)?;
+        let image = generator.act(&arrow_element)?;
+        let left_multiplication = hom_from_projective(&image, &projectives[source])?
+            .ok_or(EnvelopingModuleError::StarArrowMapNotUniform)?;
+        left_multiplications.push(left_multiplication);
+    }
+
+    let mut specification = Vec::new();
+    for (position, arrow) in arrows.iter().enumerate() {
+        let source = arrow.source().index().get() - 1;
+        let target = arrow.target().index().get() - 1;
+        if dimensions[source] == 0 || dimensions[target] == 0 {
+            continue;
+        }
+        let coordinate_basis = hom_bases[source]
+            .as_ref()
+            .ok_or(EnvelopingModuleError::MissingStarCoordinateBasis)?;
+        let rows = hom_spaces[target]
+            .iter()
+            .map(|homomorphism| {
+                let composite = homomorphism.compose(&left_multiplications[position])?;
+                coordinate_basis
+                    .solution_row(&composite.flat_vertex_matrix_entries())?
+                    .ok_or(EnvelopingModuleError::StarCompositionOutsideHomBasis)
+            })
+            .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+        specification.push(NamedArrowMatrix::new(
+            opposite_arrows[position].name(),
+            DenseMatrix::from_rows(rows, field.clone())?,
+        ));
+    }
+    let star = right_module_over_path_algebra(opposite, dimensions, &specification)?
+        .ok_or(EnvelopingModuleError::GeneratedStarViolatesRelations)?;
+    Ok(module.cache_star_of_module(&star))
+}
+
+/// Translate QPA's cached contravariant `StarOfModuleHomomorphism(f)`.
+///
+/// # Errors
+///
+/// Propagates both star-module constructions, Hom composition, exact
+/// coordinate solving, and the checked induced-map constructor.
+pub fn star_of_module_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    if let Some(cached) = homomorphism.cached_star_homomorphism() {
+        return Ok(cached);
+    }
+    let source = homomorphism.source();
+    let range = homomorphism.range();
+    let star_source = star_of_module(source)?;
+    let star_range = star_of_module(range)?;
+    let algebra = source.right_acting_algebra();
+    let field = algebra.field().clone();
+    let projectives = indec_projective_modules(algebra)?;
+
+    let range_homs = projectives
+        .iter()
+        .map(|projective| {
+            hom_over_algebra(range, projective)?
+                .ok_or(EnvelopingModuleError::InternalStarHomRejected)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+    let source_homs = projectives
+        .iter()
+        .map(|projective| {
+            hom_over_algebra(source, projective)?
+                .ok_or(EnvelopingModuleError::InternalStarHomRejected)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+
+    let mut maps = Vec::with_capacity(projectives.len());
+    for (vertex, (range_basis, source_basis)) in range_homs.iter().zip(&source_homs).enumerate() {
+        if !range_basis.is_empty() && !source_basis.is_empty() {
+            let coordinate_basis = DenseMatrix::from_flat(
+                source_basis.len(),
+                source_basis[0].flat_vertex_matrix_entries().len(),
+                source_basis
+                    .iter()
+                    .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+                    .collect(),
+                field.clone(),
+            )?;
+            let rows = range_basis
+                .iter()
+                .map(|basis_map| {
+                    let composite = homomorphism.compose(basis_map)?;
+                    coordinate_basis
+                        .solution_row(&composite.flat_vertex_matrix_entries())?
+                        .ok_or(EnvelopingModuleError::StarCompositionOutsideHomBasis)
+                })
+                .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+            maps.push(DenseMatrix::from_rows(rows, field.clone())?);
+        } else {
+            maps.push(DenseMatrix::zero(
+                star_range.dimension_vector()[vertex].max(1),
+                star_source.dimension_vector()[vertex].max(1),
+                field.clone(),
+            ));
+        }
+    }
+    let star = right_module_hom_over_algebra(star_range, star_source, maps)?;
+    Ok(homomorphism.cache_star_homomorphism(&star))
+}
+
+/// Translate QPA's cached `NakayamaFunctorOfModule(M)` composition.
+///
+/// # Errors
+///
+/// Propagates [`star_of_module`] and [`dual_of_module`].
+pub fn nakayama_functor_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_nakayama_functor_of_module() {
+        return Ok(cached);
+    }
+    let star = star_of_module(module)?;
+    let nakayama = dual_of_module(&star)?;
+    Ok(module.cache_nakayama_functor_of_module(&nakayama))
+}
+
+/// Translate QPA's cached `OppositeNakayamaFunctorOfModule(M)` composition.
+///
+/// # Errors
+///
+/// Propagates [`dual_of_module`] and [`star_of_module`].
+pub fn opposite_nakayama_functor_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_opposite_nakayama_functor_of_module() {
+        return Ok(cached);
+    }
+    let dual = dual_of_module(module)?;
+    let nakayama = star_of_module(&dual)?;
+    Ok(module.cache_opposite_nakayama_functor_of_module(&nakayama))
+}
+
+/// Translate QPA's cached Nakayama functor on a module homomorphism.
+///
+/// # Errors
+///
+/// Propagates star and dual homomorphism construction.
+pub fn nakayama_functor_of_module_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    if let Some(cached) = homomorphism.cached_nakayama_functor_homomorphism() {
+        return Ok(cached);
+    }
+    let star = star_of_module_homomorphism(homomorphism)?;
+    let nakayama = dual_of_module_homomorphism(&star)?;
+    Ok(homomorphism.cache_nakayama_functor_homomorphism(&nakayama))
+}
+
+/// Translate QPA's cached opposite Nakayama functor on a homomorphism.
+///
+/// # Errors
+///
+/// Propagates dual and star homomorphism construction.
+pub fn opposite_nakayama_functor_of_module_homomorphism<F: Field>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    if let Some(cached) = homomorphism.cached_opposite_nakayama_functor_homomorphism() {
+        return Ok(cached);
+    }
+    let dual = dual_of_module_homomorphism(homomorphism)?;
+    let nakayama = star_of_module_homomorphism(&dual)?;
+    Ok(homomorphism.cache_opposite_nakayama_functor_homomorphism(&nakayama))
+}
+
 /// Translate QPA's cached
 /// `DualOfAlgebraAsModuleOverEnvelopingAlgebra(A)` attribute.
 ///
@@ -1837,6 +2073,24 @@ pub enum EnvelopingModuleError {
     /// The coefficient closure accepts only maps in `Hom(Omega(M), N)`.
     #[error("the entered map is outside the Hom space used by ExtOverAlgebra")]
     ExtMapOutsideHomSpace,
+    /// Internal star Hom calls use modules over the already checked algebra.
+    #[error("HomOverAlgebra rejected an internal StarOfModule Hom space")]
+    InternalStarHomRejected,
+    /// Every indecomposable projective has its distinguished vertex generator.
+    #[error("an indecomposable projective has no generator in StarOfModule")]
+    EmptyStarProjectiveGenerator,
+    /// Arrow multiplication preserves one-vertex support.
+    #[error("left multiplication by an arrow did not define a projective map")]
+    StarArrowMapNotUniform,
+    /// A nonzero star vertex has a raw physical Hom basis.
+    #[error("a nonzero StarOfModule vertex has no coordinate basis")]
+    MissingStarCoordinateBasis,
+    /// Composition with left multiplication remains in the corresponding Hom space.
+    #[error("a StarOfModule composite lies outside its Hom basis")]
+    StarCompositionOutsideHomBasis,
+    /// Source-generated star actions satisfy the opposite relations.
+    #[error("the generated StarOfModule does not satisfy the opposite-algebra relations")]
+    GeneratedStarViolatesRelations,
     /// `SimpleModules` accepts quotients only after QPA's admissibility filter
     /// has been established.
     #[error("SimpleModules requires an admissible quotient of a path algebra")]
@@ -2068,7 +2322,7 @@ mod tests {
         PathAlgebraModuleMatrix, Quiver, QuiverAlgebra, QuiverAlgebraElement, VertexIndex,
         dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
         from_end_m_to_hom_mm, from_hom_mm_to_end_m, identity_module_mapping,
-        include_in_path_algebra, is_semisimple_module, is_simple_qpa_module,
+        include_in_path_algebra, is_semisimple_module, is_simple_qpa_module, kernel_inclusion,
         lifting_inclusion_morphisms, minimal_generating_set_of_module, radical_series,
         right_fac_approximation, right_module_hom_over_algebra, right_module_over_path_algebra,
         socle_of_module, socle_of_module_inclusion, top_of_module, top_of_module_projection,
@@ -2087,7 +2341,10 @@ mod tests {
         hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
         is_injective_module, is_projective_module, is_rigid_module,
         lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
-        projective_cover, simple_modules, socle_series,
+        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
+        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
+        projective_cover, simple_modules, socle_series, star_of_module,
+        star_of_module_homomorphism,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -2881,6 +3138,142 @@ mod tests {
             .collect()
     }
 
+    fn star_module_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = module.cached_star_of_module().is_some();
+        let value = star_of_module(module).unwrap();
+        let has_after = module.cached_star_of_module().is_some();
+        let repeated = star_of_module(module).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": attribute_module_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn nakayama_module_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = module.cached_nakayama_functor_of_module().is_some();
+        let value = nakayama_functor_of_module(module).unwrap();
+        let has_after = module.cached_nakayama_functor_of_module().is_some();
+        let repeated = nakayama_functor_of_module(module).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": attribute_module_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn opposite_nakayama_module_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = module
+            .cached_opposite_nakayama_functor_of_module()
+            .is_some();
+        let value = opposite_nakayama_functor_of_module(module).unwrap();
+        let has_after = module
+            .cached_opposite_nakayama_functor_of_module()
+            .is_some();
+        let repeated = opposite_nakayama_functor_of_module(module).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": attribute_module_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn module_functor_attribute_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let star = star_module_attribute_json(module, coefficient);
+        let nakayama = nakayama_module_attribute_json(module, coefficient);
+        let opposite_nakayama = opposite_nakayama_module_attribute_json(module, coefficient);
+        json!({
+            "star": star,
+            "nakayama": nakayama,
+            "opposite_nakayama": opposite_nakayama,
+        })
+    }
+
+    fn star_map_attribute_json<F: Field>(
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = homomorphism.cached_star_homomorphism().is_some();
+        let value = star_of_module_homomorphism(homomorphism).unwrap();
+        let has_after = homomorphism.cached_star_homomorphism().is_some();
+        let repeated = star_of_module_homomorphism(homomorphism).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": module_map_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn nakayama_map_attribute_json<F: Field>(
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = homomorphism
+            .cached_nakayama_functor_homomorphism()
+            .is_some();
+        let value = nakayama_functor_of_module_homomorphism(homomorphism).unwrap();
+        let has_after = homomorphism
+            .cached_nakayama_functor_homomorphism()
+            .is_some();
+        let repeated = nakayama_functor_of_module_homomorphism(homomorphism).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": module_map_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn opposite_nakayama_map_attribute_json<F: Field>(
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let has_before = homomorphism
+            .cached_opposite_nakayama_functor_homomorphism()
+            .is_some();
+        let value = opposite_nakayama_functor_of_module_homomorphism(homomorphism).unwrap();
+        let has_after = homomorphism
+            .cached_opposite_nakayama_functor_homomorphism()
+            .is_some();
+        let repeated = opposite_nakayama_functor_of_module_homomorphism(homomorphism).unwrap();
+        json!({
+            "has_before": has_before,
+            "value": module_map_json(&value, coefficient),
+            "has_after": has_after,
+            "repeat_identity": value.is_identical(&repeated),
+        })
+    }
+
+    fn map_functor_attribute_json<F: Field>(
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let star = star_map_attribute_json(homomorphism, coefficient);
+        let nakayama = nakayama_map_attribute_json(homomorphism, coefficient);
+        let opposite_nakayama = opposite_nakayama_map_attribute_json(homomorphism, coefficient);
+        json!({
+            "star": star,
+            "nakayama": nakayama,
+            "opposite_nakayama": opposite_nakayama,
+        })
+    }
+
     fn property_bound<F: Field>(module: &PathAlgebraModule<F>) -> Vec<bool> {
         vec![
             module.cached_is_injective_module().is_some(),
@@ -3338,6 +3731,91 @@ mod tests {
     }
 
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn functors_star_nakayama_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let simples = simple_modules(&algebra).unwrap();
+        let projectives = indec_projective_modules(&algebra).unwrap();
+        let zero = zero_module(&algebra).unwrap();
+        let cover = projective_cover(&simples[0]).unwrap();
+        let inclusion = kernel_inclusion(&cover).unwrap();
+
+        let mixed = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![field.one()], vec![field.zero()]], field.clone())
+                    .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let mixed_map = right_module_hom_over_algebra(
+            mixed.clone(),
+            mixed.clone(),
+            vec![
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![field.one(), field.zero()],
+                        vec![field.zero(), field.zero()],
+                    ],
+                    field.clone(),
+                )
+                .unwrap(),
+                DenseMatrix::from_rows(vec![vec![field.one()]], field.clone()).unwrap(),
+            ],
+        )
+        .unwrap();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let quotient = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let quotient_simple = simple_modules(&quotient).unwrap()[0].clone();
+        let quotient_projective = indec_projective_modules(&quotient).unwrap()[0].clone();
+        let quotient_x = include_in_path_algebra(
+            &quotient.quiver().arrows().next().unwrap().path(),
+            &quotient,
+        )
+        .unwrap();
+        let quotient_generator =
+            minimal_generating_set_of_module(quotient_projective.clone()).unwrap()[0].clone();
+        let radical_image = quotient_generator.act(&quotient_x).unwrap();
+        let quotient_radical_map = hom_from_projective(&radical_image, &quotient_projective)
+            .unwrap()
+            .unwrap();
+
+        json!({
+            "modules": {
+                "a2_s2": module_functor_attribute_json(&simples[1], coefficient),
+                "a2_p1": module_functor_attribute_json(&projectives[0], coefficient),
+                "a2_zero": module_functor_attribute_json(&zero, coefficient),
+                "a2_mixed": module_functor_attribute_json(&mixed, coefficient),
+                "dual_simple": module_functor_attribute_json(&quotient_simple, coefficient),
+                "dual_projective": module_functor_attribute_json(
+                    &quotient_projective,
+                    coefficient,
+                ),
+            },
+            "maps": {
+                "a2_inclusion": map_functor_attribute_json(&inclusion, coefficient),
+                "a2_endomorphism": map_functor_attribute_json(&mixed_map, coefficient),
+                "dual_radical": map_functor_attribute_json(&quotient_radical_map, coefficient),
+            },
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
     fn modulehom_ext_case<F: Field>(
         field: F,
         coefficient: impl Fn(&F::Element) -> String + Copy,
@@ -3751,6 +4229,24 @@ mod tests {
         .unwrap();
         let rational = modulehom_ext_case(Q, ToString::to_string);
         let binary = modulehom_ext_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_star_and_nakayama_functor_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/functors_star_nakayama.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = functors_star_nakayama_case(Q, ToString::to_string);
+        let binary = functors_star_nakayama_case(Z2, |entry| {
             if Z2.is_zero(entry) {
                 "0*Z(2)".to_owned()
             } else {

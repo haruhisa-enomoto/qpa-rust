@@ -38,8 +38,10 @@ pub use module::{
     first_syzygy, from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
     hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
     is_injective_module, is_projective_module, is_rigid_module, lifting_morphism_from_projective,
-    loewy_length_of_algebra, matrix_of_homomorphism_between_projectives, projective_cover,
-    simple_modules, socle_series,
+    loewy_length_of_algebra, matrix_of_homomorphism_between_projectives,
+    nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
+    opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
+    projective_cover, simple_modules, socle_series, star_of_module, star_of_module_homomorphism,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,

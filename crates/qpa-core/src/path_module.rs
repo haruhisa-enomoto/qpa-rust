@@ -83,6 +83,9 @@ struct PathAlgebraModuleData<F: Field> {
     retained_tensor: Option<TensorProductAlgebra<F>>,
     dual_weak: RwLock<Option<WeakPathAlgebraModule<F>>>,
     dual_strong: OnceLock<PathAlgebraModule<F>>,
+    star_of_module: OnceLock<PathAlgebraModule<F>>,
+    nakayama_functor: OnceLock<PathAlgebraModule<F>>,
+    opposite_nakayama_functor: OnceLock<PathAlgebraModule<F>>,
     endomorphism_algebra: OnceLock<ModuleEndomorphismAlgebra<F>>,
     top_module: OnceLock<PathAlgebraModule<F>>,
     top_projection_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
@@ -116,6 +119,9 @@ impl<F: Field> PathAlgebraModuleData<F> {
             retained_tensor,
             dual_weak: RwLock::new(None),
             dual_strong: OnceLock::new(),
+            star_of_module: OnceLock::new(),
+            nakayama_functor: OnceLock::new(),
+            opposite_nakayama_functor: OnceLock::new(),
             endomorphism_algebra: OnceLock::new(),
             top_module: OnceLock::new(),
             top_projection_weak: RwLock::new(None),
@@ -307,6 +313,54 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_is_rigid_module(&self, value: bool) -> bool {
         *self.0.is_rigid.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `StarOfModule` attribute, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_star_of_module(&self) -> Option<Self> {
+        self.0.star_of_module.get().cloned()
+    }
+
+    /// Install QPA's `StarOfModule` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_star_of_module(&self, value: &Self) -> Self {
+        self.0.star_of_module.get_or_init(|| value.clone()).clone()
+    }
+
+    /// Return QPA's cached `NakayamaFunctorOfModule` attribute, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_nakayama_functor_of_module(&self) -> Option<Self> {
+        self.0.nakayama_functor.get().cloned()
+    }
+
+    /// Install QPA's `NakayamaFunctorOfModule` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_nakayama_functor_of_module(&self, value: &Self) -> Self {
+        self.0
+            .nakayama_functor
+            .get_or_init(|| value.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached `OppositeNakayamaFunctorOfModule` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_opposite_nakayama_functor_of_module(&self) -> Option<Self> {
+        self.0.opposite_nakayama_functor.get().cloned()
+    }
+
+    /// Install QPA's `OppositeNakayamaFunctorOfModule` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_opposite_nakayama_functor_of_module(&self, value: &Self) -> Self {
+        self.0
+            .opposite_nakayama_functor
+            .get_or_init(|| value.clone())
+            .clone()
     }
 
     /// Return QPA's cached `IsInjectiveModule` value, if installed.
@@ -936,6 +990,9 @@ struct PathAlgebraModuleHomomorphismData<F: Field> {
     )>,
     cokernel_projection: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     dual_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    star_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    nakayama_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
+    opposite_nakayama_homomorphism: OnceLock<PathAlgebraModuleHomomorphism<F>>,
     is_injective: OnceLock<bool>,
     is_surjective: OnceLock<bool>,
     is_split_monomorphism: OnceLock<bool>,
@@ -1465,6 +1522,57 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
         self.0
             .dual_homomorphism
             .get_or_init(|| dual.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached `StarOfModuleHomomorphism` attribute, if set.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_star_homomorphism(&self) -> Option<Self> {
+        self.0.star_homomorphism.get().cloned()
+    }
+
+    /// Install QPA's `StarOfModuleHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_star_homomorphism(&self, value: &Self) -> Self {
+        self.0
+            .star_homomorphism
+            .get_or_init(|| value.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached `NakayamaFunctorOfModuleHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_nakayama_functor_homomorphism(&self) -> Option<Self> {
+        self.0.nakayama_homomorphism.get().cloned()
+    }
+
+    /// Install QPA's `NakayamaFunctorOfModuleHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_nakayama_functor_homomorphism(&self, value: &Self) -> Self {
+        self.0
+            .nakayama_homomorphism
+            .get_or_init(|| value.clone())
+            .clone()
+    }
+
+    /// Return QPA's cached opposite-Nakayama homomorphism attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_opposite_nakayama_functor_homomorphism(&self) -> Option<Self> {
+        self.0.opposite_nakayama_homomorphism.get().cloned()
+    }
+
+    /// Install QPA's opposite-Nakayama homomorphism attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_opposite_nakayama_functor_homomorphism(&self, value: &Self) -> Self {
+        self.0
+            .opposite_nakayama_homomorphism
+            .get_or_init(|| value.clone())
             .clone()
     }
 
@@ -2027,6 +2135,9 @@ pub fn right_module_hom_over_algebra<F: Field>(
             image_projection_inclusion: OnceLock::new(),
             cokernel_projection: OnceLock::new(),
             dual_homomorphism: OnceLock::new(),
+            star_homomorphism: OnceLock::new(),
+            nakayama_homomorphism: OnceLock::new(),
+            opposite_nakayama_homomorphism: OnceLock::new(),
             is_injective: OnceLock::new(),
             is_surjective: OnceLock::new(),
             is_split_monomorphism: OnceLock::new(),

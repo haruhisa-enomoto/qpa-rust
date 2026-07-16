@@ -4744,9 +4744,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_module"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4757,9 +4757,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_module_homomorphism"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4770,9 +4770,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_functor_of_module"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4783,9 +4783,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_functor_of_module_homomorphism"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4796,9 +4796,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "opposite_nakayama_functor_of_module"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4809,9 +4809,9 @@ source_file = "upstream/qpa/lib/functors.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "opposite_nakayama_functor_of_module_homomorphism"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4952,9 +4952,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 424
 source_end = 491
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_module"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4965,9 +4965,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 502
 source_end = 576
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_module_homomorphism"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4978,9 +4978,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 586
 source_end = 594
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_functor_of_module"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4991,9 +4991,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 603
 source_end = 611
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "opposite_nakayama_functor_of_module"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5004,9 +5004,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 622
 source_end = 630
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_functor_of_module_homomorphism"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5017,9 +5017,9 @@ source_file = "upstream/qpa/lib/functors.gi"
 source_start = 641
 source_end = 649
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "opposite_nakayama_functor_of_module_homomorphism"
+tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
 
 [[entries]]

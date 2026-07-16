@@ -1,0 +1,1524 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp": "1.1.0@e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "modules": {
+      "a2_s2": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_p1": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_zero": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_mixed": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  2
+                ],
+                "rows": [
+                  [
+                    "1",
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "dual_simple": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "dual_projective": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0",
+                    "0"
+                  ],
+                  [
+                    "1",
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0",
+                    "1"
+                  ],
+                  [
+                    "0",
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0",
+                    "1"
+                  ],
+                  [
+                    "0",
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      }
+    },
+    "maps": {
+      "a2_inclusion": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              0
+            ],
+            "range_dimension": [
+              1,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              1
+            ],
+            "range_dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              0,
+              0
+            ],
+            "range_dimension": [
+              0,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_endomorphism": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              0
+            ],
+            "range_dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              0
+            ],
+            "range_dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "1"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              2
+            ],
+            "range_dimension": [
+              1,
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0",
+                    "0"
+                  ],
+                  [
+                    "0",
+                    "1"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "dual_radical": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              2
+            ],
+            "range_dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0",
+                    "0"
+                  ],
+                  [
+                    "1",
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              2
+            ],
+            "range_dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0",
+                    "1"
+                  ],
+                  [
+                    "0",
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              2
+            ],
+            "range_dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0",
+                    "1"
+                  ],
+                  [
+                    "0",
+                    "0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      }
+    }
+  },
+  "binary": {
+    "modules": {
+      "a2_s2": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "Z(2)^0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "Z(2)^0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_p1": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_zero": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              0,
+              0
+            ],
+            "matrices": [
+              "0"
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_mixed": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1,
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  2
+                ],
+                "rows": [
+                  [
+                    "Z(2)^0",
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "dual_simple": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "dual_projective": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)",
+                    "0*Z(2)"
+                  ],
+                  [
+                    "Z(2)^0",
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)",
+                    "Z(2)^0"
+                  ],
+                  [
+                    "0*Z(2)",
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)",
+                    "Z(2)^0"
+                  ],
+                  [
+                    "0*Z(2)",
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      }
+    },
+    "maps": {
+      "a2_inclusion": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              0
+            ],
+            "range_dimension": [
+              1,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "Z(2)^0"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              1
+            ],
+            "range_dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "Z(2)^0"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              0,
+              0
+            ],
+            "range_dimension": [
+              0,
+              1
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "a2_endomorphism": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              0
+            ],
+            "range_dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "Z(2)^0"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              0
+            ],
+            "range_dimension": [
+              1,
+              0
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "Z(2)^0"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              1,
+              2
+            ],
+            "range_dimension": [
+              1,
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  1,
+                  1
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)"
+                  ]
+                ]
+              },
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)",
+                    "0*Z(2)"
+                  ],
+                  [
+                    "0*Z(2)",
+                    "Z(2)^0"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      },
+      "dual_radical": {
+        "star": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              2
+            ],
+            "range_dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)",
+                    "0*Z(2)"
+                  ],
+                  [
+                    "Z(2)^0",
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              2
+            ],
+            "range_dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)",
+                    "Z(2)^0"
+                  ],
+                  [
+                    "0*Z(2)",
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        },
+        "opposite_nakayama": {
+          "has_before": false,
+          "value": {
+            "source_dimension": [
+              2
+            ],
+            "range_dimension": [
+              2
+            ],
+            "matrices": [
+              {
+                "shape": [
+                  2,
+                  2
+                ],
+                "rows": [
+                  [
+                    "0*Z(2)",
+                    "Z(2)^0"
+                  ],
+                  [
+                    "0*Z(2)",
+                    "0*Z(2)"
+                  ]
+                ]
+              }
+            ]
+          },
+          "has_after": true,
+          "repeat_identity": true
+        }
+      }
+    }
+  }
+}

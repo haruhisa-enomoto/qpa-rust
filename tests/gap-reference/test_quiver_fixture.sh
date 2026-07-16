@@ -94,6 +94,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_ext.g" \
     "$repo_root/tests/fixtures/modulehom_ext.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/functors_star_nakayama.g" \
+    "$repo_root/tests/fixtures/functors_star_nakayama.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
 compare_fixture \
