@@ -8,9 +8,9 @@
     "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
   },
   "properties": {
-    "line": {"size": 7, "connected": true, "unoriented_acyclic": true, "tree": true},
-    "parallel": {"size": 9, "connected": true, "unoriented_acyclic": false, "tree": false},
-    "cyclic": {"size": "infinity", "connected": true, "unoriented_acyclic": false, "tree": false}
+    "line": {"size": 7, "finite": true, "connected": true, "unoriented_acyclic": true, "tree": true},
+    "parallel": {"size": 9, "finite": true, "connected": true, "unoriented_acyclic": false, "tree": false},
+    "cyclic": {"size": "infinity", "finite": false, "connected": true, "unoriented_acyclic": false, "tree": false}
   },
   "components": [
     {"vertices": ["q", "p"], "arrows": [{"name": "x", "source": "p", "target": "q"}]},
@@ -72,21 +72,21 @@
     ]
   },
   "exhaustive": [
-    [0,true,false,true,false,[2,1]],
-    [1,false,false,false,false,[]],
-    [2,true,true,true,true,[1,2]],
-    [3,false,true,false,false,[]],
-    [4,true,true,true,true,[2,1]],
-    [5,false,true,false,false,[]],
-    [6,false,true,false,false,[]],
-    [7,false,true,false,false,[]],
-    [8,false,false,false,false,[]],
-    [9,false,false,false,false,[]],
-    [10,false,true,false,false,[]],
-    [11,false,true,false,false,[]],
-    [12,false,true,false,false,[]],
-    [13,false,true,false,false,[]],
-    [14,false,true,false,false,[]],
-    [15,false,true,false,false,[]]
+    [0,true,true,false,true,false,[2,1]],
+    [1,false,false,false,false,false,[]],
+    [2,true,true,true,true,true,[1,2]],
+    [3,false,false,true,false,false,[]],
+    [4,true,true,true,true,true,[2,1]],
+    [5,false,false,true,false,false,[]],
+    [6,false,false,true,false,false,[]],
+    [7,false,false,true,false,false,[]],
+    [8,false,false,false,false,false,[]],
+    [9,false,false,false,false,false,[]],
+    [10,false,false,true,false,false,[]],
+    [11,false,false,true,false,false,[]],
+    [12,false,false,true,false,false,[]],
+    [13,false,false,true,false,false,[]],
+    [14,false,false,true,false,false,[]],
+    [15,false,false,true,false,false,[]]
   ]
 }

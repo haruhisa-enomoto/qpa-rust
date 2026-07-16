@@ -8,6 +8,8 @@ use numerica::domains::Field;
 use qpa_core::{AlgebraDimension, PathAlgebra, QuiverAlgebra, QuiverError};
 use thiserror::Error;
 
+pub use qpa_core::DYNKIN_UNORIENTED_CYCLE_MESSAGE as DYNKIN_ORIENTED_CYCLE_MESSAGE;
+
 use crate::{
     module::{
         EnvelopingModuleError, d_tr, indec_injective_modules, indec_projective_modules,
@@ -27,10 +29,6 @@ pub const FINITE_TYPE_DYNKIN_MESSAGE: &str =
 /// QPA's final non-Dynkin message from the path-algebra finite-type method.
 pub const INFINITE_TYPE_NON_DYNKIN_MESSAGE: &str =
     "Infinite type!\nQuiver is not a (union of) Dynkin quiver(s).\n";
-
-/// QPA's message when `IsDynkinQuiver` rejects a connected component by its
-/// arrow count.
-pub const DYNKIN_ORIENTED_CYCLE_MESSAGE: &str = "Quiver contains an (un)oriented cycle.\n";
 
 /// QPA's unconditional diagnostic at the start of `BongartzTest` after its
 /// admissibility check.
@@ -122,12 +120,10 @@ pub fn path_algebra_finite_type<F: Field>(
 
     let mut messages = Vec::new();
     for component in quiver.connected_components()? {
-        if let Some(dynkin) = component.dynkin_type() {
-            messages.push(format!("{}_{}\n", dynkin.family, dynkin.rank).into_boxed_str());
+        let dynkin = component.dynkin_decision();
+        messages.extend(dynkin.messages().iter().cloned());
+        if dynkin.is_dynkin() {
             continue;
-        }
-        if component.number_of_arrows() != component.number_of_vertices().saturating_sub(1) {
-            messages.push(DYNKIN_ORIENTED_CYCLE_MESSAGE.into());
         }
         messages.push(INFINITE_TYPE_NON_DYNKIN_MESSAGE.into());
         return Ok(PathAlgebraFiniteTypeDecision {

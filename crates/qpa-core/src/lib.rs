@@ -73,9 +73,10 @@ pub use path_module::{
 };
 pub use poset::{Poset, PosetError};
 pub use quiver::{
-    Arrow, ArrowIndex, ArrowSpec, DynkinFamily, DynkinOrientation, DynkinType, Generator,
-    NamedArrowSpec, Path, PathEndpoint, PathError, PathIterator, Quiver, QuiverCardinality,
-    QuiverError, Vertex, VertexIndex,
+    Arrow, ArrowIndex, ArrowSpec, DYNKIN_NOT_CONNECTED_MESSAGE, DYNKIN_UNORIENTED_CYCLE_MESSAGE,
+    DynkinDecision, DynkinFamily, DynkinOrientation, DynkinType, Generator, NamedArrowSpec, Path,
+    PathEndpoint, PathError, PathIterator, Quiver, QuiverCardinality, QuiverError, Vertex,
+    VertexIndex,
 };
 pub use quotient::{
     AlgebraDimension, NaturalQuotientMap, PathAlgebraIdeal, QuotientCanonicalBasis, QuotientError,

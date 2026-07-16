@@ -177,6 +177,45 @@ pub struct DynkinType {
     pub rank: usize,
 }
 
+impl fmt::Display for DynkinType {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "{}_{}", self.family, self.rank)
+    }
+}
+
+/// QPA's diagnostic when `IsDynkinQuiver` receives a disconnected quiver.
+pub const DYNKIN_NOT_CONNECTED_MESSAGE: &str = "Quiver is not connected.\n";
+
+/// QPA's diagnostic when `IsDynkinQuiver` rejects the quiver by arrow count.
+pub const DYNKIN_UNORIENTED_CYCLE_MESSAGE: &str = "Quiver contains an (un)oriented cycle.\n";
+
+/// QPA's Boolean Dynkin decision together with its ordered printed output.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DynkinDecision {
+    dynkin_type: Option<DynkinType>,
+    messages: Vec<Box<str>>,
+}
+
+impl DynkinDecision {
+    /// Return the recognized Dynkin type, or `None` for QPA's `false`.
+    #[must_use]
+    pub const fn dynkin_type(&self) -> Option<DynkinType> {
+        self.dynkin_type
+    }
+
+    /// Return QPA's Boolean result.
+    #[must_use]
+    pub const fn is_dynkin(&self) -> bool {
+        self.dynkin_type.is_some()
+    }
+
+    /// Return the lines printed by QPA in source order.
+    #[must_use]
+    pub fn messages(&self) -> &[Box<str>] {
+        &self.messages
+    }
+}
+
 /// The finite/infinite result of QPA's `Size` method for a quiver.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum QuiverCardinality {
@@ -636,6 +675,12 @@ impl Quiver {
         self.topological_order().is_some()
     }
 
+    /// Translate QPA's immediate `IsFinite` method for an acyclic quiver.
+    #[must_use]
+    pub fn is_finite(&self) -> bool {
+        self.is_acyclic()
+    }
+
     /// Return QPA's DFS topological order, or `None` when a cycle is found.
     #[must_use]
     pub fn topological_order(&self) -> Option<Vec<Vertex>> {
@@ -724,9 +769,36 @@ impl Quiver {
     /// to QPA's `false`.
     #[must_use]
     pub fn dynkin_type(&self) -> Option<DynkinType> {
-        if !self.is_tree() {
-            return None;
+        self.dynkin_decision().dynkin_type()
+    }
+
+    /// Translate `IsDynkinQuiver`, including its printed side effects.
+    #[must_use]
+    pub fn dynkin_decision(&self) -> DynkinDecision {
+        if !self.is_connected() {
+            return DynkinDecision {
+                dynkin_type: None,
+                messages: vec![DYNKIN_NOT_CONNECTED_MESSAGE.into()],
+            };
         }
+        if self.number_of_vertices().checked_sub(1) != Some(self.number_of_arrows()) {
+            return DynkinDecision {
+                dynkin_type: None,
+                messages: vec![DYNKIN_UNORIENTED_CYCLE_MESSAGE.into()],
+            };
+        }
+
+        let dynkin_type = self.classify_dynkin_tree();
+        let messages = dynkin_type
+            .map(|value| vec![format!("{value}\n").into_boxed_str()])
+            .unwrap_or_default();
+        DynkinDecision {
+            dynkin_type,
+            messages,
+        }
+    }
+
+    fn classify_dynkin_tree(&self) -> Option<DynkinType> {
         let high_degree = self
             .vertices()
             .filter(|vertex| vertex.in_degree() + vertex.out_degree() > 2)
@@ -2041,6 +2113,8 @@ fn position_of_name(names: &[Box<str>], name: &str) -> Option<VertexIndex> {
 
 #[cfg(test)]
 mod tests {
+    use std::fmt::Write as _;
+
     use numerica::domains::integer::Integer;
     use serde_json::{Value, json};
 
@@ -2065,6 +2139,19 @@ mod tests {
                 ArrowSpec::named(vertex(2), vertex(3), "b"),
                 ArrowSpec::named(vertex(3), vertex(2), "c"),
             ],
+        )
+        .unwrap()
+    }
+
+    fn quiver_from_edges(number_of_vertices: usize, edges: &[(usize, usize, &str)]) -> Quiver {
+        Quiver::from_indexed(
+            number_of_vertices,
+            edges
+                .iter()
+                .map(|(source, target, name)| {
+                    ArrowSpec::named(vertex(*source), vertex(*target), *name)
+                })
+                .collect(),
         )
         .unwrap()
     }
@@ -2296,6 +2383,12 @@ mod tests {
                 .collect::<Vec<_>>(),
             ["r"]
         );
+
+        let foreign = Quiver::from_indexed(1, Vec::new()).unwrap();
+        assert_eq!(
+            disconnected.full_subquiver(&[foreign.vertex(vertex(1)).unwrap()]),
+            Err(super::QuiverError::DifferentQuivers)
+        );
     }
 
     #[test]
@@ -2362,6 +2455,71 @@ mod tests {
     }
 
     #[test]
+    fn dynkin_decision_matches_pinned_qpa_output() {
+        let cases = [
+            (
+                "A4",
+                quiver_from_edges(4, &[(1, 2, "a"), (2, 3, "b"), (3, 4, "c")]),
+            ),
+            (
+                "D5",
+                quiver_from_edges(5, &[(1, 3, "a"), (2, 3, "b"), (3, 4, "c"), (4, 5, "d")]),
+            ),
+            (
+                "E8",
+                quiver_from_edges(
+                    8,
+                    &[
+                        (1, 2, "a1"),
+                        (1, 3, "b1"),
+                        (3, 4, "b2"),
+                        (1, 5, "c1"),
+                        (5, 6, "c2"),
+                        (6, 7, "c3"),
+                        (7, 8, "c4"),
+                    ],
+                ),
+            ),
+            ("DISCONNECTED", quiver_from_edges(2, &[])),
+            ("CYCLE", quiver_from_edges(2, &[(1, 2, "a"), (2, 1, "b")])),
+            (
+                "FOUR_ARMS",
+                quiver_from_edges(5, &[(1, 2, "a"), (1, 3, "b"), (1, 4, "c"), (1, 5, "d")]),
+            ),
+            (
+                "LONG_STAR",
+                quiver_from_edges(
+                    9,
+                    &[
+                        (1, 2, "a1"),
+                        (1, 3, "b1"),
+                        (3, 4, "b2"),
+                        (1, 5, "c1"),
+                        (5, 6, "c2"),
+                        (6, 7, "c3"),
+                        (7, 8, "c4"),
+                        (8, 9, "c5"),
+                    ],
+                ),
+            ),
+        ];
+
+        let mut actual = String::new();
+        for (label, quiver) in cases {
+            let decision = quiver.dynkin_decision();
+            writeln!(actual, "BEGIN_{label}").unwrap();
+            for message in decision.messages() {
+                actual.push_str(message);
+            }
+            writeln!(actual, "RESULT_{label}={}", decision.is_dynkin()).unwrap();
+        }
+        assert_eq!(
+            actual,
+            include_str!("../../../tests/fixtures/quiver_dynkin_output.txt")
+        );
+    }
+
+    #[test]
     #[allow(clippy::too_many_lines)]
     fn pinned_qpa_quiver_graph_fixture_matches() {
         use DynkinOrientation::{Down, Left, Right};
@@ -2388,6 +2546,7 @@ mod tests {
         let properties = |quiver: &Quiver| {
             json!({
                 "size": cardinality_json(quiver.cardinality()),
+                "finite": quiver.is_finite(),
                 "connected": quiver.is_connected(),
                 "unoriented_acyclic": quiver.is_unoriented_acyclic(),
                 "tree": quiver.is_tree()
@@ -2474,6 +2633,7 @@ mod tests {
             exhaustive.push(json!([
                 quiver_mask,
                 quiver.is_acyclic(),
+                quiver.is_finite(),
                 quiver.is_connected(),
                 quiver.is_unoriented_acyclic(),
                 quiver.is_tree(),

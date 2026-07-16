@@ -70,7 +70,7 @@ for quiver_mask in [0..15] do
     else
         topological := [];;
     fi;
-    Add(exhaustive, [quiver_mask, acyclic,
+    Add(exhaustive, [quiver_mask, acyclic, IsFinite(test_quiver),
         IsConnectedQuiver(test_quiver), IsUAcyclicQuiver(test_quiver),
         IsTreeQuiver(test_quiver), topological]);
 od;
@@ -86,15 +86,17 @@ Print(",\"qpa_revision\":");
 PrintJsonString(GAPInfo.SystemEnvironment.QPA_ORACLE_QPA_REVISION);
 Print("},\"properties\":{");
 Print("\"line\":{\"size\":", Size(line),
+      ",\"finite\":", IsFinite(line),
       ",\"connected\":", IsConnectedQuiver(line),
       ",\"unoriented_acyclic\":", IsUAcyclicQuiver(line),
       ",\"tree\":", IsTreeQuiver(line), "},");
 Print("\"parallel\":{\"size\":", Size(parallel),
+      ",\"finite\":", IsFinite(parallel),
       ",\"connected\":", IsConnectedQuiver(parallel),
       ",\"unoriented_acyclic\":", IsUAcyclicQuiver(parallel),
       ",\"tree\":", IsTreeQuiver(parallel), "},");
-Print("\"cyclic\":{\"size\":\"infinity\",\"connected\":",
-      IsConnectedQuiver(cyclic),
+Print("\"cyclic\":{\"size\":\"infinity\",\"finite\":", IsFinite(cyclic),
+      ",\"connected\":", IsConnectedQuiver(cyclic),
       ",\"unoriented_acyclic\":", IsUAcyclicQuiver(cyclic),
       ",\"tree\":", IsTreeQuiver(cyclic), "}}");
 Print(",\"components\":[");

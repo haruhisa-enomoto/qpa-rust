@@ -1,0 +1,19 @@
+BEGIN_A4
+A_4
+RESULT_A4=true
+BEGIN_D5
+D_5
+RESULT_D5=true
+BEGIN_E8
+E_8
+RESULT_E8=true
+BEGIN_DISCONNECTED
+Quiver is not connected.
+RESULT_DISCONNECTED=false
+BEGIN_CYCLE
+Quiver contains an (un)oriented cycle.
+RESULT_CYCLE=false
+BEGIN_FOUR_ARMS
+RESULT_FOUR_ARMS=false
+BEGIN_LONG_STAR
+RESULT_LONG_STAR=false

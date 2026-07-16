@@ -23152,9 +23152,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_acyclic; Quiver::topological_order"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23165,9 +23165,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 6
 source_end = 6
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_finite"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23178,9 +23178,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_connected"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23191,9 +23191,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_tree"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23204,9 +23204,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_unoriented_acyclic"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23217,9 +23217,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_decision; Quiver::dynkin_type"
+tests = ["tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23230,9 +23230,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::full_subquiver"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_graph_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23243,9 +23243,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::connected_components"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23256,9 +23256,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gi"
 source_start = 13
 source_end = 75
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_acyclic; Quiver::topological_order"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23269,9 +23269,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gi"
 source_start = 86
 source_end = 136
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_connected"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23282,9 +23282,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gi"
 source_start = 149
 source_end = 217
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_unoriented_acyclic"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23295,9 +23295,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gi"
 source_start = 235
 source_end = 244
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_tree"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23308,9 +23308,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gi"
 source_start = 256
 source_end = 350
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_decision; Quiver::dynkin_type"
+tests = ["tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23321,9 +23321,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gi"
 source_start = 364
 source_end = 392
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::full_subquiver"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_graph_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23334,9 +23334,9 @@ source_file = "upstream/qpa/lib/quivergraphalgorithms.gi"
 source_start = 404
 source_end = 458
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::connected_components"
+tests = ["tests/fixtures/quiver_graph.schema-v1.json"]
 deviations = []
 
 [[entries]]
