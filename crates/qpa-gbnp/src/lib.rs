@@ -100,9 +100,10 @@ pub use reduction::{
     strong_normal_form_np, strong_normal_form_two,
 };
 pub use reptype::{
-    DYNKIN_ORIENTED_CYCLE_MESSAGE, FINITE_TYPE_DYNKIN_MESSAGE, FINITE_TYPE_SEMISIMPLE_MESSAGE,
-    INFINITE_TYPE_NON_DYNKIN_MESSAGE, PathAlgebraFiniteTypeDecision, PathAlgebraFiniteTypeReason,
-    path_algebra_finite_type,
+    BONGARTZ_ENTERING_MESSAGE, BongartzTestDecision, DYNKIN_ORIENTED_CYCLE_MESSAGE,
+    FINITE_TYPE_DYNKIN_MESSAGE, FINITE_TYPE_SEMISIMPLE_MESSAGE, INFINITE_TYPE_NON_DYNKIN_MESSAGE,
+    PathAlgebraFiniteTypeDecision, PathAlgebraFiniteTypeReason, RepresentationTypeError,
+    bongartz_test, path_algebra_finite_type,
 };
 pub use sgrobner::{
     SgrobnerError, SgrobnerResult, all_obstructions, sgrobner, sgrobner_loops,

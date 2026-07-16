@@ -19460,9 +19460,9 @@ source_file = "upstream/qpa/lib/pathalgreptype.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "bongartz_test; BongartzTestDecision"
+tests = ["tests/fixtures/reptype_bongartz.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -19486,9 +19486,9 @@ source_file = "upstream/qpa/lib/pathalgreptype.gi"
 source_start = 49
 source_end = 96
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "bongartz_test; BongartzTestDecision"
+tests = ["tests/fixtures/reptype_bongartz.schema-v1.json"]
 deviations = []
 
 [[entries]]

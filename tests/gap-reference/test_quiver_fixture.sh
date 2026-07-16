@@ -45,6 +45,21 @@ compare_catching_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_prefixed_catching_fixture() {
+    source_script=$1
+    fixture=$2
+    prefix=$3
+    expected_count=$4
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw"
+    actual_count=$(grep -Fc "$prefix" "$raw")
+    test "$actual_count" -eq "$expected_count"
+    sed -n '/^{"schema_version":/,$p' "$raw" |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_text_fixture() {
     source_script=$1
     fixture=$2
@@ -356,6 +371,11 @@ compare_fixture \
 compare_text_fixture \
     "$repo_root/tests/gap-reference/pathalgreptype_path.g" \
     "$repo_root/tests/fixtures/pathalgreptype_path.txt"
+compare_prefixed_catching_fixture \
+    "$repo_root/tests/gap-reference/reptype_bongartz.g" \
+    "$repo_root/tests/fixtures/reptype_bongartz.schema-v1.json" \
+    "Entering Bongartz' test for infinite type." \
+    4
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_preprojective_cycle_error.g" \
     >"$actual" 2>&1
