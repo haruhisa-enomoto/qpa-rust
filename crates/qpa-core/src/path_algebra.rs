@@ -19,8 +19,8 @@ use numerica::domains::{
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, OrderingError, Path, PathEndpoint, PathError, Quiver, QuiverError,
-    QuiverOrdering, Vertex,
+    CachedAttribute, CachedNakayamaAutomorphismOrder, OrderingError, Path, PathEndpoint, PathError,
+    Quiver, QuiverError, QuiverOrdering, Vertex,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule, WeakPathAlgebraModuleListCache},
     quotient::{QuotientPathAlgebra, WeakQuotientPathAlgebra},
     tensor::WeakTensorProductAlgebra,
@@ -48,6 +48,8 @@ struct PathAlgebraData<F: Field> {
     coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
     coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
     nakayama_permutation: OnceLock<Option<Vec<usize>>>,
+    nakayama_automorphism: OnceLock<Option<DenseMatrix<F>>>,
+    order_of_nakayama_automorphism: OnceLock<Option<CachedNakayamaAutomorphismOrder>>,
     trivial_extension_level: OnceLock<usize>,
     trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
     trivial_extension_bound: OnceLock<()>,
@@ -148,6 +150,8 @@ impl<F: Field> PathAlgebra<F> {
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
             nakayama_permutation: OnceLock::new(),
+            nakayama_automorphism: OnceLock::new(),
+            order_of_nakayama_automorphism: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
             trivial_extension_bound: OnceLock::new(),
@@ -367,6 +371,41 @@ impl<F: Field> PathAlgebra<F> {
         value: Option<Vec<usize>>,
     ) -> Option<Vec<usize>> {
         self.0.nakayama_permutation.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_nakayama_automorphism_attribute(&self) -> CachedAttribute<DenseMatrix<F>> {
+        match self.0.nakayama_automorphism.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_nakayama_automorphism_attribute(
+        &self,
+        value: Option<DenseMatrix<F>>,
+    ) -> Option<DenseMatrix<F>> {
+        self.0.nakayama_automorphism.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_order_of_nakayama_automorphism_attribute(
+        &self,
+    ) -> CachedAttribute<CachedNakayamaAutomorphismOrder> {
+        match self.0.order_of_nakayama_automorphism.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_order_of_nakayama_automorphism_attribute(
+        &self,
+        value: Option<CachedNakayamaAutomorphismOrder>,
+    ) -> Option<CachedNakayamaAutomorphismOrder> {
+        self.0
+            .order_of_nakayama_automorphism
+            .get_or_init(|| value)
+            .clone()
     }
 
     pub(crate) fn has_dual_enveloping_module_attribute(&self) -> bool {

@@ -16678,9 +16678,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 90
 source_end = 90
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_automorphism; NakayamaAutomorphism"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16704,9 +16704,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 92
 source_end = 92
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "frobenius_form; FrobeniusForm"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16717,9 +16717,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 93
 source_end = 93
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "frobenius_linear_functional; FrobeniusLinearFunctional"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16730,9 +16730,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 94
 source_end = 94
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "order_of_nakayama_automorphism; NakayamaAutomorphismOrder"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18212,9 +18212,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2423
 source_end = 2497
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_automorphism; NakayamaAutomorphism"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18225,9 +18225,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2499
 source_end = 2513
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "frobenius_form; FrobeniusForm"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18238,9 +18238,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2515
 source_end = 2529
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "frobenius_linear_functional; FrobeniusLinearFunctional"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18251,9 +18251,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2531
 source_end = 2551
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nakayama_automorphism; NakayamaAutomorphism"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18264,9 +18264,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2563
 source_end = 2575
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "order_of_nakayama_automorphism; NakayamaAutomorphismOrder"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18277,9 +18277,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2577
 source_end = 2588
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "order_of_nakayama_automorphism; NakayamaAutomorphismOrder"
+tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -12,9 +12,9 @@ use numerica::domains::{
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, DenseMatrix, NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement,
-    PathAlgebraError, PathAlgebraModule, Quiver, QuotientError, QuotientPathAlgebra,
-    QuotientPathAlgebraElement, TensorProductAlgebra,
+    CachedAttribute, CachedNakayamaAutomorphismOrder, DenseMatrix, NamedArrowSpec, Path,
+    PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraModule, Quiver, QuotientError,
+    QuotientPathAlgebra, QuotientPathAlgebraElement, TensorProductAlgebra,
 };
 
 /// A QPA quiver algebra that may be a path algebra or a proper quotient.
@@ -489,6 +489,62 @@ impl<F: Field> QuiverAlgebra<F> {
         match self {
             Self::Path(algebra) => algebra.cache_nakayama_permutation_attribute(value),
             Self::Quotient(algebra) => algebra.cache_nakayama_permutation_attribute(value),
+        }
+    }
+
+    /// Return the explicit unbound/`false`/matrix state of QPA's
+    /// `NakayamaAutomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_nakayama_automorphism_attribute(&self) -> CachedAttribute<DenseMatrix<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_nakayama_automorphism_attribute(),
+            Self::Quotient(algebra) => algebra.cached_nakayama_automorphism_attribute(),
+        }
+    }
+
+    /// Bind and return the canonical-basis matrix captured by QPA's
+    /// Nakayama-automorphism closure, or its boolean `false` sentinel.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_nakayama_automorphism_attribute(
+        &self,
+        value: Option<DenseMatrix<F>>,
+    ) -> Option<DenseMatrix<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cache_nakayama_automorphism_attribute(value),
+            Self::Quotient(algebra) => algebra.cache_nakayama_automorphism_attribute(value),
+        }
+    }
+
+    /// Return QPA's cached `OrderOfNakayamaAutomorphism` state.
+    ///
+    /// A value of `None` inside [`CachedAttribute::Value`] denotes GAP's
+    /// `infinity`; [`CachedAttribute::False`] denotes boolean `false`.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_order_of_nakayama_automorphism_attribute(
+        &self,
+    ) -> CachedAttribute<CachedNakayamaAutomorphismOrder> {
+        match self {
+            Self::Path(algebra) => algebra.cached_order_of_nakayama_automorphism_attribute(),
+            Self::Quotient(algebra) => algebra.cached_order_of_nakayama_automorphism_attribute(),
+        }
+    }
+
+    /// Bind and return QPA's finite integer, `infinity`, or boolean `false`
+    /// `OrderOfNakayamaAutomorphism` result.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_order_of_nakayama_automorphism_attribute(
+        &self,
+        value: Option<CachedNakayamaAutomorphismOrder>,
+    ) -> Option<CachedNakayamaAutomorphismOrder> {
+        match self {
+            Self::Path(algebra) => algebra.cache_order_of_nakayama_automorphism_attribute(value),
+            Self::Quotient(algebra) => {
+                algebra.cache_order_of_nakayama_automorphism_attribute(value)
+            }
         }
     }
 

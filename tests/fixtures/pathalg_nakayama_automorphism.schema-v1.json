@@ -1,0 +1,837 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_nakayama_automorphism",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "f2": {
+    "path_discrete": {
+      "auto_initially_known": false,
+      "order_initially_known": false,
+      "automorphism": [
+        [
+          "Z(2)^0",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "Z(2)^0"
+        ]
+      ],
+      "order": 1,
+      "auto_known_after": true,
+      "order_known_after": true
+    },
+    "path_a2": {
+      "auto_initially_known": false,
+      "order_initially_known": false,
+      "automorphism": false,
+      "order": false,
+      "auto_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_dual_numbers": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "Z(2)^0",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "Z(2)^0"
+        ]
+      ],
+      "form": [
+        [
+          "0*Z(2)",
+          "Z(2)^0"
+        ],
+        [
+          "Z(2)^0",
+          "0*Z(2)"
+        ]
+      ],
+      "functional": [
+        "0*Z(2)",
+        "Z(2)^0"
+      ],
+      "order": 1,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_nonselfinjective": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": false,
+      "functional_known_after_trigger": false,
+      "automorphism": false,
+      "form": false,
+      "functional": false,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": false
+    },
+    "quotient_radical_square_zero_cycle": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)"
+        ]
+      ],
+      "form": [
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0"
+        ],
+        [
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ]
+      ],
+      "functional": [
+        "0*Z(2)",
+        "0*Z(2)",
+        "0*Z(2)",
+        "Z(2)^0",
+        "Z(2)^0",
+        "Z(2)^0"
+      ],
+      "order": 3,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_quantum_complete_intersection": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0"
+        ]
+      ],
+      "form": [
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0"
+        ],
+        [
+          "0*Z(2)",
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)"
+        ],
+        [
+          "Z(2)^0",
+          "0*Z(2)",
+          "0*Z(2)",
+          "0*Z(2)"
+        ]
+      ],
+      "functional": [
+        "0*Z(2)",
+        "0*Z(2)",
+        "0*Z(2)",
+        "Z(2)^0"
+      ],
+      "order": 1,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    }
+  },
+  "f5": {
+    "path_discrete": {
+      "auto_initially_known": false,
+      "order_initially_known": false,
+      "automorphism": [
+        [
+          "Z(5)^0",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "Z(5)^0"
+        ]
+      ],
+      "order": 1,
+      "auto_known_after": true,
+      "order_known_after": true
+    },
+    "path_a2": {
+      "auto_initially_known": false,
+      "order_initially_known": false,
+      "automorphism": false,
+      "order": false,
+      "auto_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_dual_numbers": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "Z(5)^0",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "Z(5)^0"
+        ]
+      ],
+      "form": [
+        [
+          "0*Z(5)",
+          "Z(5)^0"
+        ],
+        [
+          "Z(5)^0",
+          "0*Z(5)"
+        ]
+      ],
+      "functional": [
+        "0*Z(5)",
+        "Z(5)^0"
+      ],
+      "order": 1,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_nonselfinjective": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": false,
+      "functional_known_after_trigger": false,
+      "automorphism": false,
+      "form": false,
+      "functional": false,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": false
+    },
+    "quotient_radical_square_zero_cycle": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)"
+        ]
+      ],
+      "form": [
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0"
+        ],
+        [
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ]
+      ],
+      "functional": [
+        "0*Z(5)",
+        "0*Z(5)",
+        "0*Z(5)",
+        "Z(5)^0",
+        "Z(5)^0",
+        "Z(5)^0"
+      ],
+      "order": 3,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_quantum_complete_intersection": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^3",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0"
+        ]
+      ],
+      "form": [
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0"
+        ],
+        [
+          "0*Z(5)",
+          "0*Z(5)",
+          "Z(5)^0",
+          "0*Z(5)"
+        ],
+        [
+          "0*Z(5)",
+          "Z(5)^3",
+          "0*Z(5)",
+          "0*Z(5)"
+        ],
+        [
+          "Z(5)^0",
+          "0*Z(5)",
+          "0*Z(5)",
+          "0*Z(5)"
+        ]
+      ],
+      "functional": [
+        "0*Z(5)",
+        "0*Z(5)",
+        "0*Z(5)",
+        "Z(5)^0"
+      ],
+      "order": 4,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    }
+  },
+  "rational": {
+    "path_discrete": {
+      "auto_initially_known": false,
+      "order_initially_known": false,
+      "automorphism": [
+        [
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "1"
+        ]
+      ],
+      "order": 1,
+      "auto_known_after": true,
+      "order_known_after": true
+    },
+    "path_a2": {
+      "auto_initially_known": false,
+      "order_initially_known": false,
+      "automorphism": false,
+      "order": false,
+      "auto_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_dual_numbers": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "1"
+        ]
+      ],
+      "form": [
+        [
+          "0",
+          "1"
+        ],
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "functional": [
+        "0",
+        "1"
+      ],
+      "order": 1,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_nonselfinjective": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": false,
+      "functional_known_after_trigger": false,
+      "automorphism": false,
+      "form": false,
+      "functional": false,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": false
+    },
+    "quotient_radical_square_zero_cycle": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "0",
+          "1",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1",
+          "0",
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "0",
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        [
+          "0",
+          "0",
+          "0",
+          "1",
+          "0",
+          "0"
+        ]
+      ],
+      "form": [
+        [
+          "0",
+          "0",
+          "0",
+          "1",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "0",
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        [
+          "0",
+          "1",
+          "0",
+          "0",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1",
+          "0",
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "0",
+          "0",
+          "0",
+          "0",
+          "0"
+        ]
+      ],
+      "functional": [
+        "0",
+        "0",
+        "0",
+        "1",
+        "1",
+        "1"
+      ],
+      "order": 3,
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    },
+    "quotient_quantum_complete_intersection": {
+      "auto_initially_known": false,
+      "form_initially_known": false,
+      "functional_initially_known": false,
+      "order_initially_known": false,
+      "auto_known_after_trigger": true,
+      "form_known_after_trigger": true,
+      "functional_known_after_trigger": true,
+      "automorphism": [
+        [
+          "1",
+          "0",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "2",
+          "0",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "1/2",
+          "0"
+        ],
+        [
+          "0",
+          "0",
+          "0",
+          "1"
+        ]
+      ],
+      "form": [
+        [
+          "0",
+          "0",
+          "0",
+          "1"
+        ],
+        [
+          "0",
+          "0",
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "1/2",
+          "0",
+          "0"
+        ],
+        [
+          "1",
+          "0",
+          "0",
+          "0"
+        ]
+      ],
+      "functional": [
+        "0",
+        "0",
+        "0",
+        "1"
+      ],
+      "order": "infinity",
+      "auto_known_after": true,
+      "form_known_after": true,
+      "functional_known_after": true,
+      "order_known_after": true
+    }
+  }
+}

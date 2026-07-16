@@ -65,6 +65,21 @@ impl<T> CachedAttribute<T> {
     }
 }
 
+/// Cache payload for QPA's finite integer or `infinity`
+/// `OrderOfNakayamaAutomorphism` value.
+///
+/// Boolean `false` remains represented by the enclosing optional attribute
+/// slot; this enum distinguishes the two successful GAP values without a
+/// nested `Option`.
+#[doc(hidden)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum CachedNakayamaAutomorphismOrder {
+    /// A finite positive matrix order.
+    Finite(numerica::domains::integer::Integer),
+    /// GAP's `infinity` object.
+    Infinite,
+}
+
 pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
 pub use coefficient::{
     CoefficientDomain, CoefficientDomainError, QpaCoefficientField, QpaFieldCharacteristic,

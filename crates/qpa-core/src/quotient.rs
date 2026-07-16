@@ -21,9 +21,9 @@ use numerica::domains::{
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, DenseMatrix, GroebnerBasis, GroebnerError, MatrixError, Path, PathAlgebra,
-    PathAlgebraElement, PathAlgebraError, PathAlgebraExternalRepresentation, PathEndpoint, Quiver,
-    QuiverError, TensorProductAlgebra,
+    CachedAttribute, CachedNakayamaAutomorphismOrder, DenseMatrix, GroebnerBasis, GroebnerError,
+    MatrixError, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError,
+    PathAlgebraExternalRepresentation, PathEndpoint, Quiver, QuiverError, TensorProductAlgebra,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule, WeakPathAlgebraModuleListCache},
     tensor::WeakTensorProductAlgebra,
 };
@@ -453,6 +453,10 @@ struct QuotientPathAlgebraData<F: Field> {
     coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
     coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
     nakayama_permutation: OnceLock<Option<Vec<usize>>>,
+    nakayama_automorphism: OnceLock<Option<DenseMatrix<F>>>,
+    frobenius_form: OnceLock<Option<DenseMatrix<F>>>,
+    frobenius_linear_functional: OnceLock<Option<Vec<F::Element>>>,
+    order_of_nakayama_automorphism: OnceLock<Option<CachedNakayamaAutomorphismOrder>>,
     opposite_weak: RwLock<Option<Weak<QuotientPathAlgebraData<F>>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
     enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
@@ -577,6 +581,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
             nakayama_permutation: OnceLock::new(),
+            nakayama_automorphism: OnceLock::new(),
+            frobenius_form: OnceLock::new(),
+            frobenius_linear_functional: OnceLock::new(),
+            order_of_nakayama_automorphism: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -629,6 +637,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
             nakayama_permutation: OnceLock::new(),
+            nakayama_automorphism: OnceLock::new(),
+            frobenius_form: OnceLock::new(),
+            frobenius_linear_functional: OnceLock::new(),
+            order_of_nakayama_automorphism: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -887,6 +899,82 @@ impl<F: Field> QuotientPathAlgebra<F> {
         value: Option<Vec<usize>>,
     ) -> Option<Vec<usize>> {
         self.0.nakayama_permutation.get_or_init(|| value).clone()
+    }
+
+    pub(crate) fn cached_nakayama_automorphism_attribute(&self) -> CachedAttribute<DenseMatrix<F>> {
+        match self.0.nakayama_automorphism.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_nakayama_automorphism_attribute(
+        &self,
+        value: Option<DenseMatrix<F>>,
+    ) -> Option<DenseMatrix<F>> {
+        self.0.nakayama_automorphism.get_or_init(|| value).clone()
+    }
+
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_frobenius_form_attribute(&self) -> CachedAttribute<DenseMatrix<F>> {
+        match self.0.frobenius_form.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_frobenius_form_attribute(
+        &self,
+        value: Option<DenseMatrix<F>>,
+    ) -> Option<DenseMatrix<F>> {
+        self.0.frobenius_form.get_or_init(|| value).clone()
+    }
+
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_frobenius_linear_functional_attribute(&self) -> CachedAttribute<Vec<F::Element>> {
+        match self.0.frobenius_linear_functional.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_frobenius_linear_functional_attribute(
+        &self,
+        value: Option<Vec<F::Element>>,
+    ) -> Option<Vec<F::Element>> {
+        self.0
+            .frobenius_linear_functional
+            .get_or_init(|| value)
+            .clone()
+    }
+
+    pub(crate) fn cached_order_of_nakayama_automorphism_attribute(
+        &self,
+    ) -> CachedAttribute<CachedNakayamaAutomorphismOrder> {
+        match self.0.order_of_nakayama_automorphism.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::False,
+            Some(Some(value)) => CachedAttribute::Value(value.clone()),
+        }
+    }
+
+    pub(crate) fn cache_order_of_nakayama_automorphism_attribute(
+        &self,
+        value: Option<CachedNakayamaAutomorphismOrder>,
+    ) -> Option<CachedNakayamaAutomorphismOrder> {
+        self.0
+            .order_of_nakayama_automorphism
+            .get_or_init(|| value)
+            .clone()
     }
 
     /// Return the quotient zero.
@@ -1507,6 +1595,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
             nakayama_permutation: OnceLock::new(),
+            nakayama_automorphism: OnceLock::new(),
+            frobenius_form: OnceLock::new(),
+            frobenius_linear_functional: OnceLock::new(),
+            order_of_nakayama_automorphism: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),

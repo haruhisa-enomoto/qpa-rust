@@ -192,6 +192,12 @@ compare_catching_fixture \
     "$repo_root/tests/gap-reference/pathalg_nakayama_permutation_dispatch.g" \
     "$repo_root/tests/fixtures/pathalg_nakayama_permutation_dispatch.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/pathalg_nakayama_automorphism.g" \
+    "$repo_root/tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/pathalg_nakayama_automorphism_dispatch.g" \
+    "$repo_root/tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
 compare_catching_fixture \

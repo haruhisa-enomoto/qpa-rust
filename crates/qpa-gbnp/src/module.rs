@@ -13,20 +13,21 @@ use numerica::domains::{
     rational::{Q, Rational, RationalField},
 };
 use qpa_core::{
-    AlgebraGlobalDimension, CachedAttribute, DenseMatrix, MatrixError, ModuleDimensionSeries,
-    ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix, PathAlgebraElement, PathAlgebraError,
-    PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleError,
-    PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra,
-    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct, QuiverProductError,
-    QuotientError, cokernel_of_module_homomorphism, direct_sum_inclusions,
+    AlgebraGlobalDimension, CachedAttribute, CachedNakayamaAutomorphismOrder, DenseMatrix,
+    MatrixError, ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix,
+    PathAlgebraElement, PathAlgebraError, PathAlgebraModule, PathAlgebraModuleElement,
+    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint,
+    PathError, QpaCoefficientField, QpaFieldCharacteristic, QuiverAlgebra, QuiverAlgebraElement,
+    QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
+    QuotientPathAlgebra, cokernel_of_module_homomorphism, direct_sum_inclusions,
     direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m,
     hom_over_algebra, identity_module_mapping, include_in_path_algebra, isomorphism_of_modules,
     kernel_inclusion, kernel_of_module_homomorphism, loewy_length_of_module,
     minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_kernel,
     natural_endomorphism_quotient_by_ideal, project_from_product_quiver, radical_of_module,
     right_module_hom_over_algebra, right_module_over_path_algebra,
-    right_module_over_path_algebra_with_tensor, socle_of_module, subrepresentation_inclusion,
-    top_of_module, zero_module, zero_module_mapping,
+    right_module_over_path_algebra_with_tensor, socle_of_module, socle_of_module_inclusion,
+    subrepresentation_inclusion, top_of_module, zero_module, zero_module_mapping,
 };
 use rand::Rng;
 use thiserror::Error;
@@ -891,6 +892,763 @@ fn nakayama_indices_from_socles<F: Field>(
                 )
         })
         .collect()
+}
+
+/// QPA's captured Nakayama-automorphism closure.
+///
+/// The matrix rows are the canonical-basis coordinates of the images of the
+/// canonical basis. QPA computes it as `P * (TransposedMat(P)^-1)` from its
+/// Frobenius pairing matrix `P`.
+#[derive(Clone, Debug)]
+pub struct NakayamaAutomorphism<F: Field> {
+    algebra: QuiverAlgebra<F>,
+    canonical_basis: Vec<QuiverAlgebraElement<F>>,
+    matrix: DenseMatrix<F>,
+}
+
+impl<F: Field> NakayamaAutomorphism<F> {
+    /// Return the algebra captured by QPA's closure.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuiverAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return the canonical-basis matrix of the automorphism.
+    #[must_use]
+    pub const fn matrix(&self) -> &DenseMatrix<F> {
+        &self.matrix
+    }
+
+    /// Apply QPA's Nakayama-automorphism closure.
+    ///
+    /// # Errors
+    ///
+    /// Preserves the source closure's explicit rejection of an element that
+    /// does not belong to the captured algebra and propagates exact canonical
+    /// coordinate arithmetic.
+    pub fn image(
+        &self,
+        element: &QuiverAlgebraElement<F>,
+    ) -> Result<QuiverAlgebraElement<F>, EnvelopingModuleError> {
+        if !self.algebra.contains_element(element) {
+            return Err(EnvelopingModuleError::NakayamaAutomorphismElementOutsideAlgebra);
+        }
+        let coordinates =
+            canonical_basis_coefficients(&self.algebra, &self.canonical_basis, element)?;
+        let image_coordinates = multiply_row_by_dense_matrix(&coordinates, &self.matrix)?;
+        linear_combination_of_algebra_basis(
+            &self.algebra,
+            &self.canonical_basis,
+            &image_coordinates,
+        )
+    }
+}
+
+/// QPA's captured Frobenius bilinear-form closure.
+#[derive(Clone, Debug)]
+pub struct FrobeniusForm<F: Field> {
+    quotient: QuotientPathAlgebra<F>,
+    canonical_basis: Vec<QuiverAlgebraElement<F>>,
+    matrix: DenseMatrix<F>,
+}
+
+impl<F: Field> FrobeniusForm<F> {
+    /// Return the quotient algebra captured by the closure.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuotientPathAlgebra<F> {
+        &self.quotient
+    }
+
+    /// Return QPA's multiplication-pairing matrix `P`.
+    #[must_use]
+    pub const fn matrix(&self) -> &DenseMatrix<F> {
+        &self.matrix
+    }
+
+    /// Evaluate `pi(x * y)` through QPA's `x * P * y` closure.
+    ///
+    /// # Errors
+    ///
+    /// Both arguments must belong to the identical quotient algebra captured
+    /// by the source closure.
+    pub fn evaluate(
+        &self,
+        left: &QuiverAlgebraElement<F>,
+        right: &QuiverAlgebraElement<F>,
+    ) -> Result<F::Element, EnvelopingModuleError> {
+        let algebra = QuiverAlgebra::Quotient(self.quotient.clone());
+        if !algebra.contains_element(left) || !algebra.contains_element(right) {
+            return Err(EnvelopingModuleError::FrobeniusFormElementOutsideAlgebra);
+        }
+        let left = canonical_basis_coefficients(&algebra, &self.canonical_basis, left)?;
+        let right = canonical_basis_coefficients(&algebra, &self.canonical_basis, right)?;
+        let paired = multiply_row_by_dense_matrix(&left, &self.matrix)?;
+        Ok(dot_product(algebra.field(), &paired, &right))
+    }
+}
+
+/// QPA's captured Frobenius linear-functional closure.
+#[derive(Clone, Debug)]
+pub struct FrobeniusLinearFunctional<F: Field> {
+    quotient: QuotientPathAlgebra<F>,
+    canonical_basis: Vec<QuiverAlgebraElement<F>>,
+    coordinates: Vec<F::Element>,
+}
+
+impl<F: Field> FrobeniusLinearFunctional<F> {
+    /// Return the quotient algebra captured by the closure.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuotientPathAlgebra<F> {
+        &self.quotient
+    }
+
+    /// Return the functional values on QPA's canonical basis.
+    #[must_use]
+    pub fn canonical_basis_values(&self) -> &[F::Element] {
+        &self.coordinates
+    }
+
+    /// Evaluate QPA's `pi_map` closure.
+    ///
+    /// # Errors
+    ///
+    /// The argument must belong to the identical quotient algebra captured by
+    /// the source closure.
+    pub fn evaluate(
+        &self,
+        element: &QuiverAlgebraElement<F>,
+    ) -> Result<F::Element, EnvelopingModuleError> {
+        let algebra = QuiverAlgebra::Quotient(self.quotient.clone());
+        if !algebra.contains_element(element) {
+            return Err(EnvelopingModuleError::FrobeniusFunctionalElementOutsideAlgebra);
+        }
+        let element = canonical_basis_coefficients(&algebra, &self.canonical_basis, element)?;
+        Ok(dot_product(algebra.field(), &element, &self.coordinates))
+    }
+}
+
+/// The finite integer or `infinity` returned by GAP's matrix `Order` method.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum NakayamaAutomorphismOrder {
+    /// The automorphism has this finite positive order.
+    Finite(Integer),
+    /// The automorphism has infinite order.
+    Infinite,
+}
+
+/// Translate QPA's cached `NakayamaAutomorphism(A)` attribute.
+///
+/// A nonselfinjective algebra returns and caches boolean `false`. For a
+/// quotient, the implementation follows QPA's projective-socle construction,
+/// GAP's `BaseSteinitzVectors` ordering, the resulting Frobenius functional,
+/// and `P * (P^T)^-1`. Successful evaluation also binds `FrobeniusForm` and
+/// `FrobeniusLinearFunctional`, exactly as the source method does. A finite
+/// selfinjective path algebra has no arrows and returns the identity closure.
+///
+/// # Errors
+///
+/// Propagates selfinjectivity dispatch, module/socle construction, canonical
+/// coordinates, quotient multiplication, and exact matrix arithmetic.
+pub fn nakayama_automorphism<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<NakayamaAutomorphism<F>>, EnvelopingModuleError> {
+    match algebra.cached_nakayama_automorphism_attribute() {
+        CachedAttribute::Value(matrix) => {
+            return Ok(Some(rebuild_nakayama_automorphism(algebra, matrix)?));
+        }
+        CachedAttribute::False => return Ok(None),
+        CachedAttribute::Unbound => {}
+        CachedAttribute::Fail => {
+            return Err(EnvelopingModuleError::InvalidNakayamaAutomorphismCacheState);
+        }
+    }
+
+    match is_selfinjective_algebra(algebra)? {
+        Some(false) => {
+            let _ = algebra.cache_nakayama_automorphism_attribute(None);
+            return Ok(None);
+        }
+        None => return Err(EnvelopingModuleError::NakayamaAutomorphismSelfinjectivityUnavailable),
+        Some(true) => {}
+    }
+
+    match algebra {
+        QuiverAlgebra::Path(_) => {
+            let canonical_basis = finite_canonical_basis(algebra)?
+                .ok_or(EnvelopingModuleError::MissingNakayamaCanonicalBasis)?;
+            let matrix = DenseMatrix::identity(canonical_basis.len(), algebra.field().clone());
+            let matrix = algebra
+                .cache_nakayama_automorphism_attribute(Some(matrix))
+                .ok_or(EnvelopingModuleError::NakayamaAutomorphismCacheConflict)?;
+            Ok(Some(NakayamaAutomorphism {
+                algebra: algebra.clone(),
+                canonical_basis,
+                matrix,
+            }))
+        }
+        QuiverAlgebra::Quotient(quotient) => {
+            construct_quotient_nakayama_automorphism(algebra, quotient)
+        }
+    }
+}
+
+/// Translate QPA's cached `FrobeniusForm(A)` quotient attribute.
+///
+/// Calling this first forces `NakayamaAutomorphism`, whose successful source
+/// method installs the form. `Ok(None)` is the attribute's cached boolean
+/// `false` for a nonselfinjective quotient.
+///
+/// # Errors
+///
+/// Propagates Nakayama-automorphism construction and cache consistency.
+pub fn frobenius_form<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<Option<FrobeniusForm<F>>, EnvelopingModuleError> {
+    match quotient.cached_frobenius_form_attribute() {
+        CachedAttribute::Value(matrix) => {
+            return rebuild_frobenius_form(quotient, matrix).map(Some);
+        }
+        CachedAttribute::False => return Ok(None),
+        CachedAttribute::Unbound => {}
+        CachedAttribute::Fail => return Err(EnvelopingModuleError::InvalidFrobeniusFormCacheState),
+    }
+    let algebra = QuiverAlgebra::Quotient(quotient.clone());
+    if nakayama_automorphism(&algebra)?.is_none() {
+        let _ = quotient.cache_frobenius_form_attribute(None);
+        return Ok(None);
+    }
+    match quotient.cached_frobenius_form_attribute() {
+        CachedAttribute::Value(matrix) => rebuild_frobenius_form(quotient, matrix).map(Some),
+        CachedAttribute::False => Ok(None),
+        CachedAttribute::Unbound | CachedAttribute::Fail => {
+            Err(EnvelopingModuleError::MissingInstalledFrobeniusForm)
+        }
+    }
+}
+
+/// Translate QPA's cached `FrobeniusLinearFunctional(A)` quotient attribute.
+///
+/// Calling this first forces `NakayamaAutomorphism`, whose successful source
+/// method installs the functional. `Ok(None)` is cached boolean `false` for a
+/// nonselfinjective quotient.
+///
+/// # Errors
+///
+/// Propagates Nakayama-automorphism construction and cache consistency.
+pub fn frobenius_linear_functional<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<Option<FrobeniusLinearFunctional<F>>, EnvelopingModuleError> {
+    match quotient.cached_frobenius_linear_functional_attribute() {
+        CachedAttribute::Value(coordinates) => {
+            return rebuild_frobenius_functional(quotient, coordinates).map(Some);
+        }
+        CachedAttribute::False => return Ok(None),
+        CachedAttribute::Unbound => {}
+        CachedAttribute::Fail => {
+            return Err(EnvelopingModuleError::InvalidFrobeniusFunctionalCacheState);
+        }
+    }
+    let algebra = QuiverAlgebra::Quotient(quotient.clone());
+    if nakayama_automorphism(&algebra)?.is_none() {
+        let _ = quotient.cache_frobenius_linear_functional_attribute(None);
+        return Ok(None);
+    }
+    match quotient.cached_frobenius_linear_functional_attribute() {
+        CachedAttribute::Value(coordinates) => {
+            rebuild_frobenius_functional(quotient, coordinates).map(Some)
+        }
+        CachedAttribute::False => Ok(None),
+        CachedAttribute::Unbound | CachedAttribute::Fail => {
+            Err(EnvelopingModuleError::MissingInstalledFrobeniusFunctional)
+        }
+    }
+}
+
+/// Translate QPA's cached `OrderOfNakayamaAutomorphism(A)` attribute.
+///
+/// The quotient method first constructs the canonical-basis matrix through
+/// `NakayamaAutomorphism` and delegates to GAP's matrix-order semantics. Over
+/// a supported prime field the exact exponent of `GL(n,p)` bounds the order;
+/// over the rationals the lcm of all cyclotomic indices with totient at most
+/// `n` is the exact finite-order test bound. Prime-factor removal then returns
+/// the least order. A nonselfinjective path algebra returns boolean `false`;
+/// QPA's quotient method instead attempts to call `false` and raises an error.
+///
+/// # Errors
+///
+/// Propagates Nakayama construction and preserves the quotient source's
+/// attempted-call error on a nonselfinjective algebra.
+pub fn order_of_nakayama_automorphism<F: QpaCoefficientField>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<Option<NakayamaAutomorphismOrder>, EnvelopingModuleError> {
+    match algebra.cached_order_of_nakayama_automorphism_attribute() {
+        CachedAttribute::Value(value) => return Ok(Some(order_from_cache(value))),
+        CachedAttribute::False => return Ok(None),
+        CachedAttribute::Unbound => {}
+        CachedAttribute::Fail => {
+            return Err(EnvelopingModuleError::InvalidNakayamaOrderCacheState);
+        }
+    }
+
+    if matches!(algebra, QuiverAlgebra::Path(_)) {
+        match is_selfinjective_algebra(algebra)? {
+            Some(false) => {
+                let _ = algebra.cache_order_of_nakayama_automorphism_attribute(None);
+                return Ok(None);
+            }
+            None => return Err(EnvelopingModuleError::NakayamaOrderSelfinjectivityUnavailable),
+            Some(true) => {}
+        }
+        let value = CachedNakayamaAutomorphismOrder::Finite(Integer::one());
+        let cached = algebra
+            .cache_order_of_nakayama_automorphism_attribute(Some(value))
+            .ok_or(EnvelopingModuleError::NakayamaOrderCacheConflict)?;
+        return Ok(Some(order_from_cache(cached)));
+    }
+
+    let automorphism = nakayama_automorphism(algebra)?
+        .ok_or(EnvelopingModuleError::CalledFalseNakayamaAutomorphism)?;
+    let order = exact_matrix_order(automorphism.matrix(), algebra.field())?;
+    let cached_value = match &order {
+        NakayamaAutomorphismOrder::Finite(value) => {
+            CachedNakayamaAutomorphismOrder::Finite(value.clone())
+        }
+        NakayamaAutomorphismOrder::Infinite => CachedNakayamaAutomorphismOrder::Infinite,
+    };
+    let cached = algebra
+        .cache_order_of_nakayama_automorphism_attribute(Some(cached_value))
+        .ok_or(EnvelopingModuleError::NakayamaOrderCacheConflict)?;
+    Ok(Some(order_from_cache(cached)))
+}
+
+fn construct_quotient_nakayama_automorphism<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    quotient: &QuotientPathAlgebra<F>,
+) -> Result<Option<NakayamaAutomorphism<F>>, EnvelopingModuleError> {
+    let canonical_basis = finite_canonical_basis(algebra)?
+        .ok_or(EnvelopingModuleError::MissingNakayamaCanonicalBasis)?;
+    let projectives = indec_projective_modules(algebra)?;
+    let mut socle_rows = Vec::with_capacity(projectives.len());
+    for (position, projective) in projectives.into_iter().enumerate() {
+        let inclusion = socle_of_module_inclusion(projective)?;
+        let generator = minimal_generating_set_of_module(inclusion.source().clone())?
+            .into_iter()
+            .next()
+            .ok_or(EnvelopingModuleError::EmptyProjectiveSocleGenerator {
+                projective: position + 1,
+            })?;
+        let socle_element = inclusion.image(&generator)?;
+        let parent_element = element_in_indec_projective(algebra, &socle_element, position + 1)?;
+        let quotient_element = quotient.element(parent_element)?;
+        socle_rows.push(canonical_basis_coefficients(
+            algebra,
+            &canonical_basis,
+            &QuiverAlgebraElement::Quotient(quotient_element),
+        )?);
+    }
+
+    let dimension = canonical_basis.len();
+    let socle_matrix = DenseMatrix::from_rows(socle_rows, algebra.field().clone())?;
+    let adapted_basis = base_steinitz_vectors(
+        &DenseMatrix::identity(dimension, algebra.field().clone()),
+        &socle_matrix,
+    )?;
+    let adapted_inverse = adapted_basis
+        .inverse()?
+        .ok_or(EnvelopingModuleError::IncompleteNakayamaSteinitzBasis)?;
+    let socle_dimension = socle_matrix.nrows();
+    let functional = (0..dimension)
+        .map(|row| {
+            (0..socle_dimension).fold(algebra.field().zero(), |mut sum, column| {
+                algebra
+                    .field()
+                    .add_assign(&mut sum, &adapted_inverse[(row, column)]);
+                sum
+            })
+        })
+        .collect::<Vec<_>>();
+
+    let mut pairing_entries = Vec::with_capacity(dimension.saturating_mul(dimension));
+    for left in &canonical_basis {
+        for right in &canonical_basis {
+            let product = left.multiply(right)?;
+            let coordinates = canonical_basis_coefficients(algebra, &canonical_basis, &product)?;
+            pairing_entries.push(dot_product(algebra.field(), &coordinates, &functional));
+        }
+    }
+    let pairing = DenseMatrix::from_flat(
+        dimension,
+        dimension,
+        pairing_entries,
+        algebra.field().clone(),
+    )?;
+    let transpose_inverse = pairing
+        .transpose()
+        .inverse()?
+        .ok_or(EnvelopingModuleError::SingularNakayamaPairing)?;
+    let matrix = pairing.multiply(&transpose_inverse)?;
+
+    let pairing = quotient
+        .cache_frobenius_form_attribute(Some(pairing))
+        .ok_or(EnvelopingModuleError::FrobeniusFormCacheConflict)?;
+    let functional = quotient
+        .cache_frobenius_linear_functional_attribute(Some(functional))
+        .ok_or(EnvelopingModuleError::FrobeniusFunctionalCacheConflict)?;
+    let matrix = algebra
+        .cache_nakayama_automorphism_attribute(Some(matrix))
+        .ok_or(EnvelopingModuleError::NakayamaAutomorphismCacheConflict)?;
+    debug_assert_eq!(pairing.nrows(), matrix.nrows());
+    debug_assert_eq!(functional.len(), matrix.nrows());
+    Ok(Some(NakayamaAutomorphism {
+        algebra: algebra.clone(),
+        canonical_basis,
+        matrix,
+    }))
+}
+
+fn rebuild_nakayama_automorphism<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    matrix: DenseMatrix<F>,
+) -> Result<NakayamaAutomorphism<F>, EnvelopingModuleError> {
+    let canonical_basis = finite_canonical_basis(algebra)?
+        .ok_or(EnvelopingModuleError::MissingNakayamaCanonicalBasis)?;
+    if matrix.nrows() != canonical_basis.len() || matrix.ncols() != canonical_basis.len() {
+        return Err(
+            EnvelopingModuleError::InvalidNakayamaAutomorphismMatrixShape {
+                shape: (matrix.nrows(), matrix.ncols()),
+                dimension: canonical_basis.len(),
+            },
+        );
+    }
+    Ok(NakayamaAutomorphism {
+        algebra: algebra.clone(),
+        canonical_basis,
+        matrix,
+    })
+}
+
+fn rebuild_frobenius_form<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+    matrix: DenseMatrix<F>,
+) -> Result<FrobeniusForm<F>, EnvelopingModuleError> {
+    let algebra = QuiverAlgebra::Quotient(quotient.clone());
+    let canonical_basis = finite_canonical_basis(&algebra)?
+        .ok_or(EnvelopingModuleError::MissingNakayamaCanonicalBasis)?;
+    if matrix.nrows() != canonical_basis.len() || matrix.ncols() != canonical_basis.len() {
+        return Err(EnvelopingModuleError::InvalidFrobeniusFormMatrixShape {
+            shape: (matrix.nrows(), matrix.ncols()),
+            dimension: canonical_basis.len(),
+        });
+    }
+    Ok(FrobeniusForm {
+        quotient: quotient.clone(),
+        canonical_basis,
+        matrix,
+    })
+}
+
+fn rebuild_frobenius_functional<F: Field>(
+    quotient: &QuotientPathAlgebra<F>,
+    coordinates: Vec<F::Element>,
+) -> Result<FrobeniusLinearFunctional<F>, EnvelopingModuleError> {
+    let algebra = QuiverAlgebra::Quotient(quotient.clone());
+    let canonical_basis = finite_canonical_basis(&algebra)?
+        .ok_or(EnvelopingModuleError::MissingNakayamaCanonicalBasis)?;
+    if coordinates.len() != canonical_basis.len() {
+        return Err(EnvelopingModuleError::InvalidFrobeniusFunctionalLength {
+            actual: coordinates.len(),
+            dimension: canonical_basis.len(),
+        });
+    }
+    Ok(FrobeniusLinearFunctional {
+        quotient: quotient.clone(),
+        canonical_basis,
+        coordinates,
+    })
+}
+
+fn base_steinitz_vectors<F: Field>(
+    basis: &DenseMatrix<F>,
+    subspace_generators: &DenseMatrix<F>,
+) -> Result<DenseMatrix<F>, EnvelopingModuleError> {
+    if basis.nrows() == 0 {
+        return DenseMatrix::from_flat(0, 0, Vec::new(), basis.field().clone()).map_err(Into::into);
+    }
+    if basis.ncols() != subspace_generators.ncols() || basis.field() != subspace_generators.field()
+    {
+        return Err(EnvelopingModuleError::InvalidNakayamaSteinitzInput);
+    }
+    let subspace = subspace_generators.canonical_row_space_basis();
+    let missing = basis
+        .nrows()
+        .checked_sub(subspace.nrows())
+        .ok_or(EnvelopingModuleError::InvalidNakayamaSteinitzInput)?;
+    let field = basis.field();
+    let dimension = basis.ncols();
+    let mut remaining = (0..basis.nrows())
+        .map(|row| basis.row(row).to_vec())
+        .collect::<Vec<_>>();
+    let mut complement = Vec::with_capacity(missing);
+    let mut subspace_row = 0usize;
+    let mut column = 0usize;
+
+    while complement.len() < missing {
+        let mut stop = false;
+        loop {
+            let mut pivot = None;
+            if column < dimension
+                && (subspace_row >= subspace.nrows()
+                    || field.is_zero(&subspace[(subspace_row, column)]))
+            {
+                if let Some(position) = remaining
+                    .iter()
+                    .position(|row| !field.is_zero(&row[column]))
+                {
+                    let mut vector = remaining[position].clone();
+                    let inverse = field.inv(&vector[column]);
+                    for entry in &mut vector {
+                        field.mul_assign(entry, &inverse);
+                    }
+                    complement.push(vector.clone());
+                    pivot = Some(vector);
+                }
+            } else {
+                stop = true;
+                if subspace_row < subspace.nrows() {
+                    let mut vector = subspace.row(subspace_row).to_vec();
+                    let inverse = field.inv(&vector[column]);
+                    for entry in &mut vector {
+                        field.mul_assign(entry, &inverse);
+                    }
+                    pivot = Some(vector);
+                }
+            }
+
+            if let Some(vector) = pivot {
+                for row in &mut remaining {
+                    if !field.is_zero(&row[column]) {
+                        let scale = field.div(&row[column], &vector[column]);
+                        for (entry, pivot_entry) in row.iter_mut().zip(&vector) {
+                            let product = field.mul(&scale, pivot_entry);
+                            field.sub_assign(entry, &product);
+                        }
+                    }
+                }
+                remaining.retain(|row| row.iter().any(|entry| !field.is_zero(entry)));
+            }
+            column = column
+                .checked_add(1)
+                .ok_or(EnvelopingModuleError::NakayamaSteinitzColumnOverflow)?;
+            if stop {
+                break;
+            }
+            if column > dimension {
+                return Err(EnvelopingModuleError::IncompleteNakayamaSteinitzBasis);
+            }
+        }
+        subspace_row = subspace_row
+            .checked_add(1)
+            .ok_or(EnvelopingModuleError::NakayamaSteinitzRowOverflow)?;
+    }
+
+    let mut rows = (0..subspace.nrows())
+        .map(|row| subspace.row(row).to_vec())
+        .collect::<Vec<_>>();
+    rows.extend(complement);
+    DenseMatrix::from_rows(rows, field.clone()).map_err(Into::into)
+}
+
+fn multiply_row_by_dense_matrix<F: Field>(
+    row: &[F::Element],
+    matrix: &DenseMatrix<F>,
+) -> Result<Vec<F::Element>, EnvelopingModuleError> {
+    let row = DenseMatrix::from_flat(1, row.len(), row.to_vec(), matrix.field().clone())?;
+    Ok(row.multiply(matrix)?.row(0).to_vec())
+}
+
+fn dot_product<F: Field>(field: &F, left: &[F::Element], right: &[F::Element]) -> F::Element {
+    debug_assert_eq!(left.len(), right.len());
+    left.iter()
+        .zip(right)
+        .fold(field.zero(), |mut sum, (left, right)| {
+            field.add_mul_assign(&mut sum, left, right);
+            sum
+        })
+}
+
+fn linear_combination_of_algebra_basis<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    basis: &[QuiverAlgebraElement<F>],
+    coefficients: &[F::Element],
+) -> Result<QuiverAlgebraElement<F>, EnvelopingModuleError> {
+    if basis.len() != coefficients.len() {
+        return Err(EnvelopingModuleError::NakayamaLinearCombinationLength {
+            basis: basis.len(),
+            coefficients: coefficients.len(),
+        });
+    }
+    let mut result = algebra.zero();
+    for (basis_element, coefficient) in basis.iter().zip(coefficients) {
+        result = result.add(&basis_element.scale_left(coefficient)?)?;
+    }
+    Ok(result)
+}
+
+fn exact_matrix_order<F: QpaCoefficientField>(
+    matrix: &DenseMatrix<F>,
+    field: &F,
+) -> Result<NakayamaAutomorphismOrder, EnvelopingModuleError> {
+    if matrix.nrows() == 0 || matrix.nrows() != matrix.ncols() {
+        return Err(EnvelopingModuleError::InvalidNakayamaOrderMatrixShape {
+            shape: (matrix.nrows(), matrix.ncols()),
+        });
+    }
+    let exponent = match field.qpa_characteristic() {
+        QpaFieldCharacteristic::Zero => rational_finite_matrix_exponent(matrix.nrows())?,
+        QpaFieldCharacteristic::Prime(prime) => {
+            prime_field_general_linear_exponent(matrix.nrows(), prime)?
+        }
+    };
+    if !matrix_is_identity(&matrix_power_integer(matrix, &exponent)?) {
+        return Ok(NakayamaAutomorphismOrder::Infinite);
+    }
+    let mut order = exponent;
+    for (prime, _) in order.factor() {
+        loop {
+            if (&order % &prime) != 0 {
+                break;
+            }
+            let candidate = &order / &prime;
+            if matrix_is_identity(&matrix_power_integer(matrix, &candidate)?) {
+                order = candidate;
+            } else {
+                break;
+            }
+        }
+    }
+    Ok(NakayamaAutomorphismOrder::Finite(order))
+}
+
+fn rational_finite_matrix_exponent(dimension: usize) -> Result<Integer, EnvelopingModuleError> {
+    let mut prime = 2usize;
+    let mut bound = 2usize;
+    let mut totient_product = 1usize;
+    while totient_product < dimension {
+        prime = next_prime(prime)
+            .ok_or(EnvelopingModuleError::NakayamaOrderCyclotomicBoundOverflow { dimension })?;
+        bound = bound
+            .checked_mul(prime)
+            .ok_or(EnvelopingModuleError::NakayamaOrderCyclotomicBoundOverflow { dimension })?;
+        totient_product = totient_product
+            .checked_mul(prime - 1)
+            .ok_or(EnvelopingModuleError::NakayamaOrderCyclotomicBoundOverflow { dimension })?;
+    }
+    let mut exponent = Integer::one();
+    for index in 1..=bound {
+        if euler_totient(index) <= dimension {
+            exponent = exponent.lcm(&Integer::from(index));
+        }
+    }
+    Ok(exponent)
+}
+
+fn prime_field_general_linear_exponent(
+    dimension: usize,
+    prime: u64,
+) -> Result<Integer, EnvelopingModuleError> {
+    let prime_usize = usize::try_from(prime)
+        .map_err(|_| EnvelopingModuleError::NakayamaOrderPrimeTooLarge { prime })?;
+    let prime_integer = Integer::from(prime);
+    let mut exponent = Integer::one();
+    let mut prime_power = Integer::one();
+    for _ in 1..=dimension {
+        prime_power *= &prime_integer;
+        exponent = exponent.lcm(&(&prime_power - 1));
+    }
+    let mut unipotent_exponent = 0u64;
+    let mut covered = 1usize;
+    while covered < dimension {
+        covered = covered
+            .checked_mul(prime_usize)
+            .ok_or(EnvelopingModuleError::NakayamaOrderPrimePowerOverflow { dimension, prime })?;
+        unipotent_exponent += 1;
+    }
+    Ok(exponent * prime_integer.pow(unipotent_exponent))
+}
+
+fn matrix_power_integer<F: Field>(
+    matrix: &DenseMatrix<F>,
+    exponent: &Integer,
+) -> Result<DenseMatrix<F>, EnvelopingModuleError> {
+    let mut exponent = exponent.clone();
+    let mut result = DenseMatrix::identity(matrix.nrows(), matrix.field().clone());
+    let mut base = matrix.clone();
+    while exponent > 0 {
+        if &exponent % 2 == 1 {
+            result = result.multiply(&base)?;
+        }
+        exponent >>= 1_u8;
+        if exponent > 0 {
+            base = base.multiply(&base)?;
+        }
+    }
+    Ok(result)
+}
+
+fn matrix_is_identity<F: Field>(matrix: &DenseMatrix<F>) -> bool {
+    matrix == &DenseMatrix::identity(matrix.nrows(), matrix.field().clone())
+}
+
+fn next_prime(current: usize) -> Option<usize> {
+    let mut candidate = current.checked_add(1)?;
+    loop {
+        if is_prime(candidate) {
+            return Some(candidate);
+        }
+        candidate = candidate.checked_add(1)?;
+    }
+}
+
+fn is_prime(value: usize) -> bool {
+    if value < 2 {
+        return false;
+    }
+    if value.is_multiple_of(2) {
+        return value == 2;
+    }
+    let mut divisor = 3usize;
+    while divisor <= value / divisor {
+        if value.is_multiple_of(divisor) {
+            return false;
+        }
+        divisor += 2;
+    }
+    true
+}
+
+fn euler_totient(mut value: usize) -> usize {
+    let mut result = value;
+    let mut prime = 2usize;
+    while prime <= value / prime {
+        if value.is_multiple_of(prime) {
+            while value.is_multiple_of(prime) {
+                value /= prime;
+            }
+            result -= result / prime;
+        }
+        prime += if prime == 2 { 1 } else { 2 };
+    }
+    if value > 1 {
+        result -= result / value;
+    }
+    result
+}
+
+fn order_from_cache(value: CachedNakayamaAutomorphismOrder) -> NakayamaAutomorphismOrder {
+    match value {
+        CachedNakayamaAutomorphismOrder::Finite(value) => NakayamaAutomorphismOrder::Finite(value),
+        CachedNakayamaAutomorphismOrder::Infinite => NakayamaAutomorphismOrder::Infinite,
+    }
 }
 
 /// Invoke QPA's immediate `GlobalDimension` methods from already-known
@@ -3887,6 +4645,138 @@ pub enum EnvelopingModuleError {
         /// One-based indecomposable-projective position.
         projective: usize,
     },
+    /// QPA's selfinjectivity call has no applicable method on this quotient.
+    #[error("NakayamaAutomorphism cannot dispatch IsSelfinjectiveAlgebra on this algebra")]
+    NakayamaAutomorphismSelfinjectivityUnavailable,
+    /// The automorphism cache cannot contain GAP's `fail` sentinel.
+    #[error("the NakayamaAutomorphism attribute cache contains an invalid fail state")]
+    InvalidNakayamaAutomorphismCacheState,
+    /// Concurrent evaluation cannot bind both boolean false and a matrix.
+    #[error("the NakayamaAutomorphism attribute was concurrently cached as false")]
+    NakayamaAutomorphismCacheConflict,
+    /// The source closure requires an element in its captured algebra.
+    #[error("the entered argument is not in the algebra")]
+    NakayamaAutomorphismElementOutsideAlgebra,
+    /// A successful finite selfinjective computation requires a canonical basis.
+    #[error("NakayamaAutomorphism requires a finite canonical algebra basis")]
+    MissingNakayamaCanonicalBasis,
+    /// Every selfinjective indecomposable projective has a nonzero socle generator.
+    #[error("projective {projective} has no socle generator in NakayamaAutomorphism")]
+    EmptyProjectiveSocleGenerator {
+        /// One-based indecomposable-projective position.
+        projective: usize,
+    },
+    /// GAP's Steinitz primitive received inconsistent basis shapes or ranks.
+    #[error("BaseSteinitzVectors received invalid Nakayama basis data")]
+    InvalidNakayamaSteinitzInput,
+    /// The source Steinitz extension must produce a full algebra basis.
+    #[error("BaseSteinitzVectors did not complete the Nakayama socle basis")]
+    IncompleteNakayamaSteinitzBasis,
+    /// Addressable Steinitz column positions cannot overflow.
+    #[error("the Nakayama Steinitz column counter overflowed usize")]
+    NakayamaSteinitzColumnOverflow,
+    /// Addressable Steinitz row positions cannot overflow.
+    #[error("the Nakayama Steinitz row counter overflowed usize")]
+    NakayamaSteinitzRowOverflow,
+    /// A selfinjective algebra's Frobenius pairing must be nondegenerate.
+    #[error("the Frobenius pairing constructed by NakayamaAutomorphism is singular")]
+    SingularNakayamaPairing,
+    /// The cached closure matrix must match the canonical-basis dimension.
+    #[error("the cached Nakayama matrix has shape {shape:?}, expected {dimension} x {dimension}")]
+    InvalidNakayamaAutomorphismMatrixShape {
+        /// Cached matrix shape.
+        shape: (usize, usize),
+        /// Current canonical-basis dimension.
+        dimension: usize,
+    },
+    /// Internal canonical-basis reconstruction requires equal list lengths.
+    #[error(
+        "Nakayama linear combination has {coefficients} coefficients for {basis} basis vectors"
+    )]
+    NakayamaLinearCombinationLength {
+        /// Canonical-basis length.
+        basis: usize,
+        /// Coordinate-list length.
+        coefficients: usize,
+    },
+    /// The Frobenius-form cache cannot contain GAP's `fail` sentinel.
+    #[error("the FrobeniusForm attribute cache contains an invalid fail state")]
+    InvalidFrobeniusFormCacheState,
+    /// Successful Nakayama construction must install the form as a side effect.
+    #[error("NakayamaAutomorphism did not install FrobeniusForm")]
+    MissingInstalledFrobeniusForm,
+    /// Concurrent evaluation cannot bind both false and a form matrix.
+    #[error("the FrobeniusForm attribute was concurrently cached as false")]
+    FrobeniusFormCacheConflict,
+    /// The form closure accepts only elements of its captured quotient.
+    #[error("a FrobeniusForm argument is not in the algebra")]
+    FrobeniusFormElementOutsideAlgebra,
+    /// The cached form matrix must match the canonical-basis dimension.
+    #[error("the cached Frobenius form has shape {shape:?}, expected {dimension} x {dimension}")]
+    InvalidFrobeniusFormMatrixShape {
+        /// Cached matrix shape.
+        shape: (usize, usize),
+        /// Current canonical-basis dimension.
+        dimension: usize,
+    },
+    /// The Frobenius-functional cache cannot contain GAP's `fail` sentinel.
+    #[error("the FrobeniusLinearFunctional cache contains an invalid fail state")]
+    InvalidFrobeniusFunctionalCacheState,
+    /// Successful Nakayama construction must install the functional.
+    #[error("NakayamaAutomorphism did not install FrobeniusLinearFunctional")]
+    MissingInstalledFrobeniusFunctional,
+    /// Concurrent evaluation cannot bind both false and functional coordinates.
+    #[error("the FrobeniusLinearFunctional attribute was concurrently cached as false")]
+    FrobeniusFunctionalCacheConflict,
+    /// The functional closure accepts only elements of its captured quotient.
+    #[error("the FrobeniusLinearFunctional argument is not in the algebra")]
+    FrobeniusFunctionalElementOutsideAlgebra,
+    /// Cached functional coordinates must match the canonical basis.
+    #[error("the cached Frobenius functional has length {actual}, expected {dimension}")]
+    InvalidFrobeniusFunctionalLength {
+        /// Cached coordinate count.
+        actual: usize,
+        /// Current canonical-basis dimension.
+        dimension: usize,
+    },
+    /// The order cache cannot contain GAP's `fail` sentinel.
+    #[error("the OrderOfNakayamaAutomorphism cache contains an invalid fail state")]
+    InvalidNakayamaOrderCacheState,
+    /// Path-algebra order dispatch requires a selfinjectivity method.
+    #[error("OrderOfNakayamaAutomorphism cannot dispatch IsSelfinjectiveAlgebra")]
+    NakayamaOrderSelfinjectivityUnavailable,
+    /// Concurrent order evaluation cannot bind both false and a value.
+    #[error("OrderOfNakayamaAutomorphism was concurrently cached as false")]
+    NakayamaOrderCacheConflict,
+    /// QPA's quotient order method attempts to call a false automorphism.
+    #[error("OrderOfNakayamaAutomorphism attempted to call boolean false")]
+    CalledFalseNakayamaAutomorphism,
+    /// GAP's matrix order operation requires a nonempty square matrix here.
+    #[error("invalid Nakayama automorphism matrix shape {shape:?} for Order")]
+    InvalidNakayamaOrderMatrixShape {
+        /// Rejected matrix shape.
+        shape: (usize, usize),
+    },
+    /// The proven cyclotomic-index bound must fit addressable iteration.
+    #[error("the rational finite-order bound for dimension {dimension} overflows usize")]
+    NakayamaOrderCyclotomicBoundOverflow {
+        /// Matrix dimension.
+        dimension: usize,
+    },
+    /// The supported prime characteristic must fit addressable arithmetic.
+    #[error("prime characteristic {prime} does not fit usize")]
+    NakayamaOrderPrimeTooLarge {
+        /// Prime characteristic.
+        prime: u64,
+    },
+    /// The unipotent exponent calculation must fit addressable dimensions.
+    #[error("the GL({dimension},{prime}) unipotent exponent bound overflows usize")]
+    NakayamaOrderPrimePowerOverflow {
+        /// Matrix dimension.
+        dimension: usize,
+        /// Prime characteristic.
+        prime: u64,
+    },
     /// An annihilator basis requires QPA's finite canonical algebra basis.
     #[error("AnnihilatorOfModule requires a finite-dimensional algebra")]
     InfiniteAnnihilatorAlgebra,
@@ -4262,27 +5152,28 @@ mod tests {
 
     use super::{
         EnvelopingModuleError, ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult,
-        TensorProductOfModulesResult, algebra_as_module_of_enveloping_algebra,
-        algebra_as_module_over_enveloping_algebra, annihilator_of_module, basis_of_projectives,
-        canonical_basis_coefficients, cartan_matrix, coxeter_matrix, coxeter_polynomial, d_tr,
-        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
-        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        NakayamaAutomorphismOrder, TensorProductOfModulesResult,
+        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
+        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, cartan_matrix,
+        coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
+        d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
-        finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
-        from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
-        global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
-        indec_injective_modules, indec_projective_modules, injective_envelope,
+        finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
+        frobenius_linear_functional, from_matrix_to_homomorphism_of_projectives,
+        global_dimension_from_known_properties, global_dimension_of_algebra,
+        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
+        indec_projective_modules, injective_envelope,
         is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
         is_injective_module, is_projective_module, is_rigid_module, is_schurian_algebra,
         is_selfinjective_algebra, is_semicommutative_algebra, is_symmetric_algebra,
         is_tau_rigid_module, is_weakly_symmetric_algebra, lifting_morphism_from_projective,
-        matrix_of_homomorphism_between_projectives, nakayama_functor_of_module,
-        nakayama_functor_of_module_homomorphism, nakayama_permutation,
+        matrix_of_homomorphism_between_projectives, nakayama_automorphism,
+        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        projective_cover, random_module, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
-        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        order_of_nakayama_automorphism, projective_cover, random_module, simple_modules,
+        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules, tr_d,
+        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
         transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
@@ -8169,5 +9060,481 @@ mod tests {
             nakayama_permutation(&nonadmissible).unwrap_err(),
             EnvelopingModuleError::NakayamaPermutationSelfinjectivityUnavailable
         );
+    }
+
+    fn radical_square_zero_cycle<F: Field>(field: F) -> QuiverAlgebra<F> {
+        let quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(3), "y"),
+                ArrowSpec::named(vertex(3), vertex(1), "z"),
+            ],
+        )
+        .unwrap();
+        let parent = PathAlgebra::new(field, quiver).unwrap();
+        let arrows = parent.quiver().arrows().collect::<Vec<_>>();
+        let x = parent.element(arrows[0].path()).unwrap();
+        let y = parent.element(arrows[1].path()).unwrap();
+        let z = parent.element(arrows[2].path()).unwrap();
+        QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                parent,
+                &[
+                    x.multiply(&y).unwrap(),
+                    y.multiply(&z).unwrap(),
+                    z.multiply(&x).unwrap(),
+                ],
+            )
+            .unwrap(),
+        )
+    }
+
+    fn quantum_complete_intersection<F: Field>(field: F, scalar: &F::Element) -> QuiverAlgebra<F> {
+        let quiver = Quiver::from_indexed(
+            1,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "x"),
+                ArrowSpec::named(vertex(1), vertex(1), "y"),
+            ],
+        )
+        .unwrap();
+        let parent = PathAlgebra::new(field, quiver).unwrap();
+        let arrows = parent.quiver().arrows().collect::<Vec<_>>();
+        let x = parent.element(arrows[0].path()).unwrap();
+        let y = parent.element(arrows[1].path()).unwrap();
+        let xy = x.multiply(&y).unwrap();
+        let yx = y.multiply(&x).unwrap();
+        QuiverAlgebra::Quotient(
+            quotient_by_relations(
+                parent,
+                &[
+                    x.multiply(&x).unwrap(),
+                    y.multiply(&y).unwrap(),
+                    xy.sub(&yx.scale_left(scalar).unwrap()).unwrap(),
+                ],
+            )
+            .unwrap(),
+        )
+    }
+
+    fn gap_z2_scalar(value: <Z2 as numerica::domains::Set>::Element) -> String {
+        if Z2.is_zero(&value) {
+            "0*Z(2)".to_owned()
+        } else {
+            "Z(2)^0".to_owned()
+        }
+    }
+
+    fn gap_zp_scalar(field: &Zp, value: <Zp as numerica::domains::Set>::Element) -> String {
+        if field.is_zero(&value) {
+            return format!("0*Z({})", field.get_prime());
+        }
+        let elements = field.qpa_elements().unwrap().unwrap();
+        let position = elements
+            .iter()
+            .position(|candidate| candidate == &value)
+            .unwrap();
+        let exponent = position - 1;
+        match exponent {
+            1 => format!("Z({})", field.get_prime()),
+            _ => format!("Z({})^{exponent}", field.get_prime()),
+        }
+    }
+
+    fn scalar_matrix_json<F: Field>(
+        matrix: &DenseMatrix<F>,
+        scalar: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        json!(
+            (0..matrix.nrows())
+                .map(|row| matrix.row(row).iter().map(scalar).collect::<Vec<_>>())
+                .collect::<Vec<_>>()
+        )
+    }
+
+    fn nakayama_order_json(value: &NakayamaAutomorphismOrder) -> Value {
+        match value {
+            NakayamaAutomorphismOrder::Finite(order) => {
+                serde_json::from_str(&order.to_string()).unwrap()
+            }
+            NakayamaAutomorphismOrder::Infinite => json!("infinity"),
+        }
+    }
+
+    fn nakayama_path_case_json<F: QpaCoefficientField>(
+        algebra: &QuiverAlgebra<F>,
+        scalar: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let auto_initially_known = algebra.cached_nakayama_automorphism_attribute().is_bound();
+        let order_initially_known = algebra
+            .cached_order_of_nakayama_automorphism_attribute()
+            .is_bound();
+        let automorphism = nakayama_automorphism(algebra).unwrap();
+        let order = order_of_nakayama_automorphism(algebra).unwrap();
+        json!({
+            "auto_initially_known": auto_initially_known,
+            "order_initially_known": order_initially_known,
+            "automorphism": automorphism.as_ref().map_or(Value::Bool(false),
+                |value| scalar_matrix_json(value.matrix(), scalar)),
+            "order": order.as_ref().map_or(Value::Bool(false), nakayama_order_json),
+            "auto_known_after": algebra.cached_nakayama_automorphism_attribute().is_bound(),
+            "order_known_after": algebra
+                .cached_order_of_nakayama_automorphism_attribute().is_bound()
+        })
+    }
+
+    #[derive(Clone, Copy)]
+    enum FrobeniusTrigger {
+        Automorphism,
+        Form,
+        Functional,
+    }
+
+    fn nakayama_quotient_case_json<F: QpaCoefficientField>(
+        algebra: &QuiverAlgebra<F>,
+        trigger: FrobeniusTrigger,
+        scalar: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let QuiverAlgebra::Quotient(quotient) = algebra else {
+            unreachable!()
+        };
+        let auto_initially_known = algebra.cached_nakayama_automorphism_attribute().is_bound();
+        let form_initially_known = quotient.cached_frobenius_form_attribute().is_bound();
+        let functional_initially_known = quotient
+            .cached_frobenius_linear_functional_attribute()
+            .is_bound();
+        let order_initially_known = algebra
+            .cached_order_of_nakayama_automorphism_attribute()
+            .is_bound();
+
+        let (automorphism, mut form, mut functional) = match trigger {
+            FrobeniusTrigger::Automorphism => (nakayama_automorphism(algebra).unwrap(), None, None),
+            FrobeniusTrigger::Form => {
+                let form = frobenius_form(quotient).unwrap();
+                let automorphism = nakayama_automorphism(algebra).unwrap();
+                (automorphism, form, None)
+            }
+            FrobeniusTrigger::Functional => {
+                let functional = frobenius_linear_functional(quotient).unwrap();
+                let automorphism = nakayama_automorphism(algebra).unwrap();
+                (automorphism, None, functional)
+            }
+        };
+        let auto_known_after_trigger = algebra.cached_nakayama_automorphism_attribute().is_bound();
+        let form_known_after_trigger = quotient.cached_frobenius_form_attribute().is_bound();
+        let functional_known_after_trigger = quotient
+            .cached_frobenius_linear_functional_attribute()
+            .is_bound();
+
+        if form.is_none() {
+            form = frobenius_form(quotient).unwrap();
+        }
+        if functional.is_none() {
+            functional = frobenius_linear_functional(quotient).unwrap();
+        }
+        let mut result = json!({
+            "auto_initially_known": auto_initially_known,
+            "form_initially_known": form_initially_known,
+            "functional_initially_known": functional_initially_known,
+            "order_initially_known": order_initially_known,
+            "auto_known_after_trigger": auto_known_after_trigger,
+            "form_known_after_trigger": form_known_after_trigger,
+            "functional_known_after_trigger": functional_known_after_trigger,
+            "automorphism": automorphism.as_ref().map_or(Value::Bool(false),
+                |value| scalar_matrix_json(value.matrix(), scalar)),
+            "form": form.as_ref().map_or(Value::Bool(false),
+                |value| scalar_matrix_json(value.matrix(), scalar)),
+            "functional": functional.as_ref().map_or(Value::Bool(false), |value| {
+                json!(value.canonical_basis_values().iter().map(scalar).collect::<Vec<_>>())
+            }),
+        });
+        if automorphism.is_some() {
+            result["order"] =
+                nakayama_order_json(&order_of_nakayama_automorphism(algebra).unwrap().unwrap());
+        }
+        result["auto_known_after"] =
+            json!(algebra.cached_nakayama_automorphism_attribute().is_bound());
+        result["form_known_after"] = json!(quotient.cached_frobenius_form_attribute().is_bound());
+        result["functional_known_after"] = json!(
+            quotient
+                .cached_frobenius_linear_functional_attribute()
+                .is_bound()
+        );
+        result["order_known_after"] = json!(
+            algebra
+                .cached_order_of_nakayama_automorphism_attribute()
+                .is_bound()
+        );
+        result
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn pathalg_nakayama_automorphism_cases<F: QpaCoefficientField>(
+        field: F,
+        quantum_scalar: &F::Element,
+        scalar: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let discrete = isolated_path_algebra(field.clone(), 2);
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), a2_quiver).unwrap());
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let loop_arrow = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[loop_arrow.multiply(&loop_arrow).unwrap()])
+                .unwrap(),
+        );
+
+        let a3_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "u"),
+                ArrowSpec::named(vertex(2), vertex(3), "v"),
+            ],
+        )
+        .unwrap();
+        let a3_parent = PathAlgebra::new(field.clone(), a3_quiver).unwrap();
+        let arrows = a3_parent.quiver().arrows().collect::<Vec<_>>();
+        let u = a3_parent.element(arrows[0].path()).unwrap();
+        let v = a3_parent.element(arrows[1].path()).unwrap();
+        let nonselfinjective = QuiverAlgebra::Quotient(
+            quotient_by_relations(a3_parent, &[u.multiply(&v).unwrap()]).unwrap(),
+        );
+
+        let cycle = radical_square_zero_cycle(field.clone());
+        let quantum = quantum_complete_intersection(field, quantum_scalar);
+
+        json!({
+            "path_discrete": nakayama_path_case_json(&discrete, scalar),
+            "path_a2": nakayama_path_case_json(&a2, scalar),
+            "quotient_dual_numbers": nakayama_quotient_case_json(
+                &dual_numbers, FrobeniusTrigger::Form, scalar),
+            "quotient_nonselfinjective": nakayama_quotient_case_json(
+                &nonselfinjective, FrobeniusTrigger::Automorphism, scalar),
+            "quotient_radical_square_zero_cycle": nakayama_quotient_case_json(
+                &cycle, FrobeniusTrigger::Automorphism, scalar),
+            "quotient_quantum_complete_intersection": nakayama_quotient_case_json(
+                &quantum, FrobeniusTrigger::Functional, scalar)
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_pathalg_nakayama_automorphism_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            pathalg_nakayama_automorphism_cases(Z2, &Z2.one(), |value| gap_z2_scalar(*value)),
+            expected["f2"]
+        );
+        let field5 = Zp::new(5);
+        assert_eq!(
+            pathalg_nakayama_automorphism_cases(field5.clone(), &field5.to_element(2), |value| {
+                gap_zp_scalar(&field5, *value)
+            },),
+            expected["f5"]
+        );
+        assert_eq!(
+            pathalg_nakayama_automorphism_cases(Q, &q(2), ToString::to_string),
+            expected["rational"]
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_pathalg_nakayama_automorphism_dispatch_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"
+        ))
+        .unwrap();
+        let cycle = radical_square_zero_cycle(Z2);
+        let QuiverAlgebra::Quotient(cycle_quotient) = &cycle else {
+            unreachable!()
+        };
+        let automorphism = nakayama_automorphism(&cycle).unwrap().unwrap();
+        let form = frobenius_form(cycle_quotient).unwrap().unwrap();
+        let functional = frobenius_linear_functional(cycle_quotient)
+            .unwrap()
+            .unwrap();
+        let foreign = isolated_path_algebra(Z2, 1).one().unwrap();
+        let one = cycle.one().unwrap();
+
+        let a3_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "u"),
+                ArrowSpec::named(vertex(2), vertex(3), "v"),
+            ],
+        )
+        .unwrap();
+        let a3_parent = PathAlgebra::new(Z2, a3_quiver).unwrap();
+        let arrows = a3_parent.quiver().arrows().collect::<Vec<_>>();
+        let u = a3_parent.element(arrows[0].path()).unwrap();
+        let v = a3_parent.element(arrows[1].path()).unwrap();
+        let nonselfinjective = QuiverAlgebra::Quotient(
+            quotient_by_relations(a3_parent, &[u.multiply(&v).unwrap()]).unwrap(),
+        );
+
+        let arrow_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let parent = PathAlgebra::new(Z2, arrow_quiver).unwrap();
+        let arrow = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let nonadmissible = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, std::slice::from_ref(&arrow)).unwrap(),
+        );
+        let QuiverAlgebra::Quotient(nonself_quotient) = &nonselfinjective else {
+            unreachable!()
+        };
+        let QuiverAlgebra::Quotient(nonadmissible_quotient) = &nonadmissible else {
+            unreachable!()
+        };
+
+        let actual = json!({
+            "schema_version": 1,
+            "source": {
+                "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1"
+            },
+            "foreign_auto_success": automorphism.image(&foreign).is_ok(),
+            "foreign_form_left_success": form.evaluate(&foreign, &one).is_ok(),
+            "foreign_form_right_success": form.evaluate(&one, &foreign).is_ok(),
+            "foreign_functional_success": functional.evaluate(&foreign).is_ok(),
+            "nonself_auto_is_false": nakayama_automorphism(&nonselfinjective)
+                .unwrap().is_none(),
+            "nonself_form_is_false": frobenius_form(nonself_quotient).unwrap().is_none(),
+            "nonself_functional_is_false": frobenius_linear_functional(nonself_quotient)
+                .unwrap().is_none(),
+            "nonself_order_success": order_of_nakayama_automorphism(&nonselfinjective).is_ok(),
+            "nonadmissible_auto_success": nakayama_automorphism(&nonadmissible).is_ok(),
+            "nonadmissible_form_success": frobenius_form(nonadmissible_quotient).is_ok(),
+            "nonadmissible_functional_success":
+                frobenius_linear_functional(nonadmissible_quotient).is_ok(),
+            "nonadmissible_order_success":
+                order_of_nakayama_automorphism(&nonadmissible).is_ok()
+        });
+        assert_eq!(actual, expected);
+        assert!(matches!(
+            automorphism.image(&foreign),
+            Err(EnvelopingModuleError::NakayamaAutomorphismElementOutsideAlgebra)
+        ));
+        assert_eq!(
+            order_of_nakayama_automorphism(&nonselfinjective),
+            Err(EnvelopingModuleError::CalledFalseNakayamaAutomorphism)
+        );
+        assert!(matches!(
+            nakayama_automorphism(&nonadmissible),
+            Err(EnvelopingModuleError::NakayamaAutomorphismSelfinjectivityUnavailable)
+        ));
+    }
+
+    #[test]
+    fn nakayama_automorphism_frobenius_data_and_order_follow_qpa() {
+        let cycle = radical_square_zero_cycle(Q);
+        let QuiverAlgebra::Quotient(cycle_quotient) = &cycle else {
+            unreachable!()
+        };
+        assert!(!cycle.cached_nakayama_automorphism_attribute().is_bound());
+        assert!(!cycle_quotient.cached_frobenius_form_attribute().is_bound());
+        let form = frobenius_form(cycle_quotient).unwrap().unwrap();
+        assert!(cycle.cached_nakayama_automorphism_attribute().is_bound());
+        assert!(
+            cycle_quotient
+                .cached_frobenius_linear_functional_attribute()
+                .is_bound()
+        );
+        let automorphism = nakayama_automorphism(&cycle).unwrap().unwrap();
+        let expected_automorphism = DenseMatrix::from_rows(
+            vec![
+                vec![q(0), q(1), q(0), q(0), q(0), q(0)],
+                vec![q(0), q(0), q(1), q(0), q(0), q(0)],
+                vec![q(1), q(0), q(0), q(0), q(0), q(0)],
+                vec![q(0), q(0), q(0), q(0), q(1), q(0)],
+                vec![q(0), q(0), q(0), q(0), q(0), q(1)],
+                vec![q(0), q(0), q(0), q(1), q(0), q(0)],
+            ],
+            Q,
+        )
+        .unwrap();
+        assert_eq!(automorphism.matrix(), &expected_automorphism);
+        assert_eq!(
+            order_of_nakayama_automorphism(&cycle).unwrap(),
+            Some(NakayamaAutomorphismOrder::Finite(Integer::from(3)))
+        );
+        let functional = frobenius_linear_functional(cycle_quotient)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            functional.canonical_basis_values(),
+            &[q(0), q(0), q(0), q(1), q(1), q(1)]
+        );
+        let basis = finite_canonical_basis(&cycle).unwrap().unwrap();
+        for (row, left) in basis.iter().enumerate() {
+            for (column, right) in basis.iter().enumerate() {
+                assert_eq!(
+                    form.evaluate(left, right).unwrap(),
+                    form.matrix()[(row, column)]
+                );
+            }
+            assert_eq!(
+                functional.evaluate(left).unwrap(),
+                functional.canonical_basis_values()[row]
+            );
+            assert_eq!(
+                canonical_basis_coefficients(&cycle, &basis, &automorphism.image(left).unwrap())
+                    .unwrap(),
+                expected_automorphism.row(row)
+            );
+        }
+
+        let quantum_q = quantum_complete_intersection(Q, &q(2));
+        let quantum_q_auto = nakayama_automorphism(&quantum_q).unwrap().unwrap();
+        assert_eq!(
+            quantum_q_auto.matrix(),
+            &DenseMatrix::from_rows(
+                vec![
+                    vec![q(1), q(0), q(0), q(0)],
+                    vec![q(0), q(2), q(0), q(0)],
+                    vec![q(0), q(0), Q.to_element(1.into(), 2.into(), true), q(0)],
+                    vec![q(0), q(0), q(0), q(1)],
+                ],
+                Q,
+            )
+            .unwrap()
+        );
+        assert_eq!(
+            order_of_nakayama_automorphism(&quantum_q).unwrap(),
+            Some(NakayamaAutomorphismOrder::Infinite)
+        );
+
+        let field5 = Zp::new(5);
+        let quantum_f5 = quantum_complete_intersection(field5.clone(), &field5.to_element(2));
+        assert_eq!(
+            order_of_nakayama_automorphism(&quantum_f5).unwrap(),
+            Some(NakayamaAutomorphismOrder::Finite(Integer::from(4)))
+        );
+        let quantum_f2 = quantum_complete_intersection(Z2, &Z2.one());
+        assert_eq!(
+            order_of_nakayama_automorphism(&quantum_f2).unwrap(),
+            Some(NakayamaAutomorphismOrder::Finite(Integer::one()))
+        );
+
+        let discrete = isolated_path_algebra(Q, 2);
+        assert_eq!(
+            order_of_nakayama_automorphism(&discrete).unwrap(),
+            Some(NakayamaAutomorphismOrder::Finite(Integer::one()))
+        );
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(Q, a2_quiver).unwrap());
+        assert!(nakayama_automorphism(&a2).unwrap().is_none());
+        assert!(order_of_nakayama_automorphism(&a2).unwrap().is_none());
     }
 }
