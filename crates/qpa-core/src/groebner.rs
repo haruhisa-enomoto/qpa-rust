@@ -467,8 +467,12 @@ pub fn high_level_groebner_basis<F: Field>(
     relations: &[PathAlgebraElement<F>],
     algebra: &PathAlgebra<F>,
 ) -> Result<Vec<PathAlgebraElement<F>>, GroebnerError> {
-    if !qpa_in_arrow_ideal(relations, algebra)? {
-        return Err(GroebnerError::OutsideArrowIdeal);
+    match qpa_in_arrow_ideal(relations, algebra) {
+        Ok(true) => {}
+        Ok(false) | Err(GroebnerError::DifferentAlgebras) => {
+            return Err(GroebnerError::OutsideArrowIdeal);
+        }
+        Err(error) => return Err(error),
     }
 
     let mut pending = make_uniform_list(relations, algebra)?;
@@ -546,12 +550,12 @@ pub fn remainder_of_division<F: Field>(
 
         for divisor in divisors {
             let divisor_walk = tip_walk(divisor)?;
-            let Some((start, end)) = leftmost_occurrence(&dividend_walk, &divisor_walk) else {
+            let Some(occurrence) = leftmost_occurrence(&dividend_walk, &divisor_walk) else {
                 continue;
             };
 
-            let left = context_from_walk(algebra, &dividend_walk[..start])?;
-            let right = context_from_walk(algebra, &dividend_walk[end + 1..])?;
+            let left = context_from_walk(algebra, &dividend_walk[..occurrence.start])?;
+            let right = context_from_walk(algebra, &dividend_walk[occurrence.end..])?;
             let coefficient = algebra.field().div(
                 &leading_term.leading_coefficient(),
                 &divisor.leading_coefficient(),
@@ -645,16 +649,26 @@ pub fn tip_reduced_list<F: Field>(
     Ok(result)
 }
 
-/// Translate QPA's `LeftmostOccurrence` using zero-based inclusive indices.
+/// Translate QPA's `LeftmostOccurrence`.
+///
+/// GAP returns one-based inclusive endpoint pairs. Rust uses the equivalent
+/// zero-based half-open range, so QPA's empty-pattern result `[1, 0]` is
+/// represented by `0..0`.
 #[must_use]
-pub fn leftmost_occurrence<T: PartialEq>(sequence: &[T], pattern: &[T]) -> Option<(usize, usize)> {
-    if pattern.is_empty() || pattern.len() > sequence.len() {
+pub fn leftmost_occurrence<T: PartialEq>(
+    sequence: &[T],
+    pattern: &[T],
+) -> Option<std::ops::Range<usize>> {
+    if pattern.is_empty() {
+        return Some(0..0);
+    }
+    if pattern.len() > sequence.len() {
         return None;
     }
     sequence
         .windows(pattern.len())
         .position(|window| window == pattern)
-        .map(|start| (start, start + pattern.len() - 1))
+        .map(|start| start..start + pattern.len())
 }
 
 /// Translate `QPA_InArrowIdeal` for a list of relations.
@@ -746,7 +760,14 @@ fn context_from_walk<F: Field>(
     Ok(algebra.element(Path::from_arrow_list(algebra.quiver(), &arrows)?)?)
 }
 
-fn tip_walk<F: Field>(element: &PathAlgebraElement<F>) -> Result<Vec<ArrowIndex>, GroebnerError> {
+/// Translate QPA's `TipWalk` synonym.
+///
+/// # Errors
+///
+/// Returns an error for the zero element or a tip without a path walk.
+pub fn tip_walk<F: Field>(
+    element: &PathAlgebraElement<F>,
+) -> Result<Vec<ArrowIndex>, GroebnerError> {
     if element.is_zero() {
         return Err(GroebnerError::ZeroDivisor);
     }
@@ -840,7 +861,7 @@ pub enum GroebnerError {
     #[error("a relation belongs to a different path algebra")]
     DifferentAlgebras,
     /// `HighLevelGroebnerBasis` accepts only relations in the arrow ideal.
-    #[error("relations do not belong to the arrow ideal of the path algebra")]
+    #[error("elements do not belong to the arrow ideal of the path algebra")]
     OutsideArrowIdeal,
     /// A zero relation cannot serve as a division rule.
     #[error("a Groebner divisor relation is zero")]
@@ -899,7 +920,8 @@ mod tests {
     use crate::{ArrowIndex, ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
 
     use super::{
-        GroebnerBasis, GroebnerError, leftmost_occurrence, make_uniform, remainder_of_division,
+        GroebnerBasis, GroebnerError, leftmost_occurrence, make_uniform, reduced_list_qpa,
+        remainder_of_division, tip_reduced_list, tip_walk,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1011,10 +1033,11 @@ mod tests {
     }
 
     #[test]
-    fn leftmost_occurrence_translates_qpa_inclusive_result() {
-        assert_eq!(leftmost_occurrence(&[1, 2, 1, 2], &[1, 2]), Some((0, 1)));
+    fn leftmost_occurrence_translates_qpa_endpoint_pair() {
+        assert_eq!(leftmost_occurrence(&[1, 2, 1, 2], &[1, 2]), Some(0..2));
         assert_eq!(leftmost_occurrence(&[1, 2], &[2, 1]), None);
-        assert_eq!(leftmost_occurrence::<u8>(&[], &[]), None);
+        assert_eq!(leftmost_occurrence::<u8>(&[], &[]), Some(0..0));
+        assert_eq!(leftmost_occurrence(&[1, 2], &[]), Some(0..0));
     }
 
     #[test]
@@ -1106,13 +1129,56 @@ mod tests {
             ],
         )
         .unwrap();
+        let completion_basis = GroebnerBasis::high_level(
+            &algebra,
+            &[
+                y.multiply(&x).unwrap().sub(&x).unwrap(),
+                x.multiply(&y).unwrap().sub(&y).unwrap(),
+            ],
+        )
+        .unwrap();
         let yx = y.multiply(&x).unwrap();
         let yxy_plus_x = yx.multiply(&y).unwrap().add(&x).unwrap();
+        let x_squared = x.pow(2).unwrap();
+        let remainder_by_vertex =
+            remainder_of_division(x_squared.add(&x).unwrap(), &[algebra.one()], &algebra).unwrap();
+        let reduced_list = reduced_list_qpa(
+            &[
+                x_squared.clone(),
+                x_squared.add(&x).unwrap(),
+                algebra.zero(),
+            ],
+            &algebra,
+        )
+        .unwrap();
+        let tip_reduced_list = tip_reduced_list(
+            &[
+                algebra.one(),
+                x.clone(),
+                x_squared.clone(),
+                x_squared,
+                algebra.zero(),
+            ],
+            &algebra,
+        )
+        .unwrap();
+        let tip_walk_names = tip_walk(&x.add(&yx).unwrap())
+            .unwrap()
+            .into_iter()
+            .map(|index| algebra.quiver().arrow(index).unwrap().name().to_owned())
+            .collect::<Vec<_>>();
+        let empty_basis = GroebnerBasis::high_level(&algebra, &[]).unwrap();
         assert_eq!(
             json!({
                 "basis": rational_basis.relations().iter().map(rational_json).collect::<Vec<_>>(),
+                "completion_basis": completion_basis.relations().iter().map(rational_json).collect::<Vec<_>>(),
                 "remainder_yx": rational_json(&rational_basis.remainder(yx).unwrap()),
-                "remainder_yxy_plus_x": rational_json(&rational_basis.remainder(yxy_plus_x).unwrap())
+                "remainder_yxy_plus_x": rational_json(&rational_basis.remainder(yxy_plus_x).unwrap()),
+                "remainder_by_vertex": rational_json(&remainder_by_vertex),
+                "reduced_list": reduced_list.iter().map(rational_json).collect::<Vec<_>>(),
+                "tip_reduced_list": tip_reduced_list.iter().map(rational_json).collect::<Vec<_>>(),
+                "tip_walk": tip_walk_names,
+                "empty_basis": empty_basis.relations().iter().map(rational_json).collect::<Vec<_>>()
             }),
             expected["rational"]
         );
@@ -1202,6 +1268,51 @@ mod tests {
                     .collect::<Vec<_>>()
             ),
             expected["uniform_components"]
+        );
+        let split_basis = GroebnerBasis::high_level(&uniform_algebra, &[sum]).unwrap();
+        assert_eq!(
+            json!(
+                split_basis
+                    .relations()
+                    .iter()
+                    .map(rational_json)
+                    .collect::<Vec<_>>()
+            ),
+            expected["split_basis"]
+        );
+        let qpa_endpoint_pair = |occurrence: Option<std::ops::Range<usize>>| {
+            occurrence.map_or(Value::Null, |range| json!([range.start + 1, range.end]))
+        };
+        assert_eq!(
+            json!({
+                "repeated": qpa_endpoint_pair(leftmost_occurrence(&[1, 2, 1, 2], &[1, 2])),
+                "empty": qpa_endpoint_pair(leftmost_occurrence(&[1, 2], &[])),
+                "absent": qpa_endpoint_pair(leftmost_occurrence(&[1, 2], &[2, 1]))
+            }),
+            expected["leftmost_occurrence"]
+        );
+    }
+
+    #[test]
+    fn high_level_rejects_every_non_arrow_ideal_input_like_qpa() {
+        let quiver = single_loop_quiver();
+        let algebra = PathAlgebra::new(Q, quiver.clone()).unwrap();
+        assert_eq!(
+            GroebnerBasis::high_level(&algebra, &[algebra.one()]).unwrap_err(),
+            GroebnerError::OutsideArrowIdeal
+        );
+        assert_eq!(
+            GroebnerError::OutsideArrowIdeal.to_string(),
+            "elements do not belong to the arrow ideal of the path algebra"
+        );
+
+        let foreign_algebra = PathAlgebra::new(Q, quiver).unwrap();
+        let foreign_x = foreign_algebra
+            .element(foreign_algebra.quiver().arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        assert_eq!(
+            GroebnerBasis::high_level(&algebra, &[foreign_x]).unwrap_err(),
+            GroebnerError::OutsideArrowIdeal
         );
     }
 

@@ -559,6 +559,22 @@ diff --unified "$expected" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/groebner_high_level.g" \
     "$repo_root/tests/fixtures/groebner_high_level.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/groebner_high_level_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a vertex relation in HighLevelGroebnerBasis" >&2
+    exit 1
+fi
+grep -Fq "elements do not belong to the arrow ideal of the path algebra" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/groebner_high_level_foreign_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a relation from another path algebra" >&2
+    exit 1
+fi
+grep -Fq "elements do not belong to the arrow ideal of the path algebra" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/groebner_objects.g" \
     "$repo_root/tests/fixtures/groebner_objects.schema-v1.json"

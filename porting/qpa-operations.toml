@@ -5108,9 +5108,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "high_level_groebner_basis; GroebnerBasis::high_level"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json","tests/gap-reference/groebner_high_level_error.g","tests/gap-reference/groebner_high_level_foreign_error.g"]
 deviations = []
 
 [[entries]]
@@ -5121,9 +5121,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "remainder_of_division; GroebnerBasis::remainder"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5134,9 +5134,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduced_list_qpa"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5147,9 +5147,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_reduced_list"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5160,9 +5160,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "leftmost_occurrence"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5173,9 +5173,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_walk"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5186,9 +5186,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gi"
 source_start = 1
 source_end = 56
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "high_level_groebner_basis; GroebnerBasis::high_level"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json","tests/gap-reference/groebner_high_level_error.g","tests/gap-reference/groebner_high_level_foreign_error.g"]
 deviations = []
 
 [[entries]]
@@ -5199,9 +5199,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gi"
 source_start = 59
 source_end = 82
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduced_list_qpa"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5212,9 +5212,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gi"
 source_start = 85
 source_end = 109
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_reduced_list"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5225,9 +5225,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gi"
 source_start = 112
 source_end = 149
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "remainder_of_division; GroebnerBasis::remainder"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -5238,9 +5238,9 @@ source_file = "upstream/qpa/lib/gbhighlevel.gi"
 source_start = 152
 source_end = 169
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "leftmost_occurrence"
+tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
 
 [[entries]]

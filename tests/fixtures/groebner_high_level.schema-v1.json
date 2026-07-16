@@ -16,8 +16,31 @@
       ],
       [{"path": "y^2", "coefficient": [1, 1]}]
     ],
+    "completion_basis": [
+      [
+        {"path": "x", "coefficient": [-1, 1]},
+        {"path": "x^2", "coefficient": [1, 1]}
+      ],
+      [
+        {"path": "y", "coefficient": [-1, 1]},
+        {"path": "x*y", "coefficient": [1, 1]}
+      ],
+      [
+        {"path": "x", "coefficient": [-1, 1]},
+        {"path": "y*x", "coefficient": [1, 1]}
+      ],
+      [
+        {"path": "y", "coefficient": [-1, 1]},
+        {"path": "y^2", "coefficient": [1, 1]}
+      ]
+    ],
     "remainder_yx": [{"path": "x*y", "coefficient": [1, 1]}],
-    "remainder_yxy_plus_x": [{"path": "x", "coefficient": [1, 1]}]
+    "remainder_yxy_plus_x": [{"path": "x", "coefficient": [1, 1]}],
+    "remainder_by_vertex": [],
+    "reduced_list": [[{"path": "x", "coefficient": [1, 1]}]],
+    "tip_reduced_list": [[{"path": "v1", "coefficient": [1, 1]}]],
+    "tip_walk": ["y", "x"],
+    "empty_basis": []
   },
   "f5": {
     "basis": [
@@ -45,5 +68,15 @@
     [{"path": "a", "coefficient": [1, 1]}],
     [{"path": "b", "coefficient": [1, 1]}],
     [{"path": "c", "coefficient": [1, 1]}]
-  ]
+  ],
+  "split_basis": [
+    [{"path": "a", "coefficient": [1, 1]}],
+    [{"path": "b", "coefficient": [1, 1]}],
+    [{"path": "c", "coefficient": [1, 1]}]
+  ],
+  "leftmost_occurrence": {
+    "repeated": [1, 2],
+    "empty": [1, 0],
+    "absent": null
+  }
 }

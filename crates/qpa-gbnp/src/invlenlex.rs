@@ -158,11 +158,11 @@ pub fn remainder_of_division_inv_len_inv_lex<F: Field>(
         let mut reduction_applied = false;
         for divisor in divisors {
             let divisor_walk = required_tip_walk(divisor)?;
-            let Some((start, end)) = leftmost_occurrence(&tip_walk, &divisor_walk) else {
+            let Some(occurrence) = leftmost_occurrence(&tip_walk, &divisor_walk) else {
                 continue;
             };
-            let left = context_from_walk(algebra, &tip_walk[..start])?;
-            let right = context_from_walk(algebra, &tip_walk[end + 1..])?;
+            let left = context_from_walk(algebra, &tip_walk[..occurrence.start])?;
+            let right = context_from_walk(algebra, &tip_walk[occurrence.end..])?;
             let coefficient = algebra.field().div(
                 &tip_coefficient_inv_len_inv_lex(&tip),
                 &tip_coefficient_inv_len_inv_lex(divisor),
