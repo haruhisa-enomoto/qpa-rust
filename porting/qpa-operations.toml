@@ -18654,9 +18654,9 @@ source_file = "upstream/qpa/lib/pathalgideal.gd"
 source_start = 14
 source_end = 14
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PosetAlgebra::is_finite_global_dimension_algebra"
+tests = ["tests/fixtures/pathalg_poset_algebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
