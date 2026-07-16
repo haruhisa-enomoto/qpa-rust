@@ -401,6 +401,27 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_predefined_remaining.g" \
     "$repo_root/tests/fixtures/pathalg_predefined_remaining.schema-v1.json"
+compare_last_json_fixture \
+    "$repo_root/tests/gap-reference/pathalg_module_preprojective_structure.g" \
+    "$repo_root/tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_module_preprojective_bound_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an insufficient module-preprojective bound" >&2
+    exit 1
+fi
+grep -Fq "Must increase the second argument" "$actual"
+grep -Fq "pathalgpredef.gi:852" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_module_preprojective_rational_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly converted a module-preprojective algebra over the rationals" >&2
+    exit 1
+fi
+grep -Fq "the entered algebra is not an algebra over a finite field" "$actual"
+grep -Fq "algebra.gi:653" "$actual"
 compare_text_fixture \
     "$repo_root/tests/gap-reference/pathalgreptype_path.g" \
     "$repo_root/tests/fixtures/pathalgreptype_path.txt"

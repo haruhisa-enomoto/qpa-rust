@@ -4,6 +4,7 @@
 //! algorithm is substituted here.
 
 pub mod heap;
+pub mod higher_preprojective;
 pub mod invlenlex;
 pub mod module;
 pub mod np;
@@ -22,6 +23,9 @@ pub mod tensor;
 pub mod trivial_extension;
 
 pub use heap::{TodoHeap, TodoHeapError};
+pub use higher_preprojective::{
+    ModulePreprojectiveError, ModulePreprojectiveStructure, module_preprojective_structure,
+};
 pub use invlenlex::{
     InvLenLexError, biggest_homogeneous_part_inv_len_inv_lex,
     biggest_homogeneous_parts_inv_len_inv_lex, groebner_basis_inv_len_inv_lex,
