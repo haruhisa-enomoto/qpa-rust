@@ -23659,9 +23659,9 @@ source_file = "upstream/qpa/lib/util.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "positions_nonzero; positions_nonzero_in_field"
+tests = ["tests/fixtures/util.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23672,9 +23672,9 @@ source_file = "upstream/qpa/lib/util.gd"
 source_start = 28
 source_end = 28
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "null_list"
+tests = ["tests/fixtures/util.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23685,9 +23685,9 @@ source_file = "upstream/qpa/lib/util.gi"
 source_start = 5
 source_end = 12
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "positions_nonzero; positions_nonzero_in_field"
+tests = ["tests/fixtures/util.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23698,9 +23698,9 @@ source_file = "upstream/qpa/lib/util.gi"
 source_start = 21
 source_end = 26
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "null_list"
+tests = ["tests/fixtures/util.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "rational": {
+    "positions": [2, 4],
+    "null_list": ["0", "0", "0", "0"]
+  },
+  "binary": {
+    "positions": [2, 4],
+    "null_list": ["0*Z(2)", "0*Z(2)", "0*Z(2)", "0*Z(2)"]
+  },
+  "generic_matrices": {
+    "positions": [2, 4]
+  }
+}
