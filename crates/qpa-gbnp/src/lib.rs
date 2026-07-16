@@ -39,7 +39,7 @@ pub use module::{
     hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
     is_injective_module, is_projective_module, lifting_morphism_from_projective,
     loewy_length_of_algebra, matrix_of_homomorphism_between_projectives, projective_cover,
-    simple_modules,
+    simple_modules, socle_series,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,

@@ -6,15 +6,15 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    DenseMatrix, MatrixError, ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix,
-    PathAlgebraElement, PathAlgebraError, PathAlgebraModule, PathAlgebraModuleElement,
-    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint,
-    PathError, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct,
-    QuiverProductError, QuotientError, direct_sum_inclusions, direct_sum_of_qpa_modules,
-    direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m, hom_over_algebra,
-    identity_module_mapping, include_in_path_algebra, kernel_of_module_homomorphism,
-    loewy_length_of_module, minimal_generating_set_of_module,
-    natural_endomorphism_quotient_by_ideal, project_from_product_quiver,
+    DenseMatrix, MatrixError, ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism,
+    NamedArrowMatrix, PathAlgebraElement, PathAlgebraError, PathAlgebraModule,
+    PathAlgebraModuleElement, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
+    PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra, QuiverAlgebraElement,
+    QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
+    direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
+    from_hom_mm_to_end_m, hom_over_algebra, identity_module_mapping, include_in_path_algebra,
+    kernel_of_module_homomorphism, loewy_length_of_module, minimal_generating_set_of_module,
+    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, radical_of_module,
     right_module_hom_over_algebra, right_module_over_path_algebra,
     right_module_over_path_algebra_with_tensor, top_of_module, zero_module, zero_module_mapping,
 };
@@ -423,6 +423,36 @@ pub fn is_injective_module<F: Field>(
     let dual = dual_of_module(module)?;
     let injective = is_projective_module(&dual)?;
     Ok(module.cache_is_injective_module(injective))
+}
+
+/// Translate QPA's `SocleSeries(M)` through the radical series of the dual.
+///
+/// QPA records the tops of successive radicals of `DualOfModule(M)` and then
+/// reverses that list. Its zero branch returns the dimension vector directly,
+/// represented by [`ModuleDimensionSeries::ZeroDimensionVector`].
+///
+/// # Errors
+///
+/// Propagates module dualization plus every top and radical construction.
+pub fn socle_series<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<ModuleDimensionSeries, EnvelopingModuleError> {
+    if module.dimension() == 0 {
+        return Ok(ModuleDimensionSeries::ZeroDimensionVector(
+            module.dimension_vector().to_vec(),
+        ));
+    }
+    let mut current = dual_of_module(module)?;
+    let mut layers = Vec::new();
+    loop {
+        layers.push(top_of_module(current.clone())?.dimension_vector().to_vec());
+        current = radical_of_module(current)?;
+        if current.dimension() == 0 {
+            break;
+        }
+    }
+    layers.reverse();
+    Ok(ModuleDimensionSeries::Layers(layers))
 }
 
 /// Translate QPA's `HomFromProjective(m, M)` construction.
@@ -1711,12 +1741,13 @@ mod tests {
     };
     use qpa_core::path_module::right_fac_approximation_via_all_basis_images;
     use qpa_core::{
-        ArrowSpec, DenseMatrix, NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule,
-        PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, Quiver,
-        QuiverAlgebra, QuiverAlgebraElement, VertexIndex, direct_sum_of_qpa_modules,
-        end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m, include_in_path_algebra,
-        is_semisimple_module, is_simple_qpa_module, lifting_inclusion_morphisms,
-        minimal_generating_set_of_module, right_fac_approximation, right_module_hom_over_algebra,
+        ArrowSpec, DenseMatrix, ModuleDimensionSeries, NamedArrowMatrix, NamedArrowSpec,
+        PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleHomomorphism,
+        PathAlgebraModuleMatrix, Quiver, QuiverAlgebra, QuiverAlgebraElement, VertexIndex,
+        dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
+        from_end_m_to_hom_mm, from_hom_mm_to_end_m, include_in_path_algebra, is_semisimple_module,
+        is_simple_qpa_module, lifting_inclusion_morphisms, minimal_generating_set_of_module,
+        radical_series, right_fac_approximation, right_module_hom_over_algebra,
         right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion, top_of_module,
         top_of_module_projection, trace_of_module, underlying_linear_map, zero_module,
         zero_module_mapping,
@@ -1731,7 +1762,7 @@ mod tests {
         from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
         hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
         is_injective_module, is_projective_module, lifting_morphism_from_projective,
-        matrix_of_homomorphism_between_projectives, projective_cover, simple_modules,
+        matrix_of_homomorphism_between_projectives, projective_cover, simple_modules, socle_series,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -2686,6 +2717,89 @@ mod tests {
         })
     }
 
+    fn series_json(series: ModuleDimensionSeries) -> Value {
+        match series {
+            ModuleDimensionSeries::ZeroDimensionVector(vector) => json!(vector),
+            ModuleDimensionSeries::Layers(layers) => json!(layers),
+        }
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn module_series_case<F: Field>(field: F) -> Value {
+        let quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        )
+        .unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let projectives = indec_projective_modules(&algebra).unwrap();
+        let path_simple = simple_modules(&algebra).unwrap()[0].clone();
+        let zero = zero_module(&algebra).unwrap();
+        let semisimple = right_module_over_path_algebra(algebra, vec![1, 1, 1], &[])
+            .unwrap()
+            .unwrap();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field, loop_quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let x_squared = x.multiply(&x).unwrap();
+        let quotient = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x_squared.multiply(&x).unwrap()]).unwrap(),
+        );
+        let quotient_projective = indec_projective_modules(&quotient).unwrap()[0].clone();
+        let quotient_simple = simple_modules(&quotient).unwrap()[0].clone();
+        let quotient_zero = zero_module(&quotient).unwrap();
+
+        json!({
+            "path": {
+                "dimensions": projectives.iter().map(PathAlgebraModule::dimension)
+                    .chain([zero.dimension(), semisimple.dimension()]).collect::<Vec<_>>(),
+                "partial_order": [
+                    dimension_vector_partial_order(&projectives[2], &projectives[0]),
+                    dimension_vector_partial_order(&projectives[0], &projectives[1]),
+                    dimension_vector_partial_order(&projectives[0], &projectives[0]),
+                    dimension_vector_partial_order(&projectives[1], &projectives[0]),
+                ],
+                "radical_series": projectives.iter().chain(std::iter::once(&semisimple))
+                    .map(|module| series_json(radical_series(module).unwrap()))
+                    .collect::<Vec<_>>(),
+                "socle_series": projectives.iter().chain(std::iter::once(&semisimple))
+                    .map(|module| series_json(socle_series(module).unwrap()))
+                    .collect::<Vec<_>>(),
+                "zero_radical_series": series_json(radical_series(&zero).unwrap()),
+                "zero_socle_series": series_json(socle_series(&zero).unwrap()),
+            },
+            "quotient": {
+                "dimensions": [quotient_projective.dimension(), quotient_simple.dimension(),
+                    quotient_zero.dimension()],
+                "partial_order": [
+                    dimension_vector_partial_order(&quotient_simple, &quotient_projective),
+                    dimension_vector_partial_order(&quotient_projective, &quotient_simple),
+                ],
+                "cross_length_partial_order": [
+                    dimension_vector_partial_order(&quotient_simple, &path_simple),
+                    dimension_vector_partial_order(&path_simple, &quotient_simple),
+                    dimension_vector_partial_order(&quotient_simple, &projectives[0]),
+                    dimension_vector_partial_order(&projectives[0], &quotient_simple),
+                    dimension_vector_partial_order(&quotient_simple, &projectives[1]),
+                    dimension_vector_partial_order(&projectives[1], &quotient_simple),
+                ],
+                "radical_projective": series_json(radical_series(&quotient_projective).unwrap()),
+                "socle_projective": series_json(socle_series(&quotient_projective).unwrap()),
+                "radical_simple": series_json(radical_series(&quotient_simple).unwrap()),
+                "socle_simple": series_json(socle_series(&quotient_simple).unwrap()),
+                "zero_radical_series": series_json(radical_series(&quotient_zero).unwrap()),
+                "zero_socle_series": series_json(socle_series(&quotient_zero).unwrap()),
+            },
+        })
+    }
+
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
     fn modulehom_syzygy_injective_case<F: Field>(
         field: F,
@@ -2982,6 +3096,16 @@ mod tests {
         });
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_module_series_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_series.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(module_series_case(Q), expected["rational"]);
+        assert_eq!(module_series_case(Z2), expected["binary"]);
     }
 
     #[test]

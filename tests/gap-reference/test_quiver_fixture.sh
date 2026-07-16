@@ -85,6 +85,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/module_series.g" \
+    "$repo_root/tests/fixtures/module_series.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
 compare_fixture \

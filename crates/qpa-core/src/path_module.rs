@@ -61,6 +61,19 @@ pub enum PathAlgebraModuleMatrix<F: Field> {
     Matrix(DenseMatrix<F>),
 }
 
+/// QPA's dynamically shaped result from `RadicalSeries` and `SocleSeries`.
+///
+/// For a zero module QPA returns its dimension vector directly. For a
+/// nonzero module it returns a list of layer dimension vectors. The enum
+/// preserves that distinction without an untyped nested list.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ModuleDimensionSeries {
+    /// The direct dimension-vector return used only for a zero module.
+    ZeroDimensionVector(Vec<usize>),
+    /// Ordered radical or socle layer dimension vectors for a nonzero module.
+    Layers(Vec<Vec<usize>>),
+}
+
 #[derive(Debug)]
 struct PathAlgebraModuleData<F: Field> {
     acting_algebra: QuiverAlgebra<F>,
@@ -3475,6 +3488,54 @@ pub fn radical_of_module<F: Field>(
     module: PathAlgebraModule<F>,
 ) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
     Ok(radical_of_module_inclusion(module)?.source().clone())
+}
+
+/// Translate QPA's componentwise `DimensionVectorPartialOrder(M, N)`.
+///
+/// GAP additive-list arithmetic pads the shorter dimension vector with
+/// zeros, so modules over quivers with different vertex counts remain in the
+/// method domain.
+#[must_use]
+pub fn dimension_vector_partial_order<F: Field>(
+    first: &PathAlgebraModule<F>,
+    second: &PathAlgebraModule<F>,
+) -> bool {
+    let length = first
+        .dimension_vector()
+        .len()
+        .max(second.dimension_vector().len());
+    (0..length).all(|index| {
+        first.dimension_vector().get(index).copied().unwrap_or(0)
+            <= second.dimension_vector().get(index).copied().unwrap_or(0)
+    })
+}
+
+/// Translate QPA's `RadicalSeries(M)` layer loop.
+///
+/// The zero branch deliberately returns [`ModuleDimensionSeries::ZeroDimensionVector`],
+/// matching QPA's dimension vector rather than a list containing no layers.
+///
+/// # Errors
+///
+/// Propagates top and radical construction at every layer.
+pub fn radical_series<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<ModuleDimensionSeries, PathAlgebraModuleError> {
+    if module.dimension() == 0 {
+        return Ok(ModuleDimensionSeries::ZeroDimensionVector(
+            module.dimension_vector().to_vec(),
+        ));
+    }
+    let mut current = module.clone();
+    let mut layers = Vec::new();
+    loop {
+        layers.push(top_of_module(current.clone())?.dimension_vector().to_vec());
+        current = radical_of_module(current)?;
+        if current.dimension() == 0 {
+            break;
+        }
+    }
+    Ok(ModuleDimensionSeries::Layers(layers))
 }
 
 /// Translate QPA's cached `IsSimpleQPAModule(M)` dimension test.

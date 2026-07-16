@@ -10074,9 +10074,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dimension_vector_partial_order"
+tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10113,9 +10113,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 26
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "radical_series"
+tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10126,9 +10126,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 27
 source_end = 27
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "socle_series"
+tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10854,9 +10854,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1500
 source_end = 1512
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dimension_vector_partial_order"
+tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10906,9 +10906,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1643
 source_end = 1665
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "radical_series"
+tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10919,9 +10919,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1676
 source_end = 1699
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "socle_series"
+tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10932,9 +10932,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1707
 source_end = 1714
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::dimension"
+tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
 
 [[entries]]
