@@ -89,9 +89,9 @@ pub use quiver::{
     VertexIndex,
 };
 pub use quotient::{
-    AlgebraDimension, NaturalQuotientMap, PathAlgebraIdeal, QuotientCanonicalBasis, QuotientError,
-    QuotientNiceBasis, QuotientPathAlgebra, QuotientPathAlgebraElement,
-    is_homogeneous_list_of_elements,
+    AlgebraDimension, AlgebraGlobalDimension, NaturalQuotientMap, PathAlgebraIdeal,
+    QuotientCanonicalBasis, QuotientError, QuotientNiceBasis, QuotientPathAlgebra,
+    QuotientPathAlgebraElement, is_homogeneous_list_of_elements,
 };
 pub use static_dictionary::{
     DictionaryMatch, QuiverStaticDictionary, STATIC_DICTIONARY_CHECKING_CYCLE_INFO,

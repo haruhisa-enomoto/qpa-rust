@@ -437,6 +437,7 @@ struct QuotientPathAlgebraData<F: Field> {
     groebner_basis: Option<GroebnerBasis<F>>,
     admissible: OnceLock<bool>,
     canonical_basis: OnceLock<QuotientCanonicalBasisState<F>>,
+    global_dimension: OnceLock<AlgebraGlobalDimension>,
     opposite_weak: RwLock<Option<Weak<QuotientPathAlgebraData<F>>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
     enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
@@ -549,6 +550,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             groebner_basis,
             admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
+            global_dimension: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -589,6 +591,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             groebner_basis: Some(groebner_basis),
             admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
+            global_dimension: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -689,6 +692,18 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn is_identical(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Return QPA's cached `GlobalDimension` attribute, when known.
+    #[must_use]
+    pub fn cached_global_dimension(&self) -> Option<AlgebraGlobalDimension> {
+        self.0.global_dimension.get().copied()
+    }
+
+    /// Install and return QPA's `GlobalDimension` attribute value.
+    #[must_use]
+    pub fn cache_global_dimension(&self, value: AlgebraGlobalDimension) -> AlgebraGlobalDimension {
+        *self.0.global_dimension.get_or_init(|| value)
     }
 
     /// Return the quotient zero.
@@ -1297,6 +1312,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             groebner_basis: Some(groebner_basis),
             admissible: OnceLock::new(),
             canonical_basis: OnceLock::new(),
+            global_dimension: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -1855,6 +1871,15 @@ pub enum AlgebraDimension {
     /// An exact finite vector-space dimension.
     Finite(Integer),
     /// The nontip automaton contains a cycle.
+    Infinite,
+}
+
+/// QPA's cached algebra `GlobalDimension` value.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum AlgebraGlobalDimension {
+    /// An exact finite global dimension.
+    Finite(usize),
+    /// QPA's `infinity` object.
     Infinite,
 }
 

@@ -14143,9 +14143,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "global_dimension_of_algebra; GlobalDimensionOfAlgebraResult"
+tests = ["tests/fixtures/modulehom_global_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14871,9 +14871,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 724
 source_end = 765
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "global_dimension_of_algebra; GlobalDimensionOfAlgebraResult"
+tests = ["tests/fixtures/modulehom_global_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]

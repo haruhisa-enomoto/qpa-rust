@@ -150,6 +150,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_syzygy_injective.g" \
     "$repo_root/tests/fixtures/modulehom_syzygy_injective.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_global_dimension.g" \
+    "$repo_root/tests/fixtures/modulehom_global_dimension.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
 compare_catching_fixture \

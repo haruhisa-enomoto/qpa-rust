@@ -13,14 +13,14 @@ use numerica::domains::{
     rational::RationalField,
 };
 use qpa_core::{
-    DenseMatrix, MatrixError, ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism,
-    NamedArrowMatrix, PathAlgebraElement, PathAlgebraError, PathAlgebraModule,
-    PathAlgebraModuleElement, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
-    PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra, QuiverAlgebraElement,
-    QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
-    cokernel_of_module_homomorphism, direct_sum_inclusions, direct_sum_of_qpa_modules,
-    direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m, hom_over_algebra,
-    identity_module_mapping, include_in_path_algebra, kernel_inclusion,
+    AlgebraGlobalDimension, DenseMatrix, MatrixError, ModuleDimensionSeries,
+    ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix, PathAlgebraElement, PathAlgebraError,
+    PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleError,
+    PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint, PathError, QuiverAlgebra,
+    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct, QuiverProductError,
+    QuotientError, cokernel_of_module_homomorphism, direct_sum_inclusions,
+    direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m,
+    hom_over_algebra, identity_module_mapping, include_in_path_algebra, kernel_inclusion,
     kernel_of_module_homomorphism, loewy_length_of_module, minimal_generating_set_of_module,
     morphism_on_cokernel, morphism_on_kernel, natural_endomorphism_quotient_by_ideal,
     project_from_product_quiver, radical_of_module, right_module_hom_over_algebra,
@@ -458,6 +458,92 @@ pub fn simple_modules<F: Field>(
         simples.push(simple);
     }
     Ok(algebra.merge_simple_modules(&simples))
+}
+
+/// QPA's result type for `GlobalDimensionOfAlgebra(A, n)`.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum GlobalDimensionOfAlgebraResult {
+    /// QPA found and cached this finite global dimension.
+    Finite(usize),
+    /// QPA's loop test returned `infinity`.
+    Infinite,
+    /// QPA returned `false` because some simple still has a nonzero projective
+    /// term in degree `n + 1`.
+    ExceedsBound,
+}
+
+/// Translate QPA's bounded `GlobalDimensionOfAlgebra(A, n)` algorithm.
+///
+/// `None` preserves `TryNextMethod()` for infinite-dimensional input. A path
+/// algebra already has QPA's constructor-installed global dimension (zero for
+/// a discrete quiver and one otherwise), so that cached value is returned
+/// before consulting the bound. For a finite quotient, a quiver loop gives
+/// `infinity`; otherwise the method follows the projective resolutions of all
+/// vertex simples through degree `n + 1` and returns QPA's integer or `false`.
+///
+/// # Errors
+///
+/// Propagates finite-basis, simple-module, projective-cover, syzygy, and exact
+/// module failures, and rejects an overflowing `n + 1` bound.
+pub fn global_dimension_of_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    bound: usize,
+) -> Result<Option<GlobalDimensionOfAlgebraResult>, EnvelopingModuleError> {
+    if finite_canonical_basis(algebra)?.is_none() {
+        return Ok(None);
+    }
+    if let QuiverAlgebra::Path(path_algebra) = algebra {
+        return Ok(Some(GlobalDimensionOfAlgebraResult::Finite(
+            path_algebra.qpa_global_dimension(),
+        )));
+    }
+    let QuiverAlgebra::Quotient(quotient) = algebra else {
+        unreachable!("every quiver algebra is a path algebra or quotient")
+    };
+    if let Some(cached) = quotient.cached_global_dimension() {
+        return Ok(Some(match cached {
+            AlgebraGlobalDimension::Finite(dimension) => {
+                GlobalDimensionOfAlgebraResult::Finite(dimension)
+            }
+            AlgebraGlobalDimension::Infinite => GlobalDimensionOfAlgebraResult::Infinite,
+        }));
+    }
+    if algebra
+        .quiver()
+        .arrows()
+        .any(|arrow| arrow.source() == arrow.target())
+    {
+        let _ = quotient.cache_global_dimension(AlgebraGlobalDimension::Infinite);
+        return Ok(Some(GlobalDimensionOfAlgebraResult::Infinite));
+    }
+
+    let cutoff = bound
+        .checked_add(1)
+        .ok_or(EnvelopingModuleError::GlobalDimensionBoundOverflow { bound })?;
+    let mut dimension = 0usize;
+    for simple in simple_modules(algebra)? {
+        let mut syzygy = simple;
+        let mut degree = 0usize;
+        while degree < cutoff {
+            let projective = projective_cover(&syzygy)?;
+            if projective.source().dimension() == 0 {
+                break;
+            }
+            syzygy = first_syzygy(&syzygy)?;
+            degree += 1;
+        }
+        if degree < cutoff {
+            dimension = dimension.max(degree.saturating_sub(1));
+            continue;
+        }
+        let projective = projective_cover(&syzygy)?;
+        if projective.source().dimension() != 0 {
+            return Ok(Some(GlobalDimensionOfAlgebraResult::ExceedsBound));
+        }
+        dimension = dimension.max(bound);
+    }
+    let _ = quotient.cache_global_dimension(AlgebraGlobalDimension::Finite(dimension));
+    Ok(Some(GlobalDimensionOfAlgebraResult::Finite(dimension)))
 }
 
 /// Translate QPA's cached `AnnihilatorOfModule(M)` basis attribute.
@@ -3097,6 +3183,12 @@ pub enum EnvelopingModuleError {
     /// vertex representations.
     #[error("SimpleModules requires a finite-dimensional algebra")]
     InfiniteSimpleModuleAlgebra,
+    /// The source requests projective-resolution degree `n + 1`.
+    #[error("the global-dimension bound {bound} has no representable successor")]
+    GlobalDimensionBoundOverflow {
+        /// Entered nonnegative bound.
+        bound: usize,
+    },
     /// An annihilator basis requires QPA's finite canonical algebra basis.
     #[error("AnnihilatorOfModule requires a finite-dimensional algebra")]
     InfiniteAnnihilatorAlgebra,
@@ -3470,7 +3562,7 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        ExtOverAlgebraResult, TensorProductOfModulesResult,
+        ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult, TensorProductOfModulesResult,
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
         annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, d_tr,
         d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
@@ -3478,16 +3570,16 @@ mod tests {
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
-        from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
-        hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
-        is_injective_module, is_projective_module, is_rigid_module, is_tau_rigid_module,
-        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
-        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
-        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        projective_cover, random_module, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
-        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
-        transpose_of_module_homomorphism,
+        from_matrix_to_homomorphism_of_projectives, global_dimension_of_algebra,
+        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
+        indec_projective_modules, injective_envelope, is_injective_module, is_projective_module,
+        is_rigid_module, is_tau_rigid_module, lifting_morphism_from_projective,
+        matrix_of_homomorphism_between_projectives, nakayama_functor_of_module,
+        nakayama_functor_of_module_homomorphism, opposite_nakayama_functor_of_module,
+        opposite_nakayama_functor_of_module_homomorphism, projective_cover, random_module,
+        simple_modules, socle_series, star_of_module, star_of_module_homomorphism,
+        tensor_product_of_modules, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated,
+        tr_d_iterated, transpose_of_module, transpose_of_module_homomorphism,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -3497,6 +3589,15 @@ mod tests {
 
     fn q(value: i64) -> Rational {
         Q.nth(Integer::from(value))
+    }
+
+    fn global_dimension_json(result: Option<GlobalDimensionOfAlgebraResult>) -> Value {
+        match result {
+            Some(GlobalDimensionOfAlgebraResult::Finite(dimension)) => dimension.into(),
+            Some(GlobalDimensionOfAlgebraResult::Infinite) => "infinity".into(),
+            Some(GlobalDimensionOfAlgebraResult::ExceedsBound) => false.into(),
+            None => Value::Null,
+        }
     }
 
     fn isolated_path_algebra<F: Field>(field: F, vertex_count: usize) -> QuiverAlgebra<F> {
@@ -6545,5 +6646,60 @@ mod tests {
         assert_eq!(ternary_json, expected["ternary"]);
         assert_eq!(rational_json, expected["rational"]);
         assert_eq!(isolated_json, expected["isolated"]);
+    }
+
+    #[test]
+    fn pinned_qpa_global_dimension_of_algebra_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_global_dimension.schema-v1.json"
+        ))
+        .unwrap();
+
+        let discrete = isolated_path_algebra(Z2, 1);
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(Z2, a2_quiver).unwrap());
+
+        let a3_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(3), "y"),
+            ],
+        )
+        .unwrap();
+        let a3_parent = PathAlgebra::new(Z2, a3_quiver).unwrap();
+        let arrows = a3_parent.quiver().arrows().collect::<Vec<_>>();
+        let x = a3_parent.element(arrows[0].path()).unwrap();
+        let y = a3_parent.element(arrows[1].path()).unwrap();
+        let radical_square_zero = QuiverAlgebra::Quotient(
+            quotient_by_relations(a3_parent, &[x.multiply(&y).unwrap()]).unwrap(),
+        );
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap();
+        let loop_parent = PathAlgebra::new(Z2, loop_quiver).unwrap();
+        let t = loop_parent
+            .element(loop_parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let dual_numbers = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[t.multiply(&t).unwrap()]).unwrap(),
+        );
+
+        let result = json!({
+            "discrete": [global_dimension_json(global_dimension_of_algebra(&discrete, 0).unwrap())],
+            "path_a2": [
+                global_dimension_json(global_dimension_of_algebra(&a2, 0).unwrap()),
+                global_dimension_json(global_dimension_of_algebra(&a2, 3).unwrap())
+            ],
+            "radical_square_zero_a3": [
+                global_dimension_json(global_dimension_of_algebra(&radical_square_zero, 0).unwrap()),
+                global_dimension_json(global_dimension_of_algebra(&radical_square_zero, 1).unwrap()),
+                global_dimension_json(global_dimension_of_algebra(&radical_square_zero, 2).unwrap()),
+                global_dimension_json(global_dimension_of_algebra(&radical_square_zero, 0).unwrap())
+            ],
+            "dual_numbers": [global_dimension_json(global_dimension_of_algebra(&dual_numbers, 0).unwrap())]
+        });
+        assert_eq!(result, expected["f2"]);
     }
 }
