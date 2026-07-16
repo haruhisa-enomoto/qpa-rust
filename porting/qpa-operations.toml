@@ -18836,9 +18836,9 @@ source_file = "upstream/qpa/lib/pathalgkoszul.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "paths_of_length_two"
+tests = ["tests/fixtures/pathalg_koszul.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18849,9 +18849,9 @@ source_file = "upstream/qpa/lib/pathalgkoszul.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_quadratic_ideal"
+tests = ["tests/fixtures/pathalg_koszul.schema-v1.json","tests/gap-reference/pathalg_koszul_nonquadratic.g"]
 deviations = []
 
 [[entries]]
@@ -18862,9 +18862,9 @@ source_file = "upstream/qpa/lib/pathalgkoszul.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quadratic_perpendicular_of_path_algebra_ideal; QuadraticPerpendicular"
+tests = ["tests/fixtures/pathalg_koszul.schema-v1.json","tests/gap-reference/pathalg_koszul_nonquadratic.g","tests/gap-reference/pathalg_koszul_empty_error.g","tests/gap-reference/pathalg_koszul_no_paths_error.g"]
 deviations = []
 
 [[entries]]
@@ -18875,9 +18875,9 @@ source_file = "upstream/qpa/lib/pathalgkoszul.gi"
 source_start = 13
 source_end = 47
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "paths_of_length_two"
+tests = ["tests/fixtures/pathalg_koszul.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18888,9 +18888,9 @@ source_file = "upstream/qpa/lib/pathalgkoszul.gi"
 source_start = 61
 source_end = 88
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_quadratic_ideal"
+tests = ["tests/fixtures/pathalg_koszul.schema-v1.json","tests/gap-reference/pathalg_koszul_nonquadratic.g"]
 deviations = []
 
 [[entries]]
@@ -18901,9 +18901,9 @@ source_file = "upstream/qpa/lib/pathalgkoszul.gi"
 source_start = 107
 source_end = 206
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quadratic_perpendicular_of_path_algebra_ideal; QuadraticPerpendicular"
+tests = ["tests/fixtures/pathalg_koszul.schema-v1.json","tests/gap-reference/pathalg_koszul_nonquadratic.g","tests/gap-reference/pathalg_koszul_empty_error.g","tests/gap-reference/pathalg_koszul_no_paths_error.g"]
 deviations = []
 
 [[entries]]

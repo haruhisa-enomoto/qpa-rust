@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_koszul",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "paths_loop": ["x^2", "x*y", "y*x", "y^2"],
+  "paths_multi": ["a*b", "b*a", "b*c", "c*a", "c^2"],
+  "quadratic": {
+    "empty": true,
+    "relations": true,
+    "zero": true,
+    "linear": false
+  },
+  "opposite_quiver": {
+    "vertices": ["v1_op"],
+    "arrows": ["x_op", "y_op"]
+  },
+  "rational_perpendicular": [
+    [
+      {"path": "x_op*y_op", "coefficient": [1, 1]},
+      {"path": "y_op*x_op", "coefficient": [2, 1]}
+    ],
+    [
+      {"path": "x_op^2", "coefficient": [-1, 1]},
+      {"path": "y_op^2", "coefficient": [1, 1]}
+    ]
+  ],
+  "zero_perpendicular": [
+    [{"path": "x_op^2", "coefficient": [1, 1]}],
+    [{"path": "y_op*x_op", "coefficient": [1, 1]}],
+    [{"path": "x_op*y_op", "coefficient": [1, 1]}],
+    [{"path": "y_op^2", "coefficient": [1, 1]}]
+  ],
+  "full_perpendicular": [],
+  "f2_perpendicular": [
+    [{"path": "x_op*y_op", "coefficient": 1}],
+    [
+      {"path": "x_op^2", "coefficient": 1},
+      {"path": "y_op^2", "coefficient": 1}
+    ]
+  ],
+  "f5_perpendicular": [
+    [
+      {"path": "x_op*y_op", "coefficient": 1},
+      {"path": "y_op*x_op", "coefficient": 2}
+    ],
+    [
+      {"path": "x_op^2", "coefficient": 4},
+      {"path": "y_op^2", "coefficient": 1}
+    ]
+  ]
+}

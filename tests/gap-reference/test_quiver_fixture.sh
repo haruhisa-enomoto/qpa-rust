@@ -575,6 +575,34 @@ then
     exit 1
 fi
 grep -Fq "elements do not belong to the arrow ideal of the path algebra" "$actual"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/pathalg_koszul.g" >"$raw"
+grep -Fq "IsQuadraticIdeal: The entered list of elements is empty, so quadratic ideal." "$raw"
+tail -n 1 "$raw" | jq --sort-keys . >"$actual"
+jq --sort-keys . \
+    "$repo_root/tests/fixtures/pathalg_koszul.schema-v1.json" >"$expected"
+diff --unified "$expected" "$actual"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/pathalg_koszul_nonquadratic.g" >"$actual"
+grep -Fq "BasisOfIperp(): ideal is not quadratic" "$actual"
+grep -Fq "NONQUADRATIC_FAIL=true" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_koszul_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly reached its documented empty quadratic-perpendicular branch" >&2
+    exit 1
+fi
+grep -Fq "IsQuadraticIdeal: The entered list of elements is empty, so quadratic ideal." "$actual"
+grep -Fq "List Element: <list>[1] must have an assigned value" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/pathalg_koszul_no_paths_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly retained the empty degree-two matrix shape" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`NullspaceMat'" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/groebner_objects.g" \
     "$repo_root/tests/fixtures/groebner_objects.schema-v1.json"

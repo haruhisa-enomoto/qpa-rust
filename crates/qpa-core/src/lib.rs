@@ -11,6 +11,7 @@ pub mod element_inverse;
 pub mod element_utilities;
 pub mod groebner;
 pub mod homomorphism;
+pub mod koszul;
 pub mod matrix;
 pub mod ordering;
 pub mod path_algebra;
@@ -38,6 +39,10 @@ pub use groebner::{
     tip_reduced_list, tip_walk,
 };
 pub use homomorphism::{QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError};
+pub use koszul::{
+    KoszulError, QuadraticPerpendicular, is_quadratic_ideal, paths_of_length_two,
+    quadratic_perpendicular_of_path_algebra_ideal,
+};
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
 pub use ordering::{OrderingError, QuiverOrdering, check_quiver_subset_for_cycles};
 pub use path_algebra::{
