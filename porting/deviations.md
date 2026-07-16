@@ -46,3 +46,26 @@ the computations remain translations of the cited source methods.
   failure; `pathalg_foundational.schema-v1.json` pins the source/range,
   surjectivity, lazy and attached-basis quotient states; Rust tests exercise the
   repaired projection over `QQ` and `GF(2)`.
+
+## ORDERING-001 — Quiver-ordering ownership is checked at construction
+
+- Source: QPA `lib/groebnerordering.gi`, all ordering constructors,
+  `PathFromArrowList`, and the ordering-subset operations.
+- Difference: QPA's GAP filters require an ordering or homogeneous generator
+  list but do not require it to belong to the constructor's quiver. It can
+  therefore create a cross-family ordering or formal path whose position tables
+  later fail, or accidentally compute when unrelated families happen to have
+  compatible generator positions. Rust requires the quiver, next/component
+  orderings, assigned/preferred generators, paths, and subset generators to
+  have one identity and returns `OrderingError::DifferentQuivers` or
+  `PathError::DifferentQuivers` otherwise.
+- Reason: generator positions are family-relative. Rejecting a malformed owner
+  graph at its typed boundary prevents delayed out-of-bounds access without
+  altering any QPA computation on well-owned data.
+- Compatibility impact: every ordering composition on one quiver follows QPA;
+  deliberately mixing independent quiver families is rejected earlier. The
+  pinned oracle records that GAP accepts foreign next orderings and rejects
+  heterogeneous lists only through method dispatch.
+- Evidence: `tests/gap-reference/ordering_dispatch.g`,
+  `tests/fixtures/ordering_dispatch.schema-v1.json`, and the ordering dispatch
+  tests in `crates/qpa-core/src/ordering.rs`.

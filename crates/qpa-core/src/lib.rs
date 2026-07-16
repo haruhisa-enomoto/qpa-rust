@@ -100,7 +100,10 @@ pub use koszul::{
     quadratic_perpendicular_of_path_algebra_ideal,
 };
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
-pub use ordering::{OrderingError, QuiverOrdering, check_quiver_subset_for_cycles};
+pub use ordering::{
+    OrderingError, QuiverOrdering, QuiverOrderingKind, check_blocks_for_cycles,
+    check_quiver_subset_for_cycles,
+};
 pub use path_algebra::{
     PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraExternalRepresentation,
     PathAlgebraTerm, opposite_relations,

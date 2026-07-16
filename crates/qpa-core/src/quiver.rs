@@ -1348,6 +1348,19 @@ impl Quiver {
                 .rev()
                 .map(|index| self.0.arrows[index.zero_based()].name.as_ref())
                 .collect(),
+            PathRepresentation::FormalGeneratorWalk(walk) => walk
+                .iter()
+                .rev()
+                .map(|position| {
+                    if *position <= self.number_of_vertices() {
+                        self.0.vertex_names[*position - 1].as_ref()
+                    } else {
+                        self.0.arrows[*position - self.number_of_vertices() - 1]
+                            .name
+                            .as_ref()
+                    }
+                })
+                .collect(),
             PathRepresentation::Zero => unreachable!(),
         };
         let mut mapped = Vec::with_capacity(names.len());
@@ -1712,6 +1725,10 @@ enum PathRepresentation {
     Zero,
     Vertex(VertexIndex),
     Walk(Box<[ArrowIndex]>),
+    /// QPA's `PathFromArrowList` also accepts a homogeneous list containing
+    /// vertices.  Such an object is a formal path: its walk is the supplied
+    /// generator list and need not be composable.
+    FormalGeneratorWalk(Box<[usize]>),
 }
 
 /// A zero path, vertex, arrow, or composite path within one quiver family.
@@ -1753,19 +1770,45 @@ impl Path {
             PathRepresentation::Zero => None,
             PathRepresentation::Vertex(_) => Some(0),
             PathRepresentation::Walk(walk) => Some(walk.len()),
+            PathRepresentation::FormalGeneratorWalk(walk) => Some(walk.len()),
         }
     }
 
     /// Return arrow indices in `WalkOfPath` order.
     ///
     /// QPA leaves `WalkOfPath` unbound on its zero path and returns an empty
-    /// walk for vertices.
+    /// walk for vertices. A formal vertex-containing `PathFromArrowList` walk
+    /// is available through [`Self::generator_walk`] instead.
     #[must_use]
     pub fn walk(&self) -> Option<&[ArrowIndex]> {
         match &self.representation {
-            PathRepresentation::Zero => None,
+            PathRepresentation::Zero | PathRepresentation::FormalGeneratorWalk(_) => None,
             PathRepresentation::Vertex(_) => Some(&[]),
             PathRepresentation::Walk(walk) => Some(walk),
+        }
+    }
+
+    /// Return QPA's complete `WalkOfPath` as quiver generators.
+    ///
+    /// Unlike [`Self::walk`], this represents the formal vertex-containing
+    /// walks constructed by `PathFromArrowList`.  The zero path has no bound
+    /// walk and vertices have the empty walk, exactly as in QPA.
+    #[must_use]
+    pub fn generator_walk(&self) -> Option<Vec<Generator>> {
+        match &self.representation {
+            PathRepresentation::Zero => None,
+            PathRepresentation::Vertex(_) => Some(Vec::new()),
+            PathRepresentation::Walk(walk) => Some(
+                walk.iter()
+                    .filter_map(|index| self.quiver.arrow(*index))
+                    .map(Generator::Arrow)
+                    .collect(),
+            ),
+            PathRepresentation::FormalGeneratorWalk(walk) => Some(
+                walk.iter()
+                    .map(|&position| self.generator_at_position_unchecked(position))
+                    .collect(),
+            ),
         }
     }
 
@@ -1791,6 +1834,10 @@ impl Path {
                     index: arrow.source,
                 })
             }
+            PathRepresentation::FormalGeneratorWalk(walk) => PathEndpoint::Vertex(Vertex {
+                quiver: self.quiver.clone(),
+                index: self.generator_source_vertex_index(walk[0]),
+            }),
         }
     }
 
@@ -1816,6 +1863,10 @@ impl Path {
                     index: arrow.target,
                 })
             }
+            PathRepresentation::FormalGeneratorWalk(walk) => PathEndpoint::Vertex(Vertex {
+                quiver: self.quiver.clone(),
+                index: self.generator_target_vertex_index(walk[walk.len() - 1]),
+            }),
         }
     }
 
@@ -1829,6 +1880,7 @@ impl Path {
                 .iter()
                 .map(|index| self.quiver.number_of_vertices() + index.get())
                 .collect(),
+            PathRepresentation::FormalGeneratorWalk(walk) => walk.to_vec(),
         }
     }
 
@@ -1938,6 +1990,65 @@ impl Path {
         })
     }
 
+    /// Translate QPA's full `PathFromArrowList` surface.
+    ///
+    /// The name in QPA is historical: a singleton vertex is returned as that
+    /// vertex, and a longer homogeneous generator list becomes a formal path
+    /// without a composability check.  Empty input returns the zero path.
+    ///
+    /// # Errors
+    ///
+    /// Rust requires every supplied generator to belong to `quiver`; QPA can
+    /// construct malformed cross-family formal paths that fail in later path
+    /// operations.
+    pub fn from_generator_list(
+        quiver: &Quiver,
+        generators: &[Generator],
+    ) -> Result<Self, PathError> {
+        for generator in generators {
+            if !generator.path().quiver().is_identical(quiver) {
+                return Err(PathError::DifferentQuivers);
+            }
+        }
+        Ok(match generators {
+            [] => quiver.zero(),
+            [generator] => generator.path(),
+            _ if generators
+                .iter()
+                .all(|generator| matches!(generator, Generator::Arrow(_))) =>
+            {
+                Self {
+                    quiver: quiver.clone(),
+                    representation: PathRepresentation::Walk(
+                        generators
+                            .iter()
+                            .map(|generator| match generator {
+                                Generator::Arrow(arrow) => arrow.index(),
+                                Generator::Vertex(_) => unreachable!(),
+                            })
+                            .collect::<Vec<_>>()
+                            .into_boxed_slice(),
+                    ),
+                }
+            }
+            _ => Self {
+                quiver: quiver.clone(),
+                representation: PathRepresentation::FormalGeneratorWalk(
+                    generators
+                        .iter()
+                        .map(|generator| match generator {
+                            Generator::Vertex(vertex) => vertex.index().get(),
+                            Generator::Arrow(arrow) => {
+                                quiver.number_of_vertices() + arrow.index().get()
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .into_boxed_slice(),
+                ),
+            },
+        })
+    }
+
     /// Multiply paths in QPA's left-to-right convention: `a * b` means first
     /// `a`, then `b`.
     ///
@@ -1975,23 +2086,19 @@ impl Path {
                     self.quiver.zero()
                 })
             }
-            (PathRepresentation::Walk(left), PathRepresentation::Walk(right)) => {
-                if self.target_vertex_index()
-                    != right.first().and_then(|index| {
-                        self.quiver
-                            .arrow(*index)
-                            .map(|arrow| arrow.source().index())
-                    })
-                {
+            (
+                PathRepresentation::Walk(_) | PathRepresentation::FormalGeneratorWalk(_),
+                PathRepresentation::Walk(_) | PathRepresentation::FormalGeneratorWalk(_),
+            ) => {
+                if self.target_vertex_index() != right.source_vertex_index() {
                     return Ok(self.quiver.zero());
                 }
+                let left = self.generator_positions();
+                let right = right.generator_positions();
                 let mut walk = Vec::with_capacity(left.len().saturating_add(right.len()));
-                walk.extend_from_slice(left);
-                walk.extend_from_slice(right);
-                Ok(Self {
-                    quiver: self.quiver.clone(),
-                    representation: PathRepresentation::Walk(walk.into_boxed_slice()),
-                })
+                walk.extend(left);
+                walk.extend(right);
+                Ok(Self::from_generator_positions_unchecked(&self.quiver, walk))
             }
             (PathRepresentation::Zero, _) | (_, PathRepresentation::Zero) => unreachable!(),
         }
@@ -2021,6 +2128,9 @@ impl Path {
                 .quiver
                 .arrow(walk[0])
                 .map(|arrow| arrow.source().index()),
+            PathRepresentation::FormalGeneratorWalk(walk) => {
+                Some(self.generator_source_vertex_index(walk[0]))
+            }
         }
     }
 
@@ -2032,6 +2142,76 @@ impl Path {
                 .quiver
                 .arrow(*walk.last().expect("walk paths are nonempty"))
                 .map(|arrow| arrow.target().index()),
+            PathRepresentation::FormalGeneratorWalk(walk) => {
+                Some(self.generator_target_vertex_index(walk[walk.len() - 1]))
+            }
+        }
+    }
+
+    fn generator_positions(&self) -> Vec<usize> {
+        match &self.representation {
+            PathRepresentation::Walk(walk) => walk
+                .iter()
+                .map(|index| self.quiver.number_of_vertices() + index.get())
+                .collect(),
+            PathRepresentation::FormalGeneratorWalk(walk) => walk.to_vec(),
+            PathRepresentation::Zero | PathRepresentation::Vertex(_) => Vec::new(),
+        }
+    }
+
+    fn from_generator_positions_unchecked(quiver: &Quiver, positions: Vec<usize>) -> Self {
+        if positions
+            .iter()
+            .all(|position| *position > quiver.number_of_vertices())
+        {
+            Self {
+                quiver: quiver.clone(),
+                representation: PathRepresentation::Walk(
+                    positions
+                        .into_iter()
+                        .map(|position| {
+                            ArrowIndex::new(position - quiver.number_of_vertices())
+                                .expect("arrow generator positions are positive")
+                        })
+                        .collect::<Vec<_>>()
+                        .into_boxed_slice(),
+                ),
+            }
+        } else {
+            Self {
+                quiver: quiver.clone(),
+                representation: PathRepresentation::FormalGeneratorWalk(
+                    positions.into_boxed_slice(),
+                ),
+            }
+        }
+    }
+
+    fn generator_at_position_unchecked(&self, position: usize) -> Generator {
+        if position <= self.quiver.number_of_vertices() {
+            VertexIndex::new(position)
+                .and_then(|index| self.quiver.vertex(index))
+                .map(Generator::Vertex)
+                .expect("formal vertex positions belong to the path quiver")
+        } else {
+            ArrowIndex::new(position - self.quiver.number_of_vertices())
+                .and_then(|index| self.quiver.arrow(index))
+                .map(Generator::Arrow)
+                .expect("formal arrow positions belong to the path quiver")
+        }
+    }
+
+    fn generator_source_vertex_index(&self, position: usize) -> VertexIndex {
+        match self.generator_at_position_unchecked(position) {
+            Generator::Vertex(vertex) => vertex.index(),
+            Generator::Arrow(arrow) => arrow.source().index(),
+        }
+    }
+
+    fn generator_target_vertex_index(&self, position: usize) -> VertexIndex {
+        match self.generator_at_position_unchecked(position) {
+            Generator::Vertex(vertex) => vertex.index(),
+            Generator::Arrow(arrow) => arrow.target().index(),
         }
     }
 
@@ -2062,6 +2242,29 @@ impl fmt::Display for Path {
                     formatter.write_str(&self.quiver.0.arrows[index.zero_based()].name)?;
                     let mut exponent = 1_usize;
                     while groups.peek().is_some_and(|next| *next == index) {
+                        groups.next();
+                        exponent += 1;
+                    }
+                    if exponent > 1 {
+                        write!(formatter, "^{exponent}")?;
+                    }
+                }
+                Ok(())
+            }
+            PathRepresentation::FormalGeneratorWalk(walk) => {
+                let mut groups = walk.iter().peekable();
+                let mut first = true;
+                while let Some(&position) = groups.next() {
+                    if !first {
+                        formatter.write_str("*")?;
+                    }
+                    first = false;
+                    match self.generator_at_position_unchecked(position) {
+                        Generator::Vertex(vertex) => formatter.write_str(vertex.name())?,
+                        Generator::Arrow(arrow) => formatter.write_str(arrow.name())?,
+                    }
+                    let mut exponent = 1_usize;
+                    while groups.peek().is_some_and(|next| **next == position) {
                         groups.next();
                         exponent += 1;
                     }

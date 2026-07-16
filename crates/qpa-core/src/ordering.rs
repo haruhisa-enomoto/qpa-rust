@@ -21,6 +21,46 @@ pub struct QuiverOrdering {
     identity: Arc<()>,
 }
 
+/// The QPA category installed on a quiver-ordering object.
+///
+/// The two lexicographic variants also satisfy `IsLexicographicOrdering`, and
+/// the two vector variants also satisfy `IsVectorOrdering`.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum QuiverOrderingKind {
+    /// `IsLengthOrdering`.
+    Length,
+    /// `IsLeftLexicographicOrdering` and `IsLexicographicOrdering`.
+    LeftLexicographic,
+    /// `IsRightLexicographicOrdering` and `IsLexicographicOrdering`.
+    RightLexicographic,
+    /// `IsReverseOrdering`.
+    Reverse,
+    /// `IsLeftVectorOrdering` and `IsVectorOrdering`.
+    LeftVector,
+    /// `IsRightVectorOrdering` and `IsVectorOrdering`.
+    RightVector,
+    /// `IsWeightOrdering`.
+    Weight,
+    /// `IsBlockOrdering`.
+    Block,
+    /// `IsWreathOrdering`.
+    Wreath,
+}
+
+impl QuiverOrderingKind {
+    /// Return QPA's `IsLexicographicOrdering` category result.
+    #[must_use]
+    pub const fn is_lexicographic(self) -> bool {
+        matches!(self, Self::LeftLexicographic | Self::RightLexicographic)
+    }
+
+    /// Return QPA's `IsVectorOrdering` category result.
+    #[must_use]
+    pub const fn is_vector(self) -> bool {
+        matches!(self, Self::LeftVector | Self::RightVector)
+    }
+}
+
 #[derive(Clone, Debug)]
 enum OrderingKind {
     Length {
@@ -380,6 +420,22 @@ impl QuiverOrdering {
         }
     }
 
+    /// Return the specific QPA ordering category.
+    #[must_use]
+    pub fn kind(&self) -> QuiverOrderingKind {
+        match &*self.kind {
+            OrderingKind::Length { .. } => QuiverOrderingKind::Length,
+            OrderingKind::LeftLexicographic { .. } => QuiverOrderingKind::LeftLexicographic,
+            OrderingKind::RightLexicographic { .. } => QuiverOrderingKind::RightLexicographic,
+            OrderingKind::Reverse { .. } => QuiverOrderingKind::Reverse,
+            OrderingKind::LeftVector { .. } => QuiverOrderingKind::LeftVector,
+            OrderingKind::RightVector { .. } => QuiverOrderingKind::RightVector,
+            OrderingKind::Weight { .. } => QuiverOrderingKind::Weight,
+            OrderingKind::Block { .. } => QuiverOrderingKind::Block,
+            OrderingKind::Wreath { .. } => QuiverOrderingKind::Wreath,
+        }
+    }
+
     /// Return the containing quiver.
     #[must_use]
     pub const fn quiver(&self) -> &Quiver {
@@ -529,6 +585,16 @@ impl QuiverOrdering {
         })
     }
 
+    /// Return whether two orderings carry the identical QPA
+    /// `LexicographicTable` attribute object.
+    #[must_use]
+    pub fn shares_lexicographic_table_with(&self, other: &Self) -> bool {
+        match (&self.lexicographic_table, &other.lexicographic_table) {
+            (Some(left), Some(right)) => Arc::ptr_eq(left, right),
+            _ => false,
+        }
+    }
+
     /// Compare two paths using QPA's source closure.
     ///
     /// # Errors
@@ -539,6 +605,27 @@ impl QuiverOrdering {
             return Err(OrderingError::DifferentQuivers);
         }
         Ok(compare_kind(&self.kind, left, right))
+    }
+
+    /// Return the exact value produced by QPA's `ComparisonFunction`.
+    ///
+    /// Most constructors return `-1`, `0`, or `1`; weight orderings return the
+    /// exact rational weight difference, including through composed block,
+    /// wreath, reverse, and fallback orderings.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if either path belongs to another quiver.
+    pub fn comparison_value(&self, left: &Path, right: &Path) -> Result<Rational, OrderingError> {
+        if !left.quiver().is_identical(&self.quiver) || !right.quiver().is_identical(&self.quiver) {
+            return Err(OrderingError::DifferentQuivers);
+        }
+        Ok(compare_word_value(
+            &self.kind,
+            &OrderingWord::from_path(left),
+            &OrderingWord::from_path(right),
+            self.quiver.number_of_vertices(),
+        ))
     }
 
     /// Return QPA's `LessThanByOrdering` result.
@@ -564,6 +651,28 @@ impl QuiverOrdering {
         validate_subset(&self.quiver, left)?;
         validate_subset(&self.quiver, right)?;
         Ok(compare_word_kind(
+            &self.kind,
+            &OrderingWord::from_generators(left.iter().map(generator_position).collect::<Vec<_>>()),
+            &OrderingWord::from_generators(
+                right.iter().map(generator_position).collect::<Vec<_>>(),
+            ),
+            self.quiver.number_of_vertices(),
+        ))
+    }
+
+    /// Return QPA's exact `CompareArrowLists` value.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if either list contains a foreign generator.
+    pub fn compare_arrow_lists_value(
+        &self,
+        left: &[Generator],
+        right: &[Generator],
+    ) -> Result<Rational, OrderingError> {
+        validate_subset(&self.quiver, left)?;
+        validate_subset(&self.quiver, right)?;
+        Ok(compare_word_value(
             &self.kind,
             &OrderingWord::from_generators(left.iter().map(generator_position).collect::<Vec<_>>()),
             &OrderingWord::from_generators(
@@ -868,19 +977,32 @@ fn compare_word_kind(
     right: &OrderingWord,
     vertices: usize,
 ) -> Ordering {
+    compare_word_value(kind, left, right, vertices).cmp(&Rational::from(0))
+}
+
+fn compare_word_value(
+    kind: &OrderingKind,
+    left: &OrderingWord,
+    right: &OrderingWord,
+    vertices: usize,
+) -> Rational {
     match kind {
-        OrderingKind::Length { next } => left
-            .path_length(vertices)
-            .cmp(&right.path_length(vertices))
-            .then_with(|| compare_optional_words(next.as_ref(), left, right, vertices)),
+        OrderingKind::Length { next } => {
+            let comparison = left.path_length(vertices).cmp(&right.path_length(vertices));
+            if comparison.is_eq() {
+                compare_optional_words_value(next.as_ref(), left, right, vertices)
+            } else {
+                ordering_value(comparison)
+            }
+        }
         OrderingKind::LeftLexicographic { table } => {
-            compare_lexicographic(table, left, right, false)
+            ordering_value(compare_lexicographic(table, left, right, false))
         }
         OrderingKind::RightLexicographic { table } => {
-            compare_lexicographic(table, left, right, true)
+            ordering_value(compare_lexicographic(table, left, right, true))
         }
         OrderingKind::Reverse { next } => {
-            let comparison = compare_word_kind(&next.kind, left, right, vertices);
+            let comparison = compare_word_value(&next.kind, left, right, vertices);
             if left.zero
                 || right.zero
                 || (left.is_vertex(vertices) && !right.is_vertex(vertices))
@@ -888,39 +1010,39 @@ fn compare_word_kind(
             {
                 comparison
             } else {
-                comparison.reverse()
+                -comparison
             }
         }
         OrderingKind::LeftVector { table, next } => {
-            compare_vector(table, next.as_ref(), left, right, false, vertices)
+            compare_vector_value(table, next.as_ref(), left, right, false, vertices)
         }
         OrderingKind::RightVector { table, next } => {
-            compare_vector(table, next.as_ref(), left, right, true, vertices)
+            compare_vector_value(table, next.as_ref(), left, right, true, vertices)
         }
         OrderingKind::Weight { weights, next } => {
-            compare_weight(weights, next.as_ref(), left, right, vertices)
+            compare_weight_value(weights, next.as_ref(), left, right, vertices)
         }
         OrderingKind::Block {
             blocks,
             orders,
             next,
-        } => compare_block(blocks, orders, next.as_ref(), left, right, vertices),
+        } => compare_block_value(blocks, orders, next.as_ref(), left, right, vertices),
         OrderingKind::Wreath {
             blocks,
             orders,
             next,
-        } => compare_wreath(blocks, orders, next.as_ref(), left, right, vertices),
+        } => compare_wreath_value(blocks, orders, next.as_ref(), left, right, vertices),
     }
 }
 
-fn compare_block(
+fn compare_block_value(
     blocks: &[usize],
     orders: &[QuiverOrdering],
     next: Option<&QuiverOrdering>,
     left: &OrderingWord,
     right: &OrderingWord,
     vertices: usize,
-) -> Ordering {
+) -> Rational {
     let mut left_blocks = vec![Vec::new(); orders.len()];
     let mut right_blocks = vec![Vec::new(); orders.len()];
     for &generator in &left.generators {
@@ -930,27 +1052,27 @@ fn compare_block(
         right_blocks[blocks[generator]].push(generator);
     }
     for index in (0..orders.len()).rev() {
-        let comparison = compare_word_kind(
+        let comparison = compare_word_value(
             &orders[index].kind,
             &OrderingWord::from_generators(left_blocks[index].clone()),
             &OrderingWord::from_generators(right_blocks[index].clone()),
             vertices,
         );
-        if !comparison.is_eq() {
+        if comparison != 0 {
             return comparison;
         }
     }
-    compare_optional_words(next, left, right, vertices)
+    compare_optional_words_value(next, left, right, vertices)
 }
 
-fn compare_wreath(
+fn compare_wreath_value(
     blocks: &[usize],
     orders: &[QuiverOrdering],
     next: Option<&QuiverOrdering>,
     left: &OrderingWord,
     right: &OrderingWord,
     vertices: usize,
-) -> Ordering {
+) -> Rational {
     let common = left
         .generators
         .iter()
@@ -958,7 +1080,7 @@ fn compare_wreath(
         .take_while(|(left, right)| left == right)
         .count();
     if common == left.generators.len() && common == right.generators.len() {
-        return Ordering::Equal;
+        return Rational::from(0);
     }
 
     let (mut left_groups, left_lower) = wreath_groups(&left.generators[common..], blocks);
@@ -978,13 +1100,13 @@ fn compare_wreath(
                 Ordering::Greater => (*left_block, left_word.clone(), Vec::new(), true, false),
                 Ordering::Less => (*right_block, Vec::new(), right_word.clone(), false, true),
             };
-        let comparison = compare_word_kind(
+        let comparison = compare_word_value(
             &orders[ordering_index].kind,
             &OrderingWord::from_generators(left_comparison),
             &OrderingWord::from_generators(right_comparison),
             vertices,
         );
-        if !comparison.is_eq() {
+        if comparison != 0 {
             return comparison;
         }
         if pop_left {
@@ -995,29 +1117,29 @@ fn compare_wreath(
         }
     }
     while let Some((block, word)) = left_groups.pop() {
-        let comparison = compare_word_kind(
+        let comparison = compare_word_value(
             &orders[block].kind,
             &OrderingWord::from_generators(word),
             &OrderingWord::from_generators(Vec::new()),
             vertices,
         );
-        if !comparison.is_eq() {
+        if comparison != 0 {
             return comparison;
         }
     }
     while let Some((block, word)) = right_groups.pop() {
-        let comparison = compare_word_kind(
+        let comparison = compare_word_value(
             &orders[block].kind,
             &OrderingWord::from_generators(Vec::new()),
             &OrderingWord::from_generators(word),
             vertices,
         );
-        if !comparison.is_eq() {
+        if comparison != 0 {
             return comparison;
         }
     }
 
-    let lower_comparison = compare_wreath(
+    let lower_comparison = compare_wreath_value(
         blocks,
         orders,
         next,
@@ -1025,8 +1147,8 @@ fn compare_wreath(
         &OrderingWord::from_generators(right_lower),
         vertices,
     );
-    if lower_comparison.is_eq() {
-        compare_optional_words(next, left, right, vertices)
+    if lower_comparison == 0 {
+        compare_optional_words_value(next, left, right, vertices)
     } else {
         lower_comparison
     }
@@ -1104,20 +1226,20 @@ fn compare_ranked_iterators<'a>(
     left_length.cmp(&right_length)
 }
 
-fn compare_vector(
+fn compare_vector_value(
     table: &LexicographicTable,
     next: Option<&QuiverOrdering>,
     left: &OrderingWord,
     right: &OrderingWord,
     reverse_vector: bool,
     vertices: usize,
-) -> Ordering {
+) -> Rational {
     let left_short = left.zero || left.is_vertex(vertices);
     let right_short = right.zero || right.is_vertex(vertices);
     match (left_short, right_short) {
-        (true, true) => return compare_optional_words(next, left, right, vertices),
-        (true, false) => return Ordering::Less,
-        (false, true) => return Ordering::Greater,
+        (true, true) => return compare_optional_words_value(next, left, right, vertices),
+        (true, false) => return Rational::from(-1),
+        (false, true) => return Rational::from(1),
         (false, false) => {}
     }
 
@@ -1137,22 +1259,26 @@ fn compare_vector(
     } else {
         left_counts.iter().cmp(right_counts.iter())
     };
-    comparison.then_with(|| compare_optional_words(next, left, right, vertices))
+    if comparison.is_eq() {
+        compare_optional_words_value(next, left, right, vertices)
+    } else {
+        ordering_value(comparison)
+    }
 }
 
-fn compare_weight(
+fn compare_weight_value(
     weights: &[Rational],
     next: Option<&QuiverOrdering>,
     left: &OrderingWord,
     right: &OrderingWord,
     vertices: usize,
-) -> Ordering {
+) -> Rational {
     let left_short = left.zero || left.is_vertex(vertices);
     let right_short = right.zero || right.is_vertex(vertices);
     match (left_short, right_short) {
-        (true, true) => return compare_optional_words(next, left, right, vertices),
-        (true, false) => return Ordering::Less,
-        (false, true) => return Ordering::Greater,
+        (true, true) => return compare_optional_words_value(next, left, right, vertices),
+        (true, false) => return Rational::from(-1),
+        (false, true) => return Rational::from(1),
         (false, false) => {}
     }
 
@@ -1164,19 +1290,31 @@ fn compare_weight(
                 sum + weights[generator - vertices - 1].clone()
             })
     };
-    total(left)
-        .cmp(&total(right))
-        .then_with(|| compare_optional_words(next, left, right, vertices))
+    let difference = total(left) - total(right);
+    if difference == 0 {
+        compare_optional_words_value(next, left, right, vertices)
+    } else {
+        difference
+    }
 }
 
-fn compare_optional_words(
+fn compare_optional_words_value(
     next: Option<&QuiverOrdering>,
     left: &OrderingWord,
     right: &OrderingWord,
     vertices: usize,
-) -> Ordering {
-    next.map_or(Ordering::Equal, |ordering| {
-        compare_word_kind(&ordering.kind, left, right, vertices)
+) -> Rational {
+    next.map_or_else(
+        || Rational::from(0),
+        |ordering| compare_word_value(&ordering.kind, left, right, vertices),
+    )
+}
+
+fn ordering_value(ordering: Ordering) -> Rational {
+    Rational::from(match ordering {
+        Ordering::Less => -1,
+        Ordering::Equal => 0,
+        Ordering::Greater => 1,
     })
 }
 
@@ -1370,6 +1508,36 @@ pub fn check_quiver_subset_for_cycles(
 ) -> Result<bool, OrderingError> {
     validate_subset(quiver, subset)?;
     Ok(check_quiver_subset_for_cycles_unchecked(quiver, subset))
+}
+
+/// Translate QPA's public `CheckBlocksForCycles(O, block)` helper.
+///
+/// `blocks` is in generator order and contains QPA's one-based block number,
+/// or zero for a generator outside the tested subset.
+///
+/// # Errors
+///
+/// On a cyclic quiver, returns a shape error unless there is at least one entry
+/// for every quiver generator, or the typed pinned-QPA failure reached by the
+/// block-cycle DFS. QPA ignores excess entries.
+pub fn check_blocks_for_cycles(
+    ordering: &QuiverOrdering,
+    blocks: &[usize],
+) -> Result<bool, OrderingError> {
+    if ordering.quiver().is_acyclic() {
+        return Ok(true);
+    }
+    let expected = generator_count(ordering.quiver());
+    if blocks.len() < expected {
+        return Err(OrderingError::BlockAssignmentLength {
+            actual: blocks.len(),
+            expected,
+        });
+    }
+    let mut indexed = Vec::with_capacity(expected + 1);
+    indexed.push(0);
+    indexed.extend_from_slice(blocks);
+    check_blocks_for_cycles_internal(ordering.quiver(), &indexed)
 }
 
 fn check_quiver_subset_for_cycles_unchecked(quiver: &Quiver, subset: &[Generator]) -> bool {
@@ -1761,7 +1929,7 @@ fn block_is_total_ordering(
 
     if generator_count(quiver) > 0 {
         let source_blocks = blocks.iter().map(|block| block + 1).collect::<Vec<_>>();
-        if !check_blocks_for_cycles(quiver, &source_blocks)? {
+        if !check_blocks_for_cycles_internal(quiver, &source_blocks)? {
             return next.map_or(Ok(false), QuiverOrdering::is_total_ordering);
         }
     }
@@ -1792,7 +1960,7 @@ fn block_is_total_subset(
         }
     }
 
-    if generator_count(quiver) > 0 && !check_blocks_for_cycles(quiver, &source_blocks)? {
+    if generator_count(quiver) > 0 && !check_blocks_for_cycles_internal(quiver, &source_blocks)? {
         // This is intentionally `IsTotalOrdering`, not `IsTotalSubset`, in
         // QPA's source branch at groebnerordering.gi:1795.
         return next.map_or(Ok(false), QuiverOrdering::is_total_ordering);
@@ -1808,7 +1976,10 @@ struct BlockCycleNode {
     cycle_block: usize,
 }
 
-fn check_blocks_for_cycles(quiver: &Quiver, blocks: &[usize]) -> Result<bool, OrderingError> {
+fn check_blocks_for_cycles_internal(
+    quiver: &Quiver,
+    blocks: &[usize],
+) -> Result<bool, OrderingError> {
     if quiver.is_acyclic() {
         return Ok(true);
     }
@@ -1976,6 +2147,15 @@ pub enum OrderingError {
     /// QPA rejects an empty list of block-ordering specifications.
     #[error("block and wreath ordering subset lists cannot be empty")]
     EmptyBlockList,
+    /// `CheckBlocksForCycles` requires at least one block number per generator
+    /// once its acyclic-quiver shortcut does not apply.
+    #[error("block assignment has length {actual}, expected at least {expected}")]
+    BlockAssignmentLength {
+        /// Supplied number of block entries.
+        actual: usize,
+        /// Number of quiver generators.
+        expected: usize,
+    },
     /// QPA installs no subset-property methods for wreath orderings.
     #[error("QPA has no applicable ordering-subset property method for wreath orderings")]
     MissingWreathSubsetMethod,
@@ -1996,9 +2176,12 @@ mod tests {
     use numerica::domains::{integer::Integer, rational::Rational};
     use serde_json::{Value, json};
 
-    use crate::{ArrowIndex, ArrowSpec, Generator, Quiver, VertexIndex};
+    use crate::{ArrowIndex, ArrowSpec, Generator, Path, PathEndpoint, Quiver, VertexIndex};
 
-    use super::{OrderingError, QuiverOrdering, all_generators, check_quiver_subset_for_cycles};
+    use super::{
+        OrderingError, QuiverOrdering, QuiverOrderingKind, all_generators, check_blocks_for_cycles,
+        check_quiver_subset_for_cycles,
+    };
 
     fn vertex(index: usize) -> VertexIndex {
         VertexIndex::new(index).unwrap()
@@ -2052,6 +2235,13 @@ mod tests {
             ordering.is_well_reversed_subset(subset).unwrap(),
             ordering.is_total_subset(subset).unwrap(),
         ])
+    }
+
+    fn endpoint_name(endpoint: PathEndpoint) -> String {
+        match endpoint {
+            PathEndpoint::Vertex(vertex) => vertex.name().to_owned(),
+            PathEndpoint::Zero(path) => path.to_string(),
+        }
     }
 
     #[test]
@@ -2134,6 +2324,259 @@ mod tests {
         assert_eq!(
             ordering.compare_arrow_lists(&[b.clone(), a.clone()], &[a, b]),
             Ok(std::cmp::Ordering::Greater)
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_ordering_surface_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/ordering_surface.schema-v1.json"
+        ))
+        .unwrap();
+        let quiver = quiver();
+        let a = quiver.arrow(arrow(1)).unwrap();
+        let b = quiver.arrow(arrow(2)).unwrap();
+        let default = QuiverOrdering::default_for(&quiver).unwrap();
+        let length = QuiverOrdering::length(&quiver, None).unwrap();
+        let left_lexicographic = QuiverOrdering::left_lexicographic(
+            &quiver,
+            &[Generator::Arrow(b.clone()), Generator::Arrow(a.clone())],
+        )
+        .unwrap();
+        let right_lexicographic = QuiverOrdering::right_lexicographic(
+            &quiver,
+            &[Generator::Arrow(b.clone()), Generator::Arrow(a.clone())],
+        )
+        .unwrap();
+        let reverse = QuiverOrdering::reverse(&quiver, default.clone()).unwrap();
+        let left_vector = QuiverOrdering::left_vector(
+            &quiver,
+            &[Generator::Arrow(b.clone()), Generator::Arrow(a.clone())],
+            None,
+        )
+        .unwrap();
+        let right_vector = QuiverOrdering::right_vector(
+            &quiver,
+            &[Generator::Arrow(b.clone()), Generator::Arrow(a.clone())],
+            None,
+        )
+        .unwrap();
+        let weight =
+            QuiverOrdering::weight(&quiver, &[Integer::from(1), Integer::from(5)], None).unwrap();
+        let block = QuiverOrdering::block(
+            &quiver,
+            vec![(weight.clone(), all_generators(&quiver))],
+            None,
+        )
+        .unwrap();
+        let wreath = QuiverOrdering::wreath(
+            &quiver,
+            vec![(weight.clone(), all_generators(&quiver))],
+            None,
+        )
+        .unwrap();
+        let orderings = [
+            length,
+            left_lexicographic,
+            right_lexicographic,
+            reverse.clone(),
+            left_vector,
+            right_vector,
+            weight.clone(),
+            block.clone(),
+            wreath.clone(),
+        ];
+        let categories = orderings
+            .iter()
+            .map(|ordering| {
+                let kind = ordering.kind();
+                json!([
+                    true,
+                    kind.is_lexicographic(),
+                    kind == QuiverOrderingKind::Length,
+                    kind == QuiverOrderingKind::Reverse,
+                    kind.is_vector(),
+                    kind == QuiverOrderingKind::Weight,
+                    kind == QuiverOrderingKind::Block,
+                    kind == QuiverOrderingKind::Wreath,
+                    kind == QuiverOrderingKind::LeftVector,
+                    kind == QuiverOrderingKind::RightVector,
+                    kind == QuiverOrderingKind::LeftLexicographic,
+                    kind == QuiverOrderingKind::RightLexicographic,
+                ])
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(json!(categories), expected["categories"]);
+        assert_eq!(
+            json!(
+                orderings
+                    .iter()
+                    .map(QuiverOrdering::name)
+                    .collect::<Vec<_>>()
+            ),
+            expected["names"]
+        );
+        assert_eq!(
+            json!(
+                orderings
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect::<Vec<_>>()
+            ),
+            expected["views"]
+        );
+        assert_eq!(
+            json!({
+                "default_view": default.to_string(),
+                "default_name": default.name(),
+                "default_has_next": default.next_ordering().is_some(),
+                "default_next_identity": default.next_ordering().is_some_and(|next| next.is_identical(next)),
+                "default_lex_table": default.lexicographic_table().unwrap().iter().map(|generator| generator.path().to_string()).collect::<Vec<_>>(),
+                "reverse_next_identity": reverse.next_ordering().is_some_and(|next| next.is_identical(&default)),
+                "reverse_lex_identity": reverse.shares_lexicographic_table_with(&default),
+            }),
+            expected["attributes"]
+        );
+        assert_eq!(
+            json!({
+                "weight_a_b": weight.comparison_value(&a.path(), &b.path()).unwrap().to_string(),
+                "weight_aa_b": weight.compare_arrow_lists_value(
+                    &[Generator::Arrow(a.clone()), Generator::Arrow(a.clone())],
+                    &[Generator::Arrow(b.clone())],
+                ).unwrap().to_string(),
+                "block_a_b": block.comparison_value(&a.path(), &b.path()).unwrap().to_string(),
+                "wreath_a_b": wreath.comparison_value(&a.path(), &b.path()).unwrap().to_string(),
+            }),
+            expected["comparison_values"]
+        );
+
+        let empty = Path::from_generator_list(&quiver, &[]).unwrap();
+        let singleton = Path::from_generator_list(
+            &quiver,
+            &[Generator::Vertex(quiver.vertex(vertex(1)).unwrap())],
+        )
+        .unwrap();
+        let formal_vertices = Path::from_generator_list(
+            &quiver,
+            &[
+                Generator::Vertex(quiver.vertex(vertex(1)).unwrap()),
+                Generator::Vertex(quiver.vertex(vertex(2)).unwrap()),
+            ],
+        )
+        .unwrap();
+        let formal_noncomposable = Path::from_generator_list(
+            &quiver,
+            &[Generator::Arrow(b.clone()), Generator::Arrow(a.clone())],
+        )
+        .unwrap();
+        let path_record = |path: &Path| {
+            json!({
+                "view": path.to_string(),
+                "extrep": path.external_representation(),
+                "walk": path.generator_walk().unwrap().iter().map(|generator| generator.path().to_string()).collect::<Vec<_>>(),
+                "source": endpoint_name(path.source()),
+                "target": endpoint_name(path.target()),
+                "length": path.length().unwrap(),
+            })
+        };
+        assert_eq!(
+            json!({
+                "empty_is_zero": empty.is_zero(),
+                "singleton_vertex_identity": singleton == quiver.vertex(vertex(1)).unwrap().path(),
+                "formal_vertices": path_record(&formal_vertices),
+                "formal_noncomposable": path_record(&formal_noncomposable),
+            }),
+            expected["path_from_arrow_list"]
+        );
+
+        let cycle_quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(2), vertex(1), "y"),
+            ],
+        )
+        .unwrap();
+        let cycle_ordering = QuiverOrdering::length(&cycle_quiver, None).unwrap();
+        assert_eq!(
+            json!([
+                check_blocks_for_cycles(&cycle_ordering, &[1, 1, 1, 1]).unwrap(),
+                check_blocks_for_cycles(&cycle_ordering, &[1, 1, 1, 2]).unwrap(),
+                check_blocks_for_cycles(&cycle_ordering, &[0, 0, 1, 2]).unwrap(),
+            ]),
+            expected["block_cycle_checks"]
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_ordering_dispatch_failures_are_typed() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/ordering_dispatch.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(expected["success"]["empty_block"], false);
+        assert_eq!(expected["success"]["empty_wreath"], false);
+        assert_eq!(expected["success"]["foreign_length"], true);
+
+        let quiver = quiver();
+        let a = quiver.arrow(arrow(1)).unwrap();
+        let b = quiver.arrow(arrow(2)).unwrap();
+        let default = QuiverOrdering::default_for(&quiver).unwrap();
+        assert_eq!(
+            QuiverOrdering::block(&quiver, Vec::new(), None).unwrap_err(),
+            OrderingError::EmptyBlockList
+        );
+        assert_eq!(
+            QuiverOrdering::wreath(&quiver, Vec::new(), None).unwrap_err(),
+            OrderingError::EmptyBlockList
+        );
+        assert_eq!(
+            QuiverOrdering::left_vector(
+                &quiver,
+                &[Generator::Arrow(b.clone()), Generator::Arrow(a.clone())],
+                Some(default.clone()),
+            )
+            .unwrap_err(),
+            OrderingError::ConflictingLexicographicTables
+        );
+        assert_eq!(
+            check_blocks_for_cycles(&default, &[1]),
+            Err(OrderingError::BlockAssignmentLength {
+                actual: 1,
+                expected: 4,
+            })
+        );
+
+        let foreign =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "z")]).unwrap();
+        let foreign_default = QuiverOrdering::default_for(&foreign).unwrap();
+        assert_eq!(
+            QuiverOrdering::length(&quiver, Some(foreign_default.clone())).unwrap_err(),
+            OrderingError::DifferentQuivers
+        );
+        assert_eq!(
+            QuiverOrdering::reverse(&quiver, foreign_default.clone()).unwrap_err(),
+            OrderingError::DifferentQuivers
+        );
+        assert_eq!(
+            QuiverOrdering::weight(
+                &quiver,
+                &[Integer::from(1), Integer::from(2)],
+                Some(foreign_default),
+            )
+            .unwrap_err(),
+            OrderingError::DifferentQuivers
+        );
+        assert_eq!(
+            Path::from_generator_list(
+                &quiver,
+                &[
+                    Generator::Vertex(quiver.vertex(vertex(1)).unwrap()),
+                    Generator::Vertex(foreign.vertex(vertex(1)).unwrap()),
+                ],
+            ),
+            Err(crate::PathError::DifferentQuivers)
         );
     }
 
