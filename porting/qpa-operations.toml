@@ -7968,9 +7968,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "STATIC_DICTIONARY_CREATING_AUTOMATA_INFO; STATIC_DICTIONARY_CHECKING_CYCLE_INFO"
+tests = ["tests/fixtures/static_dictionary_info.txt"]
 deviations = []
 
 [[entries]]
@@ -7981,9 +7981,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -7994,9 +7994,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 6
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8007,9 +8007,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary::patterns; QuiverStaticDictionary::patterns"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8020,9 +8020,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary::new"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8033,9 +8033,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary::search; QuiverStaticDictionary::search"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8046,9 +8046,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8059,9 +8059,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 12
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8072,9 +8072,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::is_finite_difference"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_info.txt"]
 deviations = []
 
 [[entries]]
@@ -8085,9 +8085,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::difference_size"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8098,9 +8098,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::difference_words"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8111,9 +8111,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::new"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8124,9 +8124,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::prefix_search"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8137,9 +8137,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 4
 source_end = 77
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary::new"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8150,9 +8150,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 78
 source_end = 119
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary::search"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8163,9 +8163,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 120
 source_end = 134
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary::fmt"
+tests = ["tests/fixtures/static_dictionary_output.txt"]
 deviations = []
 
 [[entries]]
@@ -8176,9 +8176,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 135
 source_end = 150
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::fmt; QuiverStaticDictionary::view_string"
+tests = ["tests/fixtures/static_dictionary_output.txt"]
 deviations = []
 
 [[entries]]
@@ -8189,9 +8189,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 153
 source_end = 232
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::is_finite_difference"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_info.txt"]
 deviations = []
 
 [[entries]]
@@ -8202,9 +8202,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 235
 source_end = 269
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::difference_size"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8215,9 +8215,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 270
 source_end = 311
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::difference_words"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8228,9 +8228,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 314
 source_end = 411
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::new"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8241,9 +8241,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 412
 source_end = 460
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::search"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json","tests/fixtures/static_dictionary_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8254,9 +8254,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 461
 source_end = 491
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::prefix_search"
+tests = ["tests/fixtures/static_dictionary.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8267,9 +8267,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 492
 source_end = 506
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StaticDictionary::fmt"
+tests = ["tests/fixtures/static_dictionary_output.txt"]
 deviations = []
 
 [[entries]]
@@ -8280,9 +8280,9 @@ source_file = "upstream/qpa/lib/groebnerstadict.gi"
 source_start = 507
 source_end = 521
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverStaticDictionary::fmt; QuiverStaticDictionary::view_string"
+tests = ["tests/fixtures/static_dictionary_output.txt"]
 deviations = []
 
 [[entries]]

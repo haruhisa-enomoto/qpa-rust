@@ -1,4 +1,4 @@
-//! QPA's static dictionary for forbidden quiver paths.
+//! QPA's generic and quiver-specific static dictionaries.
 //!
 //! This is a direct Rust model of `lib/groebnerstadict.gi`. QPA builds an
 //! Aho--Corasick-style trie from Groebner tips, completes it with quiver
@@ -11,6 +11,189 @@ use numerica::domains::integer::Integer;
 use thiserror::Error;
 
 use crate::{ArrowIndex, Path, PathEndpoint, Quiver, QuiverError, VertexIndex};
+
+/// QPA's first level-one `InfoStaticDictionary` line.
+pub const STATIC_DICTIONARY_CREATING_AUTOMATA_INFO: &str = "#I  Creating finite automata...\n";
+
+/// QPA's second level-one `InfoStaticDictionary` line.
+pub const STATIC_DICTIONARY_CHECKING_CYCLE_INFO: &str = "#I  Checking for cycle...\n";
+
+#[derive(Clone, Debug)]
+struct DictionaryState<Symbol> {
+    labels: Vec<Symbol>,
+    children: Vec<usize>,
+    parent: Option<usize>,
+    label: Option<Symbol>,
+    failure: usize,
+    output: Option<usize>,
+    patterns: Vec<usize>,
+}
+
+impl<Symbol> DictionaryState<Symbol> {
+    fn root() -> Self {
+        Self {
+            labels: Vec::new(),
+            children: Vec::new(),
+            parent: None,
+            label: None,
+            failure: 0,
+            output: None,
+            patterns: Vec::new(),
+        }
+    }
+
+    fn child(parent: usize, label: Symbol) -> Self {
+        Self {
+            labels: Vec::new(),
+            children: Vec::new(),
+            parent: Some(parent),
+            label: Some(label),
+            failure: 0,
+            output: None,
+            patterns: Vec::new(),
+        }
+    }
+}
+
+/// QPA's Aho--Corasick static dictionary for arbitrary dense sequences.
+#[derive(Clone, Debug)]
+pub struct StaticDictionary<Symbol> {
+    patterns: Vec<Vec<Symbol>>,
+    states: Vec<DictionaryState<Symbol>>,
+}
+
+impl<Symbol: Clone + Eq> StaticDictionary<Symbol> {
+    /// Translate QPA's `StaticDictionary(patterns)` constructor.
+    #[must_use]
+    pub fn new(patterns: &[Vec<Symbol>]) -> Self {
+        let mut states = vec![DictionaryState::root()];
+        for (pattern_index, pattern) in patterns.iter().enumerate() {
+            let mut current = 0;
+            for symbol in pattern {
+                let next = states[current]
+                    .labels
+                    .iter()
+                    .position(|label| label == symbol)
+                    .map(|position| states[current].children[position]);
+                current = next.unwrap_or_else(|| {
+                    let next = states.len();
+                    states.push(DictionaryState::child(current, symbol.clone()));
+                    states[current].labels.push(symbol.clone());
+                    states[current].children.push(next);
+                    next
+                });
+            }
+            states[current].patterns.push(pattern_index + 1);
+        }
+
+        let mut queue = VecDeque::new();
+        let root_children = states[0].children.clone();
+        for child in root_children {
+            states[child].failure = 0;
+            queue.extend(states[child].children.iter().copied());
+        }
+        while let Some(current) = queue.pop_front() {
+            let Some(parent) = states[current].parent else {
+                continue;
+            };
+            let Some(symbol) = states[current].label.clone() else {
+                continue;
+            };
+            let mut fallback = states[parent].failure;
+            while fallback != 0 && !states[fallback].labels.iter().any(|label| label == &symbol) {
+                fallback = states[fallback].failure;
+            }
+            states[current].failure = states[fallback]
+                .labels
+                .iter()
+                .position(|label| label == &symbol)
+                .map_or(0, |position| states[fallback].children[position]);
+            let failure = states[current].failure;
+            states[current].output = if states[failure].patterns.is_empty() {
+                states[failure].output
+            } else {
+                Some(failure)
+            };
+            let children = states[current].children.clone();
+            queue.extend(children);
+        }
+
+        Self {
+            patterns: patterns.to_vec(),
+            states,
+        }
+    }
+
+    /// Return QPA's immutable `Patterns` attribute.
+    #[must_use]
+    pub fn patterns(&self) -> &[Vec<Symbol>] {
+        &self.patterns
+    }
+
+    /// Translate QPA's dense-list `Search` method.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StaticDictionaryError::EmptyText`] for the source method's
+    /// initial access to the first element of an empty dense list.
+    pub fn search(&self, text: &[Symbol]) -> Result<Vec<DictionaryMatch>, StaticDictionaryError> {
+        if text.is_empty() {
+            return Err(StaticDictionaryError::EmptyText);
+        }
+        let mut position = 0;
+        let mut state = 0;
+        let mut result = Vec::new();
+        loop {
+            let mut transition = self.states[state]
+                .labels
+                .iter()
+                .position(|label| label == &text[position]);
+            while let Some(index) = transition {
+                let next = self.states[state].children[index];
+                let mut patterns = self.states[next].patterns.clone();
+                let mut output = self.states[next].output;
+                while let Some(output_state) = output {
+                    patterns.extend(self.states[output_state].patterns.iter().copied());
+                    output = self.states[output_state].output;
+                }
+                if !patterns.is_empty() {
+                    result.push(DictionaryMatch {
+                        end_position: position + 1,
+                        pattern_indices: patterns,
+                    });
+                }
+                state = next;
+                position += 1;
+                if position < text.len() {
+                    transition = self.states[state]
+                        .labels
+                        .iter()
+                        .position(|label| label == &text[position]);
+                } else {
+                    transition = None;
+                }
+            }
+            if state == 0 {
+                position += 1;
+            }
+            state = self.states[state].failure;
+            if position >= text.len() {
+                return Ok(result);
+            }
+        }
+    }
+}
+
+impl<Symbol> std::fmt::Display for StaticDictionary<Symbol> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "<static dictionary containing {} pattern{}>",
+            self.patterns.len(),
+            if self.patterns.len() > 1 { "s" } else { "" }
+        )
+    }
+}
 
 #[derive(Clone, Debug)]
 struct AutomatonState {
@@ -34,8 +217,8 @@ impl AutomatonState {
         }
     }
 
-    fn is_accepting(&self) -> bool {
-        !self.outputs.is_empty()
+    fn is_tip(&self) -> bool {
+        !self.own_patterns.is_empty()
     }
 }
 
@@ -102,10 +285,8 @@ impl QuiverStaticDictionary {
             states[current].own_patterns.push(pattern_index + 1);
         }
 
-        let mut breadth_first = Vec::new();
         let mut queue = VecDeque::new();
         for &vertex_state in &vertex_states {
-            breadth_first.push(vertex_state);
             let children = states[vertex_state]
                 .trie_transitions
                 .iter()
@@ -124,7 +305,6 @@ impl QuiverStaticDictionary {
         }
 
         while let Some(current) = queue.pop_front() {
-            breadth_first.push(current);
             let failure_outputs = states[current]
                 .failure
                 .map(|failure| states[failure].outputs.clone())
@@ -156,29 +336,7 @@ impl QuiverStaticDictionary {
             let own_patterns = states[vertex_state].own_patterns.clone();
             states[vertex_state].outputs.clone_from(&own_patterns);
         }
-        for &state_index in &breadth_first {
-            let trie_transitions = states[state_index].trie_transitions.clone();
-            states[state_index]
-                .transitions
-                .clone_from(&trie_transitions);
-            let vertex = quiver
-                .vertex(states[state_index].target)
-                .ok_or(StaticDictionaryError::InvalidPattern)?;
-            for arrow in quiver.outgoing_arrows(&vertex)? {
-                let position = arrow.index().zero_based();
-                if states[state_index].transitions[position].is_some() {
-                    continue;
-                }
-                let fallback = states[state_index].failure.map_or(
-                    vertex_states[arrow.target().index().zero_based()],
-                    |failure| {
-                        states[failure].transitions[position]
-                            .unwrap_or(vertex_states[arrow.target().index().zero_based()])
-                    },
-                );
-                states[state_index].transitions[position] = Some(fallback);
-            }
-        }
+        complete_quiver_transitions(quiver, &vertex_states, &mut states)?;
 
         Ok(Self {
             quiver: quiver.clone(),
@@ -194,6 +352,16 @@ impl QuiverStaticDictionary {
         &self.patterns
     }
 
+    /// Return QPA's exact `ViewObj` text.
+    #[must_use]
+    pub fn view_string(&self) -> String {
+        format!(
+            "<static dictionary for quivers containing {} path{}>",
+            self.patterns.len(),
+            if self.patterns.len() > 1 { "s" } else { "" }
+        )
+    }
+
     /// Translate QPA's `Search(dict, path)`.
     ///
     /// # Errors
@@ -205,14 +373,31 @@ impl QuiverStaticDictionary {
         let walk = path.walk().ok_or(StaticDictionaryError::ZeroPattern)?;
         let mut current = self.vertex_states[source.zero_based()];
         let mut matches = Vec::new();
-        for (position, arrow) in walk.iter().enumerate() {
-            current = self.states[current].transitions[arrow.zero_based()]
-                .ok_or(StaticDictionaryError::InvalidPattern)?;
-            if !self.states[current].outputs.is_empty() {
-                matches.push(DictionaryMatch {
-                    end_position: position + 1,
-                    pattern_indices: self.states[current].outputs.clone(),
-                });
+        let mut position = 0;
+        while position < walk.len() {
+            let arrow = walk[position];
+            if let Some(next) = self.states[current].transitions[arrow.zero_based()] {
+                current = next;
+                if !self.states[current].outputs.is_empty() {
+                    matches.push(DictionaryMatch {
+                        end_position: position + 1,
+                        pattern_indices: self.states[current].outputs.clone(),
+                    });
+                }
+                position += 1;
+            } else if let Some(failure) = self.states[current].failure {
+                current = failure;
+            } else {
+                position += 1;
+                if let Some(next_arrow) = walk.get(position) {
+                    let source = self
+                        .quiver
+                        .arrow(*next_arrow)
+                        .ok_or(StaticDictionaryError::InvalidPattern)?
+                        .source()
+                        .index();
+                    current = self.vertex_states[source.zero_based()];
+                }
             }
         }
         Ok(matches)
@@ -269,13 +454,12 @@ impl QuiverStaticDictionary {
         }
         let mut total = Integer::from(0);
         for state in order {
-            if self.states[state].is_accepting() {
-                continue;
-            }
             let contribution = counts[state].clone();
-            total += &contribution;
-            for target in self.nonaccepting_transitions(state) {
+            for target in self.transitions(state) {
                 counts[target] += &contribution;
+            }
+            if !self.states[state].is_tip() {
+                total += &contribution;
             }
         }
         Some(total)
@@ -294,12 +478,8 @@ impl QuiverStaticDictionary {
         }
         let mut paths = Vec::new();
         for state in order {
-            if self.states[state].is_accepting() {
-                continue;
-            }
-            paths.extend(state_paths[state].iter().cloned());
             let current_paths = state_paths[state].clone();
-            for (arrow_index, target) in self.indexed_nonaccepting_transitions(state) {
+            for (arrow_index, target) in self.indexed_transitions(state) {
                 let Some(arrow) = self.quiver.arrow(arrow_index) else {
                     continue;
                 };
@@ -308,6 +488,9 @@ impl QuiverStaticDictionary {
                         state_paths[target].push(extension);
                     }
                 }
+            }
+            if !self.states[state].is_tip() {
+                paths.extend(state_paths[state].iter().cloned());
             }
         }
         paths.sort_by(|left, right| {
@@ -326,31 +509,24 @@ impl QuiverStaticDictionary {
         }
     }
 
-    fn nonaccepting_transitions(&self, state: usize) -> impl Iterator<Item = usize> + '_ {
-        self.indexed_nonaccepting_transitions(state)
-            .map(|(_, target)| target)
+    fn transitions(&self, state: usize) -> impl Iterator<Item = usize> + '_ {
+        self.indexed_transitions(state).map(|(_, target)| target)
     }
 
-    fn indexed_nonaccepting_transitions(
-        &self,
-        state: usize,
-    ) -> impl Iterator<Item = (ArrowIndex, usize)> + '_ {
-        let accepting = self.states[state].is_accepting();
+    fn indexed_transitions(&self, state: usize) -> impl Iterator<Item = (ArrowIndex, usize)> + '_ {
         self.states[state]
             .transitions
             .iter()
             .enumerate()
-            .filter_map(move |(arrow, target)| {
-                (!accepting)
-                    .then(|| target.map(|target| (ArrowIndex::from_zero_based(arrow), target)))
-                    .flatten()
+            .filter_map(|(arrow, target)| {
+                target.map(|target| (ArrowIndex::from_zero_based(arrow), target))
             })
     }
 
     fn topological_order(&self) -> Option<Vec<usize>> {
         let mut indegree = vec![0_usize; self.states.len()];
         for state in 0..self.states.len() {
-            for target in self.nonaccepting_transitions(state) {
+            for target in self.transitions(state) {
                 indegree[target] += 1;
             }
         }
@@ -362,7 +538,7 @@ impl QuiverStaticDictionary {
         let mut order = Vec::with_capacity(self.states.len());
         while let Some(state) = queue.pop_front() {
             order.push(state);
-            for target in self.nonaccepting_transitions(state) {
+            for target in self.transitions(state) {
                 indegree[target] -= 1;
                 if indegree[target] == 0 {
                     queue.push_back(target);
@@ -371,6 +547,63 @@ impl QuiverStaticDictionary {
         }
         (order.len() == self.states.len()).then_some(order)
     }
+}
+
+impl std::fmt::Display for QuiverStaticDictionary {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.view_string())
+    }
+}
+
+fn complete_quiver_transitions(
+    quiver: &Quiver,
+    vertex_states: &[usize],
+    states: &mut [AutomatonState],
+) -> Result<(), StaticDictionaryError> {
+    for state in states.iter_mut() {
+        state.transitions.clone_from(&state.trie_transitions);
+    }
+    let mut queue = VecDeque::new();
+    for &vertex_state in vertex_states {
+        let vertex = quiver
+            .vertex(states[vertex_state].target)
+            .ok_or(StaticDictionaryError::InvalidPattern)?;
+        for arrow in quiver.outgoing_arrows(&vertex)? {
+            let position = arrow.index().zero_based();
+            states[vertex_state].transitions[position]
+                .get_or_insert(vertex_states[arrow.target().index().zero_based()]);
+        }
+        queue.extend(
+            states[vertex_state]
+                .trie_transitions
+                .iter()
+                .filter_map(|child| *child)
+                .filter(|child| states[*child].trie_transitions.iter().any(Option::is_some)),
+        );
+    }
+    while let Some(current) = queue.pop_front() {
+        let children = states[current]
+            .trie_transitions
+            .iter()
+            .filter_map(|child| *child)
+            .filter(|child| states[*child].own_patterns.is_empty())
+            .collect::<Vec<_>>();
+        queue.extend(children);
+        let vertex = quiver
+            .vertex(states[current].target)
+            .ok_or(StaticDictionaryError::InvalidPattern)?;
+        for arrow in quiver.outgoing_arrows(&vertex)? {
+            let position = arrow.index().zero_based();
+            if states[current].transitions[position].is_none() {
+                let fallback = states[current]
+                    .failure
+                    .and_then(|failure| states[failure].transitions[position])
+                    .ok_or(StaticDictionaryError::InvalidPattern)?;
+                states[current].transitions[position] = Some(fallback);
+            }
+        }
+    }
+    Ok(())
 }
 
 fn failure_transition(
@@ -401,9 +634,12 @@ fn endpoint_index(endpoint: PathEndpoint) -> Result<VertexIndex, StaticDictionar
     }
 }
 
-/// Failure to construct or query QPA's quiver static dictionary.
+/// Failure to construct or query a QPA static dictionary.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum StaticDictionaryError {
+    /// QPA's generic dense-list search reads position one before checking length.
+    #[error("an empty dense list has no first search symbol")]
+    EmptyText,
     /// Patterns and searched paths must belong to the dictionary's quiver.
     #[error("a dictionary path belongs to a different quiver")]
     DifferentQuivers,
@@ -420,9 +656,14 @@ pub enum StaticDictionaryError {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::{Value, json};
+
     use crate::{ArrowIndex, ArrowSpec, Quiver, VertexIndex};
 
-    use super::{DictionaryMatch, QuiverStaticDictionary};
+    use super::{
+        DictionaryMatch, QuiverStaticDictionary, STATIC_DICTIONARY_CHECKING_CYCLE_INFO,
+        STATIC_DICTIONARY_CREATING_AUTOMATA_INFO, StaticDictionary, StaticDictionaryError,
+    };
 
     fn vertex(index: usize) -> VertexIndex {
         VertexIndex::new(index).unwrap()
@@ -441,6 +682,156 @@ mod tests {
             ],
         )
         .unwrap()
+    }
+
+    fn matches_json(matches: &[DictionaryMatch]) -> Value {
+        json!(
+            matches
+                .iter()
+                .map(|matched| json!([matched.end_position, matched.pattern_indices]))
+                .collect::<Vec<_>>()
+        )
+    }
+
+    #[test]
+    fn pinned_qpa_static_dictionary_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/static_dictionary.schema-v1.json"
+        ))
+        .unwrap();
+
+        let string_patterns =
+            ["he", "she", "his", "hers"].map(|pattern| pattern.chars().collect::<Vec<_>>());
+        let generic = StaticDictionary::new(&string_patterns);
+        assert_eq!(
+            json!({
+                "patterns": generic
+                    .patterns()
+                    .iter()
+                    .map(|pattern| pattern.iter().collect::<String>())
+                    .collect::<Vec<_>>(),
+                "ushers": matches_json(&generic.search(&"ushers".chars().collect::<Vec<_>>()).unwrap()),
+                "overlap": matches_json(
+                    &StaticDictionary::new(&[vec![1, 2], vec![2], vec![1, 2]])
+                        .search(&[1, 2, 1, 2])
+                        .unwrap()
+                )
+            }),
+            expected["generic"]
+        );
+
+        let quiver = two_loops();
+        let x = quiver.arrow(arrow(1)).unwrap().path();
+        let y = quiver.arrow(arrow(2)).unwrap().path();
+        let xx = x.multiply(&x).unwrap();
+        let yx = y.multiply(&x).unwrap();
+        let yy = y.multiply(&y).unwrap();
+        let finite = QuiverStaticDictionary::new(&quiver, &[xx.clone(), yx, yy]).unwrap();
+        let infinite = QuiverStaticDictionary::new(&quiver, std::slice::from_ref(&xx)).unwrap();
+        let vertex_prefix = QuiverStaticDictionary::new(
+            &quiver,
+            &[quiver.vertex(vertex(1)).unwrap().path(), x.clone()],
+        )
+        .unwrap();
+        let overlap =
+            QuiverStaticDictionary::new(&quiver, &[x.clone(), x.multiply(&y).unwrap()]).unwrap();
+        assert_eq!(
+            json!({
+                "patterns": finite.patterns().iter().map(ToString::to_string).collect::<Vec<_>>(),
+                "search": matches_json(&finite.search(&y.multiply(&xx).unwrap()).unwrap()),
+                "prefix": matches_json(&finite.prefix_search(&xx).unwrap()),
+                "finite": finite.is_finite_difference(),
+                "size": finite.difference_size().unwrap().to_string().parse::<u64>().unwrap(),
+                "words": finite.difference_words().unwrap().iter().map(ToString::to_string).collect::<Vec<_>>(),
+                "infinite": infinite.is_finite_difference(),
+                "infinite_size": "infinity",
+                "infinite_words_fail": infinite.difference_words().is_none(),
+                "vertex_prefix": matches_json(&vertex_prefix.prefix_search(&x).unwrap()),
+                "overlap_finite": overlap.is_finite_difference(),
+                "overlap_size": "infinity"
+            }),
+            expected["quiver"]
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_views_and_failures_match() {
+        assert_eq!(
+            format!(
+                "{STATIC_DICTIONARY_CREATING_AUTOMATA_INFO}{STATIC_DICTIONARY_CHECKING_CYCLE_INFO}"
+            ),
+            include_str!("../../../tests/fixtures/static_dictionary_info.txt")
+        );
+
+        let output = format!(
+            "GENERIC_0={}\nGENERIC_1={}\nGENERIC_2={}\nQUIVER_0={}\nQUIVER_1={}\nQUIVER_2={}\n",
+            StaticDictionary::<i32>::new(&[]),
+            StaticDictionary::new(&[vec![1]]),
+            StaticDictionary::new(&[vec![1], vec![2]]),
+            QuiverStaticDictionary::new(&two_loops(), &[]).unwrap(),
+            {
+                let quiver = two_loops();
+                QuiverStaticDictionary::new(&quiver, &[quiver.arrow(arrow(1)).unwrap().path()])
+                    .unwrap()
+            },
+            {
+                let quiver = two_loops();
+                QuiverStaticDictionary::new(
+                    &quiver,
+                    &[
+                        quiver.vertex(vertex(1)).unwrap().path(),
+                        quiver.arrow(arrow(1)).unwrap().path(),
+                    ],
+                )
+                .unwrap()
+            }
+        );
+        assert_eq!(
+            output,
+            include_str!("../../../tests/fixtures/static_dictionary_output.txt")
+        );
+
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/static_dictionary_errors.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            expected["failures"],
+            json!({
+                "sparse_patterns_success": false,
+                "empty_search_success": false,
+                "foreign_pattern_success": false,
+                "zero_pattern_success": false,
+                "foreign_search_success": false,
+                "zero_search_success": false
+            })
+        );
+        assert_eq!(
+            StaticDictionary::new(&[vec![1]]).search(&[]),
+            Err(StaticDictionaryError::EmptyText)
+        );
+        let quiver = two_loops();
+        let foreign = two_loops();
+        let foreign_path = foreign.arrow(arrow(1)).unwrap().path();
+        assert_eq!(
+            QuiverStaticDictionary::new(&quiver, std::slice::from_ref(&foreign_path)).unwrap_err(),
+            StaticDictionaryError::DifferentQuivers
+        );
+        assert_eq!(
+            QuiverStaticDictionary::new(&quiver, &[quiver.zero()]).unwrap_err(),
+            StaticDictionaryError::ZeroPattern
+        );
+        let dictionary =
+            QuiverStaticDictionary::new(&quiver, &[quiver.arrow(arrow(1)).unwrap().path()])
+                .unwrap();
+        assert_eq!(
+            dictionary.search(&foreign_path),
+            Err(StaticDictionaryError::DifferentQuivers)
+        );
+        assert_eq!(
+            dictionary.search(&quiver.zero()),
+            Err(StaticDictionaryError::ZeroPattern)
+        );
     }
 
     #[test]

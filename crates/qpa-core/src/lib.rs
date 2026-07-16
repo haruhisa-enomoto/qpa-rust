@@ -83,7 +83,10 @@ pub use quotient::{
     QuotientNiceBasis, QuotientPathAlgebra, QuotientPathAlgebraElement,
     is_homogeneous_list_of_elements,
 };
-pub use static_dictionary::{DictionaryMatch, QuiverStaticDictionary, StaticDictionaryError};
+pub use static_dictionary::{
+    DictionaryMatch, QuiverStaticDictionary, STATIC_DICTIONARY_CHECKING_CYCLE_INFO,
+    STATIC_DICTIONARY_CREATING_AUTOMATA_INFO, StaticDictionary, StaticDictionaryError,
+};
 pub use suffix_tree::{
     SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,
     SuffixTreeOccurrence, SuffixTreeToken,

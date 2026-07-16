@@ -1,0 +1,6 @@
+GENERIC_0=<static dictionary containing 0 pattern>
+GENERIC_1=<static dictionary containing 1 pattern>
+GENERIC_2=<static dictionary containing 2 patterns>
+QUIVER_0=<static dictionary for quivers containing 0 path>
+QUIVER_1=<static dictionary for quivers containing 1 path>
+QUIVER_2=<static dictionary for quivers containing 2 paths>

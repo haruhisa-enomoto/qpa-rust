@@ -304,6 +304,18 @@ compare_catching_fixture \
     "$repo_root/tests/gap-reference/dynamic_tree_errors.g" \
     "$repo_root/tests/fixtures/dynamic_tree_errors.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/static_dictionary.g" \
+    "$repo_root/tests/fixtures/static_dictionary.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/static_dictionary_output.g" \
+    "$repo_root/tests/fixtures/static_dictionary_output.txt"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/static_dictionary_info.g" \
+    "$repo_root/tests/fixtures/static_dictionary_info.txt"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/static_dictionary_errors.g" \
+    "$repo_root/tests/fixtures/static_dictionary_errors.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/suffix_tree.g" \
     "$repo_root/tests/fixtures/suffix_tree.schema-v1.json"
 if "$repo_root/scripts/gap-reference" \
