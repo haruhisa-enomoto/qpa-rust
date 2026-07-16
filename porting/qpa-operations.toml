@@ -103,9 +103,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::radical_series"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -168,9 +168,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::is_radical_square_zero"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -220,9 +220,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::is_basic_algebra"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json","tests/gap-reference/algebra_as_quiver_nonbasic_error.g"]
 deviations = []
 
 [[entries]]
@@ -233,9 +233,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::is_elementary_algebra"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -311,9 +311,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 28
 source_end = 28
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::blocks"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -688,9 +688,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 330
 source_end = 351
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::radical_series"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -701,9 +701,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 360
 source_end = 371
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::is_radical_square_zero"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -714,9 +714,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 381
 source_end = 414
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::is_basic_algebra"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json","tests/gap-reference/algebra_as_quiver_nonbasic_error.g"]
 deviations = []
 
 [[entries]]
@@ -727,9 +727,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 424
 source_end = 457
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::is_elementary_algebra"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -792,9 +792,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 912
 source_end = 934
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::blocks"
+tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
 
 [[entries]]

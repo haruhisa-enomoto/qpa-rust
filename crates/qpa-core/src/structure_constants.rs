@@ -329,6 +329,174 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
         }
     }
 
+    /// Translate QPA's `RadicalSeriesOfAlgebra` basis sequence.
+    ///
+    /// The first matrix is the standard basis of `A`, followed by bases of
+    /// `rad(A)`, `rad(A)^2`, and so on, including the final zero-dimensional
+    /// space. Each product basis follows GAP's `ProductSpace` generator order
+    /// and generic semi-echelon basis selection.
+    ///
+    /// # Errors
+    ///
+    /// Propagates radical, structure multiplication, and checked matrix
+    /// construction failures.
+    pub fn radical_series(&self) -> Result<Vec<DenseMatrix<F>>, StructureConstantsError> {
+        let radical = self.radical()?;
+        let mut series = vec![DenseMatrix::identity(
+            self.dimension(),
+            self.field().clone(),
+        )];
+        let mut power = radical.basis().clone();
+        while power.nrows() != 0 {
+            series.push(power.clone());
+            power = self.product_space_basis(&power, radical.basis())?;
+        }
+        series.push(power);
+        Ok(series)
+    }
+
+    /// Translate QPA's `IsRadicalSquareZeroAlgebra` method.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the exact radical and `ProductSpace` computations.
+    pub fn is_radical_square_zero(&self) -> Result<bool, StructureConstantsError> {
+        let radical = self.radical()?;
+        Ok(self
+            .product_space_basis(radical.basis(), radical.basis())?
+            .nrows()
+            == 0)
+    }
+
+    /// Translate QPA's finite-field `IsBasicAlgebra` method on the supported
+    /// split-prime-field contract.
+    ///
+    /// `None` is QPA's `TryNextMethod()` on an infinite coefficient field.
+    /// Over a finite field, each central simple block of `A/rad(A)` is basic
+    /// exactly when it is commutative, since finite division rings are fields.
+    ///
+    /// # Errors
+    ///
+    /// Propagates radical, quotient, central-idempotent, and exact subalgebra
+    /// construction failures.
+    pub fn is_basic_algebra(&self) -> Result<Option<bool>, StructureConstantsError> {
+        if self.field().qpa_elements()?.is_none() {
+            return Ok(None);
+        }
+        let components = self.semisimple_central_components()?;
+        Ok(Some(
+            components
+                .iter()
+                .all(|component| is_commutative(component.algebra())),
+        ))
+    }
+
+    /// Translate QPA's finite-field `IsElementaryAlgebra` method on the
+    /// supported split-prime-field contract.
+    ///
+    /// `None` preserves either `TryNextMethod()` branch: an infinite field or
+    /// a nonbasic algebra. Otherwise QPA compares the dimensions of all simple
+    /// division-field blocks of `A/rad(A)`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the basicness and semisimple-component computations.
+    pub fn is_elementary_algebra(&self) -> Result<Option<bool>, StructureConstantsError> {
+        if self.is_basic_algebra()? != Some(true) {
+            return Ok(None);
+        }
+        let components = self.semisimple_central_components()?;
+        let Some(first) = components.first() else {
+            return Ok(Some(true));
+        };
+        Ok(Some(components.iter().all(|component| {
+            component.algebra().dimension() == first.algebra().dimension()
+        })))
+    }
+
+    /// Translate QPA's `BlocksOfAlgebra` on the supported finite prime-field
+    /// contract.
+    ///
+    /// For each central idempotent in QPA order, the block basis is obtained
+    /// from `BasisVectors(Basis(A)) * c` and the resulting GAP semi-echelon
+    /// span. The induced algebra retains its ambient basis coordinates.
+    ///
+    /// # Errors
+    ///
+    /// Propagates central-idempotent, exact product, and subalgebra failures.
+    pub fn blocks(&self) -> Result<Vec<StructureConstantsSubalgebra<F>>, StructureConstantsError> {
+        let idempotents = self.central_idempotents_split_prime()?;
+        idempotents
+            .iter()
+            .map(|idempotent| {
+                let mut generators = Vec::with_capacity(self.dimension() + 1);
+                // After constructing the FLMLOR, QPA sets its `One` before
+                // asking for a basis. GAP's associative-with-one closure
+                // therefore seeds its mutable basis with this idempotent.
+                generators.push(idempotent.clone());
+                generators.extend(
+                    (0..self.dimension())
+                        .map(|basis_index| {
+                            let mut basis = vec![self.field().zero(); self.dimension()];
+                            basis[basis_index] = self.field().one();
+                            self.multiply_coordinates(&basis, idempotent)
+                        })
+                        .collect::<Result<Vec<_>, _>>()?,
+                );
+                let basis = span_rows(self.field(), self.dimension(), generators)?;
+                StructureConstantsSubalgebra::from_basis(self.clone(), basis)
+            })
+            .collect()
+    }
+
+    fn semisimple_central_components(
+        &self,
+    ) -> Result<Vec<StructureConstantsSubalgebra<F>>, StructureConstantsError> {
+        let radical = self.radical()?;
+        let quotient = self.quotient_by_ideal_basis(radical.basis().clone())?;
+        let idempotents = quotient.algebra().central_idempotents_split_prime()?;
+        idempotents
+            .iter()
+            .map(|idempotent| {
+                let generators = (0..quotient.algebra().dimension())
+                    .map(|basis_index| {
+                        let mut basis = vec![self.field().zero(); quotient.algebra().dimension()];
+                        basis[basis_index] = self.field().one();
+                        quotient.algebra().multiply_coordinates(idempotent, &basis)
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                let basis = span_rows(self.field(), quotient.algebra().dimension(), generators)?;
+                StructureConstantsSubalgebra::from_basis(quotient.algebra().clone(), basis)
+            })
+            .collect()
+    }
+
+    fn product_space_basis(
+        &self,
+        left: &DenseMatrix<F>,
+        right: &DenseMatrix<F>,
+    ) -> Result<DenseMatrix<F>, StructureConstantsError> {
+        if left.ncols() != self.dimension() {
+            return Err(StructureConstantsError::SubalgebraBasisWidth {
+                actual: left.ncols(),
+                expected: self.dimension(),
+            });
+        }
+        if right.ncols() != self.dimension() {
+            return Err(StructureConstantsError::SubalgebraBasisWidth {
+                actual: right.ncols(),
+                expected: self.dimension(),
+            });
+        }
+        let mut products = Vec::with_capacity(left.nrows().saturating_mul(right.nrows()));
+        for left_row in 0..left.nrows() {
+            for right_row in 0..right.nrows() {
+                products.push(self.multiply_coordinates(left.row(left_row), right.row(right_row))?);
+            }
+        }
+        Ok(span_rows(self.field(), self.dimension(), products)?)
+    }
+
     fn radical_characteristic_zero(
         &self,
     ) -> Result<StructureConstantsSubalgebra<F>, StructureConstantsError> {
@@ -1266,6 +1434,31 @@ fn is_zero_row<F: Field>(field: &F, row: &[F::Element]) -> bool {
     row.iter().all(|entry| field.is_zero(entry))
 }
 
+fn span_rows<F: Field>(
+    field: &F,
+    width: usize,
+    rows: Vec<Vec<F::Element>>,
+) -> Result<DenseMatrix<F>, MatrixError> {
+    DenseMatrix::from_flat(
+        rows.len(),
+        width,
+        rows.into_iter().flatten().collect(),
+        field.clone(),
+    )
+    .map(|matrix| matrix.semi_echelon_transformation().vectors)
+}
+
+fn is_commutative<F: Field>(algebra: &StructureConstantsAlgebra<F>) -> bool {
+    for left in 0..algebra.dimension() {
+        for right in left + 1..algebra.dimension() {
+            if algebra.basis_product(left, right) != algebra.basis_product(right, left) {
+                return false;
+            }
+        }
+    }
+    true
+}
+
 fn multiply_row_matrix<F: Field>(row: &[F::Element], matrix: &DenseMatrix<F>) -> Vec<F::Element> {
     debug_assert_eq!(row.len(), matrix.nrows());
     let field = matrix.field();
@@ -1715,6 +1908,58 @@ mod tests {
         StructureConstantsAlgebra::new(field, dimension, products).unwrap()
     }
 
+    fn dual_numbers<F: Field>(field: F) -> StructureConstantsAlgebra<F> {
+        let dimension = 2;
+        let mut products = vec![field.zero(); dimension * dimension * dimension];
+        let mut set = |left: usize, right: usize, output: usize| {
+            products[(left * dimension + right) * dimension + output] = field.one();
+        };
+        set(0, 0, 0);
+        set(0, 1, 1);
+        set(1, 0, 1);
+        StructureConstantsAlgebra::new(field, dimension, products).unwrap()
+    }
+
+    fn algebra_properties_json<F: QpaCoefficientField>(
+        algebra: &StructureConstantsAlgebra<F>,
+        coefficient_json: &impl Fn(&F::Element) -> Value,
+    ) -> Value {
+        let sparse_basis = |basis: &DenseMatrix<F>| {
+            (0..basis.nrows())
+                .map(|row| {
+                    basis
+                        .row(row)
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, coefficient)| !algebra.field().is_zero(coefficient))
+                        .map(|(coordinate, coefficient)| {
+                            json!([coordinate + 1, coefficient_json(coefficient)])
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
+        };
+        let series = algebra
+            .radical_series()
+            .unwrap()
+            .iter()
+            .map(sparse_basis)
+            .collect::<Vec<_>>();
+        let blocks = algebra
+            .blocks()
+            .unwrap()
+            .iter()
+            .map(|block| sparse_basis(block.basis()))
+            .collect::<Vec<_>>();
+        json!({
+            "radical_series": series,
+            "radical_square_zero": algebra.is_radical_square_zero().unwrap(),
+            "basic": algebra.is_basic_algebra().unwrap().unwrap(),
+            "elementary": algebra.is_elementary_algebra().unwrap().unwrap(),
+            "blocks": blocks
+        })
+    }
+
     #[test]
     fn centre_radical_and_natural_quotient_match_gap_basis_order() {
         let algebra = upper_triangular_two_by_two(Z2);
@@ -1773,5 +2018,47 @@ mod tests {
             triangular.central_idempotents_split_prime().unwrap(),
             vec![vec![field.one(), field.zero(), field.one()]]
         );
+    }
+
+    #[test]
+    fn pinned_qpa_radical_properties_and_blocks_match() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            algebra_properties_json(&upper_triangular_two_by_two(Z2), &|coefficient| {
+                Z2.to_integer(coefficient)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+                    .into()
+            }),
+            fixture["algebra_properties"]["upper_triangular_f2"]
+        );
+        let field = Zp::new(5);
+        assert_eq!(
+            algebra_properties_json(&dual_numbers(field.clone()), &|coefficient| {
+                field
+                    .to_integer(coefficient)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+                    .into()
+            }),
+            fixture["algebra_properties"]["dual_numbers_f5"]
+        );
+        assert_eq!(
+            algebra_properties_json(&product_of_fields(Z2, 2), &|coefficient| {
+                Z2.to_integer(coefficient)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+                    .into()
+            }),
+            fixture["algebra_properties"]["product_fields_f2"]
+        );
+        assert_eq!(dual_numbers(Q).is_basic_algebra().unwrap(), None);
+        assert_eq!(dual_numbers(Q).is_elementary_algebra().unwrap(), None);
     }
 }

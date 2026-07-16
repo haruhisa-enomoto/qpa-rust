@@ -247,6 +247,49 @@ DualNumbers := function(field)
     ]);
 end;
 
+ProductOfTwoFields := function(field)
+    local z, o;
+    z := Zero(field); o := One(field);
+    return AlgebraFromProducts(field, [
+        [[o,z], [z,z]],
+        [[z,z], [z,o]]
+    ]);
+end;
+
+PrintAlgebraProperties := function(algebra, row_printer)
+    local ambient_basis, series, blocks, first, space, block, element,
+          first_space, first_element;
+    ambient_basis := Basis(algebra);
+    series := RadicalSeriesOfAlgebra(algebra);
+    blocks := BlocksOfAlgebra(algebra);
+    Print("{\"radical_series\":["); first_space := true;
+    for space in series do
+        if not first_space then Print(","); fi;
+        Print("["); first_element := true;
+        for element in BasisVectors(Basis(space)) do
+            if not first_element then Print(","); fi;
+            row_printer(Coefficients(ambient_basis, element));
+            first_element := false;
+        od;
+        Print("]"); first_space := false;
+    od;
+    Print("],\"radical_square_zero\":", IsRadicalSquareZeroAlgebra(algebra));
+    Print(",\"basic\":", IsBasicAlgebra(algebra));
+    Print(",\"elementary\":", IsElementaryAlgebra(algebra));
+    Print(",\"blocks\":["); first := true;
+    for block in blocks do
+        if not first then Print(","); fi;
+        Print("["); first_element := true;
+        for element in BasisVectors(Basis(block)) do
+            if not first_element then Print(","); fi;
+            row_printer(Coefficients(ambient_basis, element));
+            first_element := false;
+        od;
+        Print("]"); first := false;
+    od;
+    Print("]}");
+end;
+
 BuildCase := function(field)
     local quiver, algebra, simples, projectives, generator;
     quiver := Quiver(2, [[1, 2, "a"]]);
@@ -268,6 +311,7 @@ upper_triangular_f2 := UpperTriangularTwoByTwo(GF(2));;
 upper_triangular_f2_conversion := AlgebraAsQuiverAlgebra(upper_triangular_f2);;
 dual_numbers_f5 := DualNumbers(GF(5));;
 dual_numbers_f5_conversion := AlgebraAsQuiverAlgebra(dual_numbers_f5);;
+product_fields_f2 := ProductOfTwoFields(GF(2));;
 
 Print("{\"schema_version\":1,\"kind\":\"pathalg_module_preprojective_structure\",\"oracle\":{");
 Print("\"gap_version\":"); PrintJsonString(GAPInfo.Version);
@@ -285,6 +329,12 @@ Print("},\"conversion_cases\":{\"upper_triangular_f2\":");
 PrintFinalSummary(upper_triangular_f2_conversion, upper_triangular_f2, PrintPrimeRow);
 Print(",\"dual_numbers_f5\":");
 PrintFinalSummary(dual_numbers_f5_conversion, dual_numbers_f5, PrintPrimeRow);
+Print("},\"algebra_properties\":{\"upper_triangular_f2\":");
+PrintAlgebraProperties(upper_triangular_f2, PrintPrimeRow);
+Print(",\"dual_numbers_f5\":");
+PrintAlgebraProperties(dual_numbers_f5, PrintPrimeRow);
+Print(",\"product_fields_f2\":");
+PrintAlgebraProperties(product_fields_f2, PrintPrimeRow);
 Print("}}\n");
 
 QUIT_GAP(0);

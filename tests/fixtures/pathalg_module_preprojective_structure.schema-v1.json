@@ -124,5 +124,32 @@
       "loewy_length": 2,
       "relations": [[{"walk": [1, 1], "coefficient": 1}]]
     }
+  },
+  "algebra_properties": {
+    "upper_triangular_f2": {
+      "radical_series": [
+        [[[1, 1]], [[2, 1]], [[3, 1]]],
+        [[[2, 1]]],
+        []
+      ],
+      "radical_square_zero": true,
+      "basic": true,
+      "elementary": true,
+      "blocks": [[[[1, 1], [3, 1]], [[3, 1]], [[2, 1]]]]
+    },
+    "dual_numbers_f5": {
+      "radical_series": [[[[1, 1]], [[2, 1]]], [[[2, 1]]], []],
+      "radical_square_zero": true,
+      "basic": true,
+      "elementary": true,
+      "blocks": [[[[1, 1]], [[2, 1]]]]
+    },
+    "product_fields_f2": {
+      "radical_series": [[[[1, 1]], [[2, 1]]], []],
+      "radical_square_zero": true,
+      "basic": true,
+      "elementary": true,
+      "blocks": [[[[2, 1]]], [[[1, 1]]]]
+    }
   }
 }
