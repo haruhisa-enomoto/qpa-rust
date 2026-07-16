@@ -15703,9 +15703,9 @@ source_file = "upstream/qpa/lib/modulespecial.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "random_module; QpaRandomScalar"
+tests = ["tests/fixtures/module_random.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15833,9 +15833,9 @@ source_file = "upstream/qpa/lib/modulespecial.gi"
 source_start = 436
 source_end = 460
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "random_module; QpaRandomScalar"
+tests = ["tests/fixtures/module_random.schema-v1.json"]
 deviations = []
 
 [[entries]]

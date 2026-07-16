@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "binary": {
+    "success": true,
+    "is_fail": false,
+    "dimension_vector": [1]
+  },
+  "ternary": {
+    "success": true,
+    "is_fail": false,
+    "dimension_vector": [0]
+  },
+  "rational": {
+    "success": true,
+    "is_fail": false,
+    "dimension_vector": [0]
+  },
+  "isolated": {
+    "success": true,
+    "is_fail": true,
+    "dimension_vector": null
+  }
+}

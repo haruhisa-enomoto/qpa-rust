@@ -15,6 +15,7 @@ repository = "https://github.com/italing/qpa-rust"
 
 [workspace.dependencies]
 numerica = { version = "=2.1.0", default-features = false }
+rand = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "2.0"

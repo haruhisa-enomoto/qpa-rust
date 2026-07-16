@@ -116,6 +116,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/module_families_properties.g" \
     "$repo_root/tests/fixtures/module_families_properties.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/module_random.g" \
+    "$repo_root/tests/fixtures/module_random.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/module_series.g" \
     "$repo_root/tests/fixtures/module_series.schema-v1.json"

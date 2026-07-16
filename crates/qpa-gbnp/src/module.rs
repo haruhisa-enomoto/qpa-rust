@@ -4,7 +4,14 @@
 //! module section. The regular bimodule method deliberately uses QPA's
 //! canonical-basis partition and its checked path-module constructor.
 
-use numerica::domains::Field;
+use std::num::NonZeroUsize;
+
+use numerica::domains::{
+    Field, Ring,
+    finite_field::{Z2, Zp},
+    integer::Integer,
+    rational::RationalField,
+};
 use qpa_core::{
     DenseMatrix, MatrixError, ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism,
     NamedArrowMatrix, PathAlgebraElement, PathAlgebraError, PathAlgebraModule,
@@ -20,6 +27,7 @@ use qpa_core::{
     right_module_over_path_algebra, right_module_over_path_algebra_with_tensor,
     subrepresentation_inclusion, top_of_module, zero_module, zero_module_mapping,
 };
+use rand::Rng;
 use thiserror::Error;
 
 use crate::{
@@ -322,6 +330,98 @@ pub fn indec_injective_modules<F: Field>(
         .map(dual_of_module)
         .collect::<Result<Vec<_>, ModuleFunctorError>>()?;
     Ok(algebra.merge_indec_injective_modules(&injectives))
+}
+
+/// Numerica fields for which GAP's `Random(field)` scalar distribution is
+/// translated by this port.
+///
+/// Implementations currently cover `QQ`, `GF(2)`, and Numerica's runtime
+/// `GF(p)` backend. Extension-field backends can implement this contract when
+/// they are added without changing QPA's `RandomModule` algorithm.
+pub trait QpaRandomScalar: Field {
+    /// Draw one scalar with GAP's `Random(field)` distribution.
+    fn qpa_random_scalar<R: Rng>(&self, rng: &mut R) -> Self::Element;
+}
+
+fn qpa_random_integer<R: Rng>(rng: &mut R) -> i64 {
+    i64::from(rng.random_range(0_u32..(1_u32 << 20)).count_ones()) - 10
+}
+
+impl QpaRandomScalar for RationalField {
+    fn qpa_random_scalar<R: Rng>(&self, rng: &mut R) -> Self::Element {
+        let denominator = loop {
+            let value = qpa_random_integer(rng);
+            if value != 0 {
+                break value;
+            }
+        };
+        let numerator = qpa_random_integer(rng);
+        self.div(
+            &self.nth(Integer::from(numerator)),
+            &self.nth(Integer::from(denominator)),
+        )
+    }
+}
+
+impl QpaRandomScalar for Z2 {
+    fn qpa_random_scalar<R: Rng>(&self, rng: &mut R) -> Self::Element {
+        self.sample(rng, (0, 2))
+    }
+}
+
+impl QpaRandomScalar for Zp {
+    fn qpa_random_scalar<R: Rng>(&self, rng: &mut R) -> Self::Element {
+        self.sample(rng, (0, i64::MAX))
+    }
+}
+
+/// Translate QPA's `RandomModule(A, m, n)` method.
+///
+/// Each of at most ten attempts independently chooses `m` and `n`
+/// indecomposable projective summands, computes QPA's ordered Hom basis,
+/// scales every basis map by `Random(LeftActingDomain(A))`, sums the maps, and
+/// returns its cokernel as soon as that Hom space is nonzero. `Ok(None)` is
+/// QPA's `fail` after ten zero-Hom attempts.
+///
+/// Rust receives the random source explicitly. Its engine state is not meant
+/// to be byte-identical to GAP's global Mersenne Twister; projective choices
+/// and scalar distributions are otherwise the source method's ones.
+///
+/// # Errors
+///
+/// Propagates projective construction, direct sums, Hom, exact map arithmetic,
+/// and cokernel construction. The two internal errors represent impossible
+/// failures for the nonempty, common-algebra projective lists built here.
+pub fn random_module<F: QpaRandomScalar, R: Rng>(
+    algebra: &QuiverAlgebra<F>,
+    source_summands: NonZeroUsize,
+    range_summands: NonZeroUsize,
+    rng: &mut R,
+) -> Result<Option<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    let projectives = indec_projective_modules(algebra)?;
+    for _ in 0..10 {
+        let source_parts = (0..source_summands.get())
+            .map(|_| projectives[rng.random_range(0..projectives.len())].clone())
+            .collect::<Vec<_>>();
+        let range_parts = (0..range_summands.get())
+            .map(|_| projectives[rng.random_range(0..projectives.len())].clone())
+            .collect::<Vec<_>>();
+        let source = direct_sum_of_qpa_modules(&source_parts)?
+            .ok_or(EnvelopingModuleError::InternalRandomModuleDirectSumFailed)?;
+        let range = direct_sum_of_qpa_modules(&range_parts)?
+            .ok_or(EnvelopingModuleError::InternalRandomModuleDirectSumFailed)?;
+        let basis = hom_over_algebra(&source, &range)?
+            .ok_or(EnvelopingModuleError::InternalRandomModuleHomRejected)?;
+        if let Some((first, rest)) = basis.split_first() {
+            let mut random_map = first.scale(&algebra.field().qpa_random_scalar(rng))?;
+            for homomorphism in rest {
+                random_map = random_map
+                    .add(&homomorphism.scale(&algebra.field().qpa_random_scalar(rng))?)?;
+            }
+            return Ok(Some(cokernel_of_module_homomorphism(&random_map)?));
+        }
+    }
+    Ok(None)
 }
 
 /// Translate QPA's cached `SimpleModules(A)` attribute.
@@ -3003,6 +3103,12 @@ pub enum EnvelopingModuleError {
     /// QPA's finite canonical path basis starts with all vertex idempotents.
     #[error("the finite canonical algebra basis does not start with the quiver vertices")]
     MissingCanonicalVertexBasis,
+    /// Positive summand counts make both random projective lists nonempty.
+    #[error("an internal RandomModule projective direct sum returned fail")]
+    InternalRandomModuleDirectSumFailed,
+    /// Both random projective sums act over the identical entered algebra.
+    #[error("HomOverAlgebra rejected internal RandomModule projective sums")]
+    InternalRandomModuleHomRejected,
     /// `TensorProductOfModules(M, N)` requires `N` over the opposite algebra.
     #[error("the entered modules are not over the appropriate algebras")]
     TensorProductModulesOverWrongAlgebras,
@@ -3343,7 +3449,7 @@ pub enum ModuleFunctorError {
 mod tests {
     use numerica::domains::{
         Field, Ring,
-        finite_field::{FiniteFieldCore, Z2},
+        finite_field::{FiniteFieldCore, Z2, Zp},
         integer::Integer,
         rational::{Q, Rational},
     };
@@ -3360,6 +3466,7 @@ mod tests {
         socle_of_module, socle_of_module_inclusion, top_of_module, top_of_module_projection,
         trace_of_module, underlying_linear_map, zero_module, zero_module_mapping,
     };
+    use rand::{RngCore, SeedableRng, rngs::StdRng};
     use serde_json::{Value, json};
 
     use super::{
@@ -3377,7 +3484,7 @@ mod tests {
         lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
         nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        projective_cover, simple_modules, socle_series, star_of_module,
+        projective_cover, random_module, simple_modules, socle_series, star_of_module,
         star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
         tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
         transpose_of_module_homomorphism,
@@ -3390,6 +3497,31 @@ mod tests {
 
     fn q(value: i64) -> Rational {
         Q.nth(Integer::from(value))
+    }
+
+    fn isolated_path_algebra<F: Field>(field: F, vertex_count: usize) -> QuiverAlgebra<F> {
+        let vertices = (1..=vertex_count)
+            .map(|index| format!("v{index}").into_boxed_str())
+            .collect();
+        QuiverAlgebra::Path(
+            PathAlgebra::new(field, Quiver::from_named(vertices, Vec::new()).unwrap()).unwrap(),
+        )
+    }
+
+    struct ZeroRng;
+
+    impl RngCore for ZeroRng {
+        fn next_u32(&mut self) -> u32 {
+            0
+        }
+
+        fn next_u64(&mut self) -> u64 {
+            0
+        }
+
+        fn fill_bytes(&mut self, destination: &mut [u8]) {
+            destination.fill(0);
+        }
     }
 
     #[test]
@@ -6358,5 +6490,60 @@ mod tests {
         assert_eq!(rational_json, expected["rational_quotient"]);
         assert_eq!(binary_json, expected["binary_path"]);
         assert_eq!(infinite_json, expected["infinite_path"]);
+    }
+
+    #[test]
+    fn pinned_qpa_random_module_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_random.schema-v1.json"
+        ))
+        .unwrap();
+        let one = std::num::NonZeroUsize::new(1).unwrap();
+
+        let mut binary_rng = ZeroRng;
+        let binary =
+            random_module(&isolated_path_algebra(Z2, 1), one, one, &mut binary_rng).unwrap();
+        let binary_json = json!({
+            "success": true,
+            "is_fail": binary.is_none(),
+            "dimension_vector": binary.as_ref().map(PathAlgebraModule::dimension_vector),
+        });
+
+        let mut ternary_rng = StdRng::seed_from_u64(1);
+        let ternary = random_module(
+            &isolated_path_algebra(Zp::new(3), 1),
+            one,
+            one,
+            &mut ternary_rng,
+        )
+        .unwrap();
+        let ternary_json = json!({
+            "success": true,
+            "is_fail": ternary.is_none(),
+            "dimension_vector": ternary.as_ref().map(PathAlgebraModule::dimension_vector),
+        });
+
+        let mut rational_rng = StdRng::seed_from_u64(1);
+        let rational =
+            random_module(&isolated_path_algebra(Q, 1), one, one, &mut rational_rng).unwrap();
+        let rational_json = json!({
+            "success": true,
+            "is_fail": rational.is_none(),
+            "dimension_vector": rational.as_ref().map(PathAlgebraModule::dimension_vector),
+        });
+
+        let mut isolated_rng = StdRng::seed_from_u64(1);
+        let isolated =
+            random_module(&isolated_path_algebra(Z2, 100), one, one, &mut isolated_rng).unwrap();
+        let isolated_json = json!({
+            "success": true,
+            "is_fail": isolated.is_none(),
+            "dimension_vector": isolated.as_ref().map(PathAlgebraModule::dimension_vector),
+        });
+
+        assert_eq!(binary_json, expected["binary"]);
+        assert_eq!(ternary_json, expected["ternary"]);
+        assert_eq!(rational_json, expected["rational"]);
+        assert_eq!(isolated_json, expected["isolated"]);
     }
 }
