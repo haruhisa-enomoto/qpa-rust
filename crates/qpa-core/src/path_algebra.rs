@@ -19,8 +19,8 @@ use numerica::domains::{
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, CachedNakayamaAutomorphismOrder, OrderingError, Path, PathEndpoint, PathError,
-    Quiver, QuiverError, QuiverOrdering, Vertex,
+    CachedAttribute, CachedNakayamaAutomorphismOrder, OrderedQuiver, OrderingError, Path,
+    PathEndpoint, PathError, Quiver, QuiverError, QuiverOrdering, Vertex,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule, WeakPathAlgebraModuleListCache},
     quotient::{QuotientPathAlgebra, WeakQuotientPathAlgebra},
     tensor::WeakTensorProductAlgebra,
@@ -111,7 +111,22 @@ impl<F: Field> PathAlgebra<F> {
     /// Returns an error only if the source-translated default ordering cannot
     /// be constructed for the quiver.
     pub fn new(field: F, quiver: Quiver) -> Result<Self, PathAlgebraError> {
-        let ordering = QuiverOrdering::default_for(&quiver)?;
+        let ordering = quiver.ordering()?;
+        Self::with_ordering(field, quiver, ordering)
+    }
+
+    /// Translate `PathAlgebra(field, OrderedBy(Q, O))`.
+    ///
+    /// QPA stores the old ordering closure on a position-preserving fresh
+    /// quiver family. Rust rebinds that closure to the fresh family before it
+    /// enters the path-algebra object.
+    ///
+    /// # Errors
+    ///
+    /// Returns a checked ordering error if a foreign ordering with an
+    /// incompatible generator count was supplied to `OrderedBy`.
+    pub fn from_ordered_quiver(field: F, ordered: OrderedQuiver) -> Result<Self, PathAlgebraError> {
+        let (quiver, ordering) = ordered.into_parts()?;
         Self::with_ordering(field, quiver, ordering)
     }
 
@@ -561,7 +576,8 @@ impl<F: Field> PathAlgebra<F> {
             .iter()
             .map(|(path, coefficient)| {
                 Ok((
-                    Path::from_external_representation(self.quiver(), path)?,
+                    Path::from_external_representation(self.quiver(), path)?
+                        .ok_or(PathError::EmptyProduct)?,
                     coefficient.clone(),
                 ))
             })

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "kind": "quiver_dispatch",
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "constructor_success": [false, false, false, false, false],
+  "path_success": [true, false, true, false, false],
+  "path_empty_result_is_one": false,
+  "extrep_mixed_zero": {"success": true, "is_zero": true},
+  "foreign_ordered_construction_success": true,
+  "foreign_order_compare_success": false,
+  "dynkin_success": [false, false, false, false, false, false, false, true]
+}

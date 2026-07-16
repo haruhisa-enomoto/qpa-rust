@@ -22,7 +22,25 @@ use thiserror::Error;
 
 use numerica::domains::integer::Integer;
 
+use crate::{OrderingError, QuiverOrdering};
+
 static NEXT_QUIVER_ID: AtomicU64 = AtomicU64::new(1);
+
+/// Rust logging target corresponding to QPA's declared `InfoQuiver` class.
+pub const INFO_QUIVER: &str = "qpa::quiver";
+
+/// Translate QPA's public `UniqueQuiverName` counter.
+///
+/// Quiver construction consumes values from the same counter, just as the
+/// source uses this function to name every newly allocated path family.
+#[must_use]
+pub fn unique_quiver_name() -> String {
+    format!("Quiver_{}", next_quiver_id())
+}
+
+fn next_quiver_id() -> u64 {
+    NEXT_QUIVER_ID.fetch_add(1, AtomicOrdering::Relaxed)
+}
 
 /// A one-based vertex index, matching QPA's `VertexIndex` result.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -158,6 +176,20 @@ pub enum DynkinFamily {
     E,
 }
 
+impl DynkinFamily {
+    /// Parse the three strings dispatched by QPA's generic `DynkinQuiver`.
+    /// An unknown string reaches the end of the GAP method and returns `fail`.
+    #[must_use]
+    pub fn from_qpa_name(name: &str) -> Option<Self> {
+        match name {
+            "A" => Some(Self::A),
+            "D" => Some(Self::D),
+            "E" => Some(Self::E),
+            _ => None,
+        }
+    }
+}
+
 impl fmt::Display for DynkinFamily {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
@@ -225,6 +257,18 @@ pub enum QuiverCardinality {
     Infinite,
 }
 
+/// QPA's second argument to `NextPath` after the initial integer zero.
+///
+/// `Start` represents the source call `NextPath(Q, 0)`. `Queue` is the
+/// shallow-copied list returned in the second component of a successful call.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum NextPathPosition {
+    /// QPA's initial integer-zero position.
+    Start,
+    /// The remaining breadth-first path queue.
+    Queue(Vec<Path>),
+}
+
 impl NamedArrowSpec {
     /// Construct an explicitly named arrow specification.
     #[must_use]
@@ -273,6 +317,7 @@ struct QuiverData {
     outgoing: Box<[Box<[ArrowIndex]>]>,
     neighbors: Box<[Box<[VertexIndex]>]>,
     special_arrow_names: bool,
+    default_ordering_identity: RwLock<Option<Weak<()>>>,
     opposite_weak: RwLock<Option<Weak<QuiverData>>>,
     opposite_strong: OnceLock<Quiver>,
     opposite_name_map: OnceLock<OppositeNameMap>,
@@ -457,7 +502,7 @@ impl Quiver {
         }
 
         Ok(Self(Arc::new(QuiverData {
-            id: NEXT_QUIVER_ID.fetch_add(1, AtomicOrdering::Relaxed),
+            id: next_quiver_id(),
             vertex_names: vertex_names.into_boxed_slice(),
             arrows: arrows.into_boxed_slice(),
             adjacency: adjacency
@@ -481,6 +526,7 @@ impl Quiver {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             special_arrow_names,
+            default_ordering_identity: RwLock::new(None),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             opposite_name_map: OnceLock::new(),
@@ -545,6 +591,13 @@ impl Quiver {
             quiver: self.clone(),
             index: ArrowIndex::from_zero_based(index),
         })
+    }
+
+    /// Iterate `GeneratorsOfQuiver`: vertices first, then arrows.
+    pub fn generators(&self) -> impl Iterator<Item = Generator> + '_ {
+        self.vertices()
+            .map(Generator::Vertex)
+            .chain(self.arrows().map(Generator::Arrow))
     }
 
     /// Return QPA's adjacency matrix with rows as sources and columns as targets.
@@ -657,6 +710,49 @@ impl Quiver {
             .cmp(&right.external_representation()))
     }
 
+    /// Return QPA's default `OrderingOfQuiver` value.
+    ///
+    /// # Errors
+    ///
+    /// Construction is infallible for a valid quiver, but the checked result
+    /// composes with the other ordering constructors.
+    pub fn ordering(&self) -> Result<QuiverOrdering, OrderingError> {
+        let mut slot = self
+            .0
+            .default_ordering_identity
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let identity = slot.as_ref().and_then(Weak::upgrade).unwrap_or_else(|| {
+            let identity = Arc::new(());
+            *slot = Some(Arc::downgrade(&identity));
+            identity
+        });
+        QuiverOrdering::default_for_with_identity(self, identity)
+    }
+
+    /// Translate QPA's `OrderedBy(Q, O)` family-copy operation.
+    ///
+    /// The returned wrapper retains the identical ordering object `O`, while
+    /// all vertices, arrows, and paths belong to a fresh quiver family. QPA
+    /// deliberately does not require `O` to have been constructed from `Q`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates only an internal reconstruction error. The copied endpoint
+    /// indices and adjacency data have already been validated by `Q`.
+    pub fn ordered_by(&self, ordering: QuiverOrdering) -> Result<OrderedQuiver, QuiverError> {
+        let copied = Self::from_resolved_with_adjacency(
+            self.0.vertex_names.to_vec(),
+            self.0.arrows.to_vec(),
+            false,
+            self.0.adjacency.iter().map(|row| row.to_vec()).collect(),
+        )?;
+        Ok(OrderedQuiver {
+            quiver: copied,
+            ordering,
+        })
+    }
+
     /// Iterate paths in QPA's `NextPath` breadth-first order.
     ///
     /// The zero path is not yielded, matching QPA's iterator. Cyclic quivers
@@ -664,8 +760,80 @@ impl Quiver {
     #[must_use]
     pub fn paths(&self) -> PathIterator {
         PathIterator {
-            queue: self.vertices().map(|vertex| vertex.path()).collect(),
+            quiver: self.clone(),
+            position: NextPathPosition::Start,
         }
+    }
+
+    /// Translate one call to QPA's public `NextPath(Q, position)` helper.
+    ///
+    /// The input position is not mutated: QPA begins with `ShallowCopy` and
+    /// returns the new queue beside the selected path.
+    ///
+    /// # Errors
+    ///
+    /// A queue beginning with the distinguished zero path reaches a QPA
+    /// missing-method error when it requests outgoing arrows of that endpoint;
+    /// Rust reports that branch explicitly.
+    pub fn next_path(
+        &self,
+        position: &NextPathPosition,
+    ) -> Result<Option<(Path, NextPathPosition)>, PathError> {
+        let mut queue = match position {
+            NextPathPosition::Start => self
+                .vertices()
+                .map(|vertex| vertex.path())
+                .collect::<VecDeque<_>>(),
+            NextPathPosition::Queue(queue) => queue.iter().cloned().collect(),
+        };
+        let Some(result) = queue.pop_front() else {
+            return Ok(None);
+        };
+        let PathEndpoint::Vertex(target) = result.target() else {
+            return Err(PathError::NextPathZeroEndpoint);
+        };
+        for arrow_index in &target.quiver.0.outgoing[target.index.zero_based()] {
+            let arrow =
+                target
+                    .quiver
+                    .arrow(*arrow_index)
+                    .ok_or(PathError::GeneratorIndexOutOfRange {
+                        index: target.quiver.number_of_vertices() + arrow_index.get(),
+                        number_of_generators: target.quiver.number_of_vertices()
+                            + target.quiver.number_of_arrows(),
+                    })?;
+            queue.push_back(result.multiply(&arrow.path())?);
+        }
+        Ok(Some((
+            result,
+            NextPathPosition::Queue(queue.into_iter().collect()),
+        )))
+    }
+
+    /// Translate one-based indexing of QPA's quiver enumerator.
+    #[must_use]
+    pub fn path_at(&self, number: usize) -> Option<Path> {
+        if number == 0 {
+            return None;
+        }
+        let mut position = NextPathPosition::Start;
+        let mut result = None;
+        for _ in 0..number {
+            let (path, next) = self.next_path(&position).ok()??;
+            result = Some(path);
+            position = next;
+        }
+        result
+    }
+
+    /// Return QPA's concise `ViewObj` text.
+    #[must_use]
+    pub fn view_string(&self) -> String {
+        format!(
+            "<quiver with {} vertices and {} arrows>",
+            self.number_of_vertices(),
+            self.number_of_arrows()
+        )
     }
 
     /// Test acyclicity using the depth-first search in
@@ -911,6 +1079,22 @@ impl Quiver {
         }
     }
 
+    /// Translate QPA's string-dispatched `DynkinQuiver` including its
+    /// implicit `fail` for a family other than `"A"`, `"D"`, or `"E"`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the selected Dynkin constructor's validation errors.
+    pub fn dynkin_from_name(
+        family: &str,
+        rank: usize,
+        orientation: &[DynkinOrientation],
+    ) -> Result<Option<Self>, QuiverError> {
+        DynkinFamily::from_qpa_name(family)
+            .map(|family| Self::dynkin(family, rank, orientation))
+            .transpose()
+    }
+
     /// Translate QPA's `DynkinQuiverAn`.
     ///
     /// # Errors
@@ -1112,8 +1296,9 @@ impl Quiver {
     ///
     /// # Errors
     ///
-    /// Propagates opposite-quiver construction and rejects a name lacking the
-    /// required `_op` suffix when this quiver is itself an opposite.
+    /// Propagates opposite-quiver construction. On an opposite quiver QPA's
+    /// `deop_name` closure removes the final three characters unconditionally;
+    /// it does not validate that they spell `_op`.
     pub fn opposite_quiver_name(&self, name: &str) -> Result<Box<str>, PathError> {
         let _ = self.opposite().map_err(PathError::QuiverConstruction)?;
         let name_map = *self
@@ -1123,10 +1308,18 @@ impl Quiver {
             .ok_or(PathError::MissingOppositeNameMap)?;
         Ok(match name_map {
             OppositeNameMap::AppendSuffix => format!("{name}_op").into_boxed_str(),
-            OppositeNameMap::RemoveSuffix => name
-                .strip_suffix("_op")
-                .ok_or_else(|| PathError::InvalidOppositeName { name: name.into() })?
-                .into(),
+            OppositeNameMap::RemoveSuffix => {
+                let mut boundaries = name
+                    .char_indices()
+                    .map(|(index, _)| index)
+                    .collect::<Vec<_>>();
+                boundaries.push(name.len());
+                let keep = boundaries
+                    .len()
+                    .checked_sub(4)
+                    .ok_or_else(|| PathError::OppositeNameTooShort { name: name.into() })?;
+                name[..boundaries[keep]].into()
+            }
         })
     }
 
@@ -1238,6 +1431,93 @@ impl fmt::Debug for Quiver {
             .field("vertices", &self.0.vertex_names)
             .field("arrows", &self.0.arrows)
             .finish_non_exhaustive()
+    }
+}
+
+impl fmt::Display for Quiver {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("Quiver( [")?;
+        for (position, vertex) in self.vertices().enumerate() {
+            if position > 0 {
+                formatter.write_str(",")?;
+            }
+            write!(formatter, "\"{}\"", vertex.name())?;
+        }
+        formatter.write_str("], [")?;
+        for (position, arrow) in self.arrows().enumerate() {
+            if position > 0 {
+                formatter.write_str(",")?;
+            }
+            write!(
+                formatter,
+                "[\"{}\",\"{}\",\"{}\"]",
+                arrow.source().name(),
+                arrow.target().name(),
+                arrow.name()
+            )?;
+        }
+        formatter.write_str("] )")
+    }
+}
+
+/// The fresh quiver family and retained ordering produced by QPA's
+/// `OrderedBy(Q, O)` method.
+#[derive(Clone, Debug)]
+pub struct OrderedQuiver {
+    quiver: Quiver,
+    ordering: QuiverOrdering,
+}
+
+impl OrderedQuiver {
+    /// Return the newly allocated quiver family.
+    #[must_use]
+    pub const fn quiver(&self) -> &Quiver {
+        &self.quiver
+    }
+
+    /// Return the identical ordering handle supplied to `OrderedBy`.
+    #[must_use]
+    pub const fn ordering(&self) -> &QuiverOrdering {
+        &self.ordering
+    }
+
+    /// Compare paths through the retained source ordering.
+    ///
+    /// # Errors
+    ///
+    /// Both paths must belong to the new family, and its generator count must
+    /// match that of the quiver for which the ordering was constructed.
+    pub fn compare_paths(&self, left: &Path, right: &Path) -> Result<Ordering, OrderingError> {
+        self.ordering
+            .compare_on_equally_generated_quiver(&self.quiver, left, right)
+    }
+
+    /// Consume the wrapper into a quiver and an ordering rebound to it.
+    ///
+    /// This is the typed Rust route corresponding to passing QPA's ordered
+    /// quiver into `PathAlgebra`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the supplied source ordering has a different
+    /// generator count.
+    pub fn into_parts(self) -> Result<(Quiver, QuiverOrdering), OrderingError> {
+        let ordering = self.ordering.rebase_to(&self.quiver)?;
+        Ok((self.quiver, ordering))
+    }
+}
+
+impl std::ops::Deref for OrderedQuiver {
+    type Target = Quiver;
+
+    fn deref(&self) -> &Self::Target {
+        &self.quiver
+    }
+}
+
+impl fmt::Display for OrderedQuiver {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.quiver.fmt(formatter)
     }
 }
 
@@ -1556,23 +1836,22 @@ impl Path {
     ///
     /// # Errors
     ///
-    /// QPA has no empty product identity for a quiver. Invalid generator
-    /// positions or a product between different generator categories are
-    /// returned as explicit errors.
+    /// QPA's generic empty product returns `fail`, represented by `None`.
+    /// Invalid generator positions or a product between different generator
+    /// categories are returned as explicit errors.
     pub fn from_external_representation(
         quiver: &Quiver,
         representation: &[usize],
-    ) -> Result<Self, PathError> {
+    ) -> Result<Option<Self>, PathError> {
         if representation.is_empty() {
-            return Err(PathError::EmptyProduct);
+            return Ok(None);
         }
         let mut generators = Vec::with_capacity(representation.len());
+        let mut has_zero = false;
         for &position in representation {
             if position == 0 {
-                if representation.len() == 1 {
-                    return Ok(quiver.zero());
-                }
-                return Err(PathError::ZeroMixedWithGenerators);
+                has_zero = true;
+                continue;
             }
             if position <= quiver.number_of_vertices() {
                 let index =
@@ -1599,7 +1878,34 @@ impl Path {
                 )?));
             }
         }
-        Self::product_of_generators(quiver, &generators)
+        if has_zero {
+            return Ok(Some(quiver.zero()));
+        }
+        Self::product_of_generators(quiver, &generators).map(Some)
+    }
+
+    /// Translate the list-of-arrows branch of QPA's public `Path` function.
+    ///
+    /// This branch returns GAP's generic `Product(arrow_list)`: multiplication
+    /// checks composability and an empty list has no quiver identity.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for an arrow from another quiver. QPA's `fail` for an
+    /// empty generic product is represented by `None`.
+    pub fn from_arrow_product(
+        quiver: &Quiver,
+        arrows: &[Arrow],
+    ) -> Result<Option<Self>, PathError> {
+        if arrows.is_empty() {
+            return Ok(None);
+        }
+        let generators = arrows
+            .iter()
+            .cloned()
+            .map(Generator::Arrow)
+            .collect::<Vec<_>>();
+        Self::product_of_generators(quiver, &generators).map(Some)
     }
 
     /// Translate QPA's `PathFromArrowList` helper exactly.
@@ -1796,27 +2102,37 @@ pub enum PathEndpoint {
 /// QPA's breadth-first path iterator state.
 #[derive(Clone, Debug)]
 pub struct PathIterator {
-    queue: VecDeque<Path>,
+    quiver: Quiver,
+    position: NextPathPosition,
+}
+
+impl PathIterator {
+    /// Return QPA's `IsDoneIterator` result.
+    ///
+    /// In particular, the untouched iterator of an empty quiver is not done:
+    /// the pinned QPA `NextIterator` returns `fail` without replacing its
+    /// initial integer-zero position.
+    #[must_use]
+    pub fn is_done(&self) -> bool {
+        matches!(&self.position, NextPathPosition::Queue(queue) if queue.is_empty())
+    }
+
+    /// Return the current QPA `NextPath` position.
+    #[must_use]
+    pub const fn position(&self) -> &NextPathPosition {
+        &self.position
+    }
 }
 
 impl Iterator for PathIterator {
     type Item = Path;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let result = self.queue.pop_front()?;
-        if let PathEndpoint::Vertex(target) = result.target() {
-            for arrow_index in &target.quiver.0.outgoing[target.index.zero_based()] {
-                let arrow = target
-                    .quiver
-                    .arrow(*arrow_index)
-                    .expect("stored outgoing arrow indices are validated");
-                self.queue.push_back(
-                    result
-                        .multiply(&arrow.path())
-                        .expect("an outgoing arrow belongs to the same quiver"),
-                );
-            }
-        }
+        let (result, position) = self
+            .quiver
+            .next_path(&self.position)
+            .expect("an internally produced NextPath queue is valid")?;
+        self.position = position;
         Some(result)
     }
 }
@@ -1900,9 +2216,6 @@ pub enum PathError {
     /// A quiver has no multiplicative identity for an empty generic product.
     #[error("an empty generator product is undefined")]
     EmptyProduct,
-    /// QPA's zero external representation is valid only by itself.
-    #[error("the zero external representation cannot be mixed with generators")]
-    ZeroMixedWithGenerators,
     /// A generator position lies outside the vertex-plus-arrow list.
     #[error("generator index {index} is outside 1..={number_of_generators}")]
     GeneratorIndexOutOfRange {
@@ -1914,9 +2227,9 @@ pub enum PathError {
     /// QPA does not bind `WalkOfPath` on the zero path.
     #[error("the zero path has no WalkOfPath value")]
     ZeroHasNoWalk,
-    /// An opposite-quiver name did not have QPA's `_op` suffix.
-    #[error("opposite generator name {name} does not end in _op")]
-    InvalidOppositeName {
+    /// QPA's remove-last-three-characters closure received a shorter name.
+    #[error("opposite generator name {name} has fewer than three characters")]
+    OppositeNameTooShort {
         /// Rejected generator name.
         name: Box<str>,
     },
@@ -1929,6 +2242,9 @@ pub enum PathError {
     /// An opposite was constructed without QPA's cached name map.
     #[error("the opposite-quiver name map is unavailable")]
     MissingOppositeNameMap,
+    /// `NextPath` was explicitly called with a zero path at the queue head.
+    #[error("QPA cannot request outgoing arrows of the zero-path endpoint")]
+    NextPathZeroEndpoint,
     /// Opposite-quiver construction failed.
     #[error(transparent)]
     QuiverConstruction(#[from] QuiverError),
@@ -2119,9 +2435,11 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        ArrowIndex, ArrowSpec, DynkinFamily, DynkinOrientation, DynkinType, NamedArrowSpec, Path,
-        PathEndpoint, Quiver, QuiverCardinality, VertexIndex,
+        ArrowIndex, ArrowSpec, DynkinFamily, DynkinOrientation, DynkinType, NamedArrowSpec,
+        NextPathPosition, Path, PathEndpoint, Quiver, QuiverCardinality, VertexIndex,
+        unique_quiver_name,
     };
+    use crate::{Generator, QuiverOrdering};
 
     fn vertex(index: usize) -> VertexIndex {
         VertexIndex::new(index).unwrap()
@@ -2232,14 +2550,23 @@ mod tests {
     fn external_representations_round_trip_qpa_generators_and_walks() {
         let quiver = line_with_return();
         for representation in [vec![0], vec![2], vec![4], vec![4, 5, 6]] {
-            let path = Path::from_external_representation(&quiver, &representation).unwrap();
+            let path = Path::from_external_representation(&quiver, &representation)
+                .unwrap()
+                .unwrap();
             assert_eq!(path.external_representation(), representation);
         }
+        assert_eq!(
+            Path::from_external_representation(&quiver, &[]).unwrap(),
+            None
+        );
     }
 
     #[test]
     fn default_ordering_is_length_then_left_lexicographic() {
         let quiver = line_with_return();
+        let first_ordering = quiver.ordering().unwrap();
+        let second_ordering = quiver.ordering().unwrap();
+        assert!(first_ordering.is_identical(&second_ordering));
         let zero = quiver.zero();
         let v1 = quiver.vertex(vertex(1)).unwrap().path();
         let v2 = quiver.vertex(vertex(2)).unwrap().path();
@@ -2763,5 +3090,278 @@ mod tests {
             }),
             expected["opposite"]
         );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_quiver_surface_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/quiver_surface.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            expected["oracle"],
+            json!({
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+            })
+        );
+
+        let quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(1), vertex(1), "b"),
+            ],
+        )
+        .unwrap();
+        let indexed = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::unnamed(vertex(1), vertex(2)),
+                ArrowSpec::unnamed(vertex(2), vertex(1)),
+            ],
+        )
+        .unwrap();
+        let named_quiver = Quiver::from_named(
+            vec!["p".into(), "q".into()],
+            vec![
+                NamedArrowSpec::unnamed("p", "q"),
+                NamedArrowSpec::unnamed("q", "p"),
+            ],
+        )
+        .unwrap();
+        let adjacency = Quiver::from_adjacency(vec![vec![0, 2], vec![0, 0]]).unwrap();
+        let first_default_ordering = quiver.ordering().unwrap();
+        let second_default_ordering = quiver.ordering().unwrap();
+        let names = |quiver: &Quiver| {
+            quiver
+                .vertices()
+                .map(|value| value.name().to_owned())
+                .collect::<Vec<_>>()
+        };
+        let arrow_names = |quiver: &Quiver| {
+            quiver
+                .arrows()
+                .map(|value| value.name().to_owned())
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(
+            json!({
+                "indexed_vertices": names(&indexed),
+                "indexed_arrows": arrow_names(&indexed),
+                "named_vertices": names(&named_quiver),
+                "named_arrows": arrow_names(&named_quiver),
+                "adjacency_vertices": names(&adjacency),
+                "adjacency_arrows": arrow_names(&adjacency),
+                "adjacency_matrix": adjacency.adjacency_matrix().iter().map(|row| row.to_vec()).collect::<Vec<_>>(),
+                "special_named_arrows": quiver.has_special_single_letter_arrow_names(),
+                "default_ordering_cached": first_default_ordering.is_identical(&second_default_ordering)
+            }),
+            expected["constructors"]
+        );
+
+        let v1 = quiver.vertex(vertex(1)).unwrap();
+        let v2 = quiver.vertex(vertex(2)).unwrap();
+        let a = quiver.arrow(arrow(1)).unwrap();
+        let b = quiver.arrow(arrow(2)).unwrap();
+        assert_eq!(
+            json!({
+                "incoming_y": quiver.incoming_arrows(&v2).unwrap().iter().map(ToString::to_string).collect::<Vec<_>>(),
+                "outgoing_x": quiver.outgoing_arrows(&v1).unwrap().iter().map(ToString::to_string).collect::<Vec<_>>(),
+                "in_degree_y": v2.in_degree(),
+                "out_degree_x": v1.out_degree(),
+                "neighbors_x": quiver.neighbors(&v1).unwrap().iter().map(ToString::to_string).collect::<Vec<_>>(),
+                "piece_lookup_is_identical": matches!(quiver.generator_by_name("a"), Some(Generator::Arrow(found)) if found == a)
+            }),
+            expected["attributes"]
+        );
+        assert_eq!(
+            json!({
+                "quiver": quiver.to_string(),
+                "view": quiver.view_string(),
+                "power_path": b.path().multiply(&b.path()).unwrap().multiply(&a.path()).unwrap().to_string()
+            }),
+            expected["printing"]
+        );
+
+        let mut preferred = quiver.generators().collect::<Vec<_>>();
+        preferred.reverse();
+        let ordering = QuiverOrdering::right_lexicographic(&quiver, &preferred).unwrap();
+        let ordered = quiver.ordered_by(ordering.clone()).unwrap();
+        let ordered_v1 = ordered.vertex(vertex(1)).unwrap().path();
+        let ordered_v2 = ordered.vertex(vertex(2)).unwrap().path();
+        let ordered_a = ordered.arrow(arrow(1)).unwrap().path();
+        let ordered_b = ordered.arrow(arrow(2)).unwrap().path();
+        assert_eq!(
+            json!({
+                "ordering_is_identical": ordered.ordering().is_identical(&ordering),
+                "new_family": !ordered_v1.quiver().is_identical(&quiver),
+                "vertices": names(&ordered),
+                "arrows": arrow_names(&ordered),
+                "v1_lt_v2": ordered.compare_paths(&ordered_v1, &ordered_v2).unwrap().is_lt(),
+                "a_lt_b": ordered.compare_paths(&ordered_a, &ordered_b).unwrap().is_lt(),
+                "ba": ordered_b.multiply(&ordered_a).unwrap().to_string()
+            }),
+            expected["ordered"]
+        );
+        let opposite = quiver.opposite().unwrap();
+        assert_eq!(
+            json!({
+                "append": quiver.opposite_quiver_name("plain").unwrap(),
+                "remove_without_suffix_check": opposite.opposite_quiver_name("abcd").unwrap()
+            }),
+            expected["opposite_name_map"]
+        );
+
+        let first = quiver.next_path(&NextPathPosition::Start).unwrap().unwrap();
+        let second = quiver.next_path(&first.1).unwrap().unwrap();
+        let empty = Quiver::from_named(Vec::new(), Vec::new()).unwrap();
+        let mut empty_iterator = empty.paths();
+        let empty_done_before = empty_iterator.is_done();
+        let empty_next_is_fail = empty_iterator.next().is_none();
+        let empty_done_after = empty_iterator.is_done();
+        let queue_strings = |position: &NextPathPosition| match position {
+            NextPathPosition::Start => Vec::new(),
+            NextPathPosition::Queue(queue) => {
+                queue.iter().map(ToString::to_string).collect::<Vec<_>>()
+            }
+        };
+        assert_eq!(
+            json!({
+                "first": first.0.to_string(),
+                "first_queue": queue_strings(&first.1),
+                "second": second.0.to_string(),
+                "second_queue": queue_strings(&second.1),
+                "enumerator_5": quiver.path_at(5).unwrap().to_string(),
+                "empty_next_is_fail": empty_next_is_fail,
+                "empty_done_before": empty_done_before,
+                "empty_done_after": empty_done_after
+            }),
+            expected["next_path"]
+        );
+
+        assert_eq!(
+            json!({
+                "vertex": v2.index().get(),
+                "arrow": b.index().get(),
+                "generator_vertex": v2.index().get(),
+                "generator_arrow": b.generator_index(),
+                "quiver_containing_path": b.path().multiply(&a.path()).unwrap().quiver().is_identical(&quiver)
+            }),
+            expected["indices"]
+        );
+        let unique1 = unique_quiver_name();
+        let unique2 = unique_quiver_name();
+        assert_eq!(
+            json!({
+                "different": unique1 != unique2,
+                "prefixes": unique1.starts_with("Quiver_") && unique2.starts_with("Quiver_")
+            }),
+            expected["unique_names"]
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_quiver_dispatch_fixture_matches() {
+        use DynkinOrientation::{Right, Up};
+
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/quiver_dispatch.schema-v1.json"
+        ))
+        .unwrap();
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let foreign = Quiver::from_indexed(1, Vec::new()).unwrap();
+
+        assert_eq!(
+            json!([
+                Quiver::from_indexed(0, Vec::new()).is_ok(),
+                Quiver::from_indexed(
+                    2,
+                    vec![
+                        ArrowSpec::unnamed(vertex(1), vertex(2)),
+                        ArrowSpec::named(vertex(2), vertex(1), "b")
+                    ]
+                )
+                .is_ok(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(3), "a")]).is_ok(),
+                Quiver::from_named(
+                    vec!["x".into(), "y".into()],
+                    vec![NamedArrowSpec::named("x", "z", "a")]
+                )
+                .is_ok(),
+                Quiver::from_adjacency(vec![vec![0, 1], vec![0]]).is_ok()
+            ]),
+            expected["constructor_success"]
+        );
+
+        let empty_product = Path::from_arrow_product(&quiver, &[]);
+        let foreign_product = quiver
+            .arrow(arrow(1))
+            .unwrap()
+            .path()
+            .multiply(&foreign.vertex(vertex(1)).unwrap().path());
+        let empty_extrep = Path::from_external_representation(&quiver, &[]);
+        let next_zero = quiver.next_path(&NextPathPosition::Queue(vec![quiver.zero()]));
+        let opposite_zero = quiver.opposite_path(&quiver.zero());
+        assert_eq!(
+            json!([
+                empty_product.is_ok(),
+                foreign_product.is_ok(),
+                empty_extrep.is_ok(),
+                next_zero.is_ok(),
+                opposite_zero.is_ok()
+            ]),
+            expected["path_success"]
+        );
+        assert_eq!(
+            empty_product.unwrap().is_some(),
+            expected["path_empty_result_is_one"]
+        );
+        let extrep_mixed_zero = Path::from_external_representation(&quiver, &[0, 1, 3]);
+        assert_eq!(
+            json!({
+                "success": extrep_mixed_zero.is_ok(),
+                "is_zero": extrep_mixed_zero.unwrap().unwrap().is_zero()
+            }),
+            expected["extrep_mixed_zero"]
+        );
+
+        let foreign_ordering = QuiverOrdering::right_lexicographic(
+            &foreign,
+            &foreign.generators().collect::<Vec<_>>(),
+        )
+        .unwrap();
+        let foreign_ordered = quiver.ordered_by(foreign_ordering).unwrap();
+        let foreign_order_compare = foreign_ordered.compare_paths(
+            &foreign_ordered.vertex(vertex(1)).unwrap().path(),
+            &foreign_ordered.vertex(vertex(2)).unwrap().path(),
+        );
+        assert_eq!(
+            json!(true),
+            expected["foreign_ordered_construction_success"]
+        );
+        assert_eq!(
+            json!(foreign_order_compare.is_ok()),
+            expected["foreign_order_compare_success"]
+        );
+
+        assert_eq!(
+            json!([
+                Quiver::dynkin_a(0, &[]).is_ok(),
+                Quiver::dynkin_a(3, &[Right]).is_ok(),
+                Quiver::dynkin_a(2, &[Right, DynkinOrientation::Left]).is_ok(),
+                Quiver::dynkin_a(2, &[Up]).is_ok(),
+                Quiver::dynkin_d(3, &[Right, Right]).is_ok(),
+                Quiver::dynkin_e(5, &[]).is_ok(),
+                Quiver::dynkin_e(6, &[Right, Right, Right, Right, Right]).is_ok(),
+                Quiver::dynkin_from_name("X", 1, &[]).is_ok()
+            ]),
+            expected["dynkin_success"]
+        );
+        assert_eq!(Quiver::dynkin_from_name("X", 1, &[]).unwrap(), None);
     }
 }

@@ -136,9 +136,9 @@ pub use poset::{Poset, PosetError};
 pub use projective_presentation::{ProjectivePresentation, ProjectivePresentationError};
 pub use quiver::{
     Arrow, ArrowIndex, ArrowSpec, DYNKIN_NOT_CONNECTED_MESSAGE, DYNKIN_UNORIENTED_CYCLE_MESSAGE,
-    DynkinDecision, DynkinFamily, DynkinOrientation, DynkinType, Generator, NamedArrowSpec, Path,
-    PathEndpoint, PathError, PathIterator, Quiver, QuiverCardinality, QuiverError, Vertex,
-    VertexIndex,
+    DynkinDecision, DynkinFamily, DynkinOrientation, DynkinType, Generator, INFO_QUIVER,
+    NamedArrowSpec, NextPathPosition, OrderedQuiver, Path, PathEndpoint, PathError, PathIterator,
+    Quiver, QuiverCardinality, QuiverError, Vertex, VertexIndex, unique_quiver_name,
 };
 pub use quotient::{
     AlgebraDimension, AlgebraGlobalDimension, NaturalQuotientMap, PathAlgebraIdeal,

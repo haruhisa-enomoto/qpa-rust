@@ -18,6 +18,7 @@ pub struct QuiverOrdering {
     quiver: Quiver,
     kind: Arc<OrderingKind>,
     lexicographic_table: Option<Arc<LexicographicTable>>,
+    identity: Arc<()>,
 }
 
 #[derive(Clone, Debug)]
@@ -79,6 +80,15 @@ impl QuiverOrdering {
         Self::length(quiver, Some(lexicographic))
     }
 
+    pub(crate) fn default_for_with_identity(
+        quiver: &Quiver,
+        identity: Arc<()>,
+    ) -> Result<Self, OrderingError> {
+        let mut ordering = Self::default_for(quiver)?;
+        ordering.identity = identity;
+        Ok(ordering)
+    }
+
     /// Translate QPA's `LengthOrdering(Q)` or `LengthOrdering(Q, next)`.
     ///
     /// # Errors
@@ -93,6 +103,7 @@ impl QuiverOrdering {
             quiver: quiver.clone(),
             kind: Arc::new(OrderingKind::Length { next }),
             lexicographic_table,
+            identity: Arc::new(()),
         })
     }
 
@@ -119,6 +130,7 @@ impl QuiverOrdering {
                 table: table.clone(),
             }),
             lexicographic_table: Some(table),
+            identity: Arc::new(()),
         })
     }
 
@@ -142,6 +154,7 @@ impl QuiverOrdering {
                 table: table.clone(),
             }),
             lexicographic_table: Some(table),
+            identity: Arc::new(()),
         })
     }
 
@@ -159,6 +172,7 @@ impl QuiverOrdering {
             quiver: quiver.clone(),
             lexicographic_table: next.lexicographic_table.clone(),
             kind: Arc::new(OrderingKind::Reverse { next }),
+            identity: Arc::new(()),
         })
     }
 
@@ -228,6 +242,7 @@ impl QuiverOrdering {
             quiver: quiver.clone(),
             kind: Arc::new(kind),
             lexicographic_table: Some(table),
+            identity: Arc::new(()),
         })
     }
 
@@ -264,6 +279,7 @@ impl QuiverOrdering {
                 next,
             }),
             lexicographic_table,
+            identity: Arc::new(()),
         })
     }
 
@@ -344,6 +360,7 @@ impl QuiverOrdering {
             quiver: quiver.clone(),
             kind: Arc::new(kind),
             lexicographic_table,
+            identity: Arc::new(()),
         })
     }
 
@@ -367,6 +384,120 @@ impl QuiverOrdering {
     #[must_use]
     pub const fn quiver(&self) -> &Quiver {
         &self.quiver
+    }
+
+    /// Return whether two handles denote the identical QPA ordering object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.identity, &other.identity)
+    }
+
+    /// Compare paths from QPA's fresh `OrderedBy(Q, O)` family.
+    pub(crate) fn compare_on_equally_generated_quiver(
+        &self,
+        quiver: &Quiver,
+        left: &Path,
+        right: &Path,
+    ) -> Result<Ordering, OrderingError> {
+        if !left.quiver().is_identical(quiver) || !right.quiver().is_identical(quiver) {
+            return Err(OrderingError::DifferentQuivers);
+        }
+        self.ensure_equal_generator_count(quiver)?;
+        Ok(compare_kind(&self.kind, left, right))
+    }
+
+    /// Rebind an ordering to QPA's position-preserving `OrderedBy` copy.
+    pub(crate) fn rebase_to(&self, quiver: &Quiver) -> Result<Self, OrderingError> {
+        self.ensure_equal_generator_count(quiver)?;
+        let kind = match &*self.kind {
+            OrderingKind::Length { next } => OrderingKind::Length {
+                next: next
+                    .as_ref()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .transpose()?,
+            },
+            OrderingKind::LeftLexicographic { table } => OrderingKind::LeftLexicographic {
+                table: table.clone(),
+            },
+            OrderingKind::RightLexicographic { table } => OrderingKind::RightLexicographic {
+                table: table.clone(),
+            },
+            OrderingKind::Reverse { next } => OrderingKind::Reverse {
+                next: next.rebase_to(quiver)?,
+            },
+            OrderingKind::LeftVector { table, next } => OrderingKind::LeftVector {
+                table: table.clone(),
+                next: next
+                    .as_ref()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .transpose()?,
+            },
+            OrderingKind::RightVector { table, next } => OrderingKind::RightVector {
+                table: table.clone(),
+                next: next
+                    .as_ref()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .transpose()?,
+            },
+            OrderingKind::Weight { weights, next } => OrderingKind::Weight {
+                weights: weights.clone(),
+                next: next
+                    .as_ref()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .transpose()?,
+            },
+            OrderingKind::Block {
+                blocks,
+                orders,
+                next,
+            } => OrderingKind::Block {
+                blocks: blocks.clone(),
+                orders: orders
+                    .iter()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .collect::<Result<Vec<_>, _>>()?
+                    .into(),
+                next: next
+                    .as_ref()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .transpose()?,
+            },
+            OrderingKind::Wreath {
+                blocks,
+                orders,
+                next,
+            } => OrderingKind::Wreath {
+                blocks: blocks.clone(),
+                orders: orders
+                    .iter()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .collect::<Result<Vec<_>, _>>()?
+                    .into(),
+                next: next
+                    .as_ref()
+                    .map(|ordering| ordering.rebase_to(quiver))
+                    .transpose()?,
+            },
+        };
+        Ok(Self {
+            quiver: quiver.clone(),
+            kind: Arc::new(kind),
+            lexicographic_table: self.lexicographic_table.clone(),
+            identity: self.identity.clone(),
+        })
+    }
+
+    fn ensure_equal_generator_count(&self, quiver: &Quiver) -> Result<(), OrderingError> {
+        let ordering_count = generator_count(&self.quiver);
+        let quiver_count = generator_count(quiver);
+        if ordering_count == quiver_count {
+            Ok(())
+        } else {
+            Err(OrderingError::OrderedQuiverGeneratorCountMismatch {
+                ordering_count,
+                quiver_count,
+            })
+        }
     }
 
     /// Return QPA's optional `NextOrdering` attribute.
@@ -1829,6 +1960,16 @@ pub enum OrderingError {
     /// Ordering data and paths must use one identical quiver family.
     #[error("the ordering and paths belong to different quivers")]
     DifferentQuivers,
+    /// An `OrderedBy` copy has a generator count incompatible with its
+    /// retained ordering. QPA accepts construction but cannot safely apply
+    /// that ordering's position table to such paths.
+    #[error("ordered quiver has {quiver_count} generators but its ordering has {ordering_count}")]
+    OrderedQuiverGeneratorCountMismatch {
+        /// Number of generator positions in the retained ordering.
+        ordering_count: usize,
+        /// Number of generator positions in the fresh quiver.
+        quiver_count: usize,
+    },
     /// QPA requires stacked vector orderings to share one lexicographic table.
     #[error("conflicting lexicographic tables")]
     ConflictingLexicographicTables,

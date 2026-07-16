@@ -21852,9 +21852,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "INFO_QUIVER"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21865,9 +21865,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21878,9 +21878,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21891,9 +21891,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21904,9 +21904,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Arrow"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21917,9 +21917,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Arrow"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21930,9 +21930,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21943,9 +21943,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::source; Arrow::source"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21956,9 +21956,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::target; Arrow::target"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21969,9 +21969,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::length"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21982,9 +21982,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::walk"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21995,9 +21995,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::is_zero"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22008,9 +22008,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 18
 source_end = 18
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22021,9 +22021,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::incoming_arrows"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22034,9 +22034,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::outgoing_arrows"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22047,9 +22047,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::in_degree"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22060,9 +22060,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::out_degree"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22073,9 +22073,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::neighbors"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22086,9 +22086,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 26
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::path; Arrow::path; Path::from_arrow_product"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22099,9 +22099,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 27
 source_end = 27
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22112,9 +22112,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 28
 source_end = 28
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22125,9 +22125,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 29
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::has_special_single_letter_arrow_names"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22138,9 +22138,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 30
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathIterator"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22151,9 +22151,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::path_at"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22164,9 +22164,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 37
 source_end = 37
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::vertices"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22177,9 +22177,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::arrows"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22190,9 +22190,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 39
 source_end = 39
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::adjacency_matrix"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22203,9 +22203,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 40
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::generators"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22216,9 +22216,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 43
 source_end = 43
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::number_of_vertices"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22229,9 +22229,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 44
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::number_of_arrows"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22242,9 +22242,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 45
 source_end = 45
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::ordering; OrderedQuiver::ordering"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22255,9 +22255,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 47
 source_end = 47
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::from_indexed; Quiver::from_named; Quiver::from_adjacency"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22268,9 +22268,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 48
 source_end = 48
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "unique_quiver_name"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22281,9 +22281,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 49
 source_end = 49
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::ordered_by; OrderedQuiver"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22294,9 +22294,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 50
 source_end = 50
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::next_path; NextPathPosition"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22307,9 +22307,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 51
 source_end = 51
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::path_at"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22320,9 +22320,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 53
 source_end = 53
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::quiver"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22333,9 +22333,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 54
 source_end = 54
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::index"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22346,9 +22346,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 55
 source_end = 55
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Arrow::index"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22359,9 +22359,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 56
 source_end = 56
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::index; Arrow::generator_index"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22372,9 +22372,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 58
 source_end = 58
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::opposite"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22385,9 +22385,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 59
 source_end = 59
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::opposite_path"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22398,9 +22398,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 60
 source_end = 60
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::opposite_quiver_name"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22411,9 +22411,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 62
 source_end = 62
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::separated"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22424,9 +22424,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 63
 source_end = 63
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_a"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22437,9 +22437,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 64
 source_end = 64
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_e"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22450,9 +22450,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 65
 source_end = 65
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_d"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22463,9 +22463,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 66
 source_end = 66
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin; Quiver::dynkin_from_name"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22476,9 +22476,9 @@ source_file = "upstream/qpa/lib/quiver.gd"
 source_start = 67
 source_end = 67
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::double"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22489,9 +22489,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 5
 source_end = 70
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::path; Arrow::path; Path::from_arrow_product"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22502,9 +22502,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 73
 source_end = 77
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::external_representation"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22515,9 +22515,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 80
 source_end = 84
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::external_representation"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22528,9 +22528,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 87
 source_end = 98
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::external_representation"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22541,9 +22541,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 101
 source_end = 121
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::from_external_representation"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22554,9 +22554,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 124
 source_end = 135
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::multiply"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22567,9 +22567,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 138
 source_end = 149
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::multiply"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22580,9 +22580,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 152
 source_end = 163
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::multiply"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22593,9 +22593,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 166
 source_end = 173
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::multiply"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22606,9 +22606,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 176
 source_end = 183
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::multiply"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22619,9 +22619,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 186
 source_end = 214
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::multiply"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22632,9 +22632,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 217
 source_end = 224
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::eq"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22645,9 +22645,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 227
 source_end = 234
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::eq"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22658,9 +22658,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 237
 source_end = 244
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::eq"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22671,9 +22671,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 247
 source_end = 254
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::eq"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22684,9 +22684,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 257
 source_end = 264
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::eq"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22697,9 +22697,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 267
 source_end = 288
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::eq"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22710,9 +22710,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 291
 source_end = 310
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::compare_paths; OrderedQuiver::compare_paths"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22723,9 +22723,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 313
 source_end = 320
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22736,9 +22736,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 323
 source_end = 330
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::fmt; Arrow::fmt"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22749,9 +22749,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 333
 source_end = 340
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22762,9 +22762,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 343
 source_end = 350
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::fmt; Arrow::fmt"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22775,9 +22775,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 353
 source_end = 360
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22788,9 +22788,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 363
 source_end = 394
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22801,9 +22801,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 397
 source_end = 628
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::from_indexed; Quiver::from_named; Quiver::from_adjacency"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22814,9 +22814,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 631
 source_end = 638
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::generator_by_name"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22827,9 +22827,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 644
 source_end = 649
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "unique_quiver_name"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22840,9 +22840,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 652
 source_end = 716
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::ordered_by; OrderedQuiver"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22853,9 +22853,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 720
 source_end = 725
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::is_finite"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22866,9 +22866,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 728
 source_end = 763
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::cardinality"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22879,9 +22879,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 766
 source_end = 780
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::paths; PathIterator"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22892,9 +22892,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 783
 source_end = 796
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::path_at"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22905,9 +22905,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 798
 source_end = 805
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathIterator::is_done"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22918,9 +22918,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 808
 source_end = 824
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathIterator::next"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22931,9 +22931,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 827
 source_end = 848
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::path_at"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22944,9 +22944,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 851
 source_end = 875
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::next_path; NextPathPosition"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22957,9 +22957,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 878
 source_end = 890
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::view_string"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22970,9 +22970,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 892
 source_end = 931
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22983,9 +22983,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 934
 source_end = 939
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Path::quiver"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -22996,9 +22996,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 942
 source_end = 948
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::index"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23009,9 +23009,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 951
 source_end = 957
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Arrow::index"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23022,9 +23022,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 960
 source_end = 966
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::index; Arrow::generator_index"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23035,9 +23035,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 969
 source_end = 975
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vertex::index; Arrow::generator_index"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23048,9 +23048,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 977
 source_end = 1013
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::opposite"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23061,9 +23061,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 1016
 source_end = 1030
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::opposite_path"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23074,9 +23074,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 1032
 source_end = 1053
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::separated"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23087,9 +23087,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 1065
 source_end = 1102
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_a"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23100,9 +23100,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 1123
 source_end = 1172
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_e"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23113,9 +23113,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 1196
 source_end = 1248
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin_d"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23126,9 +23126,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 1256
 source_end = 1272
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::dynkin; Quiver::dynkin_from_name"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]
@@ -23139,9 +23139,9 @@ source_file = "upstream/qpa/lib/quiver.gi"
 source_start = 1281
 source_end = 1301
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Quiver::double"
+tests = ["tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt"]
 deviations = []
 
 [[entries]]

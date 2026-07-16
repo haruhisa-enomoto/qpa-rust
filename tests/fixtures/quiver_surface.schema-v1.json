@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "kind": "quiver_surface",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "constructors": {
+    "indexed_vertices": ["v1", "v2"],
+    "indexed_arrows": ["a1", "a2"],
+    "named_vertices": ["p", "q"],
+    "named_arrows": ["a1", "a2"],
+    "adjacency_vertices": ["v1", "v2"],
+    "adjacency_arrows": ["a1", "a2"],
+    "adjacency_matrix": [[0, 2], [0, 0]],
+    "special_named_arrows": true,
+    "default_ordering_cached": true
+  },
+  "attributes": {
+    "incoming_y": ["a"],
+    "outgoing_x": ["a", "b"],
+    "in_degree_y": 1,
+    "out_degree_x": 2,
+    "neighbors_x": ["v2", "v1"],
+    "piece_lookup_is_identical": true
+  },
+  "printing": {
+    "quiver": "Quiver( [\"v1\",\"v2\"], [[\"v1\",\"v2\",\"a\"],[\"v1\",\"v1\",\"b\"]] )",
+    "view": "<quiver with 2 vertices and 2 arrows>",
+    "power_path": "b^2*a"
+  },
+  "ordered": {
+    "ordering_is_identical": true,
+    "new_family": true,
+    "vertices": ["v1", "v2"],
+    "arrows": ["a", "b"],
+    "v1_lt_v2": false,
+    "a_lt_b": false,
+    "ba": "b*a"
+  },
+  "opposite_name_map": {
+    "append": "plain_op",
+    "remove_without_suffix_check": "a"
+  },
+  "next_path": {
+    "first": "v1",
+    "first_queue": ["v2", "a", "b"],
+    "second": "v2",
+    "second_queue": ["a", "b"],
+    "enumerator_5": "b*a",
+    "empty_next_is_fail": true,
+    "empty_done_before": false,
+    "empty_done_after": false
+  },
+  "indices": {
+    "vertex": 2,
+    "arrow": 2,
+    "generator_vertex": 2,
+    "generator_arrow": 4,
+    "quiver_containing_path": true
+  },
+  "unique_names": {
+    "different": true,
+    "prefixes": true
+  }
+}

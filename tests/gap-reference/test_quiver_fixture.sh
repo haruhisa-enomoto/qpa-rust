@@ -87,6 +87,12 @@ compare_fixture \
     "$repo_root/tests/gap-reference/quiver_paths.g" \
     "$repo_root/tests/fixtures/quiver_paths.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/quiver_surface.g" \
+    "$repo_root/tests/fixtures/quiver_surface.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/quiver_dispatch.g" \
+    "$repo_root/tests/fixtures/quiver_dispatch.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/util.g" \
     "$repo_root/tests/fixtures/util.schema-v1.json"
 compare_fixture \
