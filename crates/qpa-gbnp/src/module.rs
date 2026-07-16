@@ -358,6 +358,65 @@ pub fn simple_modules<F: Field>(
     Ok(algebra.merge_simple_modules(&simples))
 }
 
+/// Translate QPA's cached `AnnihilatorOfModule(M)` basis attribute.
+///
+/// For a nonzero module, rows use `BasisVectors(Basis(A))` for a path algebra
+/// and GBNP nontips for a quotient, exactly as in QPA. Each row concatenates
+/// the physical external coordinates of that basis element acting on every
+/// standard module basis vector. GAP's `NullspaceMat` left-nullspace rows are
+/// then used as coefficients of the returned algebra elements. The
+/// zero-module branch returns `BasisVectors(Basis(A))` before constructing
+/// this matrix.
+///
+/// # Errors
+///
+/// Requires a finite algebra basis and propagates module action, exact matrix,
+/// and algebra-element arithmetic failures.
+pub fn annihilator_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<QuiverAlgebraElement<F>>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_annihilator_of_module() {
+        return Ok(cached);
+    }
+    let algebra = module.right_acting_algebra();
+    let canonical_basis = finite_canonical_basis(algebra)?
+        .ok_or(EnvelopingModuleError::InfiniteAnnihilatorAlgebra)?;
+    let default_basis = finite_qpa_default_basis(algebra, &canonical_basis)?;
+    if module.dimension() == 0 {
+        return Ok(module.cache_annihilator_of_module(&default_basis));
+    }
+    let basis_vectors = match algebra {
+        QuiverAlgebra::Path(_) => &default_basis,
+        QuiverAlgebra::Quotient(_) => &canonical_basis,
+    };
+    let module_basis = module.basis_elements();
+    let rows = basis_vectors
+        .iter()
+        .map(|algebra_element| {
+            let mut row = Vec::new();
+            for module_element in &module_basis {
+                row.extend(
+                    module_element
+                        .act(algebra_element)?
+                        .flat_external_representation(),
+                );
+            }
+            Ok(row)
+        })
+        .collect::<Result<Vec<_>, PathAlgebraModuleError>>()?;
+    let matrix = DenseMatrix::from_rows(rows, algebra.field().clone())?;
+    let solutions = matrix.nullspace_rows();
+    let mut annihilator = Vec::with_capacity(solutions.nrows());
+    for solution in 0..solutions.nrows() {
+        let mut element = algebra.zero();
+        for (basis_element, coefficient) in basis_vectors.iter().zip(solutions.row(solution)) {
+            element = element.add(&basis_element.scale_left(coefficient)?)?;
+        }
+        annihilator.push(element);
+    }
+    Ok(module.cache_annihilator_of_module(&annihilator))
+}
+
 fn projective_basis_data<F: Field>(
     algebra: &QuiverAlgebra<F>,
 ) -> Result<Option<ProjectiveBasisData<F>>, EnvelopingModuleError> {
@@ -1458,6 +1517,37 @@ pub(crate) fn finite_canonical_basis<F: Field>(
     }
 }
 
+fn finite_qpa_default_basis<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    canonical_basis: &[QuiverAlgebraElement<F>],
+) -> Result<Vec<QuiverAlgebraElement<F>>, EnvelopingModuleError> {
+    let vertex_count = algebra.quiver().number_of_vertices();
+    if canonical_basis.len() < vertex_count {
+        return Err(EnvelopingModuleError::MissingCanonicalVertexBasis);
+    }
+    for (position, vertex) in algebra.quiver().vertices().enumerate() {
+        let expected = include_in_path_algebra(&vertex.path(), algebra)?;
+        if canonical_basis[position] != expected {
+            return Err(EnvelopingModuleError::MissingCanonicalVertexBasis);
+        }
+    }
+
+    // GAP's generic `Basis(A)` for an algebra with one first inserts `One(A)`
+    // and then semi-echelonizes the vertex generators in vertex order.  In
+    // canonical path coordinates this replaces e_1,...,e_n by the suffix
+    // sums e_1+...+e_n, e_2+...+e_n, ..., e_n; all nontrivial paths retain
+    // canonical order.  This is observably different from `CanonicalBasis(A)`.
+    let mut suffix = algebra.zero();
+    let mut vertex_basis = Vec::with_capacity(vertex_count);
+    for element in canonical_basis[..vertex_count].iter().rev() {
+        suffix = element.add(&suffix)?;
+        vertex_basis.push(suffix.clone());
+    }
+    vertex_basis.reverse();
+    vertex_basis.extend_from_slice(&canonical_basis[vertex_count..]);
+    Ok(vertex_basis)
+}
+
 pub(crate) fn canonical_basis_coefficients<F: Field>(
     algebra: &QuiverAlgebra<F>,
     basis_vectors: &[QuiverAlgebraElement<F>],
@@ -1515,6 +1605,12 @@ pub enum EnvelopingModuleError {
     /// vertex representations.
     #[error("SimpleModules requires a finite-dimensional algebra")]
     InfiniteSimpleModuleAlgebra,
+    /// An annihilator basis requires QPA's finite canonical algebra basis.
+    #[error("AnnihilatorOfModule requires a finite-dimensional algebra")]
+    InfiniteAnnihilatorAlgebra,
+    /// QPA's finite canonical path basis starts with all vertex idempotents.
+    #[error("the finite canonical algebra basis does not start with the quiver vertices")]
+    MissingCanonicalVertexBasis,
     /// `SimpleModules` accepts quotients only after QPA's admissibility filter
     /// has been established.
     #[error("SimpleModules requires an admissible quotient of a path algebra")]
@@ -1756,13 +1852,15 @@ mod tests {
 
     use super::{
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        basis_of_projectives, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients,
+        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
-        element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, first_syzygy,
-        from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
-        hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
-        is_injective_module, is_projective_module, lifting_morphism_from_projective,
-        matrix_of_homomorphism_between_projectives, projective_cover, simple_modules, socle_series,
+        element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, finite_canonical_basis,
+        finite_qpa_default_basis, first_syzygy, from_matrix_to_homomorphism_of_projectives,
+        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
+        indec_projective_modules, injective_envelope, is_injective_module, is_projective_module,
+        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
+        projective_cover, simple_modules, socle_series,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -2800,6 +2898,164 @@ mod tests {
         })
     }
 
+    fn annihilator_json<F: Field>(
+        algebra: &QuiverAlgebra<F>,
+        elements: &[QuiverAlgebraElement<F>],
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let canonical_basis = finite_canonical_basis(algebra).unwrap().unwrap();
+        let default_basis = finite_qpa_default_basis(algebra, &canonical_basis).unwrap();
+        let basis_change = DenseMatrix::from_rows(
+            default_basis
+                .iter()
+                .map(|element| {
+                    canonical_basis_coefficients(algebra, &canonical_basis, element).unwrap()
+                })
+                .collect(),
+            algebra.field().clone(),
+        )
+        .unwrap();
+        json!(
+            elements
+                .iter()
+                .map(|element| {
+                    let canonical_coordinates =
+                        canonical_basis_coefficients(algebra, &canonical_basis, element).unwrap();
+                    basis_change
+                        .solution_row(&canonical_coordinates)
+                        .unwrap()
+                        .unwrap()
+                        .iter()
+                        .map(coefficient)
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
+        )
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn module_annihilator_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let projectives = indec_projective_modules(&algebra).unwrap();
+        let faithful = direct_sum_of_qpa_modules(&projectives).unwrap().unwrap();
+        let simples = simple_modules(&algebra).unwrap();
+        let zero = zero_module(&algebra).unwrap();
+        let arrow_zero = right_module_over_path_algebra(algebra.clone(), vec![1, 1], &[])
+            .unwrap()
+            .unwrap();
+        let zero_annihilator = annihilator_of_module(&zero).unwrap();
+        let simple1_annihilator = annihilator_of_module(&simples[0]).unwrap();
+        let simple2_annihilator = annihilator_of_module(&simples[1]).unwrap();
+        let arrow_zero_annihilator = annihilator_of_module(&arrow_zero).unwrap();
+        let faithful_annihilator = annihilator_of_module(&faithful).unwrap();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let quotient = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let quotient_projective = indec_projective_modules(&quotient).unwrap()[0].clone();
+        let quotient_simple = simple_modules(&quotient).unwrap()[0].clone();
+        let quotient_zero = zero_module(&quotient).unwrap();
+        let quotient_two_zero = right_module_over_path_algebra(quotient.clone(), vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let quotient_projective_annihilator = annihilator_of_module(&quotient_projective).unwrap();
+        let quotient_simple_annihilator = annihilator_of_module(&quotient_simple).unwrap();
+        let quotient_zero_annihilator = annihilator_of_module(&quotient_zero).unwrap();
+        let quotient_two_zero_annihilator = annihilator_of_module(&quotient_two_zero).unwrap();
+
+        let bound_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "c"),
+                ArrowSpec::named(vertex(2), vertex(3), "d"),
+            ],
+        )
+        .unwrap();
+        let bound_parent = PathAlgebra::new(field, bound_quiver).unwrap();
+        let bound_arrows = bound_parent.quiver().arrows().collect::<Vec<_>>();
+        let c = bound_parent.element(bound_arrows[0].path()).unwrap();
+        let d = bound_parent.element(bound_arrows[1].path()).unwrap();
+        let bound_quotient = QuiverAlgebra::Quotient(
+            quotient_by_relations(bound_parent, &[c.multiply(&d).unwrap()]).unwrap(),
+        );
+        let bound_zero = zero_module(&bound_quotient).unwrap();
+        let bound_simple = simple_modules(&bound_quotient).unwrap()[2].clone();
+        let bound_zero_annihilator = annihilator_of_module(&bound_zero).unwrap();
+        let bound_simple_annihilator = annihilator_of_module(&bound_simple).unwrap();
+
+        json!({
+            "path": {
+                "basis_dimension": finite_canonical_basis(&algebra).unwrap().unwrap().len(),
+                "zero": annihilator_json(&algebra, &zero_annihilator, coefficient),
+                "simple1": annihilator_json(&algebra, &simple1_annihilator, coefficient),
+                "simple2": annihilator_json(&algebra, &simple2_annihilator, coefficient),
+                "arrow_zero": annihilator_json(&algebra, &arrow_zero_annihilator, coefficient),
+                "faithful": annihilator_json(&algebra, &faithful_annihilator, coefficient),
+                "cache_bound": [
+                    zero.cached_annihilator_of_module().is_some(),
+                    simples[0].cached_annihilator_of_module().is_some(),
+                    simples[1].cached_annihilator_of_module().is_some(),
+                    arrow_zero.cached_annihilator_of_module().is_some(),
+                    faithful.cached_annihilator_of_module().is_some(),
+                ],
+            },
+            "quotient": {
+                "basis_dimension": finite_canonical_basis(&quotient).unwrap().unwrap().len(),
+                "projective": annihilator_json(
+                    &quotient,
+                    &quotient_projective_annihilator,
+                    coefficient,
+                ),
+                "simple": annihilator_json(
+                    &quotient,
+                    &quotient_simple_annihilator,
+                    coefficient,
+                ),
+                "zero": annihilator_json(&quotient, &quotient_zero_annihilator, coefficient),
+                "two_zero": annihilator_json(
+                    &quotient,
+                    &quotient_two_zero_annihilator,
+                    coefficient,
+                ),
+                "cache_bound": [
+                    quotient_projective.cached_annihilator_of_module().is_some(),
+                    quotient_simple.cached_annihilator_of_module().is_some(),
+                    quotient_zero.cached_annihilator_of_module().is_some(),
+                    quotient_two_zero.cached_annihilator_of_module().is_some(),
+                ],
+            },
+            "bound_quotient": {
+                "basis_dimension": finite_canonical_basis(&bound_quotient)
+                    .unwrap().unwrap().len(),
+                "zero": annihilator_json(
+                    &bound_quotient,
+                    &bound_zero_annihilator,
+                    coefficient,
+                ),
+                "simple3": annihilator_json(
+                    &bound_quotient,
+                    &bound_simple_annihilator,
+                    coefficient,
+                ),
+                "cache_bound": [
+                    bound_zero.cached_annihilator_of_module().is_some(),
+                    bound_simple.cached_annihilator_of_module().is_some(),
+                ],
+            },
+        })
+    }
+
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
     fn modulehom_syzygy_injective_case<F: Field>(
         field: F,
@@ -3106,6 +3362,38 @@ mod tests {
         .unwrap();
         assert_eq!(module_series_case(Q), expected["rational"]);
         assert_eq!(module_series_case(Z2), expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_module_annihilator_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_annihilator.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = module_annihilator_case(Q, ToString::to_string);
+        let binary = module_annihilator_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn annihilator_of_module_reports_its_finite_basis_domain() {
+        let quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let module = right_module_over_path_algebra(algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            annihilator_of_module(&module).unwrap_err(),
+            super::EnvelopingModuleError::InfiniteAnnihilatorAlgebra
+        );
     }
 
     #[test]

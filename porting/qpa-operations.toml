@@ -10087,9 +10087,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "annihilator_of_module"
+tests = ["tests/fixtures/module_annihilator.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10867,9 +10867,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1522
 source_end = 1575
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "annihilator_of_module"
+tests = ["tests/fixtures/module_annihilator.schema-v1.json"]
 deviations = []
 
 [[entries]]

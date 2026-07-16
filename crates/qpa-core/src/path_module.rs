@@ -96,6 +96,7 @@ struct PathAlgebraModuleData<F: Field> {
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     first_syzygy: OnceLock<PathAlgebraModule<F>>,
+    annihilator: OnceLock<Vec<QuiverAlgebraElement<F>>>,
 }
 
 impl<F: Field> PathAlgebraModuleData<F> {
@@ -127,6 +128,7 @@ impl<F: Field> PathAlgebraModuleData<F> {
             projective_cover_weak: RwLock::new(None),
             injective_envelope_weak: RwLock::new(None),
             first_syzygy: OnceLock::new(),
+            annihilator: OnceLock::new(),
         }
     }
 }
@@ -478,6 +480,23 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_first_syzygy(&self, syzygy: &Self) -> Self {
         self.0.first_syzygy.get_or_init(|| syzygy.clone()).clone()
+    }
+
+    /// Return QPA's cached `AnnihilatorOfModule` basis, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_annihilator_of_module(&self) -> Option<Vec<QuiverAlgebraElement<F>>> {
+        self.0.annihilator.get().cloned()
+    }
+
+    /// Install and return QPA's `AnnihilatorOfModule` basis attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_annihilator_of_module(
+        &self,
+        basis: &[QuiverAlgebraElement<F>],
+    ) -> Vec<QuiverAlgebraElement<F>> {
+        self.0.annihilator.get_or_init(|| basis.to_vec()).clone()
     }
 
     /// Retain tensor-product metadata when an attribute-created module acts

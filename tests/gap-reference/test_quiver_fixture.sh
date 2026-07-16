@@ -88,6 +88,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/module_series.g" \
     "$repo_root/tests/fixtures/module_series.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/module_annihilator.g" \
+    "$repo_root/tests/fixtures/module_annihilator.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_stable.g" \
     "$repo_root/tests/fixtures/modulehom_stable.schema-v1.json"
 compare_fixture \
