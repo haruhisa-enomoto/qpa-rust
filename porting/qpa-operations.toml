@@ -259,9 +259,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lifting_idempotent"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -272,9 +272,9 @@ source_file = "upstream/qpa/lib/algebra.gd"
 source_start = 25
 source_end = 25
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lift_complete_set_of_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -363,9 +363,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 14
 source_end = 46
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::power_subalgebra"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -376,9 +376,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 47
 source_end = 62
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::power_subalgebra"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -740,9 +740,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 472
 source_end = 525
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lifting_idempotent"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -753,9 +753,9 @@ source_file = "upstream/qpa/lib/algebra.gi"
 source_start = 536
 source_end = 586
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lift_complete_set_of_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11374,9 +11374,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lift_idempotent"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11387,9 +11387,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lift_two_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11556,9 +11556,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 313
 source_end = 344
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lift_idempotent"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11569,9 +11569,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 361
 source_end = 384
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsQuotient::lift_two_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
 
 [[entries]]

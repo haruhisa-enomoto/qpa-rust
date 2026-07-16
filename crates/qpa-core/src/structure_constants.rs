@@ -299,6 +299,65 @@ impl<F: Field> StructureConstantsAlgebra<F> {
 }
 
 impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
+    /// Translate QPA's `PowerSubalgebra(A, n)` on the currently supported
+    /// prime-field contract.
+    ///
+    /// QPA first passes a noncommutative associative algebra to its centre.
+    /// For a commutative algebra it forms the rows `v - v^(p^n)` in canonical
+    /// basis order and returns the left-nullspace combinations. Numerica's
+    /// initial QPA coefficient contract has prime-field degree one, so the
+    /// source divisibility test accepts exactly `n = 1`.
+    ///
+    /// # Errors
+    ///
+    /// Requires a positive divisor of the supported field degree, a finite
+    /// prime coefficient field, and the multiplicative identity used for
+    /// exponentiation. Propagates exact centre and matrix failures.
+    pub fn power_subalgebra(
+        &self,
+        degree: usize,
+    ) -> Result<StructureConstantsSubalgebra<F>, StructureConstantsError> {
+        const PRIME_FIELD_DEGREE: usize = 1;
+        if degree == 0 {
+            return Err(StructureConstantsError::PowerSubalgebraDegreeNotPositive);
+        }
+        if !PRIME_FIELD_DEGREE.is_multiple_of(degree) {
+            return Err(StructureConstantsError::PowerSubalgebraDegreeNotDivisor {
+                degree,
+                field_degree: PRIME_FIELD_DEGREE,
+            });
+        }
+        let prime = match self.field().qpa_characteristic() {
+            QpaFieldCharacteristic::Prime(prime) => prime,
+            QpaFieldCharacteristic::Zero => {
+                return Err(StructureConstantsError::FiniteFieldRequired);
+            }
+        };
+
+        // Calling `Centre` unconditionally is equivalent on a commutative
+        // structure-constant algebra: its GAP canonical basis is the standard
+        // basis, which is also the zero-commutator nullspace basis retained by
+        // `centre()`.
+        let centre = self.centre()?;
+        let centre_algebra = centre.algebra();
+        let identity = centre_algebra
+            .find_multiplicative_identity()?
+            .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        let dimension = centre_algebra.dimension();
+        let mut gamma = Vec::with_capacity(dimension.saturating_mul(dimension));
+        for basis_index in 0..dimension {
+            let mut basis_vector = vec![centre_algebra.field().zero(); dimension];
+            basis_vector[basis_index] = centre_algebra.field().one();
+            let power = algebra_power(centre_algebra, &basis_vector, prime, identity.coordinates());
+            gamma.extend(subtract_rows(centre_algebra.field(), &basis_vector, &power));
+        }
+        let fixed_coordinates =
+            DenseMatrix::from_flat(dimension, dimension, gamma, centre_algebra.field().clone())?
+                .nullspace_rows();
+        let ambient_basis = fixed_coordinates.multiply(centre.basis())?;
+        StructureConstantsSubalgebra::from_basis(self.clone(), ambient_basis)
+    }
+
     /// Translate GAP's `RadicalOfAlgebra` through its faithful left-regular
     /// matrix representation.
     ///
@@ -1288,11 +1347,7 @@ impl<F: Field> StructureConstantsQuotient<F> {
             .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
         let mut sum = vec![self.algebra.field().zero(); self.algebra.dimension()];
         for (position, idempotent) in idempotents.iter().enumerate() {
-            if self.algebra.coordinate_product(idempotent, idempotent) != *idempotent {
-                return Err(StructureConstantsError::EnteredElementNotIdempotent {
-                    position: position + 1,
-                });
-            }
+            self.validate_quotient_idempotent(idempotent, position + 1)?;
             for previous in &idempotents[..position] {
                 let previous_then_current = self.algebra.coordinate_product(previous, idempotent);
                 let current_then_previous = self.algebra.coordinate_product(idempotent, previous);
@@ -1315,15 +1370,83 @@ impl<F: Field> StructureConstantsQuotient<F> {
                 vec![self.original.field().zero(); self.original.dimension()],
                 |sum, idempotent| add_rows(self.original.field(), &sum, idempotent),
             );
-            lifted.push(self.lift_two_orthogonal_idempotents(&accumulated, idempotent)?);
+            let pair = self.lift_two_orthogonal_idempotents(&accumulated, idempotent)?;
+            lifted.push(pair[1].clone());
         }
         Ok(lifted)
     }
 
-    fn lift_idempotent(
+    /// Translate QPA's `LiftingIdempotent(f, e)` for this natural quotient
+    /// map.
+    ///
+    /// This is the older Anderson--Fuller implementation in `algebra.gi`: it
+    /// stops when the spaces `A h^i` and `A h^(i+1)` have equal dimension. A
+    /// zero stabilized power produces the lifted idempotent; `None` preserves
+    /// QPA's `false` result when the algorithm cannot construct a lift.
+    ///
+    /// # Errors
+    ///
+    /// Rejects an incorrectly sized or nonidempotent quotient element and
+    /// propagates exact matrix and identity failures.
+    pub fn lifting_idempotent(
+        &self,
+        idempotent: &[F::Element],
+    ) -> Result<Option<Vec<F::Element>>, StructureConstantsError> {
+        self.validate_quotient_idempotent(idempotent, 1)?;
+        let representative = self.lift_coordinates(idempotent)?;
+        let square = self
+            .original
+            .coordinate_product(&representative, &representative);
+        let defect = subtract_rows(self.original.field(), &representative, &square);
+        if is_zero_row(self.original.field(), &defect) {
+            return Ok(Some(representative));
+        }
+        let identity = self
+            .original
+            .find_multiplicative_identity()?
+            .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        let mut index = 1usize;
+        let mut power = defect.clone();
+        loop {
+            let next = self.original.coordinate_product(&power, &defect);
+            let dimension = self.right_principal_space_dimension(&power)?;
+            let next_dimension = self.right_principal_space_dimension(&next)?;
+            if dimension == next_dimension {
+                break;
+            }
+            index = index
+                .checked_add(1)
+                .ok_or(StructureConstantsError::NilpotentSeriesOverflow)?;
+            power = next;
+        }
+        if !is_zero_row(self.original.field(), &power) {
+            return Ok(None);
+        }
+        Ok(Some(self.idempotent_lifting_polynomial(
+            &representative,
+            index,
+            identity.coordinates(),
+        )?))
+    }
+
+    /// Translate QPA's newer `LiftIdempotent(f, v)` operation for this natural
+    /// quotient map.
+    ///
+    /// Unlike [`Self::lifting_idempotent`], the source operation assumes that
+    /// the quotient kernel is nilpotent and determines the nilpotence index by
+    /// multiplying the defect until zero. It is also the primitive used by
+    /// QPA's complete orthogonal-set lifting method.
+    ///
+    /// # Errors
+    ///
+    /// Rejects an incorrectly sized or nonidempotent quotient element. A
+    /// nonnilpotent kernel is reported instead of allowing QPA's repeat loop to
+    /// run forever.
+    pub fn lift_idempotent(
         &self,
         idempotent: &[F::Element],
     ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        self.validate_quotient_idempotent(idempotent, 1)?;
         let representative = self.lift_coordinates(idempotent)?;
         let square = self
             .original
@@ -1347,6 +1470,48 @@ impl<F: Field> StructureConstantsQuotient<F> {
             .original
             .find_multiplicative_identity()?
             .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        self.idempotent_lifting_polynomial(&representative, nilindex, identity.coordinates())
+    }
+
+    fn validate_quotient_idempotent(
+        &self,
+        idempotent: &[F::Element],
+        position: usize,
+    ) -> Result<(), StructureConstantsError> {
+        if idempotent.len() != self.algebra.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: idempotent.len(),
+                expected: self.algebra.dimension(),
+            });
+        }
+        if self.algebra.coordinate_product(idempotent, idempotent) != idempotent {
+            return Err(StructureConstantsError::EnteredElementNotIdempotent { position });
+        }
+        Ok(())
+    }
+
+    fn right_principal_space_dimension(
+        &self,
+        right: &[F::Element],
+    ) -> Result<usize, StructureConstantsError> {
+        let products = self
+            .original
+            .basis_elements()
+            .iter()
+            .map(|basis| {
+                self.original
+                    .multiply_coordinates(basis.coordinates(), right)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(span_rows(self.original.field(), self.original.dimension(), products)?.nrows())
+    }
+
+    fn idempotent_lifting_polynomial(
+        &self,
+        representative: &[F::Element],
+        nilindex: usize,
+        identity: &[F::Element],
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
         let mut polynomial_value = vec![self.original.field().zero(); self.original.dimension()];
         for exponent in 0..nilindex {
             let binomial = binomial_integer(nilindex, exponent + 1);
@@ -1357,10 +1522,10 @@ impl<F: Field> StructureConstantsQuotient<F> {
             });
             let term = algebra_power(
                 &self.original,
-                &representative,
+                representative,
                 u64::try_from(exponent)
                     .map_err(|_| StructureConstantsError::NilpotentSeriesOverflow)?,
-                identity.coordinates(),
+                identity,
             );
             for (entry, term_entry) in polynomial_value.iter_mut().zip(term) {
                 self.original
@@ -1370,28 +1535,64 @@ impl<F: Field> StructureConstantsQuotient<F> {
         }
         let representative_power = algebra_power(
             &self.original,
-            &representative,
+            representative,
             u64::try_from(nilindex)
                 .map_err(|_| StructureConstantsError::NilpotentSeriesOverflow)?,
-            identity.coordinates(),
+            identity,
         );
         let polynomial_power = algebra_power(
             &self.original,
             &polynomial_value,
             u64::try_from(nilindex)
                 .map_err(|_| StructureConstantsError::NilpotentSeriesOverflow)?,
-            identity.coordinates(),
+            identity,
         );
         Ok(self
             .original
             .coordinate_product(&representative_power, &polynomial_power))
     }
 
-    fn lift_two_orthogonal_idempotents(
+    /// Translate QPA's `LiftTwoOrthogonalIdempotents(f, v, w)` for this
+    /// natural quotient map.
+    ///
+    /// The first element is an already lifted idempotent in the original
+    /// algebra, while the second is an orthogonal quotient idempotent. The
+    /// returned pair retains the first element and applies QPA's finite
+    /// geometric-series correction to a lift of the second.
+    ///
+    /// # Errors
+    ///
+    /// Rejects incorrectly sized, nonidempotent, or nonorthogonal inputs and
+    /// a nonnilpotent kernel series, and propagates exact coordinate failures.
+    pub fn lift_two_orthogonal_idempotents(
         &self,
         first: &[F::Element],
         second_quotient: &[F::Element],
-    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+    ) -> Result<[Vec<F::Element>; 2], StructureConstantsError> {
+        if first.len() != self.original.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: first.len(),
+                expected: self.original.dimension(),
+            });
+        }
+        if self.original.coordinate_product(first, first) != first {
+            return Err(StructureConstantsError::EnteredElementNotIdempotent { position: 1 });
+        }
+        self.validate_quotient_idempotent(second_quotient, 2)?;
+        let first_quotient = self.project_coordinates(first)?;
+        if !is_zero_row(
+            self.algebra.field(),
+            &self
+                .algebra
+                .coordinate_product(&first_quotient, second_quotient),
+        ) || !is_zero_row(
+            self.algebra.field(),
+            &self
+                .algebra
+                .coordinate_product(second_quotient, &first_quotient),
+        ) {
+            return Err(StructureConstantsError::EnteredIdempotentsNotOrthogonal);
+        }
         let second = self.lift_idempotent(second_quotient)?;
         let product = self.original.coordinate_product(&second, first);
         let mut power = product.clone();
@@ -1414,9 +1615,10 @@ impl<F: Field> StructureConstantsQuotient<F> {
             subtract_rows(self.original.field(), identity.coordinates(), &product);
         let result = self.original.coordinate_product(&one_minus_first, &series);
         let result = self.original.coordinate_product(&result, &second);
-        Ok(self
+        let corrected = self
             .original
-            .coordinate_product(&result, &one_minus_product))
+            .coordinate_product(&result, &one_minus_product);
+        Ok([first.to_vec(), corrected])
     }
 }
 
@@ -1705,6 +1907,17 @@ pub enum StructureConstantsError {
     /// `CentralIdempotentsOfAlgebra` requires a finite coefficient field.
     #[error("the entered algebra is not an algebra over a finite field")]
     FiniteFieldRequired,
+    /// GAP's `IsPosInt` filter excludes zero before `PowerSubalgebraOp` runs.
+    #[error("the power-subalgebra degree must be positive")]
+    PowerSubalgebraDegreeNotPositive,
+    /// QPA requires the requested power degree to divide the field degree.
+    #[error("degree {degree} is not a factor of field degree {field_degree}")]
+    PowerSubalgebraDegreeNotDivisor {
+        /// Entered power-subalgebra degree.
+        degree: usize,
+        /// Degree of the coefficient field over its prime field.
+        field_degree: usize,
+    },
     /// The deterministic traversal of GAP's splitting-element coefficient set overflowed.
     #[error("the splitting-element search space overflows addressable storage")]
     SplittingSearchOverflow,
@@ -1920,6 +2133,43 @@ mod tests {
         StructureConstantsAlgebra::new(field, dimension, products).unwrap()
     }
 
+    fn shifted_dual_numbers<F: Field>(field: F) -> StructureConstantsAlgebra<F> {
+        let dimension = 2;
+        let mut products = vec![field.zero(); dimension * dimension * dimension];
+        products[0] = field.one(); // b1 b1 = b1 + b2
+        products[1] = field.one();
+        products[3] = field.one(); // b1 b2 = b2
+        products[5] = field.one(); // b2 b1 = b2
+        StructureConstantsAlgebra::new(field, dimension, products).unwrap()
+    }
+
+    fn shifted_upper_triangular_two_by_two<F: Field>(field: F) -> StructureConstantsAlgebra<F> {
+        let dimension = 3;
+        let mut products = vec![field.zero(); dimension * dimension * dimension];
+        products[0] = field.one(); // b1 b1 = b1
+        products[5] = field.add(&field.one(), &field.one()); // b1 b2 = 2 b3
+        products[8] = field.one(); // b1 b3 = b3
+        products[13] = field.one(); // b2 b2 = b2
+        products[23] = field.one(); // b3 b2 = b3
+        StructureConstantsAlgebra::new(field, dimension, products).unwrap()
+    }
+
+    fn dense_rows_json<F: Field>(
+        _field: &F,
+        matrix: &DenseMatrix<F>,
+        coefficient_json: &impl Fn(&F::Element) -> Value,
+    ) -> Value {
+        json!(
+            (0..matrix.nrows())
+                .map(|row| matrix
+                    .row(row)
+                    .iter()
+                    .map(coefficient_json)
+                    .collect::<Vec<_>>())
+                .collect::<Vec<_>>()
+        )
+    }
+
     fn algebra_properties_json<F: QpaCoefficientField>(
         algebra: &StructureConstantsAlgebra<F>,
         coefficient_json: &impl Fn(&F::Element) -> Value,
@@ -2060,5 +2310,163 @@ mod tests {
         );
         assert_eq!(dual_numbers(Q).is_basic_algebra().unwrap(), None);
         assert_eq!(dual_numbers(Q).is_elementary_algebra().unwrap(), None);
+    }
+
+    #[test]
+    fn pinned_qpa_power_subalgebra_matches() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/algebra_structure_constants.schema-v1.json"
+        ))
+        .unwrap();
+        let f5 = Zp::new(5);
+        let f5_json = |coefficient: &_| -> Value {
+            f5.to_integer(coefficient)
+                .to_string()
+                .parse::<i64>()
+                .unwrap()
+                .into()
+        };
+        let dual_power = dual_numbers(f5.clone()).power_subalgebra(1).unwrap();
+        assert_eq!(
+            dense_rows_json(&f5, dual_power.basis(), &f5_json),
+            fixture["power_subalgebra"]["dual_numbers_f5"]
+        );
+        let triangular_power = upper_triangular_two_by_two(Z2).power_subalgebra(1).unwrap();
+        assert_eq!(
+            dense_rows_json(&Z2, triangular_power.basis(), &|coefficient| {
+                Z2.to_integer(coefficient)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+                    .into()
+            }),
+            fixture["power_subalgebra"]["upper_triangular_f2"]
+        );
+        let product_power = product_of_fields(Z2, 2).power_subalgebra(1).unwrap();
+        assert_eq!(
+            dense_rows_json(&Z2, product_power.basis(), &|coefficient| {
+                Z2.to_integer(coefficient)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+                    .into()
+            }),
+            fixture["power_subalgebra"]["product_f2"]
+        );
+
+        assert!(matches!(
+            dual_numbers(f5.clone()).power_subalgebra(2),
+            Err(
+                super::StructureConstantsError::PowerSubalgebraDegreeNotDivisor {
+                    degree: 2,
+                    field_degree: 1
+                }
+            )
+        ));
+        assert!(matches!(
+            dual_numbers(Q).power_subalgebra(1),
+            Err(super::StructureConstantsError::FiniteFieldRequired)
+        ));
+    }
+
+    #[test]
+    fn pinned_qpa_idempotent_lifting_matches() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/algebra_structure_constants.schema-v1.json"
+        ))
+        .unwrap();
+        let f5 = Zp::new(5);
+        let f5_json = |coefficient: &_| -> Value {
+            f5.to_integer(coefficient)
+                .to_string()
+                .parse::<i64>()
+                .unwrap()
+                .into()
+        };
+        let shifted = shifted_dual_numbers(f5.clone());
+        let ideal = DenseMatrix::from_rows(
+            vec![vec![shifted.field().zero(), shifted.field().one()]],
+            f5.clone(),
+        )
+        .unwrap();
+        let quotient = shifted.quotient_by_ideal_basis(ideal).unwrap();
+        let quotient_idempotent = vec![f5.one()];
+        let expected = &fixture["idempotent_lifting"]["shifted_dual_numbers_f5"];
+        assert_eq!(
+            json!(quotient_idempotent.iter().map(&f5_json).collect::<Vec<_>>()),
+            expected["quotient_idempotent"]
+        );
+        let lifting = quotient
+            .lifting_idempotent(&quotient_idempotent)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            json!(lifting.iter().map(&f5_json).collect::<Vec<_>>()),
+            expected["lifting"]
+        );
+        let lift = quotient.lift_idempotent(&quotient_idempotent).unwrap();
+        assert_eq!(
+            json!(lift.iter().map(&f5_json).collect::<Vec<_>>()),
+            expected["lift"]
+        );
+        let complete = quotient
+            .lift_complete_set_of_orthogonal_idempotents(&[quotient_idempotent])
+            .unwrap();
+        assert_eq!(
+            json!(
+                complete
+                    .iter()
+                    .map(|row| row.iter().map(&f5_json).collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            ),
+            expected["complete"]
+        );
+
+        let shifted_triangular = shifted_upper_triangular_two_by_two(f5.clone());
+        let ideal = DenseMatrix::from_rows(
+            vec![vec![
+                shifted_triangular.field().zero(),
+                shifted_triangular.field().zero(),
+                shifted_triangular.field().one(),
+            ]],
+            f5.clone(),
+        )
+        .unwrap();
+        let quotient = shifted_triangular.quotient_by_ideal_basis(ideal).unwrap();
+        let idempotents = vec![vec![f5.zero(), f5.one()], vec![f5.one(), f5.zero()]];
+        let expected = &fixture["idempotent_lifting"]["shifted_upper_triangular_f5"];
+        assert_eq!(
+            json!(
+                idempotents
+                    .iter()
+                    .map(|row| row.iter().map(&f5_json).collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            ),
+            expected["idempotents"]
+        );
+        let first_lift = vec![f5.zero(), f5.one(), f5.zero()];
+        let pair = quotient
+            .lift_two_orthogonal_idempotents(&first_lift, &idempotents[1])
+            .unwrap();
+        assert_eq!(
+            json!(
+                pair.iter()
+                    .map(|row| row.iter().map(&f5_json).collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            ),
+            expected["pair"]
+        );
+        let complete = quotient
+            .lift_complete_set_of_orthogonal_idempotents(&idempotents)
+            .unwrap();
+        assert_eq!(
+            json!(
+                complete
+                    .iter()
+                    .map(|row| row.iter().map(&f5_json).collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            ),
+            expected["complete"]
+        );
     }
 }
