@@ -174,6 +174,34 @@ where
         move |left, right| self.less_than_or_equal(left, right)
     }
 
+    /// Return QPA's `Display(P)` text, including its final newline.
+    ///
+    /// QPA prints the underlying GAP list with `PrintObj`, but the entries of
+    /// each stored `DirectProductElement` with their compact view.  Rust's
+    /// `Debug` and `Display` conventions reproduce that distinction for the
+    /// scalar and string point types supported by this port.
+    #[must_use]
+    pub fn display_string(&self) -> String
+    where
+        Element: fmt::Debug + fmt::Display,
+    {
+        let underlying = self
+            .underlying_set()
+            .iter()
+            .map(|element| format!("{element:?}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let minimal = self
+            .minimal_relations()
+            .iter()
+            .map(|(left, right)| format!("DirectProductElement( [ {left}, {right} ] )"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!(
+            "A poset with underlying set:\n[ {underlying} ]\nand partial order:\n[ {minimal} ]\n"
+        )
+    }
+
     /// Return whether two handles denote the identical QPA poset object.
     #[must_use]
     pub fn is_identical(&self, other: &Self) -> bool {
@@ -318,6 +346,19 @@ mod tests {
         assert_eq!(
             poset.less_than_or_equal(&1, &3),
             Err(PosetError::ElementOutsideUnderlyingSet)
+        );
+    }
+
+    #[test]
+    fn pinned_qpa_poset_output_fixture_matches() {
+        let example = Poset::new(
+            vec!["d", "b", "a", "c"],
+            &[vec!["a", "b", "c"], vec!["b", "d"], vec!["c", "d"]],
+        )
+        .unwrap();
+        assert_eq!(
+            format!("{example}\n{}", example.display_string()),
+            include_str!("../../../tests/fixtures/poset_output.txt")
         );
     }
 }

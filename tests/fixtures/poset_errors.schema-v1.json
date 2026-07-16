@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "empty_success": false,
+  "outside_success": false,
+  "cycle_success": false,
+  "outside_query_success": false
+}

@@ -21670,9 +21670,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21683,9 +21683,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21696,9 +21696,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::size"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21709,9 +21709,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::new"
+tests = ["tests/fixtures/poset.schema-v1.json","tests/fixtures/poset_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21722,9 +21722,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::underlying_set"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21735,9 +21735,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::partial_order_of_poset; Poset::less_than_or_equal"
+tests = ["tests/fixtures/poset.schema-v1.json","tests/fixtures/poset_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21748,9 +21748,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 7
 source_end = 7
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21761,9 +21761,9 @@ source_file = "upstream/qpa/lib/qpaposet.gd"
 source_start = 8
 source_end = 8
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21774,9 +21774,9 @@ source_file = "upstream/qpa/lib/qpaposet.gi"
 source_start = 13
 source_end = 71
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::new"
+tests = ["tests/fixtures/poset.schema-v1.json","tests/fixtures/poset_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21787,9 +21787,9 @@ source_file = "upstream/qpa/lib/qpaposet.gi"
 source_start = 73
 source_end = 81
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::size"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21800,9 +21800,9 @@ source_file = "upstream/qpa/lib/qpaposet.gi"
 source_start = 83
 source_end = 91
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::underlying_set"
+tests = ["tests/fixtures/poset.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21813,9 +21813,9 @@ source_file = "upstream/qpa/lib/qpaposet.gi"
 source_start = 93
 source_end = 101
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::partial_order_of_poset; Poset::less_than_or_equal"
+tests = ["tests/fixtures/poset.schema-v1.json","tests/fixtures/poset_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21826,9 +21826,9 @@ source_file = "upstream/qpa/lib/qpaposet.gi"
 source_start = 103
 source_end = 111
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::fmt"
+tests = ["tests/fixtures/poset_output.txt"]
 deviations = []
 
 [[entries]]
@@ -21839,9 +21839,9 @@ source_file = "upstream/qpa/lib/qpaposet.gi"
 source_start = 113
 source_end = 121
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Poset::display_string"
+tests = ["tests/fixtures/poset_output.txt"]
 deviations = []
 
 [[entries]]

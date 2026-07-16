@@ -1,0 +1,5 @@
+<A poset on 4 points>
+A poset with underlying set:
+[ "a", "b", "c", "d" ]
+and partial order:
+[ DirectProductElement( [ b, d ] ), DirectProductElement( [ a, b ] ), DirectProductElement( [ a, c ] ), DirectProductElement( [ c, d ] ) ]
