@@ -13,10 +13,11 @@ use qpa_core::{
     QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
     direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
     from_hom_mm_to_end_m, hom_over_algebra, identity_module_mapping, include_in_path_algebra,
-    kernel_of_module_homomorphism, loewy_length_of_module, minimal_generating_set_of_module,
-    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, radical_of_module,
-    right_module_hom_over_algebra, right_module_over_path_algebra,
-    right_module_over_path_algebra_with_tensor, top_of_module, zero_module, zero_module_mapping,
+    kernel_inclusion, kernel_of_module_homomorphism, loewy_length_of_module,
+    minimal_generating_set_of_module, natural_endomorphism_quotient_by_ideal,
+    project_from_product_quiver, radical_of_module, right_module_hom_over_algebra,
+    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor, top_of_module,
+    zero_module, zero_module_mapping,
 };
 use thiserror::Error;
 
@@ -1084,6 +1085,197 @@ pub fn injective_envelope<F: Field>(
     Ok(module.cache_injective_envelope(&envelope))
 }
 
+/// QPA's three-part `ExtOverAlgebra(M, N)` result.
+///
+/// The first component is the inclusion `Omega(M) -> P(M)`, and [`Self::basis`]
+/// is QPA's ordered basis of `Ext^1(M, N)` represented inside
+/// `Hom(Omega(M), N)`. When this basis is nonempty, [`Self::coefficients`]
+/// translates the closure returned as QPA's third component.
+#[derive(Clone, Debug)]
+pub struct ExtOverAlgebraResult<F: Field> {
+    syzygy_inclusion: PathAlgebraModuleHomomorphism<F>,
+    basis: Vec<PathAlgebraModuleHomomorphism<F>>,
+    coordinate_basis: Option<DenseMatrix<F>>,
+}
+
+impl<F: Field> ExtOverAlgebraResult<F> {
+    /// Return QPA's kernel inclusion `Omega(M) -> P(M)`.
+    #[must_use]
+    pub const fn syzygy_inclusion(&self) -> &PathAlgebraModuleHomomorphism<F> {
+        &self.syzygy_inclusion
+    }
+
+    /// Return QPA's ordered representatives of the `Ext^1(M, N)` basis.
+    #[must_use]
+    pub fn basis(&self) -> &[PathAlgebraModuleHomomorphism<F>] {
+        &self.basis
+    }
+
+    /// Return the dimension of `Ext^1(M, N)`.
+    #[must_use]
+    pub fn dimension(&self) -> usize {
+        self.basis.len()
+    }
+
+    /// Apply QPA's returned coefficient closure to a map in
+    /// `Hom(Omega(M), N)`.
+    ///
+    /// `Ok(None)` corresponds to QPA returning `[]` instead of a closure when
+    /// the Ext group is zero.
+    ///
+    /// # Errors
+    ///
+    /// The entered map's raw physical vector must use the coefficient field
+    /// and lie in the Hom space used by the original computation. Exact row
+    /// solving failures propagate.
+    pub fn coefficients(
+        &self,
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+    ) -> Result<Option<Vec<F::Element>>, EnvelopingModuleError> {
+        let Some(coordinate_basis) = &self.coordinate_basis else {
+            return Ok(None);
+        };
+        if homomorphism.source().right_acting_algebra().field() != coordinate_basis.field() {
+            return Err(EnvelopingModuleError::ExtCoefficientFieldMismatch);
+        }
+        let coefficients = coordinate_basis
+            .solution_row(&homomorphism.flat_vertex_matrix_entries())?
+            .ok_or(EnvelopingModuleError::ExtMapOutsideHomSpace)?;
+        Ok(Some(
+            coefficients[coefficients.len() - self.basis.len()..].to_vec(),
+        ))
+    }
+}
+
+/// Translate QPA's `ExtOverAlgebra(M, N)` construction of `Ext^1(M, N)`.
+///
+/// This follows the source method through the projective cover, its kernel
+/// inclusion, `Hom(P(M), N)` and `Hom(Omega(M), N)`, the image of the induced
+/// restriction map, and GAP's `NaturalHomomorphismBySubspace`. Basis maps are
+/// the exact complement representatives selected from `Basis(V)` after the
+/// image basis, preserving QPA's raw physical map-vector order.
+///
+/// # Errors
+///
+/// Requires both modules over one algebra and propagates projective-cover,
+/// kernel, Hom, composition, exact vector-space, and checked-map failures.
+pub fn ext_over_algebra<F: Field>(
+    module: &PathAlgebraModule<F>,
+    coefficients_in: &PathAlgebraModule<F>,
+) -> Result<ExtOverAlgebraResult<F>, EnvelopingModuleError> {
+    if module.right_acting_algebra() != coefficients_in.right_acting_algebra() {
+        return Err(EnvelopingModuleError::ExtModulesOverDifferentAlgebras);
+    }
+    let cover = projective_cover(module)?;
+    let syzygy_inclusion = kernel_inclusion(&cover)?;
+    let syzygy = syzygy_inclusion.source();
+    let projective_hom = hom_over_algebra(cover.source(), coefficients_in)?
+        .ok_or(EnvelopingModuleError::InternalExtHomRejected)?;
+    let syzygy_hom = hom_over_algebra(syzygy, coefficients_in)?
+        .ok_or(EnvelopingModuleError::InternalExtHomRejected)?;
+    let Some(first_homomorphism) = syzygy_hom.first() else {
+        return Ok(ExtOverAlgebraResult {
+            syzygy_inclusion,
+            basis: Vec::new(),
+            coordinate_basis: None,
+        });
+    };
+
+    let field = module.right_acting_algebra().field().clone();
+    let physical_length = first_homomorphism.flat_vertex_matrix_entries().len();
+    let hom_rows = DenseMatrix::from_flat(
+        syzygy_hom.len(),
+        physical_length,
+        syzygy_hom
+            .iter()
+            .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+            .collect(),
+        field.clone(),
+    )?;
+    let hom_basis = hom_rows.semi_echelon_transformation().vectors;
+
+    let image_maps = projective_hom
+        .iter()
+        .map(|homomorphism| syzygy_inclusion.compose(homomorphism))
+        .collect::<Result<Vec<_>, _>>()?;
+    let nonzero_image_maps = image_maps
+        .iter()
+        .filter(|homomorphism| !homomorphism.is_zero())
+        .collect::<Vec<_>>();
+    let image_basis = if nonzero_image_maps.is_empty() {
+        DenseMatrix::from_flat(0, physical_length, Vec::new(), field.clone())?
+    } else {
+        DenseMatrix::from_flat(
+            nonzero_image_maps.len(),
+            physical_length,
+            nonzero_image_maps
+                .iter()
+                .flat_map(|homomorphism| homomorphism.flat_vertex_matrix_entries())
+                .collect(),
+            field.clone(),
+        )?
+        .semi_echelon_transformation()
+        .vectors
+    };
+
+    let quotient = quotient_complement_in_space(&hom_basis, &image_basis)?;
+    if quotient.representatives.is_empty() {
+        return Ok(ExtOverAlgebraResult {
+            syzygy_inclusion,
+            basis: Vec::new(),
+            coordinate_basis: None,
+        });
+    }
+    let basis = quotient
+        .representatives
+        .iter()
+        .map(|row| module_map_from_physical_flat(syzygy, coefficients_in, row, &field))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(ExtOverAlgebraResult {
+        syzygy_inclusion,
+        basis,
+        coordinate_basis: Some(quotient.coordinate_basis),
+    })
+}
+
+struct ExtQuotientComplement<F: Field> {
+    representatives: Vec<Vec<F::Element>>,
+    coordinate_basis: DenseMatrix<F>,
+}
+
+fn quotient_complement_in_space<F: Field>(
+    space_basis: &DenseMatrix<F>,
+    subspace_basis: &DenseMatrix<F>,
+) -> Result<ExtQuotientComplement<F>, EnvelopingModuleError> {
+    let field = space_basis.field().clone();
+    let columns = space_basis.ncols();
+    let mut mutable_basis = subspace_basis.clone();
+    let mut complement = Vec::new();
+    for row in 0..space_basis.nrows() {
+        let candidate_row = space_basis.row(row);
+        let mut entries = mutable_basis.as_flat().to_vec();
+        entries.extend_from_slice(candidate_row);
+        let candidate =
+            DenseMatrix::from_flat(mutable_basis.nrows() + 1, columns, entries, field.clone())?
+                .semi_echelon_transformation()
+                .vectors;
+        if candidate.nrows() > mutable_basis.nrows() {
+            complement.push(candidate_row.to_vec());
+            mutable_basis = candidate;
+        }
+    }
+    if subspace_basis.nrows() + complement.len() != space_basis.nrows() {
+        return Err(EnvelopingModuleError::IncompleteExtQuotientBasis);
+    }
+    let mut entries = subspace_basis.as_flat().to_vec();
+    entries.extend(complement.iter().flatten().cloned());
+    let coordinate_basis = DenseMatrix::from_flat(space_basis.nrows(), columns, entries, field)?;
+    Ok(ExtQuotientComplement {
+        representatives: complement,
+        coordinate_basis,
+    })
+}
+
 /// Translate QPA's `LiftingMorphismFromProjective(f, g)`.
 ///
 /// `Ok(None)` is QPA's `fail` when the projective source was not constructed
@@ -1611,6 +1803,21 @@ pub enum EnvelopingModuleError {
     /// QPA's finite canonical path basis starts with all vertex idempotents.
     #[error("the finite canonical algebra basis does not start with the quiver vertices")]
     MissingCanonicalVertexBasis,
+    /// `ExtOverAlgebra` requires one common acting algebra.
+    #[error("the two modules entered are not modules over the same algebra")]
+    ExtModulesOverDifferentAlgebras,
+    /// A Hom call cannot reject the already checked Ext modules.
+    #[error("HomOverAlgebra rejected modules in the ExtOverAlgebra construction")]
+    InternalExtHomRejected,
+    /// GAP's Steinitz extension must complete the image basis to the Hom basis.
+    #[error("NaturalHomomorphismBySubspace did not produce a complete Ext quotient basis")]
+    IncompleteExtQuotientBasis,
+    /// The coefficient closure only accepts raw vectors over its original field.
+    #[error("the Ext representative map uses a different coefficient field")]
+    ExtCoefficientFieldMismatch,
+    /// The coefficient closure accepts only maps in `Hom(Omega(M), N)`.
+    #[error("the entered map is outside the Hom space used by ExtOverAlgebra")]
+    ExtMapOutsideHomSpace,
     /// `SimpleModules` accepts quotients only after QPA's admissibility filter
     /// has been established.
     #[error("SimpleModules requires an admissible quotient of a path algebra")]
@@ -1841,26 +2048,26 @@ mod tests {
         PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleHomomorphism,
         PathAlgebraModuleMatrix, Quiver, QuiverAlgebra, QuiverAlgebraElement, VertexIndex,
         dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
-        from_end_m_to_hom_mm, from_hom_mm_to_end_m, include_in_path_algebra, is_semisimple_module,
-        is_simple_qpa_module, lifting_inclusion_morphisms, minimal_generating_set_of_module,
-        radical_series, right_fac_approximation, right_module_hom_over_algebra,
-        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion, top_of_module,
-        top_of_module_projection, trace_of_module, underlying_linear_map, zero_module,
-        zero_module_mapping,
+        from_end_m_to_hom_mm, from_hom_mm_to_end_m, identity_module_mapping,
+        include_in_path_algebra, is_semisimple_module, is_simple_qpa_module,
+        lifting_inclusion_morphisms, minimal_generating_set_of_module, radical_series,
+        right_fac_approximation, right_module_hom_over_algebra, right_module_over_path_algebra,
+        socle_of_module, socle_of_module_inclusion, top_of_module, top_of_module_projection,
+        trace_of_module, underlying_linear_map, zero_module, zero_module_mapping,
     };
     use serde_json::{Value, json};
 
     use super::{
-        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients,
-        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
-        dual_of_module_homomorphism, element_in_indec_projective,
-        element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, finite_canonical_basis,
-        finite_qpa_default_basis, first_syzygy, from_matrix_to_homomorphism_of_projectives,
-        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
-        indec_projective_modules, injective_envelope, is_injective_module, is_projective_module,
-        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
-        projective_cover, simple_modules, socle_series,
+        ExtOverAlgebraResult, algebra_as_module_of_enveloping_algebra,
+        algebra_as_module_over_enveloping_algebra, annihilator_of_module, basis_of_projectives,
+        canonical_basis_coefficients, dual_of_algebra_as_module_over_enveloping_algebra,
+        dual_of_module, dual_of_module_homomorphism, element_in_indec_projective,
+        element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
+        finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
+        from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
+        hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
+        is_injective_module, is_projective_module, lifting_morphism_from_projective,
+        matrix_of_homomorphism_between_projectives, projective_cover, simple_modules, socle_series,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -3056,6 +3263,119 @@ mod tests {
         })
     }
 
+    fn ext_json<F: Field>(
+        ext: &ExtOverAlgebraResult<F>,
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let basis_coordinates = if ext.basis().is_empty() {
+            Value::Null
+        } else {
+            json!(
+                ext.basis()
+                    .iter()
+                    .map(|homomorphism| ext
+                        .coefficients(homomorphism)
+                        .unwrap()
+                        .unwrap()
+                        .iter()
+                        .map(coefficient)
+                        .collect::<Vec<_>>())
+                    .collect::<Vec<_>>()
+            )
+        };
+        let (entered_coefficients, combo_coordinates) = if ext.basis().is_empty() {
+            (Value::Null, Value::Null)
+        } else {
+            let entered = (0..ext.dimension())
+                .map(|index| field.nth(Integer::from(i64::try_from(index + 2).unwrap())))
+                .collect::<Vec<_>>();
+            let mut terms = ext
+                .basis()
+                .iter()
+                .zip(&entered)
+                .map(|(homomorphism, scalar)| homomorphism.scale(scalar).unwrap());
+            let mut combo = terms.next().unwrap();
+            for term in terms {
+                combo = combo.add(&term).unwrap();
+            }
+            let coordinates = ext.coefficients(&combo).unwrap().unwrap();
+            (
+                json!(entered.iter().map(coefficient).collect::<Vec<_>>()),
+                json!(coordinates.iter().map(coefficient).collect::<Vec<_>>()),
+            )
+        };
+        json!({
+            "syzygy_inclusion": module_map_json(ext.syzygy_inclusion(), coefficient),
+            "dimension": ext.dimension(),
+            "basis": ext.basis().iter()
+                .map(|homomorphism| module_map_json(homomorphism, coefficient))
+                .collect::<Vec<_>>(),
+            "basis_coordinates": basis_coordinates,
+            "entered_coefficients": entered_coefficients,
+            "combo_coordinates": combo_coordinates,
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_ext_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let simples = simple_modules(&algebra).unwrap();
+        let zero = zero_module(&algebra).unwrap();
+        let a2_12 = ext_over_algebra(&simples[0], &simples[1]).unwrap();
+        let a2_11 = ext_over_algebra(&simples[0], &simples[0]).unwrap();
+        let a2_22 = ext_over_algebra(&simples[1], &simples[1]).unwrap();
+        let a2_02 = ext_over_algebra(&zero, &simples[1]).unwrap();
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let quotient = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let quotient_simple = simple_modules(&quotient).unwrap()[0].clone();
+        let quotient_projective = indec_projective_modules(&quotient).unwrap()[0].clone();
+        let dual_simple_ext = ext_over_algebra(&quotient_simple, &quotient_simple).unwrap();
+        let dual_projective_ext = ext_over_algebra(&quotient_simple, &quotient_projective).unwrap();
+        let quotient_sum =
+            direct_sum_of_qpa_modules(&[quotient_simple.clone(), quotient_projective.clone()])
+                .unwrap()
+                .unwrap();
+        let dual_sum = ext_over_algebra(&quotient_simple, &quotient_sum).unwrap();
+
+        let kronecker_quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "p"),
+                ArrowSpec::named(vertex(1), vertex(2), "q"),
+            ],
+        )
+        .unwrap();
+        let kronecker =
+            QuiverAlgebra::Path(PathAlgebra::new(field.clone(), kronecker_quiver).unwrap());
+        let kronecker_simples = simple_modules(&kronecker).unwrap();
+        let kronecker_ext = ext_over_algebra(&kronecker_simples[0], &kronecker_simples[1]).unwrap();
+
+        json!({
+            "a2_s1_s2": ext_json(&a2_12, &field, coefficient),
+            "a2_s1_s1": ext_json(&a2_11, &field, coefficient),
+            "a2_s2_s2": ext_json(&a2_22, &field, coefficient),
+            "a2_zero_s2": ext_json(&a2_02, &field, coefficient),
+            "dual_simple_simple": ext_json(&dual_simple_ext, &field, coefficient),
+            "dual_simple_projective": ext_json(&dual_projective_ext, &field, coefficient),
+            "dual_simple_sum": ext_json(&dual_sum, &field, coefficient),
+            "kronecker_s1_s2": ext_json(&kronecker_ext, &field, coefficient),
+        })
+    }
+
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
     fn modulehom_syzygy_injective_case<F: Field>(
         field: F,
@@ -3383,6 +3703,24 @@ mod tests {
     }
 
     #[test]
+    fn pinned_qpa_modulehom_ext_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_ext.schema-v1.json"
+        ))
+        .unwrap();
+        let rational = modulehom_ext_case(Q, ToString::to_string);
+        let binary = modulehom_ext_case(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
     fn annihilator_of_module_reports_its_finite_basis_domain() {
         let quiver =
             Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
@@ -3393,6 +3731,30 @@ mod tests {
         assert_eq!(
             annihilator_of_module(&module).unwrap_err(),
             super::EnvelopingModuleError::InfiniteAnnihilatorAlgebra
+        );
+    }
+
+    #[test]
+    fn ext_over_algebra_preserves_domain_and_coefficient_boundaries() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let simples = simple_modules(&algebra).unwrap();
+        let ext = ext_over_algebra(&simples[0], &simples[1]).unwrap();
+        let outside = identity_module_mapping(simples[0].clone()).unwrap();
+        assert_eq!(
+            ext.coefficients(&outside).unwrap_err(),
+            super::EnvelopingModuleError::ExtMapOutsideHomSpace
+        );
+        let zero_ext = ext_over_algebra(&simples[0], &simples[0]).unwrap();
+        assert_eq!(zero_ext.coefficients(&outside).unwrap(), None);
+
+        let other_quiver = Quiver::from_indexed(1, Vec::new()).unwrap();
+        let other_algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, other_quiver).unwrap());
+        let other_simple = simple_modules(&other_algebra).unwrap()[0].clone();
+        assert_eq!(
+            ext_over_algebra(&simples[0], &other_simple).unwrap_err(),
+            super::EnvelopingModuleError::ExtModulesOverDifferentAlgebras
         );
     }
 

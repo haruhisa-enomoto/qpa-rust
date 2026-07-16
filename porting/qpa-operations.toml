@@ -14091,9 +14091,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ext_over_algebra; ExtOverAlgebraResult"
+tests = ["tests/fixtures/modulehom_ext.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14819,9 +14819,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 413
 source_end = 534
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ext_over_algebra; ExtOverAlgebraResult"
+tests = ["tests/fixtures/modulehom_ext.schema-v1.json"]
 deviations = []
 
 [[entries]]

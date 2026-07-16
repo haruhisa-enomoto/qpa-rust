@@ -1,0 +1,912 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp": "1.1.0@e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "a2_s1_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          1
+        ],
+        "range_dimension": [
+          1,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 1,
+      "basis": [
+        {
+          "source_dimension": [
+            0,
+            1
+          ],
+          "range_dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "1"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "basis_coordinates": [
+        [
+          "1"
+        ]
+      ],
+      "entered_coefficients": [
+        "2"
+      ],
+      "combo_coordinates": [
+        "2"
+      ]
+    },
+    "a2_s1_s1": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          1
+        ],
+        "range_dimension": [
+          1,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "a2_s2_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "a2_zero_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          0
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "dual_simple_simple": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          1
+        ],
+        "range_dimension": [
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0",
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 1,
+      "basis": [
+        {
+          "source_dimension": [
+            1
+          ],
+          "range_dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "1"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "basis_coordinates": [
+        [
+          "1"
+        ]
+      ],
+      "entered_coefficients": [
+        "2"
+      ],
+      "combo_coordinates": [
+        "2"
+      ]
+    },
+    "dual_simple_projective": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          1
+        ],
+        "range_dimension": [
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0",
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "dual_simple_sum": {
+      "syzygy_inclusion": {
+        "source_dimension": [1],
+        "range_dimension": [2],
+        "matrices": [{"shape": [1, 2], "rows": [["0", "1"]]}]
+      },
+      "dimension": 1,
+      "basis": [{
+        "source_dimension": [1],
+        "range_dimension": [3],
+        "matrices": [{"shape": [1, 3], "rows": [["1", "0", "0"]]}]
+      }],
+      "basis_coordinates": [["1"]],
+      "entered_coefficients": ["2"],
+      "combo_coordinates": ["2"]
+    },
+    "kronecker_s1_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          2
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "1",
+                "0"
+              ],
+              [
+                "0",
+                "1"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 2,
+      "basis": [
+        {
+          "source_dimension": [
+            0,
+            2
+          ],
+          "range_dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                2,
+                1
+              ],
+              "rows": [
+                [
+                  "1"
+                ],
+                [
+                  "0"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "source_dimension": [
+            0,
+            2
+          ],
+          "range_dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                2,
+                1
+              ],
+              "rows": [
+                [
+                  "0"
+                ],
+                [
+                  "1"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "basis_coordinates": [
+        [
+          "1",
+          "0"
+        ],
+        [
+          "0",
+          "1"
+        ]
+      ],
+      "entered_coefficients": [
+        "2",
+        "3"
+      ],
+      "combo_coordinates": [
+        "2",
+        "3"
+      ]
+    }
+  },
+  "binary": {
+    "a2_s1_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          1
+        ],
+        "range_dimension": [
+          1,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 1,
+      "basis": [
+        {
+          "source_dimension": [
+            0,
+            1
+          ],
+          "range_dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "Z(2)^0"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "basis_coordinates": [
+        [
+          "Z(2)^0"
+        ]
+      ],
+      "entered_coefficients": [
+        "0*Z(2)"
+      ],
+      "combo_coordinates": [
+        "0*Z(2)"
+      ]
+    },
+    "a2_s1_s1": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          1
+        ],
+        "range_dimension": [
+          1,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "a2_s2_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          1
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "a2_zero_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          0
+        ],
+        "range_dimension": [
+          0,
+          0
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "dual_simple_simple": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          1
+        ],
+        "range_dimension": [
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 1,
+      "basis": [
+        {
+          "source_dimension": [
+            1
+          ],
+          "range_dimension": [
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "Z(2)^0"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "basis_coordinates": [
+        [
+          "Z(2)^0"
+        ]
+      ],
+      "entered_coefficients": [
+        "0*Z(2)"
+      ],
+      "combo_coordinates": [
+        "0*Z(2)"
+      ]
+    },
+    "dual_simple_projective": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          1
+        ],
+        "range_dimension": [
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              2
+            ],
+            "rows": [
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 0,
+      "basis": [],
+      "basis_coordinates": null,
+      "entered_coefficients": null,
+      "combo_coordinates": null
+    },
+    "dual_simple_sum": {
+      "syzygy_inclusion": {
+        "source_dimension": [1],
+        "range_dimension": [2],
+        "matrices": [{
+          "shape": [1, 2],
+          "rows": [["0*Z(2)", "Z(2)^0"]]
+        }]
+      },
+      "dimension": 1,
+      "basis": [{
+        "source_dimension": [1],
+        "range_dimension": [3],
+        "matrices": [{
+          "shape": [1, 3],
+          "rows": [["Z(2)^0", "0*Z(2)", "0*Z(2)"]]
+        }]
+      }],
+      "basis_coordinates": [["Z(2)^0"]],
+      "entered_coefficients": ["0*Z(2)"],
+      "combo_coordinates": ["0*Z(2)"]
+    },
+    "kronecker_s1_s2": {
+      "syzygy_inclusion": {
+        "source_dimension": [
+          0,
+          2
+        ],
+        "range_dimension": [
+          1,
+          2
+        ],
+        "matrices": [
+          {
+            "shape": [
+              1,
+              1
+            ],
+            "rows": [
+              [
+                "0*Z(2)"
+              ]
+            ]
+          },
+          {
+            "shape": [
+              2,
+              2
+            ],
+            "rows": [
+              [
+                "Z(2)^0",
+                "0*Z(2)"
+              ],
+              [
+                "0*Z(2)",
+                "Z(2)^0"
+              ]
+            ]
+          }
+        ]
+      },
+      "dimension": 2,
+      "basis": [
+        {
+          "source_dimension": [
+            0,
+            2
+          ],
+          "range_dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                2,
+                1
+              ],
+              "rows": [
+                [
+                  "Z(2)^0"
+                ],
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            }
+          ]
+        },
+        {
+          "source_dimension": [
+            0,
+            2
+          ],
+          "range_dimension": [
+            0,
+            1
+          ],
+          "matrices": [
+            {
+              "shape": [
+                1,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ]
+              ]
+            },
+            {
+              "shape": [
+                2,
+                1
+              ],
+              "rows": [
+                [
+                  "0*Z(2)"
+                ],
+                [
+                  "Z(2)^0"
+                ]
+              ]
+            }
+          ]
+        }
+      ],
+      "basis_coordinates": [
+        [
+          "Z(2)^0",
+          "0*Z(2)"
+        ],
+        [
+          "0*Z(2)",
+          "Z(2)^0"
+        ]
+      ],
+      "entered_coefficients": [
+        "0*Z(2)",
+        "Z(2)^0"
+      ],
+      "combo_coordinates": [
+        "0*Z(2)",
+        "Z(2)^0"
+      ]
+    }
+  }
+}
