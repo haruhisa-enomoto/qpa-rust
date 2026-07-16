@@ -24,6 +24,32 @@ the computations remain translations of the cited source methods.
   `tests/fixtures/dynamic_tree.schema-v1.json`, and the tests in
   `crates/qpa-core/src/dynamic_tree.rs`.
 
+## SUFFIX-001 — Owner-tagged suffix-tree arena
+
+- Source: `upstream/qpa/lib/groebnerdyndict.gd` and
+  `upstream/qpa/lib/groebnerdyndict.gi`.
+- Affected Rust surface: `SuffixTreeNodeId`, `SuffixTreeEdgeId`,
+  `SuffixTree::create_internal_node`, `SuffixTree::create_external_node`,
+  `SuffixTree::create_edge`, and the node/edge accessors and mutations.
+- Difference: GAP can allocate free-standing garbage-collected node and edge
+  records from an arbitrary compatible family and pattern descriptor. Rust
+  allocates them through one `SuffixTree` arena, requires low-level labels to
+  reference an existing retained pattern slot, and tags every handle with its
+  owner. A handle used with another tree returns `SuffixTreeError::UnknownNode`
+  or `SuffixTreeError::UnknownEdge`.
+- Reason: QPA's parent edges, child edges, suffix links, and dynamic-tree
+  handles form a mutable cyclic graph. Owner-tagged arena identities preserve
+  QPA's object-identity equality without `unsafe`, dangling references, or
+  accidental equality between the same arena index in independent trees.
+- Compatibility impact: construction, labels, ordered edge lookup, edge
+  splitting, parent identity, online insertion, deletion/compression, and both
+  pattern queries agree inside one tree. Direct Rust callers create related
+  low-level objects through their owning tree instead of assembling unrelated
+  GAP records.
+- Evidence: `tests/gap-reference/suffix_tree_surface.g`,
+  `tests/fixtures/suffix_tree_surface.schema-v1.json`, and the suffix-tree tests
+  in `crates/qpa-core/src/suffix_tree.rs`.
+
 ## PATHALG-001 — Natural projection application repairs stale GAP record access
 
 - Source: QPA `lib/pathalg.gi`, `ImagesRepresentative` at lines 769–787 and

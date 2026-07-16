@@ -158,8 +158,8 @@ pub use structure_constants::{
     StructureConstantsQuotient, StructureConstantsSubalgebra,
 };
 pub use suffix_tree::{
-    SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,
-    SuffixTreeOccurrence, SuffixTreeToken,
+    INFO_DYNAMIC_DICTIONARY, SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId,
+    SuffixTreeNodeKind, SuffixTreeOccurrence, SuffixTreeToken,
 };
 pub use tensor::{
     PathAlgebraElementTermRecord, PathAlgebraTensorError, QuiverProduct,

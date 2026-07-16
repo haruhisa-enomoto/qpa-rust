@@ -6031,9 +6031,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "INFO_DYNAMIC_DICTIONARY"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6044,9 +6044,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6057,9 +6057,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 6
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree; SuffixTree::number_of_patterns; SuffixTree::root_node; SuffixTree::dead_length"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6070,10 +6070,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeNodeId; SuffixTreeEdgeId"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareCategory:IsSuffixTreeNode:1"
@@ -6083,10 +6083,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeNodeId"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareRepresentation:IsDefaultSuffixTreeNodeRep:1"
@@ -6096,10 +6096,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 11
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeNodeId; SuffixTree::parent_node; SuffixTree::label_of_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareCategory:IsInternalSuffixTreeNode:1"
@@ -6109,10 +6109,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeNodeKind::Internal"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareRepresentation:IsDefaultInternalSuffixTreeNodeRep:1"
@@ -6122,10 +6122,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 15
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeNodeKind::Internal; SuffixTree::node_edges; SuffixTree::node_suffix_link; SuffixTree::node_is_marked"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareCategory:IsExternalSuffixTreeNode:1"
@@ -6135,10 +6135,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeNodeKind::External; SuffixTree::external_occurrences"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareCategory:IsSuffixTreeEdge:1"
@@ -6148,10 +6148,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeEdgeId"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareRepresentation:IsDefaultSuffixTreeEdgeRep:1"
@@ -6161,10 +6161,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 20
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeEdgeId; SuffixTree::edge_parent; SuffixTree::edge_child; SuffixTree::label_of_edge"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareGlobalFunction:CreateSuffixTree:1"
@@ -6174,9 +6174,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::new"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6187,10 +6187,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::create_internal_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareGlobalFunction:CreateExternalSuffixTreeNode:1"
@@ -6200,10 +6200,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 25
 source_end = 25
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::create_external_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareGlobalFunction:CreateSuffixTreeEdge:1"
@@ -6213,10 +6213,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 26
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::create_edge"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareOperation:ParentNode:1"
@@ -6226,10 +6226,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 27
 source_end = 27
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::parent_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareOperation:AddInternalSuffixTreeNode:1"
@@ -6239,10 +6239,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 28
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::add_internal_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareOperation:AddExternalSuffixTreeNode:1"
@@ -6252,10 +6252,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 30
 source_end = 31
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::add_external_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareOperation:LabelOfSuffixTreeNode:1"
@@ -6265,10 +6265,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 32
 source_end = 32
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::label_of_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareOperation:LabelOfSuffixTreeEdge:1"
@@ -6278,10 +6278,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 33
 source_end = 33
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::label_of_edge"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareOperation:SuffixTreeEdgeStartingAt:1"
@@ -6291,10 +6291,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 34
 source_end = 35
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::edge_starting_at"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:DeclareOperation:InsertPatternIntoSuffixTree:1"
@@ -6304,9 +6304,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::insert_pattern"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_empty_error.g","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
 
 [[entries]]
@@ -6317,9 +6317,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 37
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::delete_pattern"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
 
 [[entries]]
@@ -6330,9 +6330,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 39
 source_end = 39
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::all_patterns_in_sequence"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
 
 [[entries]]
@@ -6343,9 +6343,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gd"
 source_start = 40
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::sequence_in_patterns"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6356,9 +6356,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 4
 source_end = 19
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::new"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6369,10 +6369,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 20
 source_end = 31
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::create_internal_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallGlobalFunction:CreateExternalSuffixTreeNode:1"
@@ -6382,10 +6382,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 32
 source_end = 40
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::create_external_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallGlobalFunction:CreateSuffixTreeEdge:1"
@@ -6395,10 +6395,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 41
 source_end = 55
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::create_edge"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:ParentNode:1"
@@ -6408,10 +6408,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 56
 source_end = 66
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::parent_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:\\=:1"
@@ -6421,10 +6421,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 67
 source_end = 71
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTreeNodeId::eq; SuffixTreeEdgeId::eq"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallOtherMethod:\\[\\]:1"
@@ -6434,9 +6434,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 72
 source_end = 81
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::pattern"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6447,10 +6447,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 82
 source_end = 106
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::add_internal_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:AddExternalSuffixTreeNode:1"
@@ -6460,10 +6460,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 107
 source_end = 121
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::add_external_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:LabelOfSuffixTreeNode:1"
@@ -6473,10 +6473,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 122
 source_end = 134
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::label_of_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:LabelOfSuffixTreeNode:2"
@@ -6486,10 +6486,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 135
 source_end = 150
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::label_of_node"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:LabelOfSuffixTreeEdge:1"
@@ -6499,10 +6499,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 151
 source_end = 168
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::label_of_edge"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:SuffixTreeEdgeStartingAt:1"
@@ -6512,10 +6512,10 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 169
 source_end = 184
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "SuffixTree::edge_starting_at"
+tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json"]
+deviations = ["SUFFIX-001"]
 
 [[entries]]
 id = "groebnerdyndict:InstallMethod:InsertPatternIntoSuffixTree:1"
@@ -6525,9 +6525,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 322
 source_end = 499
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::insert_pattern"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_empty_error.g","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
 
 [[entries]]
@@ -6538,9 +6538,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 515
 source_end = 648
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::delete_pattern"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
 
 [[entries]]
@@ -6551,9 +6551,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 649
 source_end = 796
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::all_patterns_in_sequence"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
 
 [[entries]]
@@ -6564,9 +6564,9 @@ source_file = "upstream/qpa/lib/groebnerdyndict.gi"
 source_start = 797
 source_end = 852
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "SuffixTree::sequence_in_patterns"
+tests = ["tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
 
 [[entries]]

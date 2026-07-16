@@ -393,6 +393,9 @@ compare_catching_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/suffix_tree.g" \
     "$repo_root/tests/fixtures/suffix_tree.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/suffix_tree_surface.g" \
+    "$repo_root/tests/fixtures/suffix_tree_surface.schema-v1.json"
 if "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/suffix_tree_empty_error.g" \
     >"$actual" 2>&1

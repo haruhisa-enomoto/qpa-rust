@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "kind": "suffix_tree_surface",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+  },
+  "info_class": true,
+  "tree_filters": [true, true],
+  "root_filters": [true, true, true, false, true, true],
+  "external_filters": [true, true, false, true, true],
+  "edge_filters": [true, true, true],
+  "components": {
+    "dead_length": 0,
+    "pattern_count": 1,
+    "pattern_1": [1, 2, 3]
+  },
+  "manual_edge": {
+    "internal_label": [1],
+    "external_label": [2, 3, []],
+    "edge_label": [2, 3, []],
+    "root_parent_is_zero": true,
+    "child_parent_identity": true,
+    "edge_lookup_identity": true,
+    "missing_lookup_is_fail": true,
+    "self_equal": true,
+    "distinct_equal": false,
+    "other_tree_root_equal": false,
+    "other_tree_edge_equal": false
+  },
+  "split": {
+    "prefix": [1],
+    "remainder": [2],
+    "old_child_parent_identity": true
+  },
+  "add_external": {
+    "edge_label": [1, 2, 3, []],
+    "parent_identity": true
+  }
+}

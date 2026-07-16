@@ -6,19 +6,33 @@
 //! data lives in typed Rust arenas, but labels retain QPA's one-based inclusive
 //! descriptors so each mutation remains directly traceable to the source.
 
-use std::fmt;
+use std::{
+    fmt,
+    sync::atomic::{AtomicU64, Ordering as AtomicOrdering},
+};
 
 use thiserror::Error;
 
 use crate::{DynamicForest, DynamicTree, DynamicTreeError};
 
+/// Rust marker for QPA's `InfoDynamicDictionary` information class.
+pub const INFO_DYNAMIC_DICTIONARY: &str = "InfoDynamicDictionary";
+
+static NEXT_SUFFIX_TREE_IDENTITY: AtomicU64 = AtomicU64::new(1);
+
 /// Stable identity of a suffix-tree node.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct SuffixTreeNodeId(usize);
+pub struct SuffixTreeNodeId {
+    owner: u64,
+    index: usize,
+}
 
 /// Stable identity of a suffix-tree edge.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct SuffixTreeEdgeId(usize);
+pub struct SuffixTreeEdgeId {
+    owner: u64,
+    index: usize,
+}
 
 /// A label token, including QPA's reserved empty-list termination symbol.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -106,6 +120,7 @@ struct ExtensionResult {
 
 /// QPA's mutable generalized suffix tree used by `TipReduceGroebnerBasis`.
 pub struct SuffixTree<Symbol> {
+    identity: u64,
     patterns: Vec<StoredPattern<Symbol>>,
     root: SuffixTreeNodeId,
     dead_length: usize,
@@ -119,12 +134,23 @@ where
     Symbol: Clone + Eq,
 {
     /// Translate QPA's `CreateSuffixTree`.
+    ///
+    /// # Panics
+    ///
+    /// Panics only if one process exhausts all nonzero 64-bit suffix-tree
+    /// identities.
     #[must_use]
     pub fn new() -> Self {
+        let identity = NEXT_SUFFIX_TREE_IDENTITY.fetch_add(1, AtomicOrdering::Relaxed);
+        assert_ne!(identity, 0, "exhausted suffix-tree identities");
         let dynamic_forest = DynamicForest::new();
-        let root = SuffixTreeNodeId(0);
+        let root = SuffixTreeNodeId {
+            owner: identity,
+            index: 0,
+        };
         let root_dynamic_tree = dynamic_forest.create(Some(root));
         Self {
+            identity,
             patterns: Vec::new(),
             root,
             dead_length: 0,
@@ -444,9 +470,9 @@ where
             return Err(SuffixTreeError::InvalidSplitLocation);
         }
 
-        self.edges[edge.0].child = Some(node);
-        self.nodes[node.0].parent_edge = Some(edge);
-        self.edges[edge.0].label.end = Some(old_edge.label.start + location - 1);
+        self.edges[edge.index].child = Some(node);
+        self.nodes[node.index].parent_edge = Some(edge);
+        self.edges[edge.index].label.end = Some(old_edge.label.start + location - 1);
         self.push_edge(
             node,
             old_child,
@@ -719,10 +745,10 @@ where
                     .start
                     .checked_sub(prefix_length)
                     .ok_or(SuffixTreeError::InvalidLabelRange)?;
-                self.edges[v_parent_edge.0].label = merged_label;
-                self.edges[v_parent_edge.0].child = Some(w);
-                self.nodes[w.0].parent_edge = Some(v_parent_edge);
-                self.nodes[v.0].parent_edge = None;
+                self.edges[v_parent_edge.index].label = merged_label;
+                self.edges[v_parent_edge.index].child = Some(w);
+                self.nodes[w.index].parent_edge = Some(v_parent_edge);
+                self.nodes[v.index].parent_edge = None;
             }
 
             if i < m {
@@ -1015,20 +1041,20 @@ where
         match self.node_kind(node)? {
             SuffixTreeNodeKind::External => {
                 let dynamic = self.dynamic_forest.create(Some(node));
-                self.nodes[node.0].dynamic_tree = Some(dynamic.clone());
+                self.nodes[node.index].dynamic_tree = Some(dynamic.clone());
                 dynamic.link(&parent_dynamic)?;
             }
             SuffixTreeNodeKind::Internal => {
                 let marked = self.node_is_marked(node)?;
-                if marked && self.nodes[node.0].dynamic_tree.is_some() {
+                if marked && self.nodes[node.index].dynamic_tree.is_some() {
                     self.dynamic_handle(node)?.cut()?;
                     return Ok(());
                 }
-                if self.nodes[node.0].dynamic_tree.is_some() {
+                if self.nodes[node.index].dynamic_tree.is_some() {
                     return Err(SuffixTreeError::InvalidSuffixTreeState);
                 }
                 let dynamic = self.dynamic_forest.create(Some(node));
-                self.nodes[node.0].dynamic_tree = Some(dynamic.clone());
+                self.nodes[node.index].dynamic_tree = Some(dynamic.clone());
                 let first_edge = *self
                     .node_edges(node)?
                     .first()
@@ -1096,8 +1122,8 @@ where
             self.delete_from_dynamic_forest(node, true, None)?;
             self.internal_edges_mut(parent)?
                 .retain(|candidate| *candidate != parent_edge);
-            self.edges[parent_edge.0].parent = None;
-            self.edges[parent_edge.0].child = None;
+            self.edges[parent_edge.index].parent = None;
+            self.edges[parent_edge.index].child = None;
         }
         if phase == 1 && terminal_edge && self.node_is_marked(parent)? {
             self.set_marked(parent, false)?;
@@ -1271,7 +1297,10 @@ where
     }
 
     fn push_internal_node(&mut self, label: Option<LabelSpan>) -> SuffixTreeNodeId {
-        let node = SuffixTreeNodeId(self.nodes.len());
+        let node = SuffixTreeNodeId {
+            owner: self.identity,
+            index: self.nodes.len(),
+        };
         self.nodes.push(SuffixTreeNode {
             parent_edge: None,
             dynamic_tree: None,
@@ -1286,7 +1315,10 @@ where
     }
 
     fn push_external_node(&mut self, pattern_number: usize, start: usize) -> SuffixTreeNodeId {
-        let node = SuffixTreeNodeId(self.nodes.len());
+        let node = SuffixTreeNodeId {
+            owner: self.identity,
+            index: self.nodes.len(),
+        };
         self.nodes.push(SuffixTreeNode {
             parent_edge: None,
             dynamic_tree: None,
@@ -1306,19 +1338,22 @@ where
         child: SuffixTreeNodeId,
         label: LabelSpan,
     ) -> SuffixTreeEdgeId {
-        let edge = SuffixTreeEdgeId(self.edges.len());
+        let edge = SuffixTreeEdgeId {
+            owner: self.identity,
+            index: self.edges.len(),
+        };
         self.edges.push(SuffixTreeEdge {
             label,
             parent: Some(parent),
             child: Some(child),
         });
-        match &mut self.nodes[parent.0].representation {
+        match &mut self.nodes[parent.index].representation {
             SuffixTreeNodeRepresentation::Internal { edges, .. } => edges.push(edge),
             SuffixTreeNodeRepresentation::External { .. } => {
                 unreachable!("validated suffix-tree edge parent")
             }
         }
-        self.nodes[child.0].parent_edge = Some(edge);
+        self.nodes[child.index].parent_edge = Some(edge);
         edge
     }
 
@@ -1366,17 +1401,30 @@ where
     }
 
     fn node(&self, node: SuffixTreeNodeId) -> Result<&SuffixTreeNode, SuffixTreeError> {
-        self.nodes.get(node.0).ok_or(SuffixTreeError::UnknownNode)
+        if node.owner != self.identity {
+            return Err(SuffixTreeError::UnknownNode);
+        }
+        self.nodes
+            .get(node.index)
+            .ok_or(SuffixTreeError::UnknownNode)
     }
 
     fn node_mut(&mut self, node: SuffixTreeNodeId) -> Result<&mut SuffixTreeNode, SuffixTreeError> {
+        if node.owner != self.identity {
+            return Err(SuffixTreeError::UnknownNode);
+        }
         self.nodes
-            .get_mut(node.0)
+            .get_mut(node.index)
             .ok_or(SuffixTreeError::UnknownNode)
     }
 
     fn edge(&self, edge: SuffixTreeEdgeId) -> Result<&SuffixTreeEdge, SuffixTreeError> {
-        self.edges.get(edge.0).ok_or(SuffixTreeError::UnknownEdge)
+        if edge.owner != self.identity {
+            return Err(SuffixTreeError::UnknownEdge);
+        }
+        self.edges
+            .get(edge.index)
+            .ok_or(SuffixTreeError::UnknownEdge)
     }
 
     fn internal_label(
@@ -1562,8 +1610,8 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        SuffixTree, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind, SuffixTreeOccurrence,
-        SuffixTreeToken,
+        INFO_DYNAMIC_DICTIONARY, SuffixTree, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,
+        SuffixTreeOccurrence, SuffixTreeToken,
     };
 
     fn token_json(token: &SuffixTreeToken<i32>) -> Value {
@@ -1676,6 +1724,124 @@ mod tests {
         );
         assert!(!tree.is_pattern_active(1).unwrap());
         assert!(tree.is_pattern_active(4).unwrap());
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_suffix_tree_surface_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/suffix_tree_surface.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            expected["oracle"],
+            json!({
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1"
+            })
+        );
+
+        let mut tree = SuffixTree::new();
+        assert_eq!(tree.insert_pattern(vec![1, 2, 3]), Ok(1));
+        let root = tree.root_node();
+        let internal = tree.create_internal_node(1, 1, 1).unwrap();
+        let external = tree.create_external_node(1, 2).unwrap();
+        let edge = tree.create_edge(internal, external, 1, 2, None).unwrap();
+
+        let split_parent = tree.create_internal_node(1, 1, 1).unwrap();
+        let split_child = tree.create_external_node(1, 1).unwrap();
+        let split_edge = tree
+            .create_edge(split_parent, split_child, 1, 1, Some(2))
+            .unwrap();
+        let split_node = tree.create_internal_node(1, 1, 1).unwrap();
+        tree.add_internal_node(split_edge, 1, split_node).unwrap();
+        let split_remainder = tree.node_edges(split_node).unwrap()[0];
+
+        let added_external = tree.create_external_node(1, 1).unwrap();
+        let added_edge = tree.add_external_node(root, added_external).unwrap();
+
+        let mut other_tree = SuffixTree::new();
+        assert_eq!(other_tree.insert_pattern(vec![1, 2, 3]), Ok(1));
+        let other_root = other_tree.root_node();
+        let other_edge = other_tree.node_edges(other_root).unwrap()[0];
+
+        assert_eq!(
+            json!(INFO_DYNAMIC_DICTIONARY == "InfoDynamicDictionary"),
+            expected["info_class"]
+        );
+        assert_eq!(json!([true, true]), expected["tree_filters"]);
+        assert_eq!(
+            json!([
+                true,
+                true,
+                tree.node_kind(root).unwrap() == SuffixTreeNodeKind::Internal,
+                tree.node_kind(root).unwrap() == SuffixTreeNodeKind::External,
+                true,
+                tree.node_kind(root).unwrap() == SuffixTreeNodeKind::Internal
+            ]),
+            expected["root_filters"]
+        );
+        assert_eq!(
+            json!([
+                true,
+                true,
+                tree.node_kind(external).unwrap() == SuffixTreeNodeKind::Internal,
+                tree.node_kind(external).unwrap() == SuffixTreeNodeKind::External,
+                true
+            ]),
+            expected["external_filters"]
+        );
+        assert_eq!(json!([true, true, true]), expected["edge_filters"]);
+        assert_eq!(
+            json!({
+                "dead_length": tree.dead_length(),
+                "pattern_count": tree.number_of_patterns(),
+                "pattern_1": tree.pattern(1).unwrap()
+            }),
+            expected["components"]
+        );
+        assert_eq!(
+            json!({
+                "internal_label": token_list_json(&tree.label_of_node(internal).unwrap()),
+                "external_label": token_list_json(&tree.label_of_node(external).unwrap()),
+                "edge_label": token_list_json(&tree.label_of_edge(edge).unwrap()),
+                "root_parent_is_zero": tree.parent_node(root).unwrap().is_none(),
+                "child_parent_identity": tree.parent_node(external).unwrap() == Some(internal),
+                "edge_lookup_identity": tree.edge_starting_at(internal, &SuffixTreeToken::Symbol(2)).unwrap() == Some(edge),
+                "missing_lookup_is_fail": tree.edge_starting_at(internal, &SuffixTreeToken::Symbol(9)).unwrap().is_none(),
+                "self_equal": edge == edge,
+                "distinct_equal": edge == split_edge,
+                "other_tree_root_equal": root == other_root,
+                "other_tree_edge_equal": edge == other_edge
+            }),
+            expected["manual_edge"]
+        );
+        assert_eq!(
+            json!({
+                "prefix": token_list_json(&tree.label_of_edge(split_edge).unwrap()),
+                "remainder": token_list_json(&tree.label_of_edge(split_remainder).unwrap()),
+                "old_child_parent_identity": tree.parent_node(split_child).unwrap() == Some(split_node)
+            }),
+            expected["split"]
+        );
+        assert_eq!(
+            json!({
+                "edge_label": token_list_json(&tree.label_of_edge(added_edge).unwrap()),
+                "parent_identity": tree.parent_node(added_external).unwrap() == Some(root)
+            }),
+            expected["add_external"]
+        );
+
+        assert_eq!(
+            tree.parent_node(other_root),
+            Err(SuffixTreeError::UnknownNode)
+        );
+        assert_eq!(
+            tree.label_of_edge(other_edge),
+            Err(SuffixTreeError::UnknownEdge)
+        );
     }
 
     #[test]
