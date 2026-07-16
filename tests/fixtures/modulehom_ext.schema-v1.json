@@ -452,6 +452,48 @@
         "2",
         "3"
       ]
+    },
+    "rigid": {
+      "a2_s1": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "a2_s2": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "a2_zero": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "dual_simple": {
+        "has_before": false,
+        "value": false,
+        "has_after": true
+      },
+      "dual_projective": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "dual_sum": {
+        "has_before": false,
+        "value": false,
+        "has_after": true
+      },
+      "kronecker_s1": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "kronecker_s2": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
     }
   },
   "binary": {
@@ -907,6 +949,48 @@
         "0*Z(2)",
         "Z(2)^0"
       ]
+    },
+    "rigid": {
+      "a2_s1": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "a2_s2": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "a2_zero": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "dual_simple": {
+        "has_before": false,
+        "value": false,
+        "has_after": true
+      },
+      "dual_projective": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "dual_sum": {
+        "has_before": false,
+        "value": false,
+        "has_after": true
+      },
+      "kronecker_s1": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      },
+      "kronecker_s2": {
+        "has_before": false,
+        "value": true,
+        "has_after": true
+      }
     }
   }
 }

@@ -96,6 +96,16 @@ PrintExt := function(ext, field)
     fi;
 end;
 
+PrintRigid := function(module)
+    local has_before, value, has_after;
+    has_before := HasIsRigidModule(module);
+    value := IsRigidModule(module);
+    has_after := HasIsRigidModule(module);
+    Print("{\"has_before\":", has_before);
+    Print(",\"value\":", value);
+    Print(",\"has_after\":", has_after, "}");
+end;
+
 PrintCase := function(field)
     local quiver, algebra, simples, zero, a2_12, a2_11, a2_22, a2_02,
           loop_quiver, parent, x, quotient, quotient_simple,
@@ -139,6 +149,15 @@ PrintCase := function(field)
     Print(",\"dual_simple_projective\":"); PrintExt(dual_sp, field);
     Print(",\"dual_simple_sum\":"); PrintExt(dual_sum, field);
     Print(",\"kronecker_s1_s2\":"); PrintExt(kronecker_ext, field);
+    Print(",\"rigid\":{\"a2_s1\":"); PrintRigid(simples[1]);
+    Print(",\"a2_s2\":"); PrintRigid(simples[2]);
+    Print(",\"a2_zero\":"); PrintRigid(zero);
+    Print(",\"dual_simple\":"); PrintRigid(quotient_simple);
+    Print(",\"dual_projective\":"); PrintRigid(quotient_projective);
+    Print(",\"dual_sum\":"); PrintRigid(quotient_sum);
+    Print(",\"kronecker_s1\":"); PrintRigid(kronecker_simples[1]);
+    Print(",\"kronecker_s2\":"); PrintRigid(kronecker_simples[2]);
+    Print("}");
     Print("}");
 end;
 

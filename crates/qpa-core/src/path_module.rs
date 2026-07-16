@@ -93,6 +93,7 @@ struct PathAlgebraModuleData<F: Field> {
     is_indecomposable: OnceLock<bool>,
     is_simple_qpa: OnceLock<bool>,
     is_semisimple: OnceLock<bool>,
+    is_rigid: OnceLock<bool>,
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     first_syzygy: OnceLock<PathAlgebraModule<F>>,
@@ -125,6 +126,7 @@ impl<F: Field> PathAlgebraModuleData<F> {
             is_indecomposable: OnceLock::new(),
             is_simple_qpa: OnceLock::new(),
             is_semisimple: OnceLock::new(),
+            is_rigid: OnceLock::new(),
             projective_cover_weak: RwLock::new(None),
             injective_envelope_weak: RwLock::new(None),
             first_syzygy: OnceLock::new(),
@@ -291,6 +293,20 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_is_projective_module(&self, value: bool) -> bool {
         *self.0.is_projective.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsRigidModule` value, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_rigid_module(&self) -> Option<bool> {
+        self.0.is_rigid.get().copied()
+    }
+
+    /// Install QPA's `IsRigidModule` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_rigid_module(&self, value: bool) -> bool {
+        *self.0.is_rigid.get_or_init(|| value)
     }
 
     /// Return QPA's cached `IsInjectiveModule` value, if installed.

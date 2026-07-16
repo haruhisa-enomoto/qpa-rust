@@ -37,7 +37,7 @@ pub use module::{
     element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
     first_syzygy, from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
     hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
-    is_injective_module, is_projective_module, lifting_morphism_from_projective,
+    is_injective_module, is_projective_module, is_rigid_module, lifting_morphism_from_projective,
     loewy_length_of_algebra, matrix_of_homomorphism_between_projectives, projective_cover,
     simple_modules, socle_series,
 };

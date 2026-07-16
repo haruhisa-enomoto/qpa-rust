@@ -1238,6 +1238,25 @@ pub fn ext_over_algebra<F: Field>(
     })
 }
 
+/// Translate QPA's cached `IsRigidModule(M)` property.
+///
+/// This is exactly the source predicate
+/// `Length(ExtOverAlgebra(M, M)[2]) = 0`.
+///
+/// # Errors
+///
+/// Propagates every projective-cover, Hom, and quotient-space failure from
+/// [`ext_over_algebra`].
+pub fn is_rigid_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<bool, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_is_rigid_module() {
+        return Ok(cached);
+    }
+    let rigid = ext_over_algebra(module, module)?.dimension() == 0;
+    Ok(module.cache_is_rigid_module(rigid))
+}
+
 struct ExtQuotientComplement<F: Field> {
     representatives: Vec<Vec<F::Element>>,
     coordinate_basis: DenseMatrix<F>,
@@ -2066,8 +2085,9 @@ mod tests {
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
         from_matrix_to_homomorphism_of_projectives, hom_factoring_through_projectives,
         hom_from_projective, indec_injective_modules, indec_projective_modules, injective_envelope,
-        is_injective_module, is_projective_module, lifting_morphism_from_projective,
-        matrix_of_homomorphism_between_projectives, projective_cover, simple_modules, socle_series,
+        is_injective_module, is_projective_module, is_rigid_module,
+        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
+        projective_cover, simple_modules, socle_series,
     };
     use crate::{enveloping_algebra, quotient_by_relations};
 
@@ -3364,6 +3384,17 @@ mod tests {
         let kronecker_simples = simple_modules(&kronecker).unwrap();
         let kronecker_ext = ext_over_algebra(&kronecker_simples[0], &kronecker_simples[1]).unwrap();
 
+        let rigid_json = |module: &PathAlgebraModule<F>| {
+            let has_before = module.cached_is_rigid_module().is_some();
+            let value = is_rigid_module(module).unwrap();
+            let has_after = module.cached_is_rigid_module().is_some();
+            json!({
+                "has_before": has_before,
+                "value": value,
+                "has_after": has_after,
+            })
+        };
+
         json!({
             "a2_s1_s2": ext_json(&a2_12, &field, coefficient),
             "a2_s1_s1": ext_json(&a2_11, &field, coefficient),
@@ -3373,6 +3404,16 @@ mod tests {
             "dual_simple_projective": ext_json(&dual_projective_ext, &field, coefficient),
             "dual_simple_sum": ext_json(&dual_sum, &field, coefficient),
             "kronecker_s1_s2": ext_json(&kronecker_ext, &field, coefficient),
+            "rigid": {
+                "a2_s1": rigid_json(&simples[0]),
+                "a2_s2": rigid_json(&simples[1]),
+                "a2_zero": rigid_json(&zero),
+                "dual_simple": rigid_json(&quotient_simple),
+                "dual_projective": rigid_json(&quotient_projective),
+                "dual_sum": rigid_json(&quotient_sum),
+                "kronecker_s1": rigid_json(&kronecker_simples[0]),
+                "kronecker_s2": rigid_json(&kronecker_simples[1]),
+            },
         })
     }
 
