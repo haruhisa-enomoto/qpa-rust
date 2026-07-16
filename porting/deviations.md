@@ -159,3 +159,24 @@ the computations remain translations of the cited source methods.
 - Evidence: `tests/gap-reference/ordering_dispatch.g`,
   `tests/fixtures/ordering_dispatch.schema-v1.json`, and the ordering dispatch
   tests in `crates/qpa-core/src/ordering.rs`.
+
+## INVLENLEX-001 — Typed zero sentinel for inverse tips and walks
+
+- Source: QPA `lib/invlenlexgrb.gi`, `TipMonomialInvLenInvLex` and
+  `TipWalkInvLenInvLex` at lines 41–65.
+- Affected Rust operations: `tip_monomial_inv_len_inv_lex` and
+  `tip_walk_inv_len_inv_lex`.
+- Difference: on the zero input, QPA's monomial method returns `Zero(e)`, a
+  path-algebra element rather than a path. Passing that result to `WalkOfPath`
+  makes the walk method fail by GAP method dispatch. Rust returns `None` for
+  both optional results; nonzero monomials and walks retain the exact path and
+  arrow order.
+- Reason: a zero polynomial has no leading monomial or walk. `Option` exposes
+  that source sentinel without mixing incompatible Rust representations or
+  reproducing an interpreter dispatch failure.
+- Compatibility impact: callers match `None` instead of testing a zero
+  algebra element or catching the subsequent GAP error. Every nonzero result
+  is unchanged.
+- Evidence: `tests/gap-reference/invlenlex.g` and
+  `tests/fixtures/invlenlex.schema-v1.json` pin the zero monomial sentinel and
+  zero-walk failure alongside the Rust optional results.

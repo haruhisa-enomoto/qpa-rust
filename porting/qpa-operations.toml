@@ -9541,9 +9541,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9554,9 +9554,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_coefficient_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9567,10 +9567,10 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "tip_monomial_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
+deviations = ["INVLENLEX-001"]
 
 [[entries]]
 id = "invlenlexgrb:DeclareOperation:TipWalkInvLenInvLex:1"
@@ -9580,10 +9580,10 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "tip_walk_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
+deviations = ["INVLENLEX-001"]
 
 [[entries]]
 id = "invlenlexgrb:DeclareOperation:GroebnerBasisInvLenInvLex:1"
@@ -9593,9 +9593,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "groebner_basis_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9606,9 +9606,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "remainder_of_division_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9619,9 +9619,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduced_list_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9632,9 +9632,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_reduced_list_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9645,9 +9645,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "leftmost_occurrence_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9658,9 +9658,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "biggest_homogeneous_part_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9671,9 +9671,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "biggest_homogeneous_parts_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9684,9 +9684,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "truncate_element"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9697,9 +9697,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 1
 source_end = 21
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9710,9 +9710,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 23
 source_end = 39
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_coefficient_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9723,10 +9723,10 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 41
 source_end = 56
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "tip_monomial_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
+deviations = ["INVLENLEX-001"]
 
 [[entries]]
 id = "invlenlexgrb:InstallMethod:TipWalkInvLenInvLex:1"
@@ -9736,10 +9736,10 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 58
 source_end = 65
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "tip_walk_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
+deviations = ["INVLENLEX-001"]
 
 [[entries]]
 id = "invlenlexgrb:InstallMethod:TruncateElement:1"
@@ -9749,9 +9749,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 67
 source_end = 89
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "truncate_element"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9762,9 +9762,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 92
 source_end = 147
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "groebner_basis_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9775,9 +9775,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 149
 source_end = 173
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduced_list_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9788,9 +9788,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 175
 source_end = 200
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tip_reduced_list_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9801,9 +9801,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 202
 source_end = 239
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "remainder_of_division_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9814,9 +9814,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 241
 source_end = 258
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "leftmost_occurrence_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9827,9 +9827,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 260
 source_end = 291
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "biggest_homogeneous_part_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9840,9 +9840,9 @@ source_file = "upstream/qpa/lib/invlenlexgrb.gi"
 source_start = 293
 source_end = 312
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "biggest_homogeneous_parts_inv_len_inv_lex"
+tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
 
 [[entries]]

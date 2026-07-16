@@ -66,6 +66,13 @@ inverse_remainder := RemainderOfDivisionInvLenInvLexGroebnerBasis(x3 + x, [x2], 
 inverse_reduced := ReducedListInvLenInvLexQPA([x2, x3], KQ);;
 inverse_tip_reduced := TipReducedListInvLenInvLex([x2, x3], KQ);;
 inverse_basis := GroebnerBasisInvLenInvLex([x3], KQ);;
+zero_tip := TipInvLenInvLex(Zero(KQ));;
+zero_tip_coefficient := TipCoefficientInvLenInvLex(Zero(KQ));;
+zero_tip_monomial := TipMonomialInvLenInvLex(Zero(KQ));;
+zero_tip_walk := CALL_WITH_CATCH(TipWalkInvLenInvLex, [Zero(KQ)]);;
+truncate_zero := CALL_WITH_CATCH(TruncateElement, [mixed, 0]);;
+leftmost_empty := LeftmostOccurrenceInvLenInvLex([1, 2], []);;
+leftmost_missing := LeftmostOccurrenceInvLenInvLex([1, 2], [2, 1]);;
 
 F5 := GF(5);;
 KQ5 := PathAlgebra(F5, Q);;
@@ -84,6 +91,13 @@ x22 := x_2 * x_2;;
 x32 := x22 * x_2;;
 mixed2 := v2 + x_2 + x22 + x32;;
 inverse_basis2 := GroebnerBasisInvLenInvLex([x32], KQ2);;
+
+Qsplit := Quiver(2, [[1, 1, "a"], [2, 2, "b"]]);;
+KQsplit := PathAlgebra(Rationals, Qsplit);;
+asplit := ElementOfPathAlgebra(KQsplit, Qsplit.a);;
+bsplit := ElementOfPathAlgebra(KQsplit, Qsplit.b);;
+nonuniform_basis := GroebnerBasisInvLenInvLex(
+    [asplit^2 + bsplit^2], KQsplit);;
 
 Print("{\"schema_version\":1,\"kind\":\"invlenlex\",\"oracle\":{");
 Print("\"gap_version\":");
@@ -115,6 +129,18 @@ PrintRationalElementList(inverse_reduced);
 Print(",\"tip_reduced_list\":");
 PrintRationalElementList(inverse_tip_reduced);
 Print(",\"leftmost_occurrence\":", LeftmostOccurrenceInvLenInvLex([1, 2, 1, 2], [1, 2]));
+Print(",\"leftmost_empty\":", leftmost_empty);
+Print(",\"leftmost_missing\":");
+if leftmost_missing = fail then Print("null"); else Print(leftmost_missing); fi;
+Print(",\"zero\":{\"tip\":");
+PrintRationalElement(zero_tip);
+Print(",\"tip_coefficient\":[", NumeratorRat(zero_tip_coefficient), ",",
+      DenominatorRat(zero_tip_coefficient), "]");
+Print(",\"tip_monomial_is_zero\":", IsZero(zero_tip_monomial));
+Print(",\"tip_walk_success\":", zero_tip_walk[1]);
+Print(",\"truncate_zero_success\":", truncate_zero[1], "}");
+Print(",\"nonuniform_basis\":");
+PrintRationalElementList(nonuniform_basis);
 Print(",\"basis\":");
 PrintRationalElementList(inverse_basis);
 Print("},\"f5\":{\"tip\":");

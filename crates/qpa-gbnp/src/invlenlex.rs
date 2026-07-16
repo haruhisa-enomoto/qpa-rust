@@ -8,7 +8,7 @@
 use numerica::domains::Field;
 use qpa_core::{
     ArrowIndex, DenseMatrix, GroebnerBasis, GroebnerError, MatrixError, Path, PathAlgebra,
-    PathAlgebraElement, PathAlgebraError, PathError, leftmost_occurrence, make_uniform,
+    PathAlgebraElement, PathAlgebraError, PathError, leftmost_occurrence, make_uniform_list,
     qpa_in_arrow_ideal,
 };
 use thiserror::Error;
@@ -131,6 +131,19 @@ pub fn biggest_homogeneous_parts_inv_len_inv_lex<F: Field>(
         .iter()
         .map(biggest_homogeneous_part_inv_len_inv_lex)
         .collect()
+}
+
+/// Translate QPA's duplicate `LeftmostOccurrenceInvLenInvLex` method.
+///
+/// QPA returns one-based inclusive endpoint pairs. Rust returns the equivalent
+/// zero-based half-open range; an empty pattern is `Some(0..0)` and absence is
+/// `None`.
+#[must_use]
+pub fn leftmost_occurrence_inv_len_inv_lex<T: PartialEq>(
+    sequence: &[T],
+    pattern: &[T],
+) -> Option<std::ops::Range<usize>> {
+    leftmost_occurrence(sequence, pattern)
 }
 
 /// Translate `RemainderOfDivisionInvLenInvLexGroebnerBasis`.
@@ -446,19 +459,6 @@ fn context_from_walk<F: Field>(
     Ok(algebra.element(Path::from_arrow_list(algebra.quiver(), &arrows)?)?)
 }
 
-fn make_uniform_list<F: Field>(
-    elements: &[PathAlgebraElement<F>],
-    algebra: &PathAlgebra<F>,
-) -> Result<Vec<PathAlgebraElement<F>>, InvLenLexError> {
-    let mut result = Vec::new();
-    for element in elements {
-        for component in make_uniform(element, algebra)? {
-            add_set(&mut result, component)?;
-        }
-    }
-    Ok(result)
-}
-
 fn ensure_algebra<F: Field>(
     element: &PathAlgebraElement<F>,
     algebra: &PathAlgebra<F>,
@@ -562,9 +562,10 @@ mod tests {
     use super::{
         InvLenLexError, biggest_homogeneous_part_inv_len_inv_lex,
         biggest_homogeneous_parts_inv_len_inv_lex, groebner_basis_inv_len_inv_lex,
-        reduced_list_inv_len_inv_lex, remainder_of_division_inv_len_inv_lex,
-        tip_coefficient_inv_len_inv_lex, tip_inv_len_inv_lex, tip_monomial_inv_len_inv_lex,
-        tip_reduced_list_inv_len_inv_lex, tip_walk_inv_len_inv_lex, truncate_element,
+        leftmost_occurrence_inv_len_inv_lex, reduced_list_inv_len_inv_lex,
+        remainder_of_division_inv_len_inv_lex, tip_coefficient_inv_len_inv_lex,
+        tip_inv_len_inv_lex, tip_monomial_inv_len_inv_lex, tip_reduced_list_inv_len_inv_lex,
+        tip_walk_inv_len_inv_lex, truncate_element,
     };
 
     struct LoopCase<F: Field> {
@@ -726,6 +727,32 @@ mod tests {
         let tip = tip_inv_len_inv_lex(&mixed).unwrap();
         let tip_monomial = tip_monomial_inv_len_inv_lex(&mixed).unwrap();
         let tip_walk = tip_walk_inv_len_inv_lex(&mixed).unwrap();
+        let occurrence = leftmost_occurrence_inv_len_inv_lex(&[1, 2, 1, 2], &[1, 2]).unwrap();
+        let empty_occurrence = leftmost_occurrence_inv_len_inv_lex(&[1, 2], &[]).unwrap();
+        let missing_occurrence = leftmost_occurrence_inv_len_inv_lex(&[1, 2], &[2, 1]);
+        let zero = rational.algebra.zero();
+        let zero_tip = tip_inv_len_inv_lex(&zero).unwrap();
+
+        let split_quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "a"),
+                ArrowSpec::named(vertex(2), vertex(2), "b"),
+            ],
+        )
+        .unwrap();
+        let split_algebra = PathAlgebra::new(Q, split_quiver).unwrap();
+        let split_generators = split_algebra.generators();
+        let nonuniform_relation = split_generators[2]
+            .multiply(&split_generators[2])
+            .unwrap()
+            .add(&split_generators[3].multiply(&split_generators[3]).unwrap())
+            .unwrap();
+        let nonuniform_basis = groebner_basis_inv_len_inv_lex(
+            std::slice::from_ref(&nonuniform_relation),
+            &split_algebra,
+        )
+        .unwrap();
         assert_eq!(
             json!({
                 "schema_version": 1,
@@ -779,7 +806,25 @@ mod tests {
                         &inverse_tip_reduced,
                         &rational_coefficient_json
                     ),
-                    "leftmost_occurrence": [1, 2],
+                    "leftmost_occurrence": [occurrence.start + 1, occurrence.end],
+                    "leftmost_empty": [empty_occurrence.start + 1, empty_occurrence.end],
+                    "leftmost_missing": missing_occurrence.map(|range| [
+                        range.start + 1,
+                        range.end
+                    ]),
+                    "zero": {
+                        "tip": element_json(&zero_tip, &rational_coefficient_json),
+                        "tip_coefficient": rational_coefficient_json(
+                            &tip_coefficient_inv_len_inv_lex(&zero)
+                        ),
+                        "tip_monomial_is_zero": tip_monomial_inv_len_inv_lex(&zero).is_none(),
+                        "tip_walk_success": tip_walk_inv_len_inv_lex(&zero).is_some(),
+                        "truncate_zero_success": truncate_element(&mixed, 0).is_ok()
+                    },
+                    "nonuniform_basis": element_list_json(
+                        &nonuniform_basis,
+                        &rational_coefficient_json
+                    ),
                     "basis": element_list_json(&inverse_basis, &rational_coefficient_json)
                 },
                 "f5": {

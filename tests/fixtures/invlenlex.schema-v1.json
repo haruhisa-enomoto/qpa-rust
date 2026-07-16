@@ -38,6 +38,19 @@
       [{"path": [2, 2], "coefficient": [1, 1]}]
     ],
     "leftmost_occurrence": [1, 2],
+    "leftmost_empty": [1, 0],
+    "leftmost_missing": null,
+    "zero": {
+      "tip": [],
+      "tip_coefficient": [0, 1],
+      "tip_monomial_is_zero": true,
+      "tip_walk_success": false,
+      "truncate_zero_success": false
+    },
+    "nonuniform_basis": [
+      [{"path": [3, 3], "coefficient": [1, 1]}],
+      [{"path": [4, 4], "coefficient": [1, 1]}]
+    ],
     "basis": [
       [{"path": [2, 2, 2], "coefficient": [1, 1]}]
     ]

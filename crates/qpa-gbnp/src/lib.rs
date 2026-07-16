@@ -34,9 +34,10 @@ pub use higher_preprojective::{
 pub use invlenlex::{
     InvLenLexError, biggest_homogeneous_part_inv_len_inv_lex,
     biggest_homogeneous_parts_inv_len_inv_lex, groebner_basis_inv_len_inv_lex,
-    reduced_list_inv_len_inv_lex, remainder_of_division_inv_len_inv_lex,
-    tip_coefficient_inv_len_inv_lex, tip_inv_len_inv_lex, tip_monomial_inv_len_inv_lex,
-    tip_reduced_list_inv_len_inv_lex, tip_walk_inv_len_inv_lex, truncate_element,
+    leftmost_occurrence_inv_len_inv_lex, reduced_list_inv_len_inv_lex,
+    remainder_of_division_inv_len_inv_lex, tip_coefficient_inv_len_inv_lex, tip_inv_len_inv_lex,
+    tip_monomial_inv_len_inv_lex, tip_reduced_list_inv_len_inv_lex, tip_walk_inv_len_inv_lex,
+    truncate_element,
 };
 pub use module::{
     EnvelopingModuleError, ExtOverAlgebraResult, FrobeniusForm, FrobeniusLinearFunctional,
