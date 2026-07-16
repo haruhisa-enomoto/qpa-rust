@@ -4,12 +4,14 @@
 //! The ordered standard basis and row-vector coefficient conventions are
 //! observable in QPA's higher preprojective-algebra implementation.
 
-use std::sync::Arc;
+use std::{cmp::Ordering, sync::Arc};
 
-use numerica::domains::Field;
+use numerica::domains::{Field, integer::Integer};
 use thiserror::Error;
 
-use crate::{DenseMatrix, MatrixError};
+use crate::{
+    CoefficientDomainError, DenseMatrix, MatrixError, QpaCoefficientField, QpaFieldCharacteristic,
+};
 
 #[derive(Debug)]
 struct StructureConstantsAlgebraData<F: Field> {
@@ -169,6 +171,1194 @@ impl<F: Field> StructureConstantsAlgebra<F> {
             .map(|coordinates| self.element(coordinates))
             .transpose()
     }
+
+    /// Translate GAP's `CentreFromSCTable` basis computation.
+    ///
+    /// The returned subalgebra basis consists of the exact left-nullspace rows
+    /// of the structure-constant commutator system.
+    ///
+    /// # Errors
+    ///
+    /// Propagates exact matrix and subalgebra-coordinate construction.
+    pub fn centre(&self) -> Result<StructureConstantsSubalgebra<F>, StructureConstantsError> {
+        let dimension = self.dimension();
+        let columns = dimension
+            .checked_mul(dimension)
+            .ok_or(StructureConstantsError::SubspaceMatrixShapeOverflow { dimension })?;
+        let equation_length = dimension
+            .checked_mul(columns)
+            .ok_or(StructureConstantsError::SubspaceMatrixShapeOverflow { dimension })?;
+        let mut equations = vec![self.field().zero(); equation_length];
+        for unknown in 0..dimension {
+            for commuting_with in 0..dimension {
+                let offset = unknown * columns + commuting_with * dimension;
+                for coordinate in 0..dimension {
+                    equations[offset + coordinate] = self.field().sub(
+                        &self.basis_product(unknown, commuting_with)[coordinate],
+                        &self.basis_product(commuting_with, unknown)[coordinate],
+                    );
+                }
+            }
+        }
+        let basis = DenseMatrix::from_flat(dimension, columns, equations, self.field().clone())?
+            .nullspace_rows();
+        StructureConstantsSubalgebra::from_basis(self.clone(), basis)
+    }
+
+    fn coordinate_product(&self, left: &[F::Element], right: &[F::Element]) -> Vec<F::Element> {
+        debug_assert_eq!(left.len(), self.dimension());
+        debug_assert_eq!(right.len(), self.dimension());
+        let mut coordinates = vec![self.field().zero(); self.dimension()];
+        for (left_index, left_coefficient) in left.iter().enumerate() {
+            if self.field().is_zero(left_coefficient) {
+                continue;
+            }
+            for (right_index, right_coefficient) in right.iter().enumerate() {
+                if self.field().is_zero(right_coefficient) {
+                    continue;
+                }
+                let scalar = self.field().mul(left_coefficient, right_coefficient);
+                for (coordinate, product_coefficient) in coordinates
+                    .iter_mut()
+                    .zip(self.basis_product(left_index, right_index))
+                {
+                    self.field()
+                        .add_mul_assign(coordinate, &scalar, product_coefficient);
+                }
+            }
+        }
+        coordinates
+    }
+
+    /// Multiply two entered coordinate rows in the ordered standard basis.
+    ///
+    /// This is the coordinate-level operation used by QPA algorithms that
+    /// temporarily regard ideals and quotient spaces as GAP vector spaces.
+    ///
+    /// # Errors
+    ///
+    /// Rejects either row when its width differs from the algebra dimension.
+    pub fn multiply_coordinates(
+        &self,
+        left: &[F::Element],
+        right: &[F::Element],
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        if left.len() != self.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: left.len(),
+                expected: self.dimension(),
+            });
+        }
+        if right.len() != self.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: right.len(),
+                expected: self.dimension(),
+            });
+        }
+        Ok(self.coordinate_product(left, right))
+    }
+
+    fn left_regular_matrix(
+        &self,
+        coordinates: &[F::Element],
+    ) -> Result<DenseMatrix<F>, StructureConstantsError> {
+        if coordinates.len() != self.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: coordinates.len(),
+                expected: self.dimension(),
+            });
+        }
+        let mut matrix =
+            DenseMatrix::zero(self.dimension(), self.dimension(), self.field().clone());
+        for right in 0..self.dimension() {
+            let mut standard = vec![self.field().zero(); self.dimension()];
+            standard[right] = self.field().one();
+            let product = self.coordinate_product(coordinates, &standard);
+            for (row, coefficient) in product.into_iter().enumerate() {
+                matrix[(row, right)] = coefficient;
+            }
+        }
+        Ok(matrix)
+    }
+
+    /// Construct GAP's natural quotient by an entered ideal basis.
+    ///
+    /// QPA/GAP extends the ideal basis by successive standard basis vectors;
+    /// those accepted vectors are retained as quotient-basis lifts.
+    ///
+    /// # Errors
+    ///
+    /// Rejects an incorrectly shaped or dependent ideal basis and propagates
+    /// exact quotient multiplication and coordinate construction.
+    pub fn quotient_by_ideal_basis(
+        &self,
+        ideal_basis: DenseMatrix<F>,
+    ) -> Result<StructureConstantsQuotient<F>, StructureConstantsError> {
+        StructureConstantsQuotient::new(self.clone(), ideal_basis)
+    }
+}
+
+impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
+    /// Translate GAP's `RadicalOfAlgebra` through its faithful left-regular
+    /// matrix representation.
+    ///
+    /// In characteristic zero this is GAP's trace-form nullspace. In positive
+    /// characteristic it follows the Cohen--Ivanyos--Wales ideal sequence from
+    /// `algmat.gi`, including GAP's spinning characteristic polynomials and
+    /// left-nullspace basis order. Prime-field Frobenius is the identity.
+    ///
+    /// # Errors
+    ///
+    /// Requires the multiplicative identity used by QPA's faithful adjoint
+    /// representation and propagates exact matrix/subalgebra failures.
+    pub fn radical(&self) -> Result<StructureConstantsSubalgebra<F>, StructureConstantsError> {
+        if self.dimension() == 0 {
+            return StructureConstantsSubalgebra::from_basis(
+                self.clone(),
+                DenseMatrix::zero(0, 0, self.field().clone()),
+            );
+        }
+        let identity = self
+            .find_multiplicative_identity()?
+            .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        match self.field().qpa_characteristic() {
+            QpaFieldCharacteristic::Zero => self.radical_characteristic_zero(),
+            QpaFieldCharacteristic::Prime(prime) => {
+                self.radical_positive_characteristic(identity.coordinates(), prime)
+            }
+        }
+    }
+
+    fn radical_characteristic_zero(
+        &self,
+    ) -> Result<StructureConstantsSubalgebra<F>, StructureConstantsError> {
+        let dimension = self.dimension();
+        let basis = self.basis_elements();
+        let matrices = basis
+            .iter()
+            .map(|element| self.left_regular_matrix(element.coordinates()))
+            .collect::<Result<Vec<_>, _>>()?;
+        let mut gram = DenseMatrix::zero(dimension, dimension, self.field().clone());
+        for left in 0..dimension {
+            for right in left..dimension {
+                let product = matrices[left].multiply(&matrices[right])?;
+                let mut trace = self.field().zero();
+                for diagonal in 0..dimension {
+                    self.field()
+                        .add_assign(&mut trace, &product[(diagonal, diagonal)]);
+                }
+                gram[(left, right)] = trace.clone();
+                gram[(right, left)] = trace;
+            }
+        }
+        StructureConstantsSubalgebra::from_basis(self.clone(), gram.nullspace_rows())
+    }
+
+    fn radical_positive_characteristic(
+        &self,
+        identity: &[F::Element],
+        prime: u64,
+    ) -> Result<StructureConstantsSubalgebra<F>, StructureConstantsError> {
+        let dimension = self.dimension();
+        let mut ideal_basis = DenseMatrix::identity(dimension, self.field().clone());
+        let identity_matrix = DenseMatrix::identity(dimension, self.field().clone());
+        let mut characteristic_polynomials: Vec<Vec<Vec<F::Element>>> = Vec::new();
+        let mut changed = true;
+        let mut prime_power = 1_u64;
+        let dimension_u64 = u64::try_from(dimension)
+            .map_err(|_| StructureConstantsError::SubspaceMatrixShapeOverflow { dimension })?;
+
+        while prime_power <= dimension_u64 {
+            let mut extended_basis = ideal_basis.clone();
+            if ideal_basis.solution_row(identity)?.is_none() {
+                let mut entries = ideal_basis.as_flat().to_vec();
+                entries.extend_from_slice(identity);
+                extended_basis = DenseMatrix::from_flat(
+                    ideal_basis.nrows() + 1,
+                    dimension,
+                    entries,
+                    self.field().clone(),
+                )?;
+            }
+            if changed {
+                let ideal_matrices = (0..ideal_basis.nrows())
+                    .map(|row| self.left_regular_matrix(ideal_basis.row(row)))
+                    .collect::<Result<Vec<_>, _>>()?;
+                let extended_matrices = (0..extended_basis.nrows())
+                    .map(|row| {
+                        if extended_basis.row(row) == identity {
+                            Ok(identity_matrix.clone())
+                        } else {
+                            self.left_regular_matrix(extended_basis.row(row))
+                        }
+                    })
+                    .collect::<Result<Vec<_>, StructureConstantsError>>()?;
+                characteristic_polynomials = ideal_matrices
+                    .iter()
+                    .map(|left| {
+                        extended_matrices
+                            .iter()
+                            .map(|right| {
+                                Ok(left
+                                    .multiply(right)?
+                                    .characteristic_polynomial_coefficients()?)
+                            })
+                            .collect::<Result<Vec<_>, StructureConstantsError>>()
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                changed = false;
+            }
+
+            let coefficient_index = dimension
+                .checked_sub(usize::try_from(prime_power).map_err(|_| {
+                    StructureConstantsError::SubspaceMatrixShapeOverflow { dimension }
+                })?)
+                .ok_or(StructureConstantsError::RadicalCoefficientIndex {
+                    dimension,
+                    prime_power,
+                })?;
+            let sign = if prime_power.is_multiple_of(2) {
+                self.field().one()
+            } else {
+                self.field().neg(&self.field().one())
+            };
+            let equations = DenseMatrix::from_flat(
+                ideal_basis.nrows(),
+                extended_basis.nrows(),
+                characteristic_polynomials
+                    .iter()
+                    .flat_map(|row| {
+                        row.iter().map(|polynomial| {
+                            self.field().mul(&sign, &polynomial[coefficient_index])
+                        })
+                    })
+                    .collect(),
+                self.field().clone(),
+            )?;
+            let nullspace = equations.nullspace_rows();
+            if nullspace.nrows() == 0 {
+                return StructureConstantsSubalgebra::from_basis(
+                    self.clone(),
+                    DenseMatrix::zero(0, dimension, self.field().clone()),
+                );
+            }
+            if nullspace.nrows() != ideal_basis.nrows() {
+                ideal_basis = nullspace.multiply(&ideal_basis)?;
+                changed = true;
+            }
+            let Some(next) = prime_power.checked_mul(prime) else {
+                break;
+            };
+            prime_power = next;
+        }
+        StructureConstantsSubalgebra::from_basis(self.clone(), ideal_basis)
+    }
+
+    /// Translate GAP's `CentralIdempotentsOfAlgebra` on the split prime-field
+    /// domain used by QPA's `AlgebraAsQuiverAlgebra` method.
+    ///
+    /// This follows GAP's centre/radical quotient, Frobenius-fixed small-field
+    /// splitting, large-field splitting-element branch, polynomial CRT
+    /// idempotents, radical lifting, and final sorted-list order. The current
+    /// field contract requires every splitting minimal polynomial to factor
+    /// linearly; nonsplit extension-field components are reported explicitly.
+    ///
+    /// # Errors
+    ///
+    /// Requires a finite prime field and a multiplicative identity, and
+    /// propagates centre, radical, quotient, polynomial, and lifting failures.
+    pub fn central_idempotents_split_prime(
+        &self,
+    ) -> Result<Vec<Vec<F::Element>>, StructureConstantsError> {
+        let elements = self
+            .field()
+            .qpa_elements()?
+            .ok_or(StructureConstantsError::FiniteFieldRequired)?;
+        let centre = self.centre()?;
+        let centre_radical = centre.algebra().radical()?;
+        let quotient = centre
+            .algebra()
+            .quotient_by_ideal_basis(centre_radical.basis().clone())?;
+        let quotient_identity = quotient
+            .algebra()
+            .find_multiplicative_identity()?
+            .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        let mut idempotents = split_commutative_semisimple_algebra(
+            quotient.algebra(),
+            quotient_identity.coordinates(),
+            &elements,
+        )?;
+
+        for idempotent in &mut idempotents {
+            *idempotent = quotient.lift_coordinates(idempotent)?;
+        }
+        lift_orthogonal_idempotents_across_radical(
+            centre.algebra(),
+            centre_radical.basis().nrows(),
+            &mut idempotents,
+        );
+        let element_order = elements;
+        idempotents
+            .sort_by(|left, right| compare_field_rows_by_gap_order(left, right, &element_order));
+        idempotents
+            .into_iter()
+            .map(|idempotent| centre.lift_coordinates(&idempotent))
+            .collect()
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CommutativeIdeal<F: Field> {
+    basis: DenseMatrix<F>,
+    identity: Vec<F::Element>,
+}
+
+fn split_commutative_semisimple_algebra<F: QpaCoefficientField>(
+    algebra: &StructureConstantsAlgebra<F>,
+    identity: &[F::Element],
+    elements: &[F::Element],
+) -> Result<Vec<Vec<F::Element>>, StructureConstantsError> {
+    let dimension = algebra.dimension();
+    if dimension == 0 {
+        return Ok(Vec::new());
+    }
+    if dimension == 1 {
+        return Ok(vec![identity.to_vec()]);
+    }
+    let threshold = dimension
+        .checked_mul(dimension)
+        .and_then(|square| square.checked_mul(2))
+        .ok_or(StructureConstantsError::SubspaceMatrixShapeOverflow { dimension })?;
+    if elements.len() > threshold {
+        let splitting = deterministic_gap_splitting_element(algebra, identity, threshold)?;
+        return lagrange_idempotents(algebra, identity, &splitting, elements);
+    }
+
+    let field = algebra.field();
+    let mut ideals = vec![CommutativeIdeal {
+        basis: DenseMatrix::identity(dimension, field.clone()),
+        identity: identity.to_vec(),
+    }];
+    let mut idempotents = vec![identity.to_vec()];
+    let mut position = 0usize;
+    let prime = match field.qpa_characteristic() {
+        QpaFieldCharacteristic::Prime(prime) => prime,
+        QpaFieldCharacteristic::Zero => return Err(StructureConstantsError::FiniteFieldRequired),
+    };
+
+    while position < ideals.len() {
+        if ideals[position].basis.nrows() == 1 {
+            position += 1;
+            continue;
+        }
+        let fixed = frobenius_fixed_subspace(algebra, &ideals[position], prime)?;
+        if fixed.nrows() == 1 {
+            position += 1;
+            continue;
+        }
+        let first = fixed.row(0).to_vec();
+        let identity_span = DenseMatrix::from_flat(
+            1,
+            dimension,
+            ideals[position].identity.clone(),
+            field.clone(),
+        )?;
+        let splitting = if identity_span.solution_row(&first)?.is_some() {
+            fixed.row(1).to_vec()
+        } else {
+            first
+        };
+        let pieces =
+            lagrange_idempotents(algebra, &ideals[position].identity, &splitting, elements)?;
+        if pieces.len() < 2 {
+            return Err(StructureConstantsError::FrobeniusElementDidNotSplit);
+        }
+        let old_basis = ideals[position].basis.clone();
+        ideals.remove(position);
+        idempotents.remove(position);
+        for piece in pieces {
+            let basis = idempotent_ideal_basis(algebra, &old_basis, &piece)?;
+            ideals.push(CommutativeIdeal {
+                basis,
+                identity: piece.clone(),
+            });
+            idempotents.push(piece);
+        }
+    }
+    Ok(idempotents)
+}
+
+fn deterministic_gap_splitting_element<F: QpaCoefficientField>(
+    algebra: &StructureConstantsAlgebra<F>,
+    identity: &[F::Element],
+    threshold: usize,
+) -> Result<Vec<F::Element>, StructureConstantsError> {
+    let coefficient_count = threshold
+        .checked_add(1)
+        .ok_or(StructureConstantsError::SplittingSearchOverflow)?;
+    let coefficients = (0..coefficient_count)
+        .map(|value| {
+            let integer = i64::try_from(value)
+                .map(Integer::from)
+                .map_err(|_| StructureConstantsError::SplittingSearchOverflow)?;
+            Ok(algebra.field().nth(integer))
+        })
+        .collect::<Result<Vec<_>, StructureConstantsError>>()?;
+    let mut digits = vec![0usize; algebra.dimension()];
+    loop {
+        let candidate = digits
+            .iter()
+            .map(|&digit| coefficients[digit].clone())
+            .collect::<Vec<_>>();
+        if minimum_polynomial(algebra, identity, &candidate)?.len() - 1 == algebra.dimension() {
+            return Ok(candidate);
+        }
+        let mut coordinate = 0usize;
+        while coordinate < digits.len() {
+            digits[coordinate] += 1;
+            if digits[coordinate] < coefficients.len() {
+                break;
+            }
+            digits[coordinate] = 0;
+            coordinate += 1;
+        }
+        if coordinate == digits.len() {
+            return Err(StructureConstantsError::MissingSplittingElement);
+        }
+    }
+}
+
+fn frobenius_fixed_subspace<F: Field>(
+    algebra: &StructureConstantsAlgebra<F>,
+    ideal: &CommutativeIdeal<F>,
+    field_size: u64,
+) -> Result<DenseMatrix<F>, StructureConstantsError> {
+    let mut equations =
+        Vec::with_capacity(ideal.basis.nrows().checked_mul(ideal.basis.nrows()).ok_or(
+            StructureConstantsError::SubspaceMatrixShapeOverflow {
+                dimension: algebra.dimension(),
+            },
+        )?);
+    for row in 0..ideal.basis.nrows() {
+        let basis_vector = ideal.basis.row(row);
+        let power = algebra_power(algebra, basis_vector, field_size, &ideal.identity);
+        let difference = subtract_rows(algebra.field(), &power, basis_vector);
+        let coordinates = ideal
+            .basis
+            .solution_row(&difference)?
+            .ok_or(StructureConstantsError::IdealBasisCoordinateFailure)?;
+        equations.extend(coordinates);
+    }
+    let fixed_coordinates = DenseMatrix::from_flat(
+        ideal.basis.nrows(),
+        ideal.basis.nrows(),
+        equations,
+        algebra.field().clone(),
+    )?
+    .nullspace_rows();
+    fixed_coordinates.multiply(&ideal.basis).map_err(Into::into)
+}
+
+fn idempotent_ideal_basis<F: Field>(
+    algebra: &StructureConstantsAlgebra<F>,
+    old_basis: &DenseMatrix<F>,
+    idempotent: &[F::Element],
+) -> Result<DenseMatrix<F>, StructureConstantsError> {
+    let mut generators = Vec::new();
+    for row in 0..old_basis.nrows() {
+        let left = algebra.coordinate_product(idempotent, old_basis.row(row));
+        let product = algebra.coordinate_product(&left, idempotent);
+        if product
+            .iter()
+            .any(|coefficient| !algebra.field().is_zero(coefficient))
+        {
+            generators.extend(product);
+        }
+    }
+    if generators.is_empty() {
+        return Ok(DenseMatrix::zero(
+            0,
+            algebra.dimension(),
+            algebra.field().clone(),
+        ));
+    }
+    let rows = generators.len() / algebra.dimension();
+    Ok(DenseMatrix::from_flat(
+        rows,
+        algebra.dimension(),
+        generators,
+        algebra.field().clone(),
+    )?
+    .semi_echelon_transformation()
+    .vectors)
+}
+
+fn minimum_polynomial<F: Field>(
+    algebra: &StructureConstantsAlgebra<F>,
+    identity: &[F::Element],
+    element: &[F::Element],
+) -> Result<Vec<F::Element>, StructureConstantsError> {
+    let mut powers = vec![identity.to_vec()];
+    let mut power = element.to_vec();
+    loop {
+        let basis = DenseMatrix::from_flat(
+            powers.len(),
+            algebra.dimension(),
+            powers.iter().flatten().cloned().collect(),
+            algebra.field().clone(),
+        )?;
+        if let Some(coordinates) = basis.solution_row(&power)? {
+            let mut polynomial = coordinates
+                .into_iter()
+                .map(|coefficient| algebra.field().neg(&coefficient))
+                .collect::<Vec<_>>();
+            polynomial.push(algebra.field().one());
+            return Ok(polynomial);
+        }
+        powers.push(power.clone());
+        power = algebra.coordinate_product(&power, element);
+    }
+}
+
+fn lagrange_idempotents<F: Field>(
+    algebra: &StructureConstantsAlgebra<F>,
+    identity: &[F::Element],
+    element: &[F::Element],
+    field_elements: &[F::Element],
+) -> Result<Vec<Vec<F::Element>>, StructureConstantsError> {
+    let polynomial = minimum_polynomial(algebra, identity, element)?;
+    let degree = polynomial.len() - 1;
+    let roots = field_elements
+        .iter()
+        .filter(|root| {
+            algebra.field().is_zero(&evaluate_scalar_polynomial(
+                algebra.field(),
+                &polynomial,
+                root,
+            ))
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    if roots.len() != degree {
+        return Err(StructureConstantsError::NonsplitMinimalPolynomial {
+            degree,
+            linear_factors: roots.len(),
+        });
+    }
+    let mut idempotents = Vec::with_capacity(roots.len());
+    for (position, root) in roots.iter().enumerate() {
+        let mut indicator = vec![algebra.field().one()];
+        let mut denominator = algebra.field().one();
+        for (other_position, other) in roots.iter().enumerate() {
+            if position == other_position {
+                continue;
+            }
+            indicator = multiply_scalar_polynomials(
+                algebra.field(),
+                &indicator,
+                &[algebra.field().neg(other), algebra.field().one()],
+            );
+            algebra
+                .field()
+                .mul_assign(&mut denominator, &algebra.field().sub(root, other));
+        }
+        let inverse = algebra.field().inv(&denominator);
+        for coefficient in &mut indicator {
+            algebra.field().mul_assign(coefficient, &inverse);
+        }
+        idempotents.push(evaluate_algebra_polynomial(
+            algebra, &indicator, element, identity,
+        ));
+    }
+    Ok(idempotents)
+}
+
+fn evaluate_scalar_polynomial<F: Field>(
+    field: &F,
+    polynomial: &[F::Element],
+    value: &F::Element,
+) -> F::Element {
+    let mut result = field.zero();
+    for coefficient in polynomial.iter().rev() {
+        result = field.add(&field.mul(&result, value), coefficient);
+    }
+    result
+}
+
+fn evaluate_algebra_polynomial<F: Field>(
+    algebra: &StructureConstantsAlgebra<F>,
+    polynomial: &[F::Element],
+    element: &[F::Element],
+    identity: &[F::Element],
+) -> Vec<F::Element> {
+    let mut result = vec![algebra.field().zero(); algebra.dimension()];
+    for coefficient in polynomial.iter().rev() {
+        result = algebra.coordinate_product(&result, element);
+        for (entry, identity_entry) in result.iter_mut().zip(identity) {
+            algebra
+                .field()
+                .add_mul_assign(entry, coefficient, identity_entry);
+        }
+    }
+    result
+}
+
+fn multiply_scalar_polynomials<F: Field>(
+    field: &F,
+    left: &[F::Element],
+    right: &[F::Element],
+) -> Vec<F::Element> {
+    let mut result = vec![field.zero(); left.len() + right.len() - 1];
+    for (left_degree, left_coefficient) in left.iter().enumerate() {
+        for (right_degree, right_coefficient) in right.iter().enumerate() {
+            field.add_mul_assign(
+                &mut result[left_degree + right_degree],
+                left_coefficient,
+                right_coefficient,
+            );
+        }
+    }
+    result
+}
+
+fn algebra_power<F: Field>(
+    algebra: &StructureConstantsAlgebra<F>,
+    element: &[F::Element],
+    exponent: u64,
+    identity: &[F::Element],
+) -> Vec<F::Element> {
+    let mut result = identity.to_vec();
+    let mut base = element.to_vec();
+    let mut exponent = exponent;
+    while exponent > 0 {
+        if !exponent.is_multiple_of(2) {
+            result = algebra.coordinate_product(&result, &base);
+        }
+        exponent /= 2;
+        if exponent > 0 {
+            base = algebra.coordinate_product(&base, &base);
+        }
+    }
+    result
+}
+
+fn subtract_rows<F: Field>(
+    field: &F,
+    left: &[F::Element],
+    right: &[F::Element],
+) -> Vec<F::Element> {
+    left.iter()
+        .zip(right)
+        .map(|(left, right)| field.sub(left, right))
+        .collect()
+}
+
+fn add_rows<F: Field>(field: &F, left: &[F::Element], right: &[F::Element]) -> Vec<F::Element> {
+    left.iter()
+        .zip(right)
+        .map(|(left, right)| field.add(left, right))
+        .collect()
+}
+
+fn lift_orthogonal_idempotents_across_radical<F: Field>(
+    algebra: &StructureConstantsAlgebra<F>,
+    radical_dimension: usize,
+    idempotents: &mut [Vec<F::Element>],
+) {
+    if idempotents.is_empty() {
+        return;
+    }
+    let mut correction_steps = 0usize;
+    let mut power = 1usize;
+    while power <= radical_dimension {
+        correction_steps += 1;
+        let Some(next) = power.checked_mul(2) else {
+            break;
+        };
+        power = next;
+    }
+    let mut accumulated = vec![algebra.field().zero(); algebra.dimension()];
+    let two = algebra.field().nth(Integer::from(2));
+    for idempotent in idempotents {
+        let accumulated_left = algebra.coordinate_product(&accumulated, idempotent);
+        let accumulated_right = algebra.coordinate_product(idempotent, &accumulated);
+        let sandwich = algebra.coordinate_product(&accumulated_left, &accumulated);
+        let mut lifted = subtract_rows(algebra.field(), idempotent, &accumulated_left);
+        lifted = subtract_rows(algebra.field(), &lifted, &accumulated_right);
+        lifted = add_rows(algebra.field(), &lifted, &sandwich);
+        let square = algebra.coordinate_product(&lifted, &lifted);
+        let mut defect = subtract_rows(algebra.field(), &square, &lifted);
+        for _ in 0..correction_steps {
+            let lifted_defect = algebra.coordinate_product(&lifted, &defect);
+            let mut next = add_rows(algebra.field(), &lifted, &defect);
+            for (entry, correction) in next.iter_mut().zip(lifted_defect) {
+                algebra.field().sub_mul_assign(entry, &two, &correction);
+            }
+            lifted = next;
+            let square = algebra.coordinate_product(&lifted, &lifted);
+            defect = subtract_rows(algebra.field(), &square, &lifted);
+        }
+        idempotent.clone_from(&lifted);
+        accumulated = add_rows(algebra.field(), &accumulated, &lifted);
+    }
+}
+
+fn compare_field_rows_by_gap_order<E: Eq>(
+    left: &[E],
+    right: &[E],
+    element_order: &[E],
+) -> Ordering {
+    for (left, right) in left.iter().zip(right) {
+        let left_position = element_order.iter().position(|element| element == left);
+        let right_position = element_order.iter().position(|element| element == right);
+        match left_position.cmp(&right_position) {
+            Ordering::Equal => {}
+            ordering => return ordering,
+        }
+    }
+    left.len().cmp(&right.len())
+}
+
+/// A subalgebra with an explicitly retained ordered basis in its ambient
+/// structure-constant algebra.
+#[derive(Clone, Debug)]
+pub struct StructureConstantsSubalgebra<F: Field> {
+    ambient: StructureConstantsAlgebra<F>,
+    basis: DenseMatrix<F>,
+    algebra: StructureConstantsAlgebra<F>,
+}
+
+/// GAP's natural quotient of a structure-constant algebra by an ideal basis.
+#[derive(Clone, Debug)]
+pub struct StructureConstantsQuotient<F: Field> {
+    original: StructureConstantsAlgebra<F>,
+    ideal_basis: DenseMatrix<F>,
+    projection: DenseMatrix<F>,
+    lifts: DenseMatrix<F>,
+    algebra: StructureConstantsAlgebra<F>,
+}
+
+impl<F: Field> StructureConstantsQuotient<F> {
+    fn new(
+        original: StructureConstantsAlgebra<F>,
+        ideal_basis: DenseMatrix<F>,
+    ) -> Result<Self, StructureConstantsError> {
+        let dimension = original.dimension();
+        if ideal_basis.ncols() != dimension {
+            return Err(StructureConstantsError::IdealBasisWidth {
+                actual: ideal_basis.ncols(),
+                expected: dimension,
+            });
+        }
+        let kernel_basis = ideal_basis.semi_echelon_transformation().vectors;
+        if kernel_basis.nrows() != ideal_basis.nrows() {
+            return Err(StructureConstantsError::DependentIdealBasis);
+        }
+        let mut mutable_basis = kernel_basis.clone();
+        let mut complement = Vec::new();
+        for coordinate in 0..dimension {
+            let mut standard = vec![original.field().zero(); dimension];
+            standard[coordinate] = original.field().one();
+            let mut candidate = mutable_basis.as_flat().to_vec();
+            candidate.extend_from_slice(&standard);
+            let candidate = DenseMatrix::from_flat(
+                mutable_basis.nrows() + 1,
+                dimension,
+                candidate,
+                original.field().clone(),
+            )?;
+            let semi = candidate.semi_echelon_transformation().vectors;
+            if semi.nrows() > mutable_basis.nrows() {
+                complement.push(standard);
+                mutable_basis = semi;
+            }
+        }
+
+        let quotient_dimension = complement.len();
+        let lifts = DenseMatrix::from_flat(
+            quotient_dimension,
+            dimension,
+            complement.iter().flatten().cloned().collect(),
+            original.field().clone(),
+        )?;
+        let mut full_basis_entries = kernel_basis.as_flat().to_vec();
+        full_basis_entries.extend(complement.iter().flatten().cloned());
+        let full_basis = DenseMatrix::from_flat(
+            dimension,
+            dimension,
+            full_basis_entries,
+            original.field().clone(),
+        )?;
+        let mut projection_entries = Vec::with_capacity(
+            dimension
+                .checked_mul(quotient_dimension)
+                .ok_or(StructureConstantsError::SubspaceMatrixShapeOverflow { dimension })?,
+        );
+        for coordinate in 0..dimension {
+            let mut standard = vec![original.field().zero(); dimension];
+            standard[coordinate] = original.field().one();
+            let coefficients = full_basis
+                .solution_row(&standard)?
+                .ok_or(StructureConstantsError::IncompleteNaturalQuotientBasis)?;
+            projection_entries
+                .extend_from_slice(&coefficients[dimension - quotient_dimension..dimension]);
+        }
+        let projection = DenseMatrix::from_flat(
+            dimension,
+            quotient_dimension,
+            projection_entries,
+            original.field().clone(),
+        )?;
+
+        let tensor_length = quotient_dimension
+            .checked_mul(quotient_dimension)
+            .and_then(|square| square.checked_mul(quotient_dimension))
+            .ok_or(StructureConstantsError::TensorShapeOverflow {
+                dimension: quotient_dimension,
+            })?;
+        let mut products = Vec::with_capacity(tensor_length);
+        for left in 0..quotient_dimension {
+            for right in 0..quotient_dimension {
+                let ambient_product =
+                    original.coordinate_product(lifts.row(left), lifts.row(right));
+                products.extend(multiply_row_matrix(&ambient_product, &projection));
+            }
+        }
+        let algebra =
+            StructureConstantsAlgebra::new(original.field().clone(), quotient_dimension, products)?;
+        Ok(Self {
+            original,
+            ideal_basis,
+            projection,
+            lifts,
+            algebra,
+        })
+    }
+
+    /// Return the original algebra.
+    #[must_use]
+    pub const fn original(&self) -> &StructureConstantsAlgebra<F> {
+        &self.original
+    }
+
+    /// Return the entered ideal basis in original coordinates.
+    #[must_use]
+    pub const fn ideal_basis(&self) -> &DenseMatrix<F> {
+        &self.ideal_basis
+    }
+
+    /// Return the quotient's induced structure-constant algebra.
+    #[must_use]
+    pub const fn algebra(&self) -> &StructureConstantsAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return standard quotient-basis lifts in original coordinates.
+    #[must_use]
+    pub const fn lifts(&self) -> &DenseMatrix<F> {
+        &self.lifts
+    }
+
+    /// Project an original coordinate row to the natural quotient.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a row with the wrong original dimension.
+    pub fn project_coordinates(
+        &self,
+        coordinates: &[F::Element],
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        if coordinates.len() != self.original.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: coordinates.len(),
+                expected: self.original.dimension(),
+            });
+        }
+        Ok(multiply_row_matrix(coordinates, &self.projection))
+    }
+
+    /// Return QPA/GAP's stored representative of quotient coordinates.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a row with the wrong quotient dimension.
+    pub fn lift_coordinates(
+        &self,
+        coordinates: &[F::Element],
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        if coordinates.len() != self.algebra.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: coordinates.len(),
+                expected: self.algebra.dimension(),
+            });
+        }
+        Ok(multiply_row_matrix(coordinates, &self.lifts))
+    }
+
+    /// Translate QPA's `LiftingCompleteSetOfOrthogonalIdempotents` for this
+    /// natural quotient map.
+    ///
+    /// QPA first applies `LiftIdempotent` to the first quotient idempotent and
+    /// then calls `LiftTwoOrthogonalIdempotents` successively against the sum
+    /// already lifted. Both Anderson--Fuller/Lam nilpotent-series formulas are
+    /// followed literally.
+    ///
+    /// # Errors
+    ///
+    /// Rejects an empty entered set, non-idempotents/nonorthogonal elements,
+    /// or a nonnilpotent kernel series, and propagates exact coordinates.
+    pub fn lift_complete_set_of_orthogonal_idempotents(
+        &self,
+        idempotents: &[Vec<F::Element>],
+    ) -> Result<Vec<Vec<F::Element>>, StructureConstantsError> {
+        if idempotents.is_empty() {
+            return Err(StructureConstantsError::EmptyIdempotentSet);
+        }
+        let quotient_identity = self
+            .algebra
+            .find_multiplicative_identity()?
+            .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        let mut sum = vec![self.algebra.field().zero(); self.algebra.dimension()];
+        for (position, idempotent) in idempotents.iter().enumerate() {
+            if self.algebra.coordinate_product(idempotent, idempotent) != *idempotent {
+                return Err(StructureConstantsError::EnteredElementNotIdempotent {
+                    position: position + 1,
+                });
+            }
+            for previous in &idempotents[..position] {
+                let previous_then_current = self.algebra.coordinate_product(previous, idempotent);
+                let current_then_previous = self.algebra.coordinate_product(idempotent, previous);
+                if !is_zero_row(self.algebra.field(), &previous_then_current)
+                    || !is_zero_row(self.algebra.field(), &current_then_previous)
+                {
+                    return Err(StructureConstantsError::EnteredIdempotentsNotOrthogonal);
+                }
+            }
+            sum = add_rows(self.algebra.field(), &sum, idempotent);
+        }
+        if sum != quotient_identity.coordinates() {
+            return Err(StructureConstantsError::EnteredIdempotentsNotComplete);
+        }
+
+        let first = self.lift_idempotent(&idempotents[0])?;
+        let mut lifted = vec![first];
+        for idempotent in &idempotents[1..] {
+            let accumulated = lifted.iter().fold(
+                vec![self.original.field().zero(); self.original.dimension()],
+                |sum, idempotent| add_rows(self.original.field(), &sum, idempotent),
+            );
+            lifted.push(self.lift_two_orthogonal_idempotents(&accumulated, idempotent)?);
+        }
+        Ok(lifted)
+    }
+
+    fn lift_idempotent(
+        &self,
+        idempotent: &[F::Element],
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        let representative = self.lift_coordinates(idempotent)?;
+        let square = self
+            .original
+            .coordinate_product(&representative, &representative);
+        let defect = subtract_rows(self.original.field(), &representative, &square);
+        if is_zero_row(self.original.field(), &defect) {
+            return Ok(representative);
+        }
+        let mut nilindex = 1usize;
+        let mut power = defect.clone();
+        while !is_zero_row(self.original.field(), &power) {
+            nilindex = nilindex
+                .checked_add(1)
+                .ok_or(StructureConstantsError::NilpotentSeriesOverflow)?;
+            power = self.original.coordinate_product(&defect, &power);
+            if nilindex > self.original.dimension().saturating_add(1) {
+                return Err(StructureConstantsError::QuotientKernelNotNilpotent);
+            }
+        }
+        let identity = self
+            .original
+            .find_multiplicative_identity()?
+            .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        let mut polynomial_value = vec![self.original.field().zero(); self.original.dimension()];
+        for exponent in 0..nilindex {
+            let binomial = binomial_integer(nilindex, exponent + 1);
+            let coefficient = self.original.field().nth(if exponent.is_multiple_of(2) {
+                binomial
+            } else {
+                -binomial
+            });
+            let term = algebra_power(
+                &self.original,
+                &representative,
+                u64::try_from(exponent)
+                    .map_err(|_| StructureConstantsError::NilpotentSeriesOverflow)?,
+                identity.coordinates(),
+            );
+            for (entry, term_entry) in polynomial_value.iter_mut().zip(term) {
+                self.original
+                    .field()
+                    .add_mul_assign(entry, &coefficient, &term_entry);
+            }
+        }
+        let representative_power = algebra_power(
+            &self.original,
+            &representative,
+            u64::try_from(nilindex)
+                .map_err(|_| StructureConstantsError::NilpotentSeriesOverflow)?,
+            identity.coordinates(),
+        );
+        let polynomial_power = algebra_power(
+            &self.original,
+            &polynomial_value,
+            u64::try_from(nilindex)
+                .map_err(|_| StructureConstantsError::NilpotentSeriesOverflow)?,
+            identity.coordinates(),
+        );
+        Ok(self
+            .original
+            .coordinate_product(&representative_power, &polynomial_power))
+    }
+
+    fn lift_two_orthogonal_idempotents(
+        &self,
+        first: &[F::Element],
+        second_quotient: &[F::Element],
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        let second = self.lift_idempotent(second_quotient)?;
+        let product = self.original.coordinate_product(&second, first);
+        let mut power = product.clone();
+        let identity = self
+            .original
+            .find_multiplicative_identity()?
+            .ok_or(StructureConstantsError::MissingMultiplicativeIdentity)?;
+        let mut series = identity.coordinates().to_vec();
+        let mut steps = 0usize;
+        while !is_zero_row(self.original.field(), &power) {
+            series = add_rows(self.original.field(), &series, &power);
+            power = self.original.coordinate_product(&product, &power);
+            steps += 1;
+            if steps > self.original.dimension() {
+                return Err(StructureConstantsError::QuotientKernelNotNilpotent);
+            }
+        }
+        let one_minus_first = subtract_rows(self.original.field(), identity.coordinates(), first);
+        let one_minus_product =
+            subtract_rows(self.original.field(), identity.coordinates(), &product);
+        let result = self.original.coordinate_product(&one_minus_first, &series);
+        let result = self.original.coordinate_product(&result, &second);
+        Ok(self
+            .original
+            .coordinate_product(&result, &one_minus_product))
+    }
+}
+
+fn binomial_integer(n: usize, k: usize) -> Integer {
+    let k = k.min(n - k);
+    let mut result = Integer::from(1);
+    for step in 1..=k {
+        result *= Integer::from(n - k + step);
+        result /= Integer::from(step);
+    }
+    result
+}
+
+fn is_zero_row<F: Field>(field: &F, row: &[F::Element]) -> bool {
+    row.iter().all(|entry| field.is_zero(entry))
+}
+
+fn multiply_row_matrix<F: Field>(row: &[F::Element], matrix: &DenseMatrix<F>) -> Vec<F::Element> {
+    debug_assert_eq!(row.len(), matrix.nrows());
+    let field = matrix.field();
+    let mut result = vec![field.zero(); matrix.ncols()];
+    for (inner, coefficient) in row.iter().enumerate() {
+        if field.is_zero(coefficient) {
+            continue;
+        }
+        for column in 0..matrix.ncols() {
+            field.add_mul_assign(&mut result[column], coefficient, &matrix[(inner, column)]);
+        }
+    }
+    result
+}
+
+impl<F: Field> StructureConstantsSubalgebra<F> {
+    fn from_basis(
+        ambient: StructureConstantsAlgebra<F>,
+        basis: DenseMatrix<F>,
+    ) -> Result<Self, StructureConstantsError> {
+        if basis.ncols() != ambient.dimension() {
+            return Err(StructureConstantsError::SubalgebraBasisWidth {
+                actual: basis.ncols(),
+                expected: ambient.dimension(),
+            });
+        }
+        if basis.rank() != basis.nrows() {
+            return Err(StructureConstantsError::DependentSubalgebraBasis);
+        }
+        let dimension = basis.nrows();
+        let tensor_length = dimension
+            .checked_mul(dimension)
+            .and_then(|square| square.checked_mul(dimension))
+            .ok_or(StructureConstantsError::TensorShapeOverflow { dimension })?;
+        let mut products = Vec::with_capacity(tensor_length);
+        for left in 0..dimension {
+            for right in 0..dimension {
+                let product = ambient.coordinate_product(basis.row(left), basis.row(right));
+                let coordinates = basis
+                    .solution_row(&product)?
+                    .ok_or(StructureConstantsError::BasisNotClosedUnderMultiplication)?;
+                products.extend(coordinates);
+            }
+        }
+        let algebra = StructureConstantsAlgebra::new(ambient.field().clone(), dimension, products)?;
+        Ok(Self {
+            ambient,
+            basis,
+            algebra,
+        })
+    }
+
+    /// Return the ambient algebra.
+    #[must_use]
+    pub const fn ambient(&self) -> &StructureConstantsAlgebra<F> {
+        &self.ambient
+    }
+
+    /// Return basis rows in ambient standard coordinates.
+    #[must_use]
+    pub const fn basis(&self) -> &DenseMatrix<F> {
+        &self.basis
+    }
+
+    /// Return the induced structure-constant algebra in this basis.
+    #[must_use]
+    pub const fn algebra(&self) -> &StructureConstantsAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Lift a coordinate row from the subalgebra basis to the ambient basis.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a row with the wrong subalgebra dimension.
+    pub fn lift_coordinates(
+        &self,
+        coordinates: &[F::Element],
+    ) -> Result<Vec<F::Element>, StructureConstantsError> {
+        if coordinates.len() != self.algebra.dimension() {
+            return Err(StructureConstantsError::ElementLength {
+                actual: coordinates.len(),
+                expected: self.algebra.dimension(),
+            });
+        }
+        let row = DenseMatrix::from_flat(
+            1,
+            coordinates.len(),
+            coordinates.to_vec(),
+            self.ambient.field().clone(),
+        )?;
+        Ok(row.multiply(&self.basis)?.row(0).to_vec())
+    }
 }
 
 impl<F: Field> PartialEq for StructureConstantsAlgebra<F> {
@@ -272,21 +1462,118 @@ pub enum StructureConstantsError {
     /// The entered elements have different parent objects.
     #[error("the algebra elements belong to different structure-constant algebras")]
     DifferentParents,
+    /// A subspace equation shape overflowed addressable storage.
+    #[error("the algebra subspace matrix shape for dimension {dimension} overflows")]
+    SubspaceMatrixShapeOverflow {
+        /// Algebra dimension.
+        dimension: usize,
+    },
+    /// A subalgebra basis row has the wrong ambient width.
+    #[error("the subalgebra basis has width {actual}, expected {expected}")]
+    SubalgebraBasisWidth {
+        /// Supplied row width.
+        actual: usize,
+        /// Ambient dimension.
+        expected: usize,
+    },
+    /// GAP's supplied `"basis"` list must be linearly independent.
+    #[error("the supplied subalgebra basis is linearly dependent")]
+    DependentSubalgebraBasis,
+    /// A purported subalgebra basis was not closed under multiplication.
+    #[error("the supplied basis is not closed under algebra multiplication")]
+    BasisNotClosedUnderMultiplication,
+    /// QPA's faithful radical representation requires an algebra identity.
+    #[error("the algebra does not have a multiplicative identity")]
+    MissingMultiplicativeIdentity,
+    /// The radical algorithm requested a characteristic-polynomial coefficient outside its degree.
+    #[error(
+        "radical coefficient index is invalid for dimension {dimension} and prime power {prime_power}"
+    )]
+    RadicalCoefficientIndex {
+        /// Matrix dimension.
+        dimension: usize,
+        /// Current characteristic power.
+        prime_power: u64,
+    },
+    /// An ideal basis row has the wrong original width.
+    #[error("the ideal basis has width {actual}, expected {expected}")]
+    IdealBasisWidth {
+        /// Supplied row width.
+        actual: usize,
+        /// Original algebra dimension.
+        expected: usize,
+    },
+    /// GAP's entered ideal basis must be linearly independent.
+    #[error("the supplied ideal basis is linearly dependent")]
+    DependentIdealBasis,
+    /// Extending the ideal basis by standard vectors failed to span the original algebra.
+    #[error("the natural quotient basis does not span the original algebra")]
+    IncompleteNaturalQuotientBasis,
+    /// `CentralIdempotentsOfAlgebra` requires a finite coefficient field.
+    #[error("the entered algebra is not an algebra over a finite field")]
+    FiniteFieldRequired,
+    /// The deterministic traversal of GAP's splitting-element coefficient set overflowed.
+    #[error("the splitting-element search space overflows addressable storage")]
+    SplittingSearchOverflow,
+    /// No element in GAP's prescribed splitting coefficient set generated the algebra.
+    #[error("no splitting element was found in GAP's prescribed coefficient set")]
+    MissingSplittingElement,
+    /// The Frobenius-fixed element was expected to decompose a nonsimple split ideal.
+    #[error("the Frobenius-fixed element did not split the commutative ideal")]
+    FrobeniusElementDidNotSplit,
+    /// An ideal product unexpectedly fell outside the retained ideal basis.
+    #[error("an ideal element has no coordinates in its retained basis")]
+    IdealBasisCoordinateFailure,
+    /// Initial prime-field support does not yet factor nonsplit extension polynomials.
+    #[error(
+        "the minimal polynomial has degree {degree} but only {linear_factors} linear factors over the prime field"
+    )]
+    NonsplitMinimalPolynomial {
+        /// Polynomial degree.
+        degree: usize,
+        /// Number of roots in the entered prime field.
+        linear_factors: usize,
+    },
+    /// QPA's complete-set lifting indexes the first entered idempotent.
+    #[error("the entered complete idempotent set is empty")]
+    EmptyIdempotentSet,
+    /// One entered quotient element was not idempotent.
+    #[error("entered element {position} is not an idempotent")]
+    EnteredElementNotIdempotent {
+        /// One-based list position.
+        position: usize,
+    },
+    /// The entered quotient idempotents were not pairwise orthogonal.
+    #[error("the entered idempotents are not orthogonal")]
+    EnteredIdempotentsNotOrthogonal,
+    /// The entered quotient idempotents did not sum to one.
+    #[error("the entered idempotents are not complete")]
+    EnteredIdempotentsNotComplete,
+    /// A nilpotence-index counter overflowed addressable storage.
+    #[error("the idempotent-lifting nilpotence index overflows usize")]
+    NilpotentSeriesOverflow,
+    /// QPA's lifting formula requires a nilpotent quotient kernel.
+    #[error("the natural quotient kernel is not nilpotent")]
+    QuotientKernelNotNilpotent,
     /// Exact matrix construction or elimination failed.
     #[error(transparent)]
     Matrix(#[from] MatrixError),
+    /// Coefficient-field enumeration failed.
+    #[error(transparent)]
+    Coefficient(#[from] CoefficientDomainError),
 }
 
 #[cfg(test)]
 mod tests {
     use numerica::domains::{
-        Ring,
-        finite_field::{FiniteFieldCore, Z2},
+        Field, Ring,
+        finite_field::{FiniteFieldCore, Z2, Zp},
         rational::Q,
     };
     use serde_json::{Value, json};
 
     use super::StructureConstantsAlgebra;
+    use crate::{DenseMatrix, QpaCoefficientField};
 
     #[test]
     fn finds_gap_left_identity_and_rejects_a_nonunital_algebra() {
@@ -405,5 +1692,86 @@ mod tests {
         let basis = algebra.basis_elements();
         assert_eq!(basis[1].multiply(&basis[0]).unwrap(), basis[1]);
         assert_eq!(basis[1].multiply(&basis[1]).unwrap(), algebra.zero());
+    }
+
+    fn product_of_fields<F: Field>(field: F, dimension: usize) -> StructureConstantsAlgebra<F> {
+        let mut products = vec![field.zero(); dimension * dimension * dimension];
+        for coordinate in 0..dimension {
+            products[(coordinate * dimension + coordinate) * dimension + coordinate] = field.one();
+        }
+        StructureConstantsAlgebra::new(field, dimension, products).unwrap()
+    }
+
+    fn upper_triangular_two_by_two<F: Field>(field: F) -> StructureConstantsAlgebra<F> {
+        let dimension = 3;
+        let mut products = vec![field.zero(); dimension * dimension * dimension];
+        let mut set = |left: usize, right: usize, output: usize| {
+            products[(left * dimension + right) * dimension + output] = field.one();
+        };
+        set(0, 0, 0);
+        set(0, 1, 1);
+        set(1, 2, 1);
+        set(2, 2, 2);
+        StructureConstantsAlgebra::new(field, dimension, products).unwrap()
+    }
+
+    #[test]
+    fn centre_radical_and_natural_quotient_match_gap_basis_order() {
+        let algebra = upper_triangular_two_by_two(Z2);
+        let centre = algebra.centre().unwrap();
+        assert_eq!(centre.basis().nrows(), 1);
+        assert_eq!(centre.basis().row(0), &[Z2.one(), Z2.zero(), Z2.one()]);
+        let radical = algebra.radical().unwrap();
+        assert_eq!(radical.basis().nrows(), 1);
+        assert_eq!(radical.basis().row(0), &[Z2.zero(), Z2.one(), Z2.zero()]);
+        let quotient = algebra
+            .quotient_by_ideal_basis(radical.basis().clone())
+            .unwrap();
+        assert_eq!(quotient.algebra().dimension(), 2);
+        assert_eq!(
+            quotient.lifts(),
+            &DenseMatrix::from_rows(
+                vec![
+                    vec![Z2.one(), Z2.zero(), Z2.zero()],
+                    vec![Z2.zero(), Z2.zero(), Z2.one()]
+                ],
+                Z2
+            )
+            .unwrap()
+        );
+
+        let rational = upper_triangular_two_by_two(Q);
+        assert_eq!(
+            rational.radical().unwrap().basis().row(0),
+            &[Q.nth(0.into()), Q.nth(1.into()), Q.nth(0.into())]
+        );
+    }
+
+    fn check_product_idempotents<F: QpaCoefficientField>(algebra: &StructureConstantsAlgebra<F>) {
+        let field = algebra.field();
+        let zero = field.zero();
+        let one = field.one();
+        assert_eq!(
+            algebra.central_idempotents_split_prime().unwrap(),
+            vec![
+                vec![zero.clone(), zero.clone(), one.clone()],
+                vec![zero.clone(), one.clone(), zero.clone()],
+                vec![one, zero.clone(), zero],
+            ]
+        );
+    }
+
+    #[test]
+    fn central_idempotents_follow_small_and_large_gap_splitting_branches() {
+        check_product_idempotents(&product_of_fields(Z2, 3));
+        check_product_idempotents(&product_of_fields(Zp::new(5), 3));
+        check_product_idempotents(&product_of_fields(Zp::new(19), 3));
+
+        let triangular = upper_triangular_two_by_two(Zp::new(5));
+        let field = triangular.field();
+        assert_eq!(
+            triangular.central_idempotents_split_prime().unwrap(),
+            vec![vec![field.one(), field.zero(), field.one()]]
+        );
     }
 }

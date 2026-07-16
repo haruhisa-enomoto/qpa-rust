@@ -452,6 +452,88 @@ impl<F: Field> DenseMatrix<F> {
         )?))
     }
 
+    /// Translate GAP's `Matrix_CharacteristicPolynomialSameField` spinning
+    /// algorithm.
+    ///
+    /// Coefficients are returned in ascending degree order, exactly as
+    /// `CoefficientsOfUnivariatePolynomial(CharacteristicPolynomial(...))`.
+    /// The source algorithm builds cyclic subspaces from successive standard
+    /// rows and multiplies their order polynomials; it does not use traces or
+    /// division by coefficient-field integers.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a nonsquare matrix.
+    pub fn characteristic_polynomial_coefficients(&self) -> Result<Vec<F::Element>, MatrixError> {
+        if self.nrows != self.ncols {
+            return Err(MatrixError::NonSquareCharacteristicPolynomial {
+                shape: (self.nrows, self.ncols),
+            });
+        }
+        if self.nrows == 0 {
+            return Ok(vec![self.field.one()]);
+        }
+
+        let mut basis = vec![None; self.nrows];
+        let mut vector = vec![self.field.zero(); self.nrows];
+        let mut characteristic = vec![self.field.one()];
+        for coordinate in 0..self.nrows {
+            if basis[coordinate].is_some() {
+                continue;
+            }
+            vector[coordinate] = self.field.one();
+            let order = self.order_polynomial_inner(&vector, &mut basis);
+            characteristic = multiply_polynomial_coefficients(&self.field, &characteristic, &order);
+            vector[coordinate] = self.field.zero();
+        }
+        Ok(characteristic)
+    }
+
+    fn order_polynomial_inner(
+        &self,
+        initial: &[F::Element],
+        spanned: &mut [Option<Vec<F::Element>>],
+    ) -> Vec<F::Element> {
+        let dimension = initial.len();
+        let mut vector = initial.to_vec();
+        let mut polynomials: Vec<Option<Vec<F::Element>>> = vec![None; dimension];
+        let mut zeroes = Vec::new();
+
+        loop {
+            let mut remainder = vector.clone();
+            let mut polynomial = zeroes.clone();
+            polynomial.push(self.field.one());
+            let mut pivot = first_nonzero_from(&self.field, &remainder, 0);
+
+            while let Some(position) = pivot {
+                let Some(base) = &spanned[position] else {
+                    break;
+                };
+                let scalar = self.field.neg(&remainder[position]);
+                if let Some(reducer) = &polynomials[position] {
+                    add_scaled_polynomial(&self.field, &mut polynomial, reducer, &scalar);
+                }
+                add_scaled_row(&self.field, &mut remainder, base, &scalar);
+                pivot = first_nonzero_from(&self.field, &remainder, position + 1);
+            }
+
+            let Some(position) = pivot else {
+                return polynomial;
+            };
+            let inverse = self.field.inv(&remainder[position]);
+            for coefficient in &mut polynomial {
+                self.field.mul_assign(coefficient, &inverse);
+            }
+            for coefficient in &mut remainder {
+                self.field.mul_assign(coefficient, &inverse);
+            }
+            polynomials[position] = Some(polynomial);
+            spanned[position] = Some(remainder);
+            vector = multiply_row_by_matrix(&self.field, &vector, self);
+            zeroes.push(self.field.zero());
+        }
+    }
+
     /// Return the row rank computed by GAP's generic semi-echelon algorithm.
     #[must_use]
     pub fn rank(&self) -> usize {
@@ -518,6 +600,12 @@ pub enum MatrixError {
         /// Entered row and column counts.
         shape: (usize, usize),
     },
+    /// Characteristic polynomials require square matrices.
+    #[error("cannot compute a characteristic polynomial for a {shape:?} matrix")]
+    NonSquareCharacteristicPolynomial {
+        /// Rejected matrix shape.
+        shape: (usize, usize),
+    },
     /// The requested dimensions overflow `usize` storage.
     #[error("matrix shape {nrows} x {ncols} overflows addressable storage")]
     ShapeOverflow {
@@ -575,6 +663,63 @@ fn scale_row<F: Field>(field: &F, row: &mut [F::Element], scale: &F::Element) {
     for entry in row {
         field.mul_assign(entry, scale);
     }
+}
+
+fn first_nonzero_from<F: Field>(field: &F, row: &[F::Element], start: usize) -> Option<usize> {
+    row.iter()
+        .enumerate()
+        .skip(start)
+        .find_map(|(index, entry)| (!field.is_zero(entry)).then_some(index))
+}
+
+fn add_scaled_polynomial<F: Field>(
+    field: &F,
+    target: &mut Vec<F::Element>,
+    source: &[F::Element],
+    scale: &F::Element,
+) {
+    if target.len() < source.len() {
+        target.resize(source.len(), field.zero());
+    }
+    for (target_coefficient, source_coefficient) in target.iter_mut().zip(source) {
+        field.add_mul_assign(target_coefficient, source_coefficient, scale);
+    }
+}
+
+fn multiply_polynomial_coefficients<F: Field>(
+    field: &F,
+    left: &[F::Element],
+    right: &[F::Element],
+) -> Vec<F::Element> {
+    if left.is_empty() || right.is_empty() {
+        return Vec::new();
+    }
+    let mut result = vec![field.zero(); left.len() + right.len() - 1];
+    for (left_degree, left_coefficient) in left.iter().enumerate() {
+        for (right_degree, right_coefficient) in right.iter().enumerate() {
+            let product = field.mul(left_coefficient, right_coefficient);
+            field.add_assign(&mut result[left_degree + right_degree], &product);
+        }
+    }
+    result
+}
+
+fn multiply_row_by_matrix<F: Field>(
+    field: &F,
+    row: &[F::Element],
+    matrix: &DenseMatrix<F>,
+) -> Vec<F::Element> {
+    debug_assert_eq!(row.len(), matrix.nrows());
+    let mut result = vec![field.zero(); matrix.ncols()];
+    for (inner, coefficient) in row.iter().enumerate() {
+        if field.is_zero(coefficient) {
+            continue;
+        }
+        for column in 0..matrix.ncols() {
+            field.add_mul_assign(&mut result[column], coefficient, &matrix[(inner, column)]);
+        }
+    }
+    result
 }
 
 fn rows_with_shape<F: Field>(rows: Vec<Vec<F::Element>>, ncols: usize, field: F) -> DenseMatrix<F> {
@@ -756,6 +901,41 @@ mod tests {
         assert_eq!(
             DenseMatrix::zero(1, 2, Q).inverse().unwrap_err(),
             MatrixError::NonSquareInverse { shape: (1, 2) }
+        );
+    }
+
+    #[test]
+    fn characteristic_polynomial_uses_gap_spinning_order() {
+        let jordan =
+            DenseMatrix::from_rows(vec![vec![q(1, 1), q(1, 1)], vec![q(0, 1), q(1, 1)]], Q)
+                .unwrap();
+        assert_eq!(
+            jordan.characteristic_polynomial_coefficients().unwrap(),
+            vec![q(1, 1), q(-2, 1), q(1, 1)]
+        );
+
+        let diagonal = DenseMatrix::from_rows(
+            vec![
+                vec![q(1, 1), q(0, 1), q(0, 1)],
+                vec![q(0, 1), q(2, 1), q(0, 1)],
+                vec![q(0, 1), q(0, 1), q(3, 1)],
+            ],
+            Q,
+        )
+        .unwrap();
+        assert_eq!(
+            diagonal.characteristic_polynomial_coefficients().unwrap(),
+            vec![q(-6, 1), q(11, 1), q(-6, 1), q(1, 1)]
+        );
+
+        let binary = DenseMatrix::from_rows(
+            vec![vec![Z2.zero(), Z2.one()], vec![Z2.one(), Z2.one()]],
+            Z2,
+        )
+        .unwrap();
+        assert_eq!(
+            binary.characteristic_polynomial_coefficients().unwrap(),
+            vec![Z2.one(), Z2.one(), Z2.one()]
         );
     }
 

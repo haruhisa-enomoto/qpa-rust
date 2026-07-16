@@ -405,6 +405,24 @@ compare_last_json_fixture \
     "$repo_root/tests/gap-reference/pathalg_module_preprojective_structure.g" \
     "$repo_root/tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/algebra_as_quiver_decomposable_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly converted a decomposable structure algebra" >&2
+    exit 1
+fi
+grep -Fq "the entered algebra is not indecomposable" "$actual"
+grep -Fq "algebra.gi:674" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/algebra_as_quiver_nonbasic_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly converted a nonbasic matrix algebra" >&2
+    exit 1
+fi
+grep -Fq "the entered algebra is not basic" "$actual"
+grep -Fq "algebra.gi:691" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/pathalg_module_preprojective_bound_error.g" \
     >"$actual" 2>&1
 then

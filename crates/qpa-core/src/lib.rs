@@ -29,7 +29,9 @@ pub mod util;
 pub mod vector_reduction;
 
 pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
-pub use coefficient::{CoefficientDomain, CoefficientDomainError};
+pub use coefficient::{
+    CoefficientDomain, CoefficientDomainError, QpaCoefficientField, QpaFieldCharacteristic,
+};
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use element_inverse::ElementInverseError;
 pub use element_utilities::{
@@ -97,6 +99,7 @@ pub use static_dictionary::{
 };
 pub use structure_constants::{
     StructureConstantsAlgebra, StructureConstantsAlgebraElement, StructureConstantsError,
+    StructureConstantsQuotient, StructureConstantsSubalgebra,
 };
 pub use suffix_tree::{
     SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,

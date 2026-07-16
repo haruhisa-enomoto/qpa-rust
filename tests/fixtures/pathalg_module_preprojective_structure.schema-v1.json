@@ -26,6 +26,13 @@
       {"left": 5, "right": 7, "coordinates": [[7, [1, 1]]]},
       {"left": 6, "right": 3, "coordinates": [[6, [1, 1]]]},
       {"left": 7, "right": 3, "coordinates": [[7, [1, 1]]]}
+    ],
+    "centre_basis": [[[1, [1, 1]], [3, [1, 1]], [5, [1, 1]]]],
+    "radical_basis": [
+      [[2, [1, 1]]],
+      [[4, [1, 1]]],
+      [[6, [1, 1]]],
+      [[7, [1, 1]]]
     ]
   },
   "f2": {
@@ -45,7 +52,12 @@
       {"left": 5, "right": 7, "coordinates": [[7, 1]]},
       {"left": 6, "right": 3, "coordinates": [[6, 1]]},
       {"left": 7, "right": 3, "coordinates": [[7, 1]]}
-    ]
+    ],
+    "centre_basis": [[[1, 1], [3, 1], [5, 1]]],
+    "radical_basis": [[[2, 1]], [[4, 1]], [[6, 1]], [[7, 1]]],
+    "semisimple_lifts": [[[1, 1]], [[3, 1]], [[5, 1]]],
+    "semisimple_idempotents": [[[3, 1]], [[2, 1]], [[1, 1]]],
+    "lifted_vertices": [[[5, 1]], [[3, 1]], [[1, 1]]]
   },
   "f5": {
     "dimension": 7,
@@ -64,20 +76,53 @@
       {"left": 5, "right": 7, "coordinates": [[7, 1]]},
       {"left": 6, "right": 3, "coordinates": [[6, 1]]},
       {"left": 7, "right": 3, "coordinates": [[7, 1]]}
-    ]
+    ],
+    "centre_basis": [[[1, 1], [3, 1], [5, 1]]],
+    "radical_basis": [[[2, 1]], [[4, 1]], [[6, 1]], [[7, 1]]],
+    "semisimple_lifts": [[[1, 1]], [[3, 1]], [[5, 1]]],
+    "semisimple_idempotents": [[[3, 1]], [[2, 1]], [[1, 1]]],
+    "lifted_vertices": [[[5, 1]], [[3, 1]], [[1, 1]]]
   },
   "final": {
     "f2": {
       "dimension": 7,
       "vertices": 3,
       "arrows": [[1, 3], [2, 1], [3, 2]],
-      "relations": "[ (Z(2)^0)*<object>, (Z(2)^0)*<object> ]"
+      "generator_images": [[[5, 1]], [[3, 1]], [[1, 1]], [[2, 1]], [[4, 1]], [[6, 1]]],
+      "loewy_length": 3,
+      "relations": [
+        [{"walk": [2, 1], "coefficient": 1}],
+        [{"walk": [3, 2], "coefficient": 1}]
+      ]
     },
     "f5": {
       "dimension": 7,
       "vertices": 3,
       "arrows": [[1, 3], [2, 1], [3, 2]],
-      "relations": "[ (Z(5)^0)*<object>, (Z(5)^0)*<object> ]"
+      "generator_images": [[[5, 1]], [[3, 1]], [[1, 1]], [[2, 1]], [[4, 1]], [[6, 1]]],
+      "loewy_length": 3,
+      "relations": [
+        [{"walk": [2, 1], "coefficient": 1}],
+        [{"walk": [3, 2], "coefficient": 1}]
+      ]
+    }
+  },
+  "conversion_cases": {
+    "upper_triangular_f2": {
+      "dimension": 3,
+      "vertices": 2,
+      "arrows": [[2, 1]],
+      "generator_images": [[[3, 1]], [[1, 1]], [[2, 1]]],
+      "loewy_length": 2,
+      "relations": []
+    },
+    "dual_numbers_f5": {
+      "dimension": 2,
+      "vertices": 1,
+      "arrows": [[1, 1]],
+      "generator_images": [[[1, 1]], [[2, 1]]],
+      "loewy_length": 2,
+      "relations": [[{"walk": [1, 1], "coefficient": 1}]]
     }
   }
 }

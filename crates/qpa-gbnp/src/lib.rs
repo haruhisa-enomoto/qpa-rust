@@ -3,6 +3,7 @@
 //! The translation is rooted at GBNP's `SGrobner`; no independent Gröbner
 //! algorithm is substituted here.
 
+pub mod algebra_conversion;
 pub mod heap;
 pub mod higher_preprojective;
 pub mod invlenlex;
@@ -22,9 +23,13 @@ pub mod sgrobner;
 pub mod tensor;
 pub mod trivial_extension;
 
+pub use algebra_conversion::{
+    AlgebraAsQuiverAlgebraError, AlgebraAsQuiverAlgebraResult, algebra_as_quiver_algebra,
+};
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{
-    ModulePreprojectiveError, ModulePreprojectiveStructure, module_preprojective_structure,
+    ModulePreprojectiveError, ModulePreprojectiveStructure, module_preprojective_algebra,
+    module_preprojective_structure,
 };
 pub use invlenlex::{
     InvLenLexError, biggest_homogeneous_part_inv_len_inv_lex,

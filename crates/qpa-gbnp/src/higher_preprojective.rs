@@ -9,12 +9,15 @@ use std::ops::Range;
 
 use numerica::domains::{Field, integer::Integer};
 use qpa_core::{
-    MatrixError, PathAlgebraModule, PathAlgebraModuleError, StructureConstantsAlgebra,
-    StructureConstantsError, hom_over_algebra_with_basis_function,
+    MatrixError, PathAlgebraModule, PathAlgebraModuleError, QpaCoefficientField,
+    StructureConstantsAlgebra, StructureConstantsError, hom_over_algebra_with_basis_function,
 };
 use thiserror::Error;
 
-use crate::{EnvelopingModuleError, tr_d_homomorphism_iterated, tr_d_iterated};
+use crate::{
+    AlgebraAsQuiverAlgebraError, AlgebraAsQuiverAlgebraResult, EnvelopingModuleError,
+    algebra_as_quiver_algebra, tr_d_homomorphism_iterated, tr_d_iterated,
+};
 
 /// The graded structure-constant stage of QPA's
 /// `PreprojectiveAlgebra(M, n)` method.
@@ -169,6 +172,25 @@ pub fn module_preprojective_structure<F: Field>(
     })
 }
 
+/// Translate QPA's complete module overload `PreprojectiveAlgebra(M, n)`.
+///
+/// This applies [`module_preprojective_structure`] and then QPA's
+/// `AlgebraAsQuiverAlgebra`, returning the latter method's quiver algebra and
+/// generator images. As in the source method's dispatch, the caller must have
+/// established that the module's right-acting algebra is hereditary.
+///
+/// # Errors
+///
+/// Propagates the graded Hom construction and the finite split-prime-field
+/// algebra conversion.
+pub fn module_preprojective_algebra<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<AlgebraAsQuiverAlgebraResult<F>, ModulePreprojectiveError> {
+    let structure = module_preprojective_structure(module, bound)?;
+    Ok(algebra_as_quiver_algebra(structure.algebra())?)
+}
+
 /// Failure in the structure-constant stage of QPA's module preprojective
 /// algebra method.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
@@ -220,6 +242,9 @@ pub enum ModulePreprojectiveError {
     /// Structure-constant algebra construction failed.
     #[error(transparent)]
     Structure(#[from] StructureConstantsError),
+    /// QPA's final finite-dimensional-algebra conversion failed.
+    #[error(transparent)]
+    Conversion(#[from] AlgebraAsQuiverAlgebraError),
 }
 
 #[cfg(test)]
@@ -231,14 +256,16 @@ mod tests {
         rational::Q,
     };
     use qpa_core::{
-        ArrowSpec, PathAlgebra, Quiver, QuiverAlgebra, VertexIndex, direct_sum_of_qpa_modules,
+        ArrowSpec, PathAlgebra, QpaCoefficientField, Quiver, QuiverAlgebra, VertexIndex,
+        direct_sum_of_qpa_modules,
     };
     use serde_json::{Value, json};
 
     use super::{
-        ModulePreprojectiveError, ModulePreprojectiveStructure, module_preprojective_structure,
+        ModulePreprojectiveError, ModulePreprojectiveStructure, module_preprojective_algebra,
+        module_preprojective_structure,
     };
-    use crate::{indec_projective_modules, simple_modules};
+    use crate::{algebra_as_quiver_algebra, indec_projective_modules, simple_modules};
 
     fn vertex(index: usize) -> VertexIndex {
         VertexIndex::new(index).unwrap()
@@ -260,7 +287,7 @@ mod tests {
         module_preprojective_structure(&module, &Integer::from(1)).unwrap()
     }
 
-    fn structure_json<F: Field>(
+    fn structure_json<F: QpaCoefficientField>(
         structure: &ModulePreprojectiveStructure<F>,
         coefficient_json: &impl Fn(&F::Element) -> Value,
     ) -> Value {
@@ -290,12 +317,67 @@ mod tests {
                 }));
             }
         }
-        json!({
+        let sparse_basis = |basis: &qpa_core::DenseMatrix<F>| {
+            (0..basis.nrows())
+                .map(|row| {
+                    basis
+                        .row(row)
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, coefficient)| !algebra.field().is_zero(coefficient))
+                        .map(|(coordinate, coefficient)| {
+                            json!([coordinate + 1, coefficient_json(coefficient)])
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
+        };
+        let sparse_rows = |rows: &[Vec<F::Element>]| {
+            rows.iter()
+                .map(|row| {
+                    row.iter()
+                        .enumerate()
+                        .filter(|(_, coefficient)| !algebra.field().is_zero(coefficient))
+                        .map(|(coordinate, coefficient)| {
+                            json!([coordinate + 1, coefficient_json(coefficient)])
+                        })
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>()
+        };
+        let centre = algebra.centre().unwrap();
+        let radical = algebra.radical().unwrap();
+        let mut result = json!({
             "dimension": algebra.dimension(),
             "hom_dimensions": structure.degrees().iter().map(std::ops::Range::len).collect::<Vec<_>>(),
             "degrees": structure.degrees().iter().map(|range| (range.start + 1..=range.end).collect::<Vec<_>>()).collect::<Vec<_>>(),
-            "nonzero_products": products
-        })
+            "nonzero_products": products,
+            "centre_basis": sparse_basis(centre.basis()),
+            "radical_basis": sparse_basis(radical.basis())
+        });
+        if algebra.field().qpa_elements().unwrap().is_some() {
+            let quotient = algebra
+                .quotient_by_ideal_basis(radical.basis().clone())
+                .unwrap();
+            let idempotents = quotient
+                .algebra()
+                .central_idempotents_split_prime()
+                .unwrap();
+            let lifted = quotient
+                .lift_complete_set_of_orthogonal_idempotents(&idempotents)
+                .unwrap();
+            let object = result.as_object_mut().unwrap();
+            object.insert(
+                "semisimple_lifts".into(),
+                json!(sparse_basis(quotient.lifts())),
+            );
+            object.insert(
+                "semisimple_idempotents".into(),
+                json!(sparse_rows(&idempotents)),
+            );
+            object.insert("lifted_vertices".into(), json!(sparse_rows(&lifted)));
+        }
+        result
     }
 
     fn small_integer(value: &Integer) -> i64 {
@@ -303,6 +385,65 @@ mod tests {
             .to_string()
             .parse()
             .expect("the preprojective fixture uses only small integers")
+    }
+
+    fn final_conversion_json<F: QpaCoefficientField>(
+        structure: &ModulePreprojectiveStructure<F>,
+        coefficient_json: &impl Fn(&F::Element) -> Value,
+    ) -> Value {
+        let converted = algebra_as_quiver_algebra(structure.algebra()).unwrap();
+        let quiver = converted.algebra().quiver();
+        let arrows = quiver
+            .arrows()
+            .map(|arrow| json!([arrow.source().index().get(), arrow.target().index().get()]))
+            .collect::<Vec<_>>();
+        let generator_images = converted
+            .generator_images()
+            .iter()
+            .map(|coordinates| {
+                coordinates
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, coefficient)| !structure.algebra().field().is_zero(coefficient))
+                    .map(|(coordinate, coefficient)| {
+                        json!([coordinate + 1, coefficient_json(coefficient)])
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let relations = converted
+            .algebra()
+            .relations()
+            .iter()
+            .map(|relation| {
+                relation
+                    .terms()
+                    .iter()
+                    .map(|term| {
+                        json!({
+                            "walk": term.path().walk().unwrap().iter().map(|arrow| arrow.get()).collect::<Vec<_>>(),
+                            "coefficient": coefficient_json(term.coefficient())
+                        })
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        let dimension = converted
+            .algebra()
+            .as_quotient()
+            .unwrap()
+            .canonical_basis()
+            .unwrap()
+            .unwrap()
+            .len();
+        json!({
+            "dimension": dimension,
+            "vertices": quiver.number_of_vertices(),
+            "arrows": arrows,
+            "generator_images": generator_images,
+            "loewy_length": converted.loewy_length(),
+            "relations": relations
+        })
     }
 
     #[test]
@@ -330,6 +471,12 @@ mod tests {
             }),
             expected["f2"]
         );
+        assert_eq!(
+            final_conversion_json(&binary, &|coefficient| {
+                small_integer(&Z2.to_integer(coefficient)).into()
+            }),
+            expected["final"]["f2"]
+        );
 
         let field5 = Zp::new(5);
         let prime_five = additive_generator_case(field5.clone());
@@ -339,6 +486,53 @@ mod tests {
             }),
             expected["f5"]
         );
+        assert_eq!(
+            final_conversion_json(&prime_five, &|coefficient| {
+                small_integer(&field5.to_integer(coefficient)).into()
+            }),
+            expected["final"]["f5"]
+        );
+    }
+
+    #[test]
+    fn public_module_preprojective_method_reaches_qpa_conversion() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let simples = simple_modules(&algebra).unwrap();
+        let projectives = indec_projective_modules(&algebra).unwrap();
+        let module = direct_sum_of_qpa_modules(&[
+            simples[0].clone(),
+            simples[1].clone(),
+            projectives[0].clone(),
+        ])
+        .unwrap()
+        .unwrap();
+        let converted = module_preprojective_algebra(&module, &Integer::from(1)).unwrap();
+        assert_eq!(converted.algebra().quiver().number_of_arrows(), 3);
+        assert_eq!(converted.algebra().relations().len(), 2);
+    }
+
+    #[test]
+    fn public_module_preprojective_method_preserves_qpa_finite_field_error() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let simples = simple_modules(&algebra).unwrap();
+        let projectives = indec_projective_modules(&algebra).unwrap();
+        let module = direct_sum_of_qpa_modules(&[
+            simples[0].clone(),
+            simples[1].clone(),
+            projectives[0].clone(),
+        ])
+        .unwrap()
+        .unwrap();
+        assert!(matches!(
+            module_preprojective_algebra(&module, &Integer::from(1)),
+            Err(ModulePreprojectiveError::Conversion(
+                crate::AlgebraAsQuiverAlgebraError::InfiniteCoefficientField
+            ))
+        ));
     }
 
     #[test]
