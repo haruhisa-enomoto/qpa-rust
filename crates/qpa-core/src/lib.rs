@@ -21,6 +21,7 @@ pub mod projective_presentation;
 pub mod quiver;
 pub mod quotient;
 pub mod static_dictionary;
+pub mod structure_constants;
 pub mod suffix_tree;
 pub mod tensor;
 pub mod triangular_reduced;
@@ -93,6 +94,9 @@ pub use quotient::{
 pub use static_dictionary::{
     DictionaryMatch, QuiverStaticDictionary, STATIC_DICTIONARY_CHECKING_CYCLE_INFO,
     STATIC_DICTIONARY_CREATING_AUTOMATA_INFO, StaticDictionary, StaticDictionaryError,
+};
+pub use structure_constants::{
+    StructureConstantsAlgebra, StructureConstantsAlgebraElement, StructureConstantsError,
 };
 pub use suffix_tree::{
     SuffixTree, SuffixTreeEdgeId, SuffixTreeError, SuffixTreeNodeId, SuffixTreeNodeKind,

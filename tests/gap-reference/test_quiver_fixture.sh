@@ -75,6 +75,18 @@ compare_fixture \
     "$repo_root/tests/gap-reference/util.g" \
     "$repo_root/tests/fixtures/util.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/algebra_structure_constants.g" \
+    "$repo_root/tests/fixtures/algebra_structure_constants.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/algebra_structure_constants_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly found an identity for a zero-dimensional structure algebra" >&2
+    exit 1
+fi
+grep -Fq "need <rpb>, <cpb>, <zero> if <blocks> is empty" "$actual"
+grep -Fq "algebra.gi:622" "$actual"
+compare_fixture \
     "$repo_root/tests/gap-reference/quiver_graph.g" \
     "$repo_root/tests/fixtures/quiver_graph.schema-v1.json"
 compare_text_fixture \
