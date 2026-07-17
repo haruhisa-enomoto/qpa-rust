@@ -10139,9 +10139,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 29
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_indecomposable_module"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11062,9 +11062,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 2083
 source_end = 2105
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_indecomposable_module"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12544,9 +12544,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 72
 source_end = 72
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_modules_of_length_at_most"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12557,9 +12557,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 73
 source_end = 73
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_modules_of_length_plus_one"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12570,9 +12570,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 74
 source_end = 74
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_indec_modules_of_length_at_most"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13766,9 +13766,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3898
 source_end = 3997
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_modules_of_length_plus_one"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13779,9 +13779,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4006
 source_end = 4036
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_modules_of_length_at_most"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13792,9 +13792,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4045
 source_end = 4056
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_indec_modules_of_length_at_most"
+tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
 
 [[entries]]

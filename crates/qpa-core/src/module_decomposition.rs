@@ -22,9 +22,9 @@ use crate::{
     is_simple_qpa_module, isomorphism_of_modules, kernel_inclusion, kernel_of_module_homomorphism,
     maximal_common_direct_summand,
     path_module::ModuleDecompositionMultiplicitiesCache,
-    pull_back, right_module_hom_over_algebra, socle_of_module_inclusion,
+    pull_back, right_module_hom_over_algebra, socle_of_module, socle_of_module_inclusion,
     structure_constants::{StructureConstantsSubalgebra, add_rows, span_rows, subtract_rows},
-    subrepresentation_inclusion, top_of_module_homomorphism,
+    subrepresentation_inclusion, top_of_module, top_of_module_homomorphism,
 };
 
 /// Translate QPA's `ComplementInFullRowSpace(V)` operation.
@@ -569,6 +569,43 @@ pub fn decompose_module<F: QpaCoefficientField>(
         .map(image_of_module_homomorphism)
         .collect::<Result<Vec<_>, _>>()?;
     Ok(module.cache_decomposition(&decomposition))
+}
+
+/// Translate QPA's `IsIndecomposableModule(M)` method.
+///
+/// The zero module is false. Over a finite field QPA decides by whether
+/// `DecomposeModule(M)` has one summand. Over an infinite field it returns
+/// true when either the top or socle is simple, and otherwise invokes
+/// `TryNextMethod`; that final branch is represented by `Ok(None)`.
+///
+/// # Errors
+///
+/// Propagates coefficient-domain enumeration, decomposition, top, and socle
+/// failures.
+pub fn is_indecomposable_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Option<bool>, ModuleDecompositionError> {
+    if let Some(cached) = module.cached_is_indecomposable_module() {
+        return Ok(Some(cached));
+    }
+    if module.dimension() == 0 {
+        return Ok(Some(module.cache_is_indecomposable_module(false)));
+    }
+    if module
+        .right_acting_algebra()
+        .field()
+        .qpa_elements()?
+        .is_some()
+    {
+        let indecomposable = decompose_module(module)?.len() == 1;
+        return Ok(Some(module.cache_is_indecomposable_module(indecomposable)));
+    }
+    if is_simple_qpa_module(&top_of_module(module.clone())?)
+        || is_simple_qpa_module(&socle_of_module(module.clone())?)
+    {
+        return Ok(Some(module.cache_is_indecomposable_module(true)));
+    }
+    Ok(None)
 }
 
 /// Translate QPA's cached `DecomposeModuleWithInclusions(M)` attribute.

@@ -661,13 +661,16 @@ Primary QPA files: `modulehom` and `moduledecomp`.
 - [ ] Port isomorphism/direct-summand/additive-closure computations.
   `NumberOfNonIsoDirSummands` now follows QPA through the radical quotient and
   central block decomposition over the supported split prime-field tier.
-- [ ] Port traces, rejects, submodule enumeration, and length-bounded module
+- [x] Port traces, rejects, submodule enumeration, and length-bounded module
   generation. `TraceOfModule` and all three right-`Fac(M)` synonyms preserve
   QPA's minimal-generator/Hom ordering and zero/error branches. `RejectOfModule`
   follows the Hom-kernel intersection route. Simple-submodule enumeration now
   uses QPA's socle block splitting and GAP-ordered projective lines, and all
   submodules are built by its quotient/simple/pullback induction with
-  dimension-level deduplication. Length-bounded module generation remains.
+  dimension-level deduplication. Length-bounded generation now follows QPA's
+  two ordered Ext/pushout passes, finite-field tuple enumeration, equality and
+  isomorphism deduplication, and even its observable `list[u]` indexing quirk;
+  the bounded and indecomposable wrappers preserve the source layer order.
 - [x] Port endomorphism quiver-algebra and ADR-algebra constructions.
   `EndOfModuleAsQuiverAlgebra` now preserves QPA's `EndOverAlgebra` followed by
   `AlgebraAsQuiverAlgebra` delegation, including the nonbasic rejection and a

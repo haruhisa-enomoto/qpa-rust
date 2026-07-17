@@ -13,19 +13,20 @@ use numerica::domains::{
     rational::{Q, Rational, RationalField},
 };
 use qpa_core::{
-    AlgebraGlobalDimension, CachedAttribute, CachedNakayamaAutomorphismOrder, DenseMatrix,
-    MatrixError, ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix,
+    AlgebraGlobalDimension, CachedAttribute, CachedNakayamaAutomorphismOrder,
+    CoefficientDomainError, DenseMatrix, MatrixError, ModuleDecompositionError,
+    ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix,
     PathAlgebraElement, PathAlgebraError, PathAlgebraModule, PathAlgebraModuleElement,
     PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint,
     PathError, QpaCoefficientField, QpaFieldCharacteristic, QuiverAlgebra, QuiverAlgebraElement,
     QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
     QuotientPathAlgebra, cokernel_of_module_homomorphism, direct_sum_inclusions,
     direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m,
-    hom_over_algebra, identity_module_mapping, include_in_path_algebra, isomorphism_of_modules,
-    kernel_inclusion, kernel_of_module_homomorphism, loewy_length_of_module,
-    minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_kernel,
-    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, radical_of_module,
-    right_module_hom_over_algebra, right_module_over_path_algebra,
+    hom_over_algebra, identity_module_mapping, include_in_path_algebra, is_indecomposable_module,
+    isomorphic_modules, isomorphism_of_modules, kernel_inclusion, kernel_of_module_homomorphism,
+    loewy_length_of_module, minimal_generating_set_of_module, morphism_on_cokernel,
+    morphism_on_kernel, natural_endomorphism_quotient_by_ideal, project_from_product_quiver,
+    push_out, radical_of_module, right_module_hom_over_algebra, right_module_over_path_algebra,
     right_module_over_path_algebra_with_tensor, socle_of_module, socle_of_module_inclusion,
     subrepresentation_inclusion, top_of_module, zero_module, zero_module_mapping,
 };
@@ -2981,6 +2982,318 @@ pub fn is_rigid_module<F: Field>(
     Ok(module.cache_is_rigid_module(rigid))
 }
 
+/// Translate QPA's `AllModulesOfLengthPlusOne(list)` operation.
+///
+/// The input is a nonempty list of equal-dimensional modules over one
+/// finite-field algebra. QPA constructs extensions on both sides by every
+/// vertex simple, retains first occurrences under structural equality, and
+/// finally removes later isomorphic modules. The source's first `s = 1`
+/// branch literally takes `list[u]`, the last entered module, rather than
+/// `list[j]`; this observable indexing behavior is preserved here.
+///
+/// # Errors
+///
+/// Preserves QPA's three input errors and finite-field restriction, then
+/// propagates simple-module, projective-cover, Ext, pushout, direct-sum, and
+/// isomorphism failures.
+pub fn all_modules_of_length_plus_one<F: QpaCoefficientField>(
+    list: &[PathAlgebraModule<F>],
+) -> Result<Vec<PathAlgebraModule<F>>, ModuleLengthError> {
+    let Some(first) = list.first() else {
+        return Err(ModuleLengthError::EmptyModuleList);
+    };
+    let algebra = first.right_acting_algebra();
+    let field_elements = algebra
+        .field()
+        .qpa_elements()?
+        .ok_or(ModuleLengthError::FiniteFieldRequired)?;
+    if list
+        .iter()
+        .any(|module| module.right_acting_algebra() != algebra)
+    {
+        return Err(ModuleLengthError::ModulesOverDifferentAlgebras);
+    }
+    let dimension = first.dimension();
+    if list.iter().any(|module| module.dimension() != dimension) {
+        return Err(ModuleLengthError::ModulesOfDifferentLengths);
+    }
+
+    let simples = simple_modules(algebra)?;
+    let simple_syzygies = simples
+        .iter()
+        .map(|simple| Ok(kernel_inclusion(&projective_cover(simple)?)?))
+        .collect::<Result<Vec<_>, ModuleLengthError>>()?;
+    let mut extensions = Vec::with_capacity(simples.len());
+    for simple in &simples {
+        let mut row = Vec::with_capacity(list.len());
+        for module in list {
+            row.push(ext_over_algebra(simple, module)?.basis().to_vec());
+        }
+        extensions.push(row);
+    }
+
+    let mut modules = Vec::new();
+    let Some(source_first_split_module) = list.last() else {
+        return Err(ModuleLengthError::EmptyModuleList);
+    };
+    for (simple_index, extension_row) in extensions.iter().enumerate() {
+        for basis in extension_row {
+            append_extension_modules(
+                &mut modules,
+                basis,
+                source_first_split_module,
+                &simples[simple_index],
+                &simple_syzygies[simple_index],
+                &field_elements,
+            )?;
+        }
+    }
+    retain_first_equal_modules(&mut modules);
+
+    let module_syzygies = list
+        .iter()
+        .map(|module| Ok(kernel_inclusion(&projective_cover(module)?)?))
+        .collect::<Result<Vec<_>, ModuleLengthError>>()?;
+    let mut extensions = Vec::with_capacity(list.len());
+    for module in list {
+        let mut row = Vec::with_capacity(simples.len());
+        for simple in &simples {
+            row.push(ext_over_algebra(module, simple)?.basis().to_vec());
+        }
+        extensions.push(row);
+    }
+    for (module_index, extension_row) in extensions.iter().enumerate() {
+        for (simple_index, basis) in extension_row.iter().enumerate() {
+            append_extension_modules(
+                &mut modules,
+                basis,
+                &list[module_index],
+                &simples[simple_index],
+                &module_syzygies[module_index],
+                &field_elements,
+            )?;
+        }
+    }
+    retain_first_equal_modules(&mut modules);
+
+    let Some(first) = modules.first().cloned() else {
+        return Err(ModuleLengthError::EmptyConstructedModuleList);
+    };
+    let mut nonisomorphic = vec![first];
+    for module in modules.into_iter().skip(1) {
+        let mut new_isomorphism_class = true;
+        for representative in &nonisomorphic {
+            if isomorphic_modules(representative, &module)? {
+                new_isomorphism_class = false;
+                break;
+            }
+        }
+        if new_isomorphism_class {
+            nonisomorphic.push(module);
+        }
+    }
+    Ok(nonisomorphic)
+}
+
+/// Translate QPA's `AllModulesOfLengthAtMost(A, n)` operation.
+///
+/// Despite its name, the source tests total vector-space dimension. Negative
+/// bounds return an empty list; zero returns the zero module; later layers
+/// are obtained by repeated [`all_modules_of_length_plus_one`] calls.
+///
+/// # Errors
+///
+/// Requires a supported finite field, reports a nonnegative bound too large
+/// for Rust's address space, and propagates layer construction failures.
+pub fn all_modules_of_length_at_most<F: QpaCoefficientField>(
+    algebra: &QuiverAlgebra<F>,
+    bound: &Integer,
+) -> Result<Vec<PathAlgebraModule<F>>, ModuleLengthError> {
+    if algebra.field().qpa_elements()?.is_none() {
+        return Err(ModuleLengthError::FiniteFieldRequired);
+    }
+    if bound < &Integer::from(0) {
+        return Ok(Vec::new());
+    }
+    let bound = usize::try_from(bound.clone()).map_err(|_| {
+        ModuleLengthError::LengthBoundNotRepresentable {
+            value: bound.clone(),
+        }
+    })?;
+    let zero = zero_module(algebra)?;
+    if bound == 0 {
+        return Ok(vec![zero]);
+    }
+    let simples = simple_modules(algebra)?;
+    let mut all_modules = Vec::with_capacity(simples.len() + 1);
+    all_modules.push(zero);
+    all_modules.extend(simples.iter().cloned());
+    if bound == 1 {
+        return Ok(all_modules);
+    }
+
+    let mut previous = simples;
+    for _ in 2..=bound {
+        previous = all_modules_of_length_plus_one(&previous)?;
+        all_modules.extend(previous.iter().cloned());
+    }
+    Ok(all_modules)
+}
+
+/// Translate QPA's `AllIndecModulesOfLengthAtMost(A, n)` operation.
+///
+/// QPA removes the leading zero module from
+/// [`all_modules_of_length_at_most`] and applies its finite-field
+/// `IsIndecomposableModule` method to every remaining module.
+///
+/// # Errors
+///
+/// Propagates module enumeration and deterministic decomposition failures.
+pub fn all_indec_modules_of_length_at_most<F: QpaCoefficientField>(
+    algebra: &QuiverAlgebra<F>,
+    bound: &Integer,
+) -> Result<Vec<PathAlgebraModule<F>>, ModuleLengthError> {
+    let all_modules = all_modules_of_length_at_most(algebra, bound)?;
+    let mut indecomposables = Vec::new();
+    for module in all_modules.into_iter().skip(1) {
+        if is_indecomposable_module(&module)?
+            .ok_or(ModuleLengthError::IndecomposabilityMethodUnavailable)?
+        {
+            indecomposables.push(module);
+        }
+    }
+    Ok(indecomposables)
+}
+
+fn append_extension_modules<F: Field>(
+    modules: &mut Vec<PathAlgebraModule<F>>,
+    basis: &[PathAlgebraModuleHomomorphism<F>],
+    split_module: &PathAlgebraModule<F>,
+    simple: &PathAlgebraModule<F>,
+    syzygy_inclusion: &PathAlgebraModuleHomomorphism<F>,
+    field_elements: &[F::Element],
+) -> Result<(), ModuleLengthError> {
+    match basis.len() {
+        0 => {}
+        1 => {
+            modules.push(
+                direct_sum_of_qpa_modules(&[split_module.clone(), simple.clone()])?
+                    .ok_or(ModuleLengthError::InternalDirectSumFailed)?,
+            );
+            modules.push(extension_middle_term(&basis[0], syzygy_inclusion)?);
+        }
+        dimension => {
+            for coefficients in cartesian_field_power(field_elements, dimension) {
+                let homomorphism = linear_combination_of_module_maps(basis, &coefficients)?;
+                modules.push(extension_middle_term(&homomorphism, syzygy_inclusion)?);
+            }
+        }
+    }
+    Ok(())
+}
+
+fn extension_middle_term<F: Field>(
+    extension: &PathAlgebraModuleHomomorphism<F>,
+    syzygy_inclusion: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModule<F>, ModuleLengthError> {
+    Ok(push_out(extension, syzygy_inclusion)?
+        .ok_or(ModuleLengthError::InternalPushOutFailed)?
+        .1
+        .range()
+        .clone())
+}
+
+fn linear_combination_of_module_maps<F: Field>(
+    basis: &[PathAlgebraModuleHomomorphism<F>],
+    coefficients: &[F::Element],
+) -> Result<PathAlgebraModuleHomomorphism<F>, ModuleLengthError> {
+    let first = basis
+        .first()
+        .ok_or(ModuleLengthError::EmptyLinearCombinationBasis)?;
+    let field = first.source().right_acting_algebra().field();
+    let mut result = first.scale(&field.zero())?;
+    for (homomorphism, coefficient) in basis.iter().zip(coefficients) {
+        result = result.add(&homomorphism.scale(coefficient)?)?;
+    }
+    Ok(result)
+}
+
+fn cartesian_field_power<E: Clone>(elements: &[E], exponent: usize) -> Vec<Vec<E>> {
+    let mut product = vec![Vec::new()];
+    for _ in 0..exponent {
+        let mut next = Vec::new();
+        for prefix in product {
+            for element in elements {
+                let mut tuple = prefix.clone();
+                tuple.push(element.clone());
+                next.push(tuple);
+            }
+        }
+        product = next;
+    }
+    product
+}
+
+fn retain_first_equal_modules<F: Field>(modules: &mut Vec<PathAlgebraModule<F>>) {
+    let mut unique = Vec::new();
+    for module in modules.drain(..) {
+        if !unique.contains(&module) {
+            unique.push(module);
+        }
+    }
+    *modules = unique;
+}
+
+/// Failure in QPA's finite-field module length enumeration operations.
+#[derive(Debug, Error)]
+pub enum ModuleLengthError {
+    /// QPA rejects an empty list before inspecting an acting algebra.
+    #[error("list entered into AllModulesOfLengthPlusOne is empty")]
+    EmptyModuleList,
+    /// All three source methods are finite-field-only.
+    #[error("the algebra is not over a finite field")]
+    FiniteFieldRequired,
+    /// Every entered module must act over the identical algebra.
+    #[error("the entered list does not consist of modules over the same algebra")]
+    ModulesOverDifferentAlgebras,
+    /// QPA calls total vector-space dimension the module length here.
+    #[error("the entered list does not have the same length")]
+    ModulesOfDifferentLengths,
+    /// A nonnegative GAP integer bound cannot be represented by `usize`.
+    #[error("module length bound is not representable by usize: {value}")]
+    LengthBoundNotRepresentable {
+        /// Rejected bound.
+        value: Integer,
+    },
+    /// A nonempty two-module direct sum cannot return `fail` in this branch.
+    #[error("an internal nonempty extension direct sum returned fail")]
+    InternalDirectSumFailed,
+    /// Both maps supplied by the source have the same syzygy source.
+    #[error("an internal extension pushout returned fail")]
+    InternalPushOutFailed,
+    /// QPA subsequently indexes `modules[1]` after the two Ext loops.
+    #[error("the extension loops constructed no modules")]
+    EmptyConstructedModuleList,
+    /// The helper is entered only for Ext dimension greater than one.
+    #[error("an internal linear-combination basis was empty")]
+    EmptyLinearCombinationBasis,
+    /// Finite fields always dispatch QPA's decomposition-based method.
+    #[error("IsIndecomposableModule unexpectedly invoked TryNextMethod")]
+    IndecomposabilityMethodUnavailable,
+    /// Supported-field enumeration failed.
+    #[error(transparent)]
+    Coefficient(#[from] CoefficientDomainError),
+    /// Simple modules, projective covers, and Ext construction failed.
+    #[error(transparent)]
+    Enveloping(#[from] EnvelopingModuleError),
+    /// Direct sums, pushouts, map arithmetic, or isomorphism failed.
+    #[error(transparent)]
+    Module(#[from] PathAlgebraModuleError),
+    /// Deterministic indecomposable decomposition failed.
+    #[error(transparent)]
+    Decomposition(#[from] ModuleDecompositionError),
+}
+
 struct ExtQuotientComplement<F: Field> {
     representatives: Vec<Vec<F::Element>>,
     coordinate_basis: DenseMatrix<F>,
@@ -5141,22 +5454,25 @@ mod tests {
         QuiverAlgebra, QuiverAlgebraElement, StructureConstantsAlgebra, VertexIndex,
         dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
         from_end_m_to_hom_mm, from_hom_mm_to_end_m, identity_module_mapping,
-        include_in_path_algebra, is_semisimple_module, is_simple_qpa_module, kernel_inclusion,
-        lifting_inclusion_morphisms, minimal_generating_set_of_module, radical_series,
-        right_fac_approximation, right_module_hom_over_algebra, right_module_over_path_algebra,
-        socle_of_module, socle_of_module_inclusion, top_of_module, top_of_module_projection,
-        trace_of_module, underlying_linear_map, zero_module, zero_module_mapping,
+        include_in_path_algebra, is_indecomposable_module, is_semisimple_module,
+        is_simple_qpa_module, kernel_inclusion, lifting_inclusion_morphisms,
+        minimal_generating_set_of_module, radical_series, right_fac_approximation,
+        right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
+        socle_of_module_inclusion, top_of_module, top_of_module_projection, trace_of_module,
+        underlying_linear_map, zero_module, zero_module_mapping,
     };
     use rand::{RngCore, SeedableRng, rngs::StdRng};
     use serde_json::{Value, json};
 
     use super::{
         EnvelopingModuleError, ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult,
-        NakayamaAutomorphismOrder, TensorProductOfModulesResult,
+        ModuleLengthError, NakayamaAutomorphismOrder, TensorProductOfModulesResult,
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, cartan_matrix,
-        coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
-        d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        all_indec_modules_of_length_at_most, all_modules_of_length_at_most,
+        all_modules_of_length_plus_one, annihilator_of_module, basis_of_projectives,
+        canonical_basis_coefficients, cartan_matrix, coxeter_matrix, coxeter_polynomial, d_tr,
+        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
+        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
@@ -5430,6 +5746,175 @@ mod tests {
                 .map(|matrix| matrix_json(matrix, coefficient))
                 .collect::<Vec<_>>(),
         })
+    }
+
+    fn length_module_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "dimension": module.dimension_vector(),
+            "matrices": module.matrices_of_path_algebra_module().iter().map(|matrix| {
+                match matrix {
+                    PathAlgebraModuleMatrix::ZeroScalar => json!([]),
+                    PathAlgebraModuleMatrix::Matrix(matrix) => json!(
+                        (0..matrix.nrows()).map(|row| matrix.row(row).iter()
+                            .map(coefficient).collect::<Vec<_>>()).collect::<Vec<_>>()
+                    ),
+                }
+            }).collect::<Vec<_>>(),
+        })
+    }
+
+    fn length_module_list_json<F: Field>(
+        modules: &[PathAlgebraModule<F>],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!(
+            modules
+                .iter()
+                .map(|module| length_module_json(module, coefficient))
+                .collect::<Vec<_>>()
+        )
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
+    fn modulehom_length_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&a2).unwrap();
+        let a2_plus = all_modules_of_length_plus_one(&simples).unwrap();
+        let a2_at_most_two = all_modules_of_length_at_most(&a2, &Integer::from(2)).unwrap();
+        let a2_indec_two = all_indec_modules_of_length_at_most(&a2, &Integer::from(2)).unwrap();
+        let a2_negative = all_modules_of_length_at_most(&a2, &Integer::from(-1)).unwrap();
+        let a2_zero = all_modules_of_length_at_most(&a2, &Integer::from(0)).unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simples = simple_modules(&dual).unwrap();
+        let dual_length_two = all_modules_of_length_plus_one(&dual_simples).unwrap();
+        let dual_length_three = all_modules_of_length_plus_one(&dual_length_two).unwrap();
+
+        json!({
+            "a2_plus": length_module_list_json(&a2_plus, coefficient),
+            "a2_at_most_two": length_module_list_json(&a2_at_most_two, coefficient),
+            "a2_indec_two": length_module_list_json(&a2_indec_two, coefficient),
+            "a2_negative": length_module_list_json(&a2_negative, coefficient),
+            "a2_zero": length_module_list_json(&a2_zero, coefficient),
+            "dual_length_two": length_module_list_json(&dual_length_two, coefficient),
+            "dual_length_three": length_module_list_json(&dual_length_three, coefficient),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_length_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_length.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let rational_a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let rational_zero = zero_module(&rational_a2).unwrap();
+        let rational_projective = right_module_over_path_algebra(
+            rational_a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![Q.one()]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehom_length",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehom_length_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehom_length_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational_indecomposable": {
+                "zero": is_indecomposable_module(&rational_zero).unwrap().unwrap(),
+                "projective": is_indecomposable_module(&rational_projective).unwrap().unwrap(),
+            },
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn module_length_enumeration_preserves_qpa_validation_order() {
+        assert!(matches!(
+            all_modules_of_length_plus_one::<Z2>(&[]),
+            Err(ModuleLengthError::EmptyModuleList)
+        ));
+
+        let rational = QuiverAlgebra::Path(
+            PathAlgebra::new(Q, Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap()).unwrap(),
+        );
+        assert!(matches!(
+            all_modules_of_length_at_most(&rational, &Integer::from(1)),
+            Err(ModuleLengthError::FiniteFieldRequired)
+        ));
+
+        let first_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let second_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let first = simple_modules(&first_algebra).unwrap()[0].clone();
+        let foreign = simple_modules(&second_algebra).unwrap()[0].clone();
+        assert!(matches!(
+            all_modules_of_length_plus_one(&[first.clone(), foreign]),
+            Err(ModuleLengthError::ModulesOverDifferentAlgebras)
+        ));
+        let double = direct_sum_of_qpa_modules(&[first.clone(), first.clone()])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            all_modules_of_length_plus_one(&[first, double]),
+            Err(ModuleLengthError::ModulesOfDifferentLengths)
+        ));
     }
 
     fn module_map_json<F: Field>(
