@@ -14286,9 +14286,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 32
 source_end = 32
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_fac_m_approximation"
+tests = ["tests/fixtures/modulehomalg_left_fac.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14299,9 +14299,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 33
 source_end = 33
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_left_fac_m_approximation"
+tests = ["tests/fixtures/modulehomalg_left_fac.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14949,9 +14949,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1014
 source_end = 1031
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_fac_m_approximation"
+tests = ["tests/fixtures/modulehomalg_left_fac.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14962,9 +14962,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1041
 source_end = 1048
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_left_fac_m_approximation"
+tests = ["tests/fixtures/modulehomalg_left_fac.schema-v1.json"]
 deviations = []
 
 [[entries]]
