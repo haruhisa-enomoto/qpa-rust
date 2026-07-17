@@ -11166,9 +11166,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "predecessors_of_module; PredecessorsOfModuleResult"
+tests = ["tests/fixtures/module_ar_predecessors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11257,9 +11257,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gi"
 source_start = 225
 source_end = 343
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "predecessors_of_module; PredecessorsOfModuleResult"
+tests = ["tests/fixtures/module_ar_predecessors.schema-v1.json"]
 deviations = []
 
 [[entries]]

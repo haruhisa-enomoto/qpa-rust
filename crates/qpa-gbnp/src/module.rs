@@ -14,21 +14,22 @@ use numerica::domains::{
 };
 use qpa_core::{
     AlgebraGlobalDimension, CachedAttribute, CachedNakayamaAutomorphismOrder,
-    CoefficientDomainError, DenseMatrix, MatrixError, ModuleDecompositionError,
-    ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix,
-    PathAlgebraElement, PathAlgebraError, PathAlgebraModule, PathAlgebraModuleElement,
-    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraModuleHomomorphismPair,
-    PathAlgebraTensorError, PathEndpoint, PathError, QpaCoefficientField, QpaFieldCharacteristic,
-    QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct,
-    QuiverProductError, QuotientError, QuotientPathAlgebra, StructureConstantsError,
-    cokernel_of_module_homomorphism, cokernel_projection, decompose_module_with_inclusions,
-    direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
-    from_end_m_to_hom_mm, from_hom_mm_to_end_m, hom_over_algebra, identity_module_mapping,
-    include_in_path_algebra, is_indecomposable_module, isomorphic_modules, isomorphism_of_modules,
-    kernel_inclusion, kernel_of_module_homomorphism, loewy_length_of_module,
-    minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_kernel,
-    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, push_out,
-    radical_of_module, radical_of_module_inclusion, right_module_hom_over_algebra,
+    CoefficientDomainError, CommonDirectSummandResult, DenseMatrix, MatrixError,
+    ModuleDecompositionError, ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism,
+    NamedArrowMatrix, PathAlgebraElement, PathAlgebraError, PathAlgebraModule,
+    PathAlgebraModuleElement, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
+    PathAlgebraModuleHomomorphismPair, PathAlgebraTensorError, PathEndpoint, PathError,
+    QpaCoefficientField, QpaFieldCharacteristic, QuiverAlgebra, QuiverAlgebraElement,
+    QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
+    QuotientPathAlgebra, StructureConstantsError, cokernel_of_module_homomorphism,
+    cokernel_projection, common_direct_summand, decompose_module_with_inclusions,
+    decompose_module_with_multiplicities, direct_sum_inclusions, direct_sum_of_qpa_modules,
+    direct_sum_projections, end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m,
+    hom_over_algebra, identity_module_mapping, include_in_path_algebra, is_indecomposable_module,
+    isomorphic_modules, isomorphism_of_modules, kernel_inclusion, kernel_of_module_homomorphism,
+    loewy_length_of_module, minimal_generating_set_of_module, morphism_on_cokernel,
+    morphism_on_kernel, natural_endomorphism_quotient_by_ideal, project_from_product_quiver,
+    push_out, radical_of_module, radical_of_module_inclusion, right_module_hom_over_algebra,
     right_module_over_path_algebra, right_module_over_path_algebra_with_tensor, socle_of_module,
     socle_of_module_inclusion, subrepresentation_inclusion, top_of_module, zero_module,
     zero_module_mapping,
@@ -3366,6 +3367,246 @@ pub fn irreducible_morphisms_starting_in<F: QpaCoefficientField>(
     Ok(module.cache_irreducible_morphisms_starting_in(&homomorphisms))
 }
 
+/// QPA's heterogeneous third component in a predecessor-arrow valuation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PredecessorMultiplicity {
+    /// The usual `[integer|false, integer|false]` value.
+    Pair {
+        /// QPA's first list position.
+        first: Option<usize>,
+        /// QPA's second list position.
+        second: Option<usize>,
+    },
+    /// The projective/new-summand branch literally stores an integer instead
+    /// of the usual pair.
+    Scalar(usize),
+}
+
+/// One QPA predecessor valuation entry `[source_position, range_position, v]`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PredecessorValuation {
+    /// One-based position in the farther predecessor layer.
+    pub predecessor_position: usize,
+    /// One-based position in the layer nearer the entered module.
+    pub successor_position: usize,
+    /// QPA's pair-or-scalar valuation payload.
+    pub multiplicity: PredecessorMultiplicity,
+}
+
+/// Layer and valuation lists returned by QPA's general predecessor branch.
+#[derive(Clone, Debug)]
+pub struct PredecessorLayers<F: Field> {
+    /// The `n + 1` module layers in QPA order.
+    pub layers: Vec<Vec<PathAlgebraModule<F>>>,
+    /// The `n` arrow-valuation layers in QPA order.
+    pub valuations: Vec<Vec<PredecessorValuation>>,
+}
+
+/// QPA's heterogeneous `PredecessorsOfModule(M,n)` return value.
+#[derive(Clone, Debug)]
+pub enum PredecessorsOfModuleResult<F: Field> {
+    /// The literal `n = 1` early return is the entered module itself.
+    Module(PathAlgebraModule<F>),
+    /// Every supported `n >= 2` result contains layers and valuations.
+    Layers(PredecessorLayers<F>),
+}
+
+/// Translate QPA's `PredecessorsOfModule(M, n)` layer algorithm.
+///
+/// The source assumes indecomposability, rejects a projective module before
+/// inspecting `n`, returns `M` itself at `n = 1`, and for larger bounds walks
+/// almost-split middle terms. Isomorphic occurrences are detected through
+/// `CommonDirectSummand`, while every stored position remains one-based.
+///
+/// # Errors
+///
+/// Rejects projective input and nonpositive or unrepresentable bounds, then
+/// propagates almost-split, radical, decomposition, and common-summand
+/// failures. Internal valuation lookup/shape failures mirror source indexing
+/// errors explicitly.
+#[allow(clippy::if_not_else, clippy::too_many_lines)]
+pub fn predecessors_of_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<PredecessorsOfModuleResult<F>, AuslanderReitenError> {
+    if is_projective_module(module)? {
+        return Err(AuslanderReitenError::PredecessorModuleProjective);
+    }
+    if bound == &Integer::from(1) {
+        return Ok(PredecessorsOfModuleResult::Module(module.clone()));
+    }
+    if bound < &Integer::from(2) {
+        return Err(AuslanderReitenError::PredecessorBoundBelowOne {
+            bound: bound.clone(),
+        });
+    }
+    let bound = usize::try_from(bound.clone()).map_err(|_| {
+        AuslanderReitenError::PredecessorBoundNotRepresentable {
+            bound: bound.clone(),
+        }
+    })?;
+    let layer_count = bound
+        .checked_add(1)
+        .ok_or(AuslanderReitenError::PredecessorLayerCountOverflow { bound })?;
+    let mut layers = vec![Vec::new(); layer_count];
+    let mut valuations = vec![Vec::new(); bound];
+    layers[0].push(module.clone());
+
+    let first_sequence = almost_split_sequence(module)?
+        .ok_or(AuslanderReitenError::UnexpectedProjectiveAlmostSplitFail)?;
+    let first_middle = decompose_module_with_multiplicities(first_sequence.0.range())?
+        .ok_or(AuslanderReitenError::EmptyAlmostSplitMiddleTerm)?;
+    layers[1].extend(first_middle.basic_summands().iter().cloned());
+    layers[2].push(first_sequence.0.source().clone());
+    for (position, &multiplicity) in first_middle.multiplicities().iter().enumerate() {
+        valuations[0].push(PredecessorValuation {
+            predecessor_position: position + 1,
+            successor_position: 1,
+            multiplicity: PredecessorMultiplicity::Pair {
+                first: Some(multiplicity),
+                second: None,
+            },
+        });
+        valuations[1].push(PredecessorValuation {
+            predecessor_position: 1,
+            successor_position: position + 1,
+            multiplicity: PredecessorMultiplicity::Pair {
+                first: None,
+                second: Some(multiplicity),
+            },
+        });
+    }
+
+    for layer_number in 2..bound {
+        let current_modules = layers[layer_number - 1].clone();
+        for current in current_modules {
+            let current_position = layers[layer_number - 1]
+                .iter()
+                .position(|candidate| candidate == &current)
+                .ok_or(AuslanderReitenError::MissingCurrentPredecessorModule)?
+                + 1;
+            if !is_projective_module(&current)? {
+                let sequence = almost_split_sequence(&current)?
+                    .ok_or(AuslanderReitenError::UnexpectedProjectiveAlmostSplitFail)?;
+                let middle = decompose_module_with_multiplicities(sequence.0.range())?
+                    .ok_or(AuslanderReitenError::EmptyAlmostSplitMiddleTerm)?;
+                layers[layer_number + 1].push(sequence.0.source().clone());
+                let translate_position = layers[layer_number + 1].len();
+
+                for (summand, &multiplicity) in
+                    middle.basic_summands().iter().zip(middle.multiplicities())
+                {
+                    let mut found = false;
+                    for next_position in 0..layers[layer_number].len() {
+                        if matches!(
+                            common_direct_summand(summand, &layers[layer_number][next_position])?,
+                            CommonDirectSummandResult::Found(_)
+                        ) {
+                            update_predecessor_forward_multiplicity(
+                                &mut valuations[layer_number - 1],
+                                next_position + 1,
+                                current_position,
+                                multiplicity,
+                            )?;
+                            valuations[layer_number].push(PredecessorValuation {
+                                predecessor_position: translate_position,
+                                successor_position: next_position + 1,
+                                multiplicity: PredecessorMultiplicity::Pair {
+                                    first: None,
+                                    second: Some(multiplicity),
+                                },
+                            });
+                            found = true;
+                        }
+                    }
+                    if !found {
+                        layers[layer_number].push(summand.clone());
+                        let next_position = layers[layer_number].len();
+                        valuations[layer_number - 1].push(PredecessorValuation {
+                            predecessor_position: next_position,
+                            successor_position: current_position,
+                            multiplicity: PredecessorMultiplicity::Pair {
+                                first: Some(multiplicity),
+                                second: None,
+                            },
+                        });
+                        valuations[layer_number].push(PredecessorValuation {
+                            predecessor_position: translate_position,
+                            successor_position: next_position,
+                            multiplicity: PredecessorMultiplicity::Pair {
+                                first: None,
+                                second: Some(multiplicity),
+                            },
+                        });
+                    }
+                }
+            } else {
+                let radical = radical_of_module(current.clone())?;
+                if radical.dimension() == 0 {
+                    continue;
+                }
+                let middle = decompose_module_with_multiplicities(&radical)?
+                    .ok_or(AuslanderReitenError::EmptyProjectiveRadicalTerm)?;
+                for (summand, &multiplicity) in
+                    middle.basic_summands().iter().zip(middle.multiplicities())
+                {
+                    let mut found = false;
+                    for next_position in 0..layers[layer_number].len() {
+                        if matches!(
+                            common_direct_summand(summand, &layers[layer_number][next_position])?,
+                            CommonDirectSummandResult::Found(_)
+                        ) {
+                            update_predecessor_forward_multiplicity(
+                                &mut valuations[layer_number - 1],
+                                next_position + 1,
+                                current_position,
+                                multiplicity,
+                            )?;
+                            found = true;
+                        }
+                    }
+                    if !found {
+                        layers[layer_number].push(summand.clone());
+                        valuations[layer_number - 1].push(PredecessorValuation {
+                            predecessor_position: layers[layer_number].len(),
+                            successor_position: current_position,
+                            multiplicity: PredecessorMultiplicity::Scalar(multiplicity),
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(PredecessorsOfModuleResult::Layers(PredecessorLayers {
+        layers,
+        valuations,
+    }))
+}
+
+fn update_predecessor_forward_multiplicity(
+    valuations: &mut [PredecessorValuation],
+    predecessor_position: usize,
+    successor_position: usize,
+    multiplicity: usize,
+) -> Result<(), AuslanderReitenError> {
+    let valuation = valuations
+        .iter_mut()
+        .find(|valuation| {
+            valuation.predecessor_position == predecessor_position
+                && valuation.successor_position == successor_position
+        })
+        .ok_or(AuslanderReitenError::MissingPredecessorValuation {
+            predecessor_position,
+            successor_position,
+        })?;
+    let PredecessorMultiplicity::Pair { first, .. } = &mut valuation.multiplicity else {
+        return Err(AuslanderReitenError::ScalarPredecessorValuationUpdate);
+    };
+    *first = Some(multiplicity);
+    Ok(())
+}
+
 fn flat_row_in_span<F: Field>(
     span: Option<&DenseMatrix<F>>,
     row: &[F::Element],
@@ -3428,6 +3669,50 @@ pub enum AuslanderReitenError {
     /// Finite-field indecomposable decomposition failed.
     #[error(transparent)]
     Decomposition(#[from] ModuleDecompositionError),
+    /// The source rejects projective input before its `n = 1` early return.
+    #[error("entered module is projective")]
+    PredecessorModuleProjective,
+    /// Nonpositive bounds make QPA's subsequent layer indexing invalid.
+    #[error("PredecessorsOfModule bound must be positive: {bound}")]
+    PredecessorBoundBelowOne {
+        /// Rejected arbitrary-precision bound.
+        bound: Integer,
+    },
+    /// A positive layer bound must fit addressable list lengths.
+    #[error("PredecessorsOfModule bound is not representable by usize: {bound}")]
+    PredecessorBoundNotRepresentable {
+        /// Rejected arbitrary-precision bound.
+        bound: Integer,
+    },
+    /// QPA requests `n + 1` layer lists.
+    #[error("PredecessorsOfModule layer count overflows usize for bound {bound}")]
+    PredecessorLayerCountOverflow {
+        /// Entered representable bound whose successor is not representable.
+        bound: usize,
+    },
+    /// A nonprojective almost-split sequence has a nonzero middle term.
+    #[error("an almost-split sequence has an empty middle-term decomposition")]
+    EmptyAlmostSplitMiddleTerm,
+    /// A nonzero projective radical has a nonempty decomposition.
+    #[error("a nonzero projective radical has an empty decomposition")]
+    EmptyProjectiveRadicalTerm,
+    /// The iterated layer must still contain the module currently being read.
+    #[error("the current predecessor module disappeared from its layer")]
+    MissingCurrentPredecessorModule,
+    /// QPA's `Position` lookup must find the already-created arrow valuation.
+    #[error(
+        "missing predecessor valuation at positions ({predecessor_position},{successor_position})"
+    )]
+    MissingPredecessorValuation {
+        /// One-based farther-layer position.
+        predecessor_position: usize,
+        /// One-based nearer-layer position.
+        successor_position: usize,
+    },
+    /// QPA indexes the first slot of a valuation here, which fails if an
+    /// earlier projective branch stored its scalar payload.
+    #[error("QPA attempted to update the first slot of a scalar predecessor valuation")]
+    ScalarPredecessorValuationUpdate,
 }
 
 /// Translate QPA's `AllModulesOfLengthPlusOne(list)` operation.
@@ -6151,13 +6436,14 @@ mod tests {
     use super::{
         AlmostSplitSide, EnvelopingModuleError, ExtOverAlgebraResult,
         GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
-        TensorProductOfModulesResult, algebra_as_module_of_enveloping_algebra,
-        algebra_as_module_over_enveloping_algebra, all_indec_modules_of_length_at_most,
-        all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
-        almost_split_sequence_from_side, annihilator_of_module, basis_of_projectives,
-        canonical_basis_coefficients, cartan_matrix, complexity_of_algebra, complexity_of_module,
-        coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
-        d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        PredecessorMultiplicity, PredecessorsOfModuleResult, TensorProductOfModulesResult,
+        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
+        all_indec_modules_of_length_at_most, all_modules_of_length_at_most,
+        all_modules_of_length_plus_one, almost_split_sequence, almost_split_sequence_from_side,
+        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, cartan_matrix,
+        complexity_of_algebra, complexity_of_module, coxeter_matrix, coxeter_polynomial, d_tr,
+        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
+        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
@@ -6173,10 +6459,10 @@ mod tests {
         matrix_of_homomorphism_between_projectives, nakayama_automorphism,
         nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        order_of_nakayama_automorphism, projective_cover, random_module, simple_modules,
-        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules, tr_d,
-        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
-        transpose_of_module_homomorphism,
+        order_of_nakayama_automorphism, predecessors_of_module, projective_cover, random_module,
+        simple_modules, socle_series, star_of_module, star_of_module_homomorphism,
+        tensor_product_of_modules, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated,
+        tr_d_iterated, transpose_of_module, transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -7263,6 +7549,161 @@ mod tests {
             irreducible_morphisms_starting_in(&rational_simple),
             Err(super::AuslanderReitenError::FiniteFieldRequired)
         ));
+    }
+
+    fn predecessor_module_json<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "dimension": module.dimension_vector(),
+            "matrices": module.arrow_matrices().iter().map(|matrix| json!(
+                (0..matrix.nrows()).map(|row| matrix.row(row).iter()
+                    .map(coefficient).collect::<Vec<_>>()).collect::<Vec<_>>()
+            )).collect::<Vec<_>>(),
+        })
+    }
+
+    fn predecessors_json<F: Field>(
+        result: PredecessorsOfModuleResult<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        match result {
+            PredecessorsOfModuleResult::Module(module) => json!({
+                "kind": "module",
+                "module": predecessor_module_json(&module, coefficient),
+            }),
+            PredecessorsOfModuleResult::Layers(result) => json!({
+                "kind": "layers",
+                "layers": result.layers.iter().map(|layer| layer.iter()
+                    .map(|module| predecessor_module_json(module, coefficient))
+                    .collect::<Vec<_>>()).collect::<Vec<_>>(),
+                "valuations": result.valuations.iter().map(|layer| layer.iter()
+                    .map(|valuation| {
+                        let multiplicity = match valuation.multiplicity {
+                            PredecessorMultiplicity::Pair { first, second } => json!([
+                                first.map_or(Value::Bool(false), Value::from),
+                                second.map_or(Value::Bool(false), Value::from),
+                            ]),
+                            PredecessorMultiplicity::Scalar(value) => json!(value),
+                        };
+                        json!([
+                            valuation.predecessor_position,
+                            valuation.successor_position,
+                            multiplicity,
+                        ])
+                    }).collect::<Vec<_>>()).collect::<Vec<_>>(),
+            }),
+        }
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
+    fn module_ar_predecessors_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simple_one = right_module_over_path_algebra(a2, vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual,
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![field.zero()]], field).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        json!({
+            "a2_n1": predecessors_json(
+                predecessors_of_module(&simple_one, &Integer::from(1)).unwrap(), coefficient),
+            "a2_n2": predecessors_json(
+                predecessors_of_module(&simple_one, &Integer::from(2)).unwrap(), coefficient),
+            "a2_n3": predecessors_json(
+                predecessors_of_module(&simple_one, &Integer::from(3)).unwrap(), coefficient),
+            "a2_n4": predecessors_json(
+                predecessors_of_module(&simple_one, &Integer::from(4)).unwrap(), coefficient),
+            "dual_n2": predecessors_json(
+                predecessors_of_module(&dual_simple, &Integer::from(2)).unwrap(), coefficient),
+            "dual_n3": predecessors_json(
+                predecessors_of_module(&dual_simple, &Integer::from(3)).unwrap(), coefficient),
+            "dual_n4": predecessors_json(
+                predecessors_of_module(&dual_simple, &Integer::from(4)).unwrap(), coefficient),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_module_ar_predecessors_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_ar_predecessors.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "module_ar_predecessors",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": module_ar_predecessors_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": module_ar_predecessors_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn predecessors_preserve_projective_check_and_n_one_return() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&algebra).unwrap();
+        assert!(matches!(
+            predecessors_of_module(&simples[1], &Integer::from(1)),
+            Err(super::AuslanderReitenError::PredecessorModuleProjective)
+        ));
+        assert!(matches!(
+            predecessors_of_module(&simples[0], &Integer::from(0)),
+            Err(super::AuslanderReitenError::PredecessorBoundBelowOne { .. })
+        ));
+        let PredecessorsOfModuleResult::Module(returned) =
+            predecessors_of_module(&simples[0], &Integer::from(1)).unwrap()
+        else {
+            panic!("QPA must return the module itself at n = 1");
+        };
+        assert!(returned.is_identical(&simples[0]));
     }
 
     fn module_map_json<F: Field>(
