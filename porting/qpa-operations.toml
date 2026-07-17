@@ -10334,9 +10334,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 44
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_exceptional_module"
+tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10347,9 +10347,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 45
 source_end = 45
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_exceptional_module"
+tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10360,9 +10360,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 46
 source_end = 46
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "complexity_of_module"
+tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10373,9 +10373,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 47
 source_end = 47
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "complexity_of_algebra"
+tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11075,9 +11075,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 2116
 source_end = 2123
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_exceptional_module"
+tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11088,9 +11088,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 2139
 source_end = 2166
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "complexity_of_module"
+tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11101,9 +11101,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 2183
 source_end = 2204
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "complexity_of_algebra"
+tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
 
 [[entries]]

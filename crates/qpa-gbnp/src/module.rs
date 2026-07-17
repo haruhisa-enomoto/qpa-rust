@@ -2982,6 +2982,166 @@ pub fn is_rigid_module<F: Field>(
     Ok(module.cache_is_rigid_module(rigid))
 }
 
+/// Translate QPA's cached `IsExceptionalModule(M)` property.
+///
+/// The source evaluates `IsRigidModule(M) and IsIndecomposableModule(M)` in
+/// that order, including GAP's short-circuit. `Ok(None)` preserves the
+/// infinite-field `TryNextMethod()` branch of the latter property.
+///
+/// # Errors
+///
+/// Propagates rigidity/Ext construction and indecomposable-decomposition
+/// failures.
+pub fn is_exceptional_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Option<bool>, ExceptionalModuleError> {
+    if let Some(cached) = module.cached_is_exceptional_module() {
+        return Ok(Some(cached));
+    }
+    if !is_rigid_module(module)? {
+        return Ok(Some(module.cache_is_exceptional_module(false)));
+    }
+    let Some(indecomposable) = is_indecomposable_module(module)? else {
+        return Ok(None);
+    };
+    Ok(Some(module.cache_is_exceptional_module(indecomposable)))
+}
+
+/// Translate QPA's estimate `ComplexityOfModule(M, n)`.
+///
+/// If finite global dimension is already known, QPA returns zero without
+/// inspecting `n`. Otherwise it requires an admissible quotient, constructs
+/// the `n`-th projective by repeated minimal covers, and returns
+/// `Int(Round(log10(dim(P_n))/log10(n) + 1.0))`. Degrees below `-1` address
+/// the zero tail of QPA's complex and therefore also return zero.
+///
+/// # Errors
+///
+/// Rejects a nonadmissible or nonquotient domain, reports degrees that cannot
+/// be represented for iteration, and makes QPA's undefined nonzero estimates
+/// at degrees `-1`, `0`, and `1` explicit. Projective-cover and syzygy
+/// failures are propagated.
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
+pub fn complexity_of_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+    degree: &Integer,
+) -> Result<usize, EnvelopingModuleError> {
+    let algebra = module.right_acting_algebra();
+    if has_known_finite_global_dimension(algebra) {
+        return Ok(0);
+    }
+    require_complexity_admissible_quotient(algebra)?;
+    let projective_dimension = projective_resolution_object_dimension(module, degree)?;
+    if projective_dimension == 0 {
+        return Ok(0);
+    }
+    let degree_index = usize::try_from(degree.clone()).map_err(|_| {
+        EnvelopingModuleError::UndefinedComplexityEstimate {
+            degree: degree.clone(),
+        }
+    })?;
+    if degree_index < 2 {
+        return Err(EnvelopingModuleError::UndefinedComplexityEstimate {
+            degree: degree.clone(),
+        });
+    }
+    let estimate = (projective_dimension as f64).log10() / (degree_index as f64).log10();
+    Ok((estimate + 1.0).round() as usize)
+}
+
+/// Translate QPA's maximum `ComplexityOfAlgebra(A, n)` estimate over all
+/// vertex simple modules.
+///
+/// # Errors
+///
+/// Preserves the same cached-finite-global-dimension and admissibility order
+/// as [`complexity_of_module`], then propagates simple-module and individual
+/// complexity failures.
+pub fn complexity_of_algebra<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    degree: &Integer,
+) -> Result<usize, EnvelopingModuleError> {
+    if has_known_finite_global_dimension(algebra) {
+        return Ok(0);
+    }
+    require_complexity_admissible_quotient(algebra)?;
+    let mut estimates = simple_modules(algebra)?
+        .into_iter()
+        .map(|simple| complexity_of_module(&simple, degree));
+    let mut maximum = estimates
+        .next()
+        .ok_or(EnvelopingModuleError::ComplexityAlgebraHasNoSimpleModules)??;
+    for estimate in estimates {
+        maximum = maximum.max(estimate?);
+    }
+    Ok(maximum)
+}
+
+fn has_known_finite_global_dimension<F: Field>(algebra: &QuiverAlgebra<F>) -> bool {
+    match algebra {
+        QuiverAlgebra::Path(_) => true,
+        QuiverAlgebra::Quotient(quotient) => matches!(
+            quotient.cached_global_dimension(),
+            Some(AlgebraGlobalDimension::Finite(_))
+        ),
+    }
+}
+
+fn require_complexity_admissible_quotient<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<(), EnvelopingModuleError> {
+    match algebra {
+        QuiverAlgebra::Quotient(quotient) if quotient.is_admissible()? => Ok(()),
+        QuiverAlgebra::Path(_) | QuiverAlgebra::Quotient(_) => {
+            Err(EnvelopingModuleError::ComplexityRequiresAdmissibleQuotient)
+        }
+    }
+}
+
+fn projective_resolution_object_dimension<F: Field>(
+    module: &PathAlgebraModule<F>,
+    degree: &Integer,
+) -> Result<usize, EnvelopingModuleError> {
+    let minus_one = Integer::from(-1);
+    if degree < &minus_one {
+        return Ok(0);
+    }
+    if degree == &minus_one {
+        return Ok(module.dimension());
+    }
+    let degree_index = usize::try_from(degree.clone()).map_err(|_| {
+        EnvelopingModuleError::ComplexityDegreeNotRepresentable {
+            degree: degree.clone(),
+        }
+    })?;
+    let mut syzygy = module.clone();
+    for _ in 0..degree_index {
+        if syzygy.dimension() == 0 {
+            return Ok(0);
+        }
+        syzygy = first_syzygy(&syzygy)?;
+    }
+    if syzygy.dimension() == 0 {
+        return Ok(0);
+    }
+    Ok(projective_cover(&syzygy)?.source().dimension())
+}
+
+/// Failure while evaluating QPA's `IsExceptionalModule` property.
+#[derive(Debug, Error)]
+pub enum ExceptionalModuleError {
+    /// Rigidity and Ext construction failed.
+    #[error(transparent)]
+    Enveloping(#[from] EnvelopingModuleError),
+    /// Indecomposable decomposition failed.
+    #[error(transparent)]
+    Decomposition(#[from] ModuleDecompositionError),
+}
+
 /// Translate QPA's `AllModulesOfLengthPlusOne(list)` operation.
 ///
 /// The input is a nonempty list of equal-dimensional modules over one
@@ -5075,6 +5235,28 @@ pub enum EnvelopingModuleError {
         /// Entered nonnegative bound.
         bound: usize,
     },
+    /// The complexity methods proceed only for admissible quotient algebras
+    /// after their cached finite-global-dimension shortcut.
+    #[error(
+        "entered algebra is not finite dimensional or an admissible quotient of a path algebra"
+    )]
+    ComplexityRequiresAdmissibleQuotient,
+    /// QPA's floating logarithmic expression is undefined for a nonzero
+    /// projective-resolution object in these degrees.
+    #[error("the complexity estimate is undefined at projective-resolution degree {degree}")]
+    UndefinedComplexityEstimate {
+        /// Entered arbitrary-precision complex degree.
+        degree: Integer,
+    },
+    /// A nonnegative complex degree must fit addressable iteration.
+    #[error("complexity degree is not representable by usize: {degree}")]
+    ComplexityDegreeNotRepresentable {
+        /// Rejected arbitrary-precision complex degree.
+        degree: Integer,
+    },
+    /// QPA's `Maximum` requires at least one vertex simple.
+    #[error("ComplexityOfAlgebra found no simple modules")]
+    ComplexityAlgebraHasNoSimpleModules,
     /// QPA's sum of indecomposable-projective socle dimension vectors must
     /// fit Rust's addressable module dimensions.
     #[error("the selfinjective socle multiplicity at vertex {vertex} overflows usize")]
@@ -5684,9 +5866,9 @@ mod tests {
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
         all_indec_modules_of_length_at_most, all_modules_of_length_at_most,
         all_modules_of_length_plus_one, annihilator_of_module, basis_of_projectives,
-        canonical_basis_coefficients, cartan_matrix, coxeter_matrix, coxeter_polynomial, d_tr,
-        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
-        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        canonical_basis_coefficients, cartan_matrix, complexity_of_algebra, complexity_of_module,
+        coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
+        d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
@@ -5694,16 +5876,17 @@ mod tests {
         from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
         global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
         indec_injective_modules, indec_projective_modules, injective_envelope,
-        is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
-        is_injective_module, is_projective_module, is_rigid_module, is_schurian_algebra,
-        is_selfinjective_algebra, is_semicommutative_algebra, is_symmetric_algebra,
-        is_tau_rigid_module, is_weakly_symmetric_algebra, lifting_morphism_from_projective,
-        matrix_of_homomorphism_between_projectives, nakayama_automorphism,
-        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
-        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        order_of_nakayama_automorphism, projective_cover, random_module, simple_modules,
-        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules, tr_d,
-        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        is_exceptional_module, is_finite_global_dimension_from_known_properties,
+        is_hereditary_algebra, is_injective_module, is_projective_module, is_rigid_module,
+        is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
+        is_symmetric_algebra, is_tau_rigid_module, is_weakly_symmetric_algebra,
+        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
+        nakayama_automorphism, nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
+        nakayama_permutation, opposite_nakayama_functor_of_module,
+        opposite_nakayama_functor_of_module_homomorphism, order_of_nakayama_automorphism,
+        projective_cover, random_module, simple_modules, socle_series, star_of_module,
+        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
+        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
         transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
@@ -6129,6 +6312,209 @@ mod tests {
             all_modules_of_length_plus_one(&[first, double]),
             Err(ModuleLengthError::ModulesOfDifferentLengths)
         ));
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn module_complexity_case<F: QpaCoefficientField>(
+        field: F,
+        include_finite_only_case: bool,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let zero_module = zero_module(&a2).unwrap();
+        let simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            a2.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let semisimple_pair = right_module_over_path_algebra(
+            a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![zero.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual.clone(),
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let dual_regular = right_module_over_path_algebra(
+            dual.clone(),
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(
+                    vec![vec![zero.clone(), one.clone()], vec![zero.clone(), zero]],
+                    field,
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let common = json!({
+            "exceptional_zero": is_exceptional_module(&zero_module).unwrap().unwrap(),
+            "exceptional_simple_one": is_exceptional_module(&simple_one).unwrap().unwrap(),
+            "exceptional_projective": is_exceptional_module(&projective).unwrap().unwrap(),
+            "exceptional_dual_simple": is_exceptional_module(&dual_simple).unwrap().unwrap(),
+            "complexity_a2_simple_n2": complexity_of_module(&simple_one, &Integer::from(2)).unwrap(),
+            "complexity_dual_simple_n2": complexity_of_module(&dual_simple, &Integer::from(2)).unwrap(),
+            "complexity_dual_simple_n3": complexity_of_module(&dual_simple, &Integer::from(3)).unwrap(),
+            "complexity_dual_simple_n10": complexity_of_module(&dual_simple, &Integer::from(10)).unwrap(),
+            "complexity_dual_regular_n2": complexity_of_module(&dual_regular, &Integer::from(2)).unwrap(),
+            "complexity_dual_algebra_n2": complexity_of_algebra(&dual, &Integer::from(2)).unwrap(),
+            "complexity_dual_algebra_n10": complexity_of_algebra(&dual, &Integer::from(10)).unwrap(),
+        });
+        if include_finite_only_case {
+            json!({
+                "common": common,
+                "exceptional_semisimple_pair": is_exceptional_module(&semisimple_pair)
+                    .unwrap().unwrap(),
+            })
+        } else {
+            common
+        }
+    }
+
+    #[test]
+    fn pinned_qpa_module_complexity_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_complexity.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "module_complexity",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": module_complexity_case(Z2, true),
+            "quinary": module_complexity_case(Zp::new(5), true),
+            "rational": module_complexity_case(Q, false),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn module_complexity_preserves_qpa_dispatch_and_cache_order() {
+        let loop_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+        let dual_zero = zero_module(&dual).unwrap();
+        assert_eq!(
+            complexity_of_module(&dual_simple, &Integer::from(-2)).unwrap(),
+            0
+        );
+        assert_eq!(
+            complexity_of_module(&dual_zero, &Integer::from(-1)).unwrap(),
+            0
+        );
+        assert!(matches!(
+            complexity_of_module(&dual_simple, &Integer::from(1)),
+            Err(EnvelopingModuleError::UndefinedComplexityEstimate { .. })
+        ));
+
+        let nonadmissible_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "y")]).unwrap(),
+        )
+        .unwrap();
+        let y = nonadmissible_parent.generators()[1].clone();
+        let nonadmissible =
+            QuiverAlgebra::Quotient(quotient_by_relations(nonadmissible_parent, &[y]).unwrap());
+        assert!(matches!(
+            complexity_of_algebra(&nonadmissible, &Integer::from(2)),
+            Err(EnvelopingModuleError::ComplexityRequiresAdmissibleQuotient)
+        ));
+
+        let a2_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+        )
+        .unwrap();
+        let a2_quotient = QuiverAlgebra::Quotient(quotient_by_relations(a2_parent, &[]).unwrap());
+        assert!(matches!(
+            global_dimension_of_algebra(&a2_quotient, 2).unwrap(),
+            Some(GlobalDimensionOfAlgebraResult::Finite(1))
+        ));
+        assert_eq!(
+            complexity_of_algebra(&a2_quotient, &Integer::from(1)).unwrap(),
+            0
+        );
+
+        let rational_pair = right_module_over_path_algebra(
+            QuiverAlgebra::Path(
+                PathAlgebra::new(
+                    Q,
+                    Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")])
+                        .unwrap(),
+                )
+                .unwrap(),
+            ),
+            vec![0, 2],
+            &[],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(is_exceptional_module(&rational_pair).unwrap(), None);
+        let rational_simple = right_module_over_path_algebra(
+            rational_pair.right_acting_algebra().clone(),
+            vec![1, 0],
+            &[],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(is_exceptional_module(&rational_simple).unwrap(), Some(true));
+        assert_eq!(rational_simple.cached_is_exceptional_module(), Some(true));
+        assert_eq!(is_exceptional_module(&rational_simple).unwrap(), Some(true));
     }
 
     fn double_star_map_json<F: Field>(
