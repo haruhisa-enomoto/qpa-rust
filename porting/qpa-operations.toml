@@ -14468,9 +14468,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 48
 source_end = 48
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_complements_of_almost_complete_tilting_module; AllComplementsResult"
+tests = ["tests/fixtures/modulehomalg_all_complements.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14481,9 +14481,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 49
 source_end = 49
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_complements_of_almost_complete_cotilting_module"
+tests = ["tests/fixtures/modulehomalg_all_complements.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15079,9 +15079,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1424
 source_end = 1484
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_complements_of_almost_complete_tilting_module; AllComplementsResult"
+tests = ["tests/fixtures/modulehomalg_all_complements.schema-v1.json"]
 deviations = []
 
 [[entries]]

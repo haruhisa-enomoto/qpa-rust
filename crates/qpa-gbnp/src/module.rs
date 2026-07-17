@@ -3753,6 +3753,111 @@ pub fn cotilting_module<F: QpaCoefficientField>(
     }))
 }
 
+/// QPA's pair of possibly empty complement sequences.
+///
+/// `None` preserves QPA's literal empty list for that side. A nonempty value
+/// is the corresponding `FiniteComplex` constructed by the source method.
+#[derive(Clone, Debug)]
+pub struct AllComplementsResult<F: Field> {
+    resolution: Option<AddMResolution<F>>,
+    coresolution: Option<AddMCoresolution<F>>,
+}
+
+impl<F: Field> AllComplementsResult<F> {
+    /// Return QPA's first result component.
+    #[must_use]
+    pub const fn resolution(&self) -> Option<&AddMResolution<F>> {
+        self.resolution.as_ref()
+    }
+
+    /// Return QPA's second result component.
+    #[must_use]
+    pub const fn coresolution(&self) -> Option<&AddMCoresolution<F>> {
+        self.coresolution.as_ref()
+    }
+}
+
+/// Translate `AllComplementsOfAlmostCompleteTiltingModule(M, X)`.
+///
+/// QPA first follows successive surjective minimal right add(M)
+/// approximations of `X`. If at least one exists, it appends the kernel
+/// inclusion of the final composite and creates a degree-one finite complex.
+/// It independently follows injective minimal left approximations, appends
+/// the cokernel projection of the final composite, reverses the maps, and
+/// creates the source's negative-base finite complex. A side with no accepted
+/// approximation remains QPA's empty list.
+///
+/// # Errors
+///
+/// Rejects modules over different algebras and propagates approximation,
+/// composition, kernel, cokernel, identity-map, and zero-module failures.
+pub fn all_complements_of_almost_complete_tilting_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    complement: &PathAlgebraModule<F>,
+) -> Result<AllComplementsResult<F>, EnvelopingModuleError> {
+    require_common_approximation_algebra(module, complement)?;
+
+    let mut resolution_differentials = Vec::new();
+    let mut connecting = identity_module_mapping(complement.clone())?;
+    let mut approximation = minimal_right_approximation(module, complement)?;
+    while approximation.is_surjective() {
+        resolution_differentials.push(approximation.compose(&connecting)?);
+        connecting = kernel_inclusion(&approximation)?;
+        if connecting.source().dimension() == 0 {
+            break;
+        }
+        approximation = minimal_right_approximation(module, connecting.source())?;
+    }
+    let resolution = if let Some(last) = resolution_differentials.last().cloned() {
+        let terminal = kernel_inclusion(&last)?;
+        resolution_differentials.push(terminal);
+        Some(AddMResolution {
+            differentials: resolution_differentials,
+            zero: zero_module(module.right_acting_algebra())?,
+        })
+    } else {
+        None
+    };
+
+    let mut coresolution_differentials = Vec::new();
+    let mut connecting = identity_module_mapping(complement.clone())?;
+    let mut approximation = minimal_left_approximation(complement, module)?;
+    while approximation.is_injective() {
+        coresolution_differentials.push(connecting.compose(&approximation)?);
+        connecting = cokernel_projection(&approximation)?;
+        approximation = minimal_left_approximation(connecting.range(), module)?;
+    }
+    let coresolution = if let Some(last) = coresolution_differentials.last().cloned() {
+        let terminal = cokernel_projection(&last)?;
+        coresolution_differentials.push(terminal);
+        coresolution_differentials.reverse();
+        Some(AddMCoresolution {
+            base_position: Integer::one() - Integer::from(coresolution_differentials.len()),
+            differentials: coresolution_differentials,
+            zero: zero_module(module.right_acting_algebra())?,
+        })
+    } else {
+        None
+    };
+
+    Ok(AllComplementsResult {
+        resolution,
+        coresolution,
+    })
+}
+
+/// QPA's synonym `AllComplementsOfAlmostCompleteCotiltingModule`.
+///
+/// # Errors
+///
+/// Propagates [`all_complements_of_almost_complete_tilting_module`].
+pub fn all_complements_of_almost_complete_cotilting_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    complement: &PathAlgebraModule<F>,
+) -> Result<AllComplementsResult<F>, EnvelopingModuleError> {
+    all_complements_of_almost_complete_tilting_module(module, complement)
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7693,12 +7798,14 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        AddMCoresolution, AlmostSplitSide, CotiltingModuleResult, DominantDimensionResult,
-        EnvelopingModuleError, ExtOverAlgebraResult, FiniteAddMResolutionResult,
-        GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
-        PredecessorMultiplicity, PredecessorsOfModuleResult, TensorProductOfModulesResult,
-        TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
-        algebra_as_module_over_enveloping_algebra, all_indec_modules_of_length_at_most,
+        AddMCoresolution, AddMResolution, AllComplementsResult, AlmostSplitSide,
+        CotiltingModuleResult, DominantDimensionResult, EnvelopingModuleError,
+        ExtOverAlgebraResult, FiniteAddMResolutionResult, GlobalDimensionOfAlgebraResult,
+        ModuleLengthError, NakayamaAutomorphismOrder, PredecessorMultiplicity,
+        PredecessorsOfModuleResult, TensorProductOfModulesResult, TiltingModuleResult,
+        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
+        all_complements_of_almost_complete_cotilting_module,
+        all_complements_of_almost_complete_tilting_module, all_indec_modules_of_length_at_most,
         all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
         almost_split_sequence_from_side, annihilator_of_module, basis_of_projectives,
         canonical_basis_coefficients, cartan_matrix, complexity_of_algebra, complexity_of_module,
@@ -9534,6 +9641,136 @@ mod tests {
         assert!(matches!(
             cotilting_module(&module, &Integer::from(1)),
             Err(EnvelopingModuleError::MissingCotiltingInjectiveDimensionCache)
+        ));
+    }
+
+    fn complement_resolution_json<F: Field>(resolution: Option<&AddMResolution<F>>) -> Value {
+        let Some(resolution) = resolution else {
+            return Value::Array(Vec::new());
+        };
+        let shape = |degree| {
+            let differential = resolution.differential(&Integer::from(degree)).unwrap();
+            json!({
+                "source": differential.source().dimension_vector(),
+                "range": differential.range().dimension_vector(),
+            })
+        };
+        json!({
+            "-3": shape(-3),
+            "-2": shape(-2),
+            "-1": shape(-1),
+            "0": shape(0),
+            "1": shape(1),
+            "2": shape(2),
+            "3": shape(3),
+            "4": shape(4),
+        })
+    }
+
+    fn complement_coresolution_json<F: Field>(coresolution: Option<&AddMCoresolution<F>>) -> Value {
+        let Some(coresolution) = coresolution else {
+            return Value::Array(Vec::new());
+        };
+        let shape = |degree| {
+            let differential = coresolution.differential(&Integer::from(degree)).unwrap();
+            json!({
+                "source": differential.source().dimension_vector(),
+                "range": differential.range().dimension_vector(),
+            })
+        };
+        json!({
+            "-3": shape(-3),
+            "-2": shape(-2),
+            "-1": shape(-1),
+            "0": shape(0),
+            "1": shape(1),
+            "2": shape(2),
+            "3": shape(3),
+            "4": shape(4),
+        })
+    }
+
+    fn all_complements_json<F: Field>(result: &AllComplementsResult<F>) -> Value {
+        json!({
+            "resolution": complement_resolution_json(result.resolution()),
+            "coresolution": complement_coresolution_json(result.coresolution()),
+        })
+    }
+
+    fn modulehomalg_all_complements_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let simples = simple_modules(&a2).unwrap();
+        let zero = zero_module(&a2).unwrap();
+
+        let dual = fresh_dual_numbers(field);
+        let dual_regular = indec_projective_modules(&dual).unwrap()[0].clone();
+        let dual_zero = zero_module(&dual).unwrap();
+
+        let evaluate = |module, complement| {
+            all_complements_json(
+                &all_complements_of_almost_complete_tilting_module(module, complement).unwrap(),
+            )
+        };
+        json!({
+            "p1_complement_p2": evaluate(&projectives[0], &projectives[1]),
+            "p2_complement_p1": evaluate(&projectives[1], &projectives[0]),
+            "p1_complement_s1": evaluate(&projectives[0], &simples[0]),
+            "zero_complement_simple": evaluate(&zero, &simples[0]),
+            "dual_zero_complement_regular": evaluate(&dual_zero, &dual_regular),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_all_complements_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_all_complements.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_all_complements",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_all_complements_case(&Z2),
+            "quinary": modulehomalg_all_complements_case(&Zp::new(5)),
+            "rational": modulehomalg_all_complements_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn all_complements_synonym_and_foreign_algebra_follow_qpa() {
+        let algebra = isolated_path_algebra(Z2, 1);
+        let zero = zero_module(&algebra).unwrap();
+        let simple = right_module_over_path_algebra(algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let tilting = all_complements_of_almost_complete_tilting_module(&zero, &simple).unwrap();
+        let cotilting =
+            all_complements_of_almost_complete_cotilting_module(&zero, &simple).unwrap();
+        assert_eq!(
+            all_complements_json(&tilting),
+            all_complements_json(&cotilting)
+        );
+
+        let first = fresh_a2_zero(&Z2);
+        let second = fresh_a2_zero(&Z2);
+        assert!(matches!(
+            all_complements_of_almost_complete_tilting_module(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
         ));
     }
 
