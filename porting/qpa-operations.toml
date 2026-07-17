@@ -273,8 +273,8 @@ source_start = 25
 source_end = 25
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "StructureConstantsQuotient::lift_complete_set_of_orthogonal_idempotents"
-tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
+rust_symbol = "lifting_complete_set_of_orthogonal_idempotents; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_complete_set_of_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -754,8 +754,8 @@ source_start = 536
 source_end = 586
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "StructureConstantsQuotient::lift_complete_set_of_orthogonal_idempotents"
-tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
+rust_symbol = "lifting_complete_set_of_orthogonal_idempotents; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_complete_set_of_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11361,9 +11361,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_probabilistic; decompose_module_probabilistic_with_rng; ProbabilisticModuleDecomposition"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11439,9 +11439,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_via_top"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11452,9 +11452,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_via_char_poly; decompose_module_via_char_poly_with_rng"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11621,9 +11621,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 485
 source_end = 549
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_probabilistic; decompose_module_probabilistic_with_rng; ProbabilisticModuleDecomposition"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11634,9 +11634,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 551
 source_end = 580
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_via_top"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11647,9 +11647,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 592
 source_end = 664
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_via_char_poly; decompose_module_via_char_poly_with_rng"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]

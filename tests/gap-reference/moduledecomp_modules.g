@@ -78,6 +78,17 @@ PrintHomomorphisms := function(homomorphisms)
     Print("]");
 end;
 
+PrintProbabilistic := function(result)
+    if IsList(result) then
+        Print("{\"kind\":\"split\",\"modules\":");
+        PrintModules(result);
+    else
+        Print("{\"kind\":\"unsplit\",\"modules\":");
+        PrintModules([result]);
+    fi;
+    Print("}");
+end;
+
 PrintCase := function(field)
     local quiver, algebra, module, decomposition, inclusions, simple_one,
           simple_two, direct_sum, direct_decomposition, endomorphisms,
@@ -85,7 +96,9 @@ PrintCase := function(field)
           mixed_multiplicities, vector_quiver, vector_algebra, repeated_module,
           repeated_multiplicities, zero_module, block_idempotents,
           block_decomposition, repeated_block_idempotents,
-          repeated_block_decomposition, basic_mixed, basic_repeated, basic_zero;
+          repeated_block_decomposition, basic_mixed, basic_repeated, basic_zero,
+          via_top, repeated_via_top, simple_module, probabilistic_repeated,
+          probabilistic_simple, char_poly_repeated, char_poly_simple;
     quiver := Quiver(["v1", "v2"], [["v1", "v2", "a"]]);
     algebra := PathAlgebra(field, quiver);
     module := RightModuleOverPathAlgebra(
@@ -118,6 +131,15 @@ PrintCase := function(field)
     basic_mixed := BasicVersionOfModule(module);
     basic_repeated := BasicVersionOfModule(repeated_module);
     basic_zero := BasicVersionOfModule(zero_module);
+    via_top := DecomposeModuleViaTop(module);
+    repeated_via_top := DecomposeModuleViaTop(repeated_module);
+    simple_module := RightModuleOverPathAlgebra(vector_algebra, [1], []);
+    probabilistic_repeated := DecomposeModuleProbabilistic(
+        HomOverAlgebra(repeated_module, repeated_module), repeated_module);
+    probabilistic_simple := DecomposeModuleProbabilistic(
+        HomOverAlgebra(simple_module, simple_module), simple_module);
+    char_poly_repeated := DecomposeModuleViaCharPoly(repeated_module);
+    char_poly_simple := DecomposeModuleViaCharPoly(simple_module);
 
     Print("{\"algorithm\":{");
     Print("\"endomorphism_basis\":"); PrintMatrixList(endomorphism_basis);
@@ -160,6 +182,17 @@ PrintCase := function(field)
     Print("\"mixed\":"); PrintModules([basic_mixed]);
     Print(",\"repeated\":"); PrintModules([basic_repeated]);
     Print(",\"zero_identical\":", IsIdenticalObj(basic_zero, zero_module));
+    Print("}");
+    Print(",\"via_top\":{\"mixed\":"); PrintModules(via_top);
+    Print(",\"repeated\":"); PrintModules(repeated_via_top);
+    Print("}");
+    Print(",\"probabilistic\":{\"repeated\":");
+    PrintProbabilistic(probabilistic_repeated);
+    Print(",\"simple\":"); PrintProbabilistic(probabilistic_simple);
+    Print("}");
+    Print(",\"char_poly\":{\"repeated\":");
+    PrintModules(char_poly_repeated);
+    Print(",\"simple\":"); PrintModules(char_poly_simple);
     Print("}");
     Print("}");
 end;

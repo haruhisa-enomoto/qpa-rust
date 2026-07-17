@@ -7,16 +7,23 @@
 use std::cmp::Ordering;
 
 use numerica::domains::{Field, integer::Integer};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 use thiserror::Error;
 
 use crate::{
     CoefficientDomainError, CommonDirectSummandResult, DenseMatrix, HopfError, MatrixError,
     PathAlgebraModule, PathAlgebraModuleError, PathAlgebraModuleHomomorphism, QpaCoefficientField,
-    StructureConstantsAlgebra, StructureConstantsAlgebraElement, StructureConstantsError,
-    StructureConstantsQuotient, common_direct_summand, direct_sum_of_qpa_modules, end_over_algebra,
-    from_end_m_to_hom_mm, image_inclusion, image_of_module_homomorphism,
+    QpaFieldCharacteristic, StructureConstantsAlgebra, StructureConstantsAlgebraElement,
+    StructureConstantsError, StructureConstantsQuotient, cokernel_projection,
+    common_direct_summand, direct_sum_of_qpa_modules, end_over_algebra, from_end_m_to_hom_mm,
+    from_hom_mm_to_end_m, hom_over_algebra,
+    idempotent::{factor_finite_field_polynomial, polynomial_product},
+    image_inclusion, image_of_module_homomorphism, image_projection, isomorphism_of_modules,
+    kernel_inclusion, kernel_of_module_homomorphism,
     path_module::ModuleDecompositionMultiplicitiesCache,
+    right_module_hom_over_algebra,
     structure_constants::{StructureConstantsSubalgebra, add_rows, span_rows, subtract_rows},
+    top_of_module_homomorphism,
 };
 
 /// Translate QPA's `ComplementInFullRowSpace(V)` operation.
@@ -373,6 +380,59 @@ pub fn lift_two_orthogonal_idempotents<F: Field>(
     Ok([first.to_vec(), corrected])
 }
 
+/// Translate QPA's `LiftingCompleteSetOfOrthogonalIdempotents(map, ids)` for
+/// a general finite-dimensional structure-constant algebra mapping.
+///
+/// The source validates idempotence, ordered orthogonality, and completeness,
+/// then applies `LiftIdempotent` once and `LiftTwoOrthogonalIdempotents`
+/// successively against the sum already lifted.
+///
+/// # Errors
+///
+/// Rejects an empty, non-idempotent, nonorthogonal, or incomplete entered set
+/// and propagates exact mapping and lifting failures.
+pub fn lifting_complete_set_of_orthogonal_idempotents<F: Field>(
+    mapping: &StructureConstantsAlgebraHomomorphism<F>,
+    idempotents: &[Vec<F::Element>],
+) -> Result<Vec<Vec<F::Element>>, ModuleDecompositionError> {
+    if idempotents.is_empty() {
+        return Err(ModuleDecompositionError::EmptyIdempotentSet);
+    }
+    let range = mapping.range();
+    let range_identity = range
+        .find_multiplicative_identity()?
+        .ok_or(ModuleDecompositionError::MissingRangeIdentity)?;
+    let mut sum = vec![range.field().zero(); range.dimension()];
+    for (left_position, left) in idempotents.iter().enumerate() {
+        if range.multiply_coordinates(left, left)?.as_slice() != left {
+            return Err(ModuleDecompositionError::EnteredElementNotIdempotent);
+        }
+        for right in idempotents.iter().skip(left_position + 1) {
+            let left_right = range.multiply_coordinates(left, right)?;
+            let right_left = range.multiply_coordinates(right, left)?;
+            if !is_zero_row(range.field(), &left_right) || !is_zero_row(range.field(), &right_left)
+            {
+                return Err(ModuleDecompositionError::EnteredIdempotentsNotOrthogonal);
+            }
+        }
+        sum = add_rows(range.field(), &sum, left);
+    }
+    if sum != range_identity.coordinates() {
+        return Err(ModuleDecompositionError::EnteredIdempotentsNotComplete);
+    }
+
+    let mut lifted = vec![lift_idempotent(mapping, &idempotents[0])?];
+    for idempotent in &idempotents[1..] {
+        let accumulated = lifted.iter().fold(
+            vec![mapping.source().field().zero(); mapping.source().dimension()],
+            |sum, idempotent| add_rows(mapping.source().field(), &sum, idempotent),
+        );
+        let pair = lift_two_orthogonal_idempotents(mapping, &accumulated, idempotent)?;
+        lifted.push(pair[1].clone());
+    }
+    Ok(lifted)
+}
+
 impl<F: QpaCoefficientField> StructureConstantsQuotient<F> {
     /// Return this natural quotient as a validated general algebra mapping.
     ///
@@ -716,6 +776,351 @@ pub fn basic_version_of_module<F: QpaCoefficientField>(
         .ok_or(ModuleDecompositionError::BasicDirectSumFailed)
 }
 
+/// Translate QPA's deterministic `DecomposeModuleViaTop(M)` operation.
+///
+/// QPA sends the ordered endomorphism basis through `TopOfModule`, constructs
+/// the generated algebra of induced top matrices, decomposes that algebra,
+/// and lifts its complete orthogonal idempotent set through the resulting
+/// algebra homomorphism. The lifted endomorphisms are returned through their
+/// canonical images.
+///
+/// # Errors
+///
+/// Requires a finite supported coefficient field and propagates top-functor,
+/// generated-matrix-algebra, idempotent, lifting, and image failures.
+pub fn decompose_module_via_top<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModule<F>>, ModuleDecompositionError> {
+    if module.right_acting_algebra().field().qpa_characteristic() == QpaFieldCharacteristic::Zero {
+        return Err(ModuleDecompositionError::FiniteFieldRequired);
+    }
+    let endomorphism_algebra = end_over_algebra(module)?;
+    let source_algebra = endomorphism_algebra.structure_constants_algebra()?;
+    let top_matrices = endomorphism_algebra
+        .basis_matrices()
+        .iter()
+        .map(|matrix| {
+            let homomorphism = from_end_m_to_hom_mm(module, matrix)?;
+            let top = top_of_module_homomorphism(&homomorphism)?;
+            from_hom_mm_to_end_m(&top)
+        })
+        .collect::<Result<Vec<_>, PathAlgebraModuleError>>()?;
+    let top_algebra = GeneratedMatrixAlgebra::from_generators(
+        module.right_acting_algebra().field().clone(),
+        &top_matrices,
+    )?;
+    let mut basis_images = Vec::with_capacity(
+        source_algebra
+            .dimension()
+            .checked_mul(top_algebra.algebra.dimension())
+            .ok_or(ModuleDecompositionError::GeneratedMatrixAlgebraSizeOverflow)?,
+    );
+    for matrix in &top_matrices {
+        basis_images.extend(
+            top_algebra
+                .coordinates(matrix)?
+                .ok_or(ModuleDecompositionError::TopImageOutsideGeneratedAlgebra)?,
+        );
+    }
+    let mapping = StructureConstantsAlgebraHomomorphism::by_basis_images(
+        source_algebra,
+        top_algebra.algebra.clone(),
+        DenseMatrix::from_flat(
+            endomorphism_algebra.dimension(),
+            top_algebra.algebra.dimension(),
+            basis_images,
+            module.right_acting_algebra().field().clone(),
+        )?,
+    )?;
+    let top_idempotents = top_algebra.idempotents_for_decomposition()?;
+    lifting_complete_set_of_orthogonal_idempotents(&mapping, &top_idempotents)?
+        .into_iter()
+        .map(|coordinates| {
+            let matrix = endomorphism_algebra.matrix_from_coefficients(&coordinates)?;
+            let homomorphism = from_end_m_to_hom_mm(module, &matrix)?;
+            Ok(image_of_module_homomorphism(&homomorphism)?)
+        })
+        .collect()
+}
+
+/// Reproducible default seed for QPA's experimental probabilistic module
+/// decomposition.
+pub const MODULE_DECOMPOSITION_DEFAULT_SEED: u64 = 0x5150_414d_4445_4301;
+
+/// QPA's heterogeneous `DecomposeModuleProbabilistic` return contract.
+#[derive(Clone, Debug)]
+pub enum ProbabilisticModuleDecomposition<F: Field> {
+    /// No splitting element was found and QPA returned the entered module.
+    Unsplit(PathAlgebraModule<F>),
+    /// At least one splitting succeeded and QPA returned the flattened list of
+    /// recursively obtained summands.
+    Split(Vec<PathAlgebraModule<F>>),
+}
+
+impl<F: Field> ProbabilisticModuleDecomposition<F> {
+    /// Consume the heterogeneous result as a normalized summand list.
+    #[must_use]
+    pub fn into_modules(self) -> Vec<PathAlgebraModule<F>> {
+        match self {
+            Self::Unsplit(module) => vec![module],
+            Self::Split(modules) => modules,
+        }
+    }
+}
+
+/// Translate QPA's experimental `DecomposeModuleProbabilistic(HomMM, M)`
+/// operation with a reproducible default random source.
+///
+/// # Errors
+///
+/// Propagates [`decompose_module_probabilistic_with_rng`].
+pub fn decompose_module_probabilistic<F: QpaCoefficientField>(
+    endomorphism_basis: &[PathAlgebraModuleHomomorphism<F>],
+    module: &PathAlgebraModule<F>,
+) -> Result<ProbabilisticModuleDecomposition<F>, ModuleDecompositionError> {
+    let mut rng = StdRng::seed_from_u64(MODULE_DECOMPOSITION_DEFAULT_SEED);
+    decompose_module_probabilistic_with_rng(endomorphism_basis, module, &mut rng)
+}
+
+/// Translate QPA's experimental `DecomposeModuleProbabilistic(HomMM, M)`
+/// operation using the caller's random source.
+///
+/// Rust draws each full-row-space coordinate uniformly from GAP's ordered
+/// finite-field element list. Its engine state is intentionally explicit;
+/// the square-power test, attempt bound, image/kernel splitting, restricted
+/// endomorphism spans, and recursive flattening are the literal source
+/// algorithm.
+///
+/// # Errors
+///
+/// Requires a nonempty endomorphism list over the entered nonzero module and
+/// a finite supported coefficient field. Exact map, determinant,
+/// factorization, isomorphism, and recursive failures propagate.
+pub fn decompose_module_probabilistic_with_rng<F: QpaCoefficientField, R: Rng + ?Sized>(
+    endomorphism_basis: &[PathAlgebraModuleHomomorphism<F>],
+    module: &PathAlgebraModule<F>,
+    rng: &mut R,
+) -> Result<ProbabilisticModuleDecomposition<F>, ModuleDecompositionError> {
+    let elements = module
+        .right_acting_algebra()
+        .field()
+        .qpa_elements()?
+        .ok_or(ModuleDecompositionError::FiniteFieldRequired)?;
+    if endomorphism_basis.is_empty() {
+        return Err(ModuleDecompositionError::EmptyProbabilisticEndomorphismList);
+    }
+    if module.dimension() == 0 {
+        return Err(ModuleDecompositionError::ZeroProbabilisticModule);
+    }
+    if endomorphism_basis
+        .iter()
+        .any(|homomorphism| homomorphism.source() != module || homomorphism.range() != module)
+    {
+        return Err(ModuleDecompositionError::ProbabilisticEndomorphismModuleMismatch);
+    }
+    let maximum_dimension = *module
+        .dimension_vector()
+        .iter()
+        .max()
+        .ok_or(ModuleDecompositionError::ZeroProbabilisticModule)?;
+    if maximum_dimension == 0 {
+        return Err(ModuleDecompositionError::ZeroProbabilisticModule);
+    }
+    let logarithmic_bound = if maximum_dimension == 1 {
+        0usize
+    } else {
+        usize::BITS as usize - (maximum_dimension - 1).leading_zeros() as usize
+    };
+    let attempt_limit = elements
+        .len()
+        .checked_mul(endomorphism_basis.len())
+        .and_then(|product| product.checked_mul(2))
+        .ok_or(ModuleDecompositionError::ProbabilisticAttemptBoundOverflow)?;
+
+    for _ in 1..attempt_limit {
+        let coefficients = (0..endomorphism_basis.len())
+            .map(|_| elements[rng.random_range(0..elements.len())].clone())
+            .collect::<Vec<_>>();
+        let candidate =
+            linear_combination_of_module_homomorphisms(endomorphism_basis, &coefficients)?;
+        let candidate_matrix = from_hom_mm_to_end_m(&candidate)?;
+        if !candidate_matrix
+            .field()
+            .is_zero(&candidate_matrix.determinant()?)
+        {
+            continue;
+        }
+        let mut power = candidate;
+        for _ in 0..=logarithmic_bound {
+            power = power.compose(&power)?;
+        }
+        if power.is_zero() {
+            continue;
+        }
+
+        let image_projection = image_projection(&power)?;
+        let image_inclusion = image_inclusion(&power)?;
+        let kernel_inclusion = kernel_inclusion(&power)?;
+        let cokernel_projection = cokernel_projection(&power)?;
+        let kernel_isomorphism =
+            isomorphism_of_modules(cokernel_projection.range(), kernel_inclusion.source())?
+                .ok_or(ModuleDecompositionError::MissingProbabilisticKernelIsomorphism)?;
+        let kernel_projection = cokernel_projection.compose(&kernel_isomorphism)?;
+
+        let image_endomorphisms =
+            restrict_endomorphism_basis(endomorphism_basis, &image_inclusion, &image_projection)?;
+        let kernel_endomorphisms =
+            restrict_endomorphism_basis(endomorphism_basis, &kernel_inclusion, &kernel_projection)?;
+        let image_result = decompose_module_probabilistic_with_rng(
+            &image_endomorphisms,
+            image_projection.range(),
+            rng,
+        )?;
+        let kernel_result = decompose_module_probabilistic_with_rng(
+            &kernel_endomorphisms,
+            kernel_projection.range(),
+            rng,
+        )?;
+        let mut modules = image_result.into_modules();
+        modules.extend(kernel_result.into_modules());
+        return Ok(ProbabilisticModuleDecomposition::Split(modules));
+    }
+    Ok(ProbabilisticModuleDecomposition::Unsplit(module.clone()))
+}
+
+/// Reproducible default seed for QPA's experimental characteristic-polynomial
+/// module decomposition.
+pub const MODULE_DECOMPOSITION_CHAR_POLY_DEFAULT_SEED: u64 = 0x5150_414d_4445_4302;
+
+/// Translate QPA's experimental `DecomposeModuleViaCharPoly(M)` operation
+/// with a reproducible default random source.
+///
+/// # Errors
+///
+/// Propagates [`decompose_module_via_char_poly_with_rng`].
+pub fn decompose_module_via_char_poly<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModule<F>>, ModuleDecompositionError> {
+    let mut rng = StdRng::seed_from_u64(MODULE_DECOMPOSITION_CHAR_POLY_DEFAULT_SEED);
+    decompose_module_via_char_poly_with_rng(module, &mut rng)
+}
+
+/// Translate QPA's experimental `DecomposeModuleViaCharPoly(M)` operation
+/// using the caller's random source.
+///
+/// Each trial chooses a uniform random element of `End(M)`, factors the
+/// characteristic polynomials of its nonzero vertex matrices, evaluates the
+/// maximal primary powers on the endomorphism, and recursively decomposes the
+/// resulting kernels. The trial count and the small-module deterministic
+/// branch are exactly those in `lib/moduledecomp.gi`.
+///
+/// # Errors
+///
+/// Requires a supported finite coefficient field and propagates exact Hom,
+/// characteristic-polynomial, finite-field factorization, polynomial-matrix
+/// evaluation, kernel, and recursive decomposition failures.
+pub fn decompose_module_via_char_poly_with_rng<F: QpaCoefficientField, R: Rng + ?Sized>(
+    module: &PathAlgebraModule<F>,
+    rng: &mut R,
+) -> Result<Vec<PathAlgebraModule<F>>, ModuleDecompositionError> {
+    let field = module.right_acting_algebra().field();
+    let elements = field
+        .qpa_elements()?
+        .ok_or(ModuleDecompositionError::FiniteFieldRequired)?;
+    let dimensions = module.dimension_vector();
+    let total_dimension = module.dimension();
+    if total_dimension < dimensions.len().saturating_add(1) {
+        return decompose_module(module);
+    }
+
+    let endomorphism_basis = hom_over_algebra(module, module)?
+        .ok_or(ModuleDecompositionError::MissingCharPolyEndomorphismSpace)?;
+    if endomorphism_basis.is_empty() {
+        return Err(ModuleDecompositionError::EmptyCharPolyEndomorphismList);
+    }
+    let maximum_runs = 40 / total_dimension + 10;
+    for _ in 0..maximum_runs {
+        let coefficients = (0..endomorphism_basis.len())
+            .map(|_| elements[rng.random_range(0..elements.len())].clone())
+            .collect::<Vec<_>>();
+        let candidate =
+            linear_combination_of_module_homomorphisms(&endomorphism_basis, &coefficients)?;
+
+        let mut factor_lists = Vec::new();
+        for matrix in candidate.vertex_matrices() {
+            if matrix.is_zero() {
+                continue;
+            }
+            let characteristic = matrix.characteristic_polynomial_coefficients()?;
+            factor_lists.push(factor_finite_field_polynomial(
+                field,
+                &elements,
+                &characteristic,
+                rng,
+            )?);
+        }
+        let mut occurring_primes = Vec::new();
+        for factors in &factor_lists {
+            for factor in factors {
+                if !occurring_primes.contains(factor) {
+                    occurring_primes.push(factor.clone());
+                }
+            }
+        }
+        if occurring_primes.len() <= 1 {
+            continue;
+        }
+
+        let mut result = Vec::new();
+        for prime in &occurring_primes {
+            let maximum_multiplicity = factor_lists
+                .iter()
+                .map(|factors| factors.iter().filter(|factor| *factor == prime).count())
+                .max()
+                .unwrap_or(0);
+            let primary_polynomial = polynomial_power(field, prime, maximum_multiplicity);
+            let mut matrices = Vec::with_capacity(dimensions.len());
+            for (&dimension, matrix) in dimensions.iter().zip(candidate.vertex_matrices()) {
+                matrices.push(if dimension == 0 {
+                    DenseMatrix::zero(1, 1, field.clone())
+                } else {
+                    evaluate_matrix_polynomial(matrix, &primary_polynomial)?
+                });
+            }
+            let primary_map =
+                right_module_hom_over_algebra(module.clone(), module.clone(), matrices)?;
+            let kernel = kernel_of_module_homomorphism(&primary_map)?;
+            result.extend(decompose_module_via_char_poly_with_rng(&kernel, rng)?);
+        }
+        return Ok(result);
+    }
+
+    Ok(vec![module.clone()])
+}
+
+fn polynomial_power<F: Field>(
+    field: &F,
+    polynomial: &[F::Element],
+    exponent: usize,
+) -> Vec<F::Element> {
+    (0..exponent).fold(vec![field.one()], |power, _| {
+        polynomial_product(field, &power, polynomial)
+    })
+}
+
+fn evaluate_matrix_polynomial<F: Field>(
+    matrix: &DenseMatrix<F>,
+    polynomial: &[F::Element],
+) -> Result<DenseMatrix<F>, MatrixError> {
+    let identity = DenseMatrix::identity(matrix.nrows(), matrix.field().clone());
+    let mut result = DenseMatrix::zero(matrix.nrows(), matrix.ncols(), matrix.field().clone());
+    for coefficient in polynomial.iter().rev() {
+        result = result.multiply(matrix)?;
+        result = result.add(&identity.scale_left(coefficient))?;
+    }
+    Ok(result)
+}
+
 fn decomposition_endomorphisms<F: QpaCoefficientField>(
     module: &PathAlgebraModule<F>,
 ) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, ModuleDecompositionError> {
@@ -733,6 +1138,219 @@ fn decomposition_endomorphisms<F: QpaCoefficientField>(
             Ok(from_end_m_to_hom_mm(module, &matrix)?)
         })
         .collect()
+}
+
+fn linear_combination_of_module_homomorphisms<F: Field>(
+    basis: &[PathAlgebraModuleHomomorphism<F>],
+    coefficients: &[F::Element],
+) -> Result<PathAlgebraModuleHomomorphism<F>, ModuleDecompositionError> {
+    if basis.len() != coefficients.len() {
+        return Err(ModuleDecompositionError::ProbabilisticCoefficientCount {
+            actual: coefficients.len(),
+            expected: basis.len(),
+        });
+    }
+    let first = basis
+        .first()
+        .ok_or(ModuleDecompositionError::EmptyProbabilisticEndomorphismList)?;
+    let field = first.source().right_acting_algebra().field();
+    let mut combination = first.scale(&field.zero())?;
+    for (homomorphism, coefficient) in basis.iter().zip(coefficients) {
+        if !field.is_zero(coefficient) {
+            combination = combination.add(&homomorphism.scale(coefficient)?)?;
+        }
+    }
+    Ok(combination)
+}
+
+fn restrict_endomorphism_basis<F: Field>(
+    endomorphism_basis: &[PathAlgebraModuleHomomorphism<F>],
+    inclusion: &PathAlgebraModuleHomomorphism<F>,
+    projection: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, ModuleDecompositionError> {
+    let mut unique = Vec::new();
+    for endomorphism in endomorphism_basis {
+        let restricted = inclusion.compose(endomorphism)?.compose(projection)?;
+        if !unique.iter().any(|existing| existing == &restricted) {
+            unique.push(restricted);
+        }
+    }
+    let dimension = projection.range().dimension();
+    if dimension == 0 {
+        return Err(ModuleDecompositionError::ZeroProbabilisticRestrictedModule);
+    }
+    let flattened_dimension = dimension
+        .checked_mul(dimension)
+        .ok_or(ModuleDecompositionError::GeneratedMatrixAlgebraSizeOverflow)?;
+    let field = projection.range().right_acting_algebra().field().clone();
+    let rows = DenseMatrix::from_flat(
+        unique.len(),
+        flattened_dimension,
+        unique
+            .iter()
+            .map(from_hom_mm_to_end_m)
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .flat_map(|matrix| matrix.as_flat().to_vec())
+            .collect(),
+        field,
+    )?
+    .semi_echelon_transformation()
+    .vectors;
+    if rows.nrows() == 0 {
+        return Err(ModuleDecompositionError::EmptyProbabilisticRestrictedBasis);
+    }
+    (0..rows.nrows())
+        .map(|row| {
+            let matrix = DenseMatrix::from_flat(
+                dimension,
+                dimension,
+                rows.row(row).to_vec(),
+                rows.field().clone(),
+            )?;
+            Ok(from_end_m_to_hom_mm(projection.range(), &matrix)?)
+        })
+        .collect()
+}
+
+struct GeneratedMatrixAlgebra<F: Field> {
+    algebra: StructureConstantsAlgebra<F>,
+    basis_matrices: Vec<DenseMatrix<F>>,
+    flattened_basis: DenseMatrix<F>,
+}
+
+impl<F: Field> GeneratedMatrixAlgebra<F> {
+    fn from_generators(
+        field: F,
+        generators: &[DenseMatrix<F>],
+    ) -> Result<Self, ModuleDecompositionError> {
+        let Some(first) = generators.first() else {
+            return Err(ModuleDecompositionError::EmptyGeneratedMatrixAlgebra);
+        };
+        if first.nrows() == 0 || first.nrows() != first.ncols() || first.field() != &field {
+            return Err(ModuleDecompositionError::InvalidGeneratedMatrixAlgebraGenerator);
+        }
+        let matrix_dimension = first.nrows();
+        if generators.iter().any(|matrix| {
+            matrix.field() != &field
+                || matrix.nrows() != matrix_dimension
+                || matrix.ncols() != matrix_dimension
+        }) {
+            return Err(ModuleDecompositionError::InvalidGeneratedMatrixAlgebraGenerator);
+        }
+        let flattened_dimension = matrix_dimension
+            .checked_mul(matrix_dimension)
+            .ok_or(ModuleDecompositionError::GeneratedMatrixAlgebraSizeOverflow)?;
+        let flattened_basis = DenseMatrix::from_flat(
+            generators.len(),
+            flattened_dimension,
+            generators
+                .iter()
+                .flat_map(|matrix| matrix.as_flat().iter().cloned())
+                .collect(),
+            field.clone(),
+        )?
+        .semi_echelon_transformation()
+        .vectors;
+        if flattened_basis.nrows() == 0 {
+            return Err(ModuleDecompositionError::EmptyGeneratedMatrixAlgebra);
+        }
+        let basis = (0..flattened_basis.nrows())
+            .map(|row| {
+                DenseMatrix::from_flat(
+                    matrix_dimension,
+                    matrix_dimension,
+                    flattened_basis.row(row).to_vec(),
+                    field.clone(),
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let dimension = basis.len();
+        let capacity = dimension
+            .checked_mul(dimension)
+            .and_then(|square| square.checked_mul(dimension))
+            .ok_or(ModuleDecompositionError::GeneratedMatrixAlgebraSizeOverflow)?;
+        let mut products = Vec::with_capacity(capacity);
+        for left in &basis {
+            for right in &basis {
+                let product = left.multiply(right)?;
+                products.extend(
+                    flattened_basis
+                        .solution_row(product.as_flat())?
+                        .ok_or(ModuleDecompositionError::GeneratedMatrixProductOutsideSpan)?,
+                );
+            }
+        }
+        Ok(Self {
+            algebra: StructureConstantsAlgebra::new(field, dimension, products)?,
+            basis_matrices: basis,
+            flattened_basis,
+        })
+    }
+
+    fn coordinates(&self, matrix: &DenseMatrix<F>) -> Result<Option<Vec<F::Element>>, MatrixError> {
+        self.flattened_basis.solution_row(matrix.as_flat())
+    }
+}
+
+impl<F: QpaCoefficientField> GeneratedMatrixAlgebra<F> {
+    fn idempotents_for_decomposition(
+        &self,
+    ) -> Result<Vec<Vec<F::Element>>, ModuleDecompositionError> {
+        let mut idempotents = self
+            .algebra
+            .idempotents_for_decomposition()?
+            .into_iter()
+            .map(|idempotent| idempotent.coordinates().to_vec())
+            .collect::<Vec<_>>();
+        for index in 1..idempotents.len() {
+            let mut position = index;
+            while position > 0
+                && self.compare_matrix_coordinates(
+                    &idempotents[position],
+                    &idempotents[position - 1],
+                )? == Ordering::Less
+            {
+                idempotents.swap(position, position - 1);
+                position -= 1;
+            }
+        }
+        Ok(idempotents)
+    }
+
+    fn compare_matrix_coordinates(
+        &self,
+        left: &[F::Element],
+        right: &[F::Element],
+    ) -> Result<Ordering, ModuleDecompositionError> {
+        let left = self.matrix_from_coordinates(left)?;
+        let right = self.matrix_from_coordinates(right)?;
+        for (left, right) in left.as_flat().iter().zip(right.as_flat()) {
+            match self.algebra.field().qpa_compare(left, right)? {
+                Ordering::Equal => {}
+                ordering => return Ok(ordering),
+            }
+        }
+        Ok(Ordering::Equal)
+    }
+
+    fn matrix_from_coordinates(
+        &self,
+        coordinates: &[F::Element],
+    ) -> Result<DenseMatrix<F>, ModuleDecompositionError> {
+        if coordinates.len() != self.basis_matrices.len() {
+            return Err(ModuleDecompositionError::GeneratedMatrixCoordinateCount {
+                actual: coordinates.len(),
+                expected: self.basis_matrices.len(),
+            });
+        }
+        let dimension = self.basis_matrices[0].nrows();
+        let mut matrix = DenseMatrix::zero(dimension, dimension, self.algebra.field().clone());
+        for (coefficient, basis) in coordinates.iter().zip(&self.basis_matrices) {
+            matrix = matrix.add(&basis.scale_left(coefficient))?;
+        }
+        Ok(matrix)
+    }
 }
 
 fn multiply_row_matrix<F: Field>(row: &[F::Element], matrix: &DenseMatrix<F>) -> Vec<F::Element> {
@@ -889,6 +1507,13 @@ pub enum ModuleDecompositionError {
     /// The lifting formulas require a multiplicative identity in the source.
     #[error("the source algebra has no multiplicative identity")]
     MissingSourceIdentity,
+    /// Complete-set validation requires a multiplicative identity in the
+    /// mapping range.
+    #[error("the range algebra has no multiplicative identity")]
+    MissingRangeIdentity,
+    /// A complete orthogonal idempotent set must sum to the range identity.
+    #[error("the entered idempotents are not a complete set")]
+    EnteredIdempotentsNotComplete,
     /// A checked nilpotent-series index overflowed.
     #[error("the lifting nilpotence index overflows usize")]
     NilpotentSeriesOverflow,
@@ -927,6 +1552,71 @@ pub enum ModuleDecompositionError {
     /// A nonempty basic-summand list must have a direct sum.
     #[error("the basic-summand direct sum unexpectedly failed")]
     BasicDirectSumFailed,
+    /// QPA's alternative top-decomposition method is finite-field-only.
+    #[error("the entered module is not over a finite field")]
+    FiniteFieldRequired,
+    /// A generated matrix algebra needs at least one nonzero generator.
+    #[error("cannot construct the generated matrix algebra from an empty basis")]
+    EmptyGeneratedMatrixAlgebra,
+    /// Generated-algebra matrices must be equally sized square matrices over
+    /// one field.
+    #[error("invalid generated matrix-algebra generator")]
+    InvalidGeneratedMatrixAlgebraGenerator,
+    /// A generated matrix-algebra allocation exceeded addressable size.
+    #[error("the generated matrix algebra exceeds addressable size")]
+    GeneratedMatrixAlgebraSizeOverflow,
+    /// The retained generator span was unexpectedly not closed under matrix
+    /// multiplication.
+    #[error("a generated matrix-algebra product left the retained span")]
+    GeneratedMatrixProductOutsideSpan,
+    /// Every induced top endomorphism belongs to its generated algebra.
+    #[error("an induced top endomorphism is outside its generated algebra")]
+    TopImageOutsideGeneratedAlgebra,
+    /// Generated matrix-algebra coordinates carry one coefficient per basis
+    /// matrix.
+    #[error("generated matrix coordinates have length {actual}, expected {expected}")]
+    GeneratedMatrixCoordinateCount {
+        /// Entered coordinate count.
+        actual: usize,
+        /// Retained basis dimension.
+        expected: usize,
+    },
+    /// QPA's probabilistic method cannot choose coordinates from an empty Hom
+    /// list.
+    #[error("the probabilistic endomorphism list is empty")]
+    EmptyProbabilisticEndomorphismList,
+    /// The source's logarithmic bound is undefined for the zero module.
+    #[error("probabilistic decomposition does not accept the zero module")]
+    ZeroProbabilisticModule,
+    /// Every entered map must be an endomorphism of the entered module.
+    #[error("the probabilistic list contains a map outside End(M)")]
+    ProbabilisticEndomorphismModuleMismatch,
+    /// The finite-field attempt bound exceeded addressable size.
+    #[error("the probabilistic decomposition attempt bound overflows usize")]
+    ProbabilisticAttemptBoundOverflow,
+    /// A random linear combination needs one coefficient per basis map.
+    #[error("the probabilistic coefficient row has length {actual}, expected {expected}")]
+    ProbabilisticCoefficientCount {
+        /// Entered coefficient count.
+        actual: usize,
+        /// Required endomorphism count.
+        expected: usize,
+    },
+    /// QPA's Fitting cokernel and kernel must be isomorphic.
+    #[error("the probabilistic Fitting factors are unexpectedly nonisomorphic")]
+    MissingProbabilisticKernelIsomorphism,
+    /// A successful split must have nonzero image and kernel factors.
+    #[error("a probabilistic restricted factor is zero")]
+    ZeroProbabilisticRestrictedModule,
+    /// Restricting the entered endomorphism span must retain an identity.
+    #[error("a probabilistic restricted endomorphism basis is empty")]
+    EmptyProbabilisticRestrictedBasis,
+    /// `HomOverAlgebra(M,M)` must be defined for a module over itself.
+    #[error("the characteristic-polynomial endomorphism space is unavailable")]
+    MissingCharPolyEndomorphismSpace,
+    /// Every nonzero unital module has at least its identity endomorphism.
+    #[error("the characteristic-polynomial endomorphism list is empty")]
+    EmptyCharPolyEndomorphismList,
 }
 
 #[cfg(test)]
@@ -942,14 +1632,16 @@ mod tests {
         ArrowSpec, DenseMatrix, NamedArrowMatrix, PathAlgebra, PathAlgebraModule,
         PathAlgebraModuleHomomorphism, QpaCoefficientField, Quiver, QuiverAlgebra,
         StructureConstantsAlgebra, VertexIndex, direct_sum_of_qpa_modules, end_over_algebra,
-        right_module_over_path_algebra,
+        hom_over_algebra, right_module_over_path_algebra,
     };
 
     use super::{
-        ModuleDecompositionError, basic_version_of_module, block_decomposition_of_module,
-        block_splitting_idempotents, complement_in_full_row_space, decompose_module,
-        decompose_module_with_inclusions, decompose_module_with_multiplicities, lift_idempotent,
-        lift_idempotents_for_decomposition, lift_two_orthogonal_idempotents,
+        ModuleDecompositionError, ProbabilisticModuleDecomposition, basic_version_of_module,
+        block_decomposition_of_module, block_splitting_idempotents, complement_in_full_row_space,
+        decompose_module, decompose_module_probabilistic, decompose_module_via_char_poly,
+        decompose_module_via_top, decompose_module_with_inclusions,
+        decompose_module_with_multiplicities, lift_idempotent, lift_idempotents_for_decomposition,
+        lift_two_orthogonal_idempotents,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1016,6 +1708,23 @@ mod tests {
             "source_dimension": inclusion.source().dimension_vector(),
             "matrices": inclusion.vertex_matrices().iter()
                 .map(|matrix| matrix_json(matrix, integer)).collect::<Vec<_>>(),
+        })
+    }
+
+    fn probabilistic_json<F: Field>(
+        result: &ProbabilisticModuleDecomposition<F>,
+        integer: impl Fn(&F::Element) -> i64 + Copy,
+    ) -> Value {
+        let (kind, modules) = match result {
+            ProbabilisticModuleDecomposition::Unsplit(module) => {
+                ("unsplit", std::slice::from_ref(module))
+            }
+            ProbabilisticModuleDecomposition::Split(modules) => ("split", modules.as_slice()),
+        };
+        json!({
+            "kind": kind,
+            "modules": modules.iter()
+                .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
         })
     }
 
@@ -1089,7 +1798,10 @@ mod tests {
         let repeated_again = decompose_module_with_multiplicities(&repeated_module)
             .unwrap()
             .unwrap();
-        let zero_module = right_module_over_path_algebra(vector_algebra, vec![0], &[])
+        let zero_module = right_module_over_path_algebra(vector_algebra.clone(), vec![0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_module = right_module_over_path_algebra(vector_algebra, vec![1], &[])
             .unwrap()
             .unwrap();
         let zero_is_fail = decompose_module_with_multiplicities(&zero_module)
@@ -1105,6 +1817,20 @@ mod tests {
         let basic_mixed = basic_version_of_module(&module).unwrap();
         let basic_repeated = basic_version_of_module(&repeated_module).unwrap();
         let basic_zero = basic_version_of_module(&zero_module).unwrap();
+        let via_top = decompose_module_via_top(&module).unwrap();
+        let repeated_via_top = decompose_module_via_top(&repeated_module).unwrap();
+        let repeated_endomorphisms = hom_over_algebra(&repeated_module, &repeated_module)
+            .unwrap()
+            .unwrap();
+        let simple_endomorphisms = hom_over_algebra(&simple_module, &simple_module)
+            .unwrap()
+            .unwrap();
+        let probabilistic_repeated =
+            decompose_module_probabilistic(&repeated_endomorphisms, &repeated_module).unwrap();
+        let probabilistic_simple =
+            decompose_module_probabilistic(&simple_endomorphisms, &simple_module).unwrap();
+        let char_poly_repeated = decompose_module_via_char_poly(&repeated_module).unwrap();
+        let char_poly_simple = decompose_module_via_char_poly(&simple_module).unwrap();
 
         json!({
             "algorithm": {
@@ -1160,6 +1886,22 @@ mod tests {
                 "mixed": [module_json(&basic_mixed, integer)],
                 "repeated": [module_json(&basic_repeated, integer)],
                 "zero_identical": basic_zero.is_identical(&zero_module),
+            },
+            "via_top": {
+                "mixed": via_top.iter()
+                    .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
+                "repeated": repeated_via_top.iter()
+                    .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
+            },
+            "probabilistic": {
+                "repeated": probabilistic_json(&probabilistic_repeated, integer),
+                "simple": probabilistic_json(&probabilistic_simple, integer),
+            },
+            "char_poly": {
+                "repeated": char_poly_repeated.iter()
+                    .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
+                "simple": char_poly_simple.iter()
+                    .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
             },
         })
     }
@@ -1286,5 +2028,22 @@ mod tests {
             "quinary": moduledecomp_case(f5.clone(), |entry| i64::from(f5.from_element(entry))),
         });
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn alternative_decompositions_preserve_qpa_finite_field_precondition() {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let module = right_module_over_path_algebra(algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            decompose_module_via_top(&module),
+            Err(ModuleDecompositionError::FiniteFieldRequired)
+        ));
+        assert!(matches!(
+            decompose_module_via_char_poly(&module),
+            Err(ModuleDecompositionError::FiniteFieldRequired)
+        ));
     }
 }

@@ -664,8 +664,14 @@ Primary QPA files: `modulehom` and `moduledecomp`.
   QPA's minimal-generator/Hom ordering and zero/error branches; rejects and
   enumeration remain pending.
 - [ ] Port endomorphism quiver-algebra and ADR-algebra constructions.
-- [ ] Port deterministic and probabilistic module decomposition methods,
-  including seed control and idempotent lifting.
+- [x] Port deterministic and probabilistic module decomposition methods,
+  including seed control and idempotent lifting. The complete
+  `moduledecomp.gd`/`.gi` ledger is verified: deterministic decomposition and
+  multiplicities, block/basic variants, general idempotent lifting,
+  top-induced decomposition, QPA's heterogeneous probabilistic method, and
+  its characteristic-polynomial method all have pinned `GF(2)`/`GF(5)`
+  oracle coverage; Rust exposes explicit-RNG variants for both randomized
+  methods.
 
 Exit gate: the full homomorphism and decomposition ledgers are complete, and
 all categorical identities used by later phases pass property tests.

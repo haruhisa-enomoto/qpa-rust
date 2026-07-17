@@ -104,11 +104,16 @@ pub use koszul::{
 };
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
 pub use module_decomposition::{
+    MODULE_DECOMPOSITION_CHAR_POLY_DEFAULT_SEED, MODULE_DECOMPOSITION_DEFAULT_SEED,
     ModuleDecompositionError, ModuleDecompositionWithMultiplicities,
-    StructureConstantsAlgebraHomomorphism, basic_version_of_module, block_decomposition_of_module,
-    block_splitting_idempotents, complement_in_full_row_space, decompose_module,
+    ProbabilisticModuleDecomposition, StructureConstantsAlgebraHomomorphism,
+    basic_version_of_module, block_decomposition_of_module, block_splitting_idempotents,
+    complement_in_full_row_space, decompose_module, decompose_module_probabilistic,
+    decompose_module_probabilistic_with_rng, decompose_module_via_char_poly,
+    decompose_module_via_char_poly_with_rng, decompose_module_via_top,
     decompose_module_with_inclusions, decompose_module_with_multiplicities, lift_idempotent,
     lift_idempotents_for_decomposition, lift_two_orthogonal_idempotents,
+    lifting_complete_set_of_orthogonal_idempotents,
 };
 pub use ordering::{
     OrderingError, QuiverOrdering, QuiverOrderingKind, check_blocks_for_cycles,

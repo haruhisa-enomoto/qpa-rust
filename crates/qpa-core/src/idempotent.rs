@@ -337,7 +337,7 @@ fn multiply_row_matrix<F: Field>(row: &[F::Element], matrix: &DenseMatrix<F>) ->
     result
 }
 
-fn factor_finite_field_polynomial<F: QpaCoefficientField, R: Rng + ?Sized>(
+pub(crate) fn factor_finite_field_polynomial<F: QpaCoefficientField, R: Rng + ?Sized>(
     field: &F,
     elements: &[F::Element],
     polynomial: &[F::Element],
@@ -576,7 +576,7 @@ fn polynomial_subtract<F: Field>(
     result
 }
 
-fn polynomial_product<F: Field>(
+pub(crate) fn polynomial_product<F: Field>(
     field: &F,
     left: &[F::Element],
     right: &[F::Element],

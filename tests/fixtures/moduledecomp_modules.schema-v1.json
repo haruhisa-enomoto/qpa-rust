@@ -74,6 +74,36 @@
       "mixed": [{ "dimension": [2, 1], "matrices": [[[0], [1]]] }],
       "repeated": [{ "dimension": [1], "matrices": [] }],
       "zero_identical": true
+    },
+    "via_top": {
+      "mixed": [
+        { "dimension": [1, 0], "matrices": [[[0]]] },
+        { "dimension": [1, 1], "matrices": [[[1]]] }
+      ],
+      "repeated": [
+        { "dimension": [1], "matrices": [] },
+        { "dimension": [1], "matrices": [] }
+      ]
+    },
+    "probabilistic": {
+      "repeated": {
+        "kind": "split",
+        "modules": [
+          { "dimension": [1], "matrices": [] },
+          { "dimension": [1], "matrices": [] }
+        ]
+      },
+      "simple": {
+        "kind": "unsplit",
+        "modules": [{ "dimension": [1], "matrices": [] }]
+      }
+    },
+    "char_poly": {
+      "repeated": [
+        { "dimension": [1], "matrices": [] },
+        { "dimension": [1], "matrices": [] }
+      ],
+      "simple": [{ "dimension": [1], "matrices": [] }]
     }
   },
   "quinary": {
@@ -141,6 +171,36 @@
       "mixed": [{ "dimension": [2, 1], "matrices": [[[0], [1]]] }],
       "repeated": [{ "dimension": [1], "matrices": [] }],
       "zero_identical": true
+    },
+    "via_top": {
+      "mixed": [
+        { "dimension": [1, 0], "matrices": [[[0]]] },
+        { "dimension": [1, 1], "matrices": [[[1]]] }
+      ],
+      "repeated": [
+        { "dimension": [1], "matrices": [] },
+        { "dimension": [1], "matrices": [] }
+      ]
+    },
+    "probabilistic": {
+      "repeated": {
+        "kind": "split",
+        "modules": [
+          { "dimension": [1], "matrices": [] },
+          { "dimension": [1], "matrices": [] }
+        ]
+      },
+      "simple": {
+        "kind": "unsplit",
+        "modules": [{ "dimension": [1], "matrices": [] }]
+      }
+    },
+    "char_poly": {
+      "repeated": [
+        { "dimension": [1], "matrices": [] },
+        { "dimension": [1], "matrices": [] }
+      ],
+      "simple": [{ "dimension": [1], "matrices": [] }]
     }
   }
 }
