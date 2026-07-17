@@ -4035,6 +4035,146 @@ pub fn right_mutation_of_cotilting_module_complement<F: QpaCoefficientField>(
     right_mutation_of_tilting_module_complement(module, complement)
 }
 
+fn require_cotilting_for_approximation<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<(), EnvelopingModuleError> {
+    match is_cotilting_module(module) {
+        Some(true) => Ok(()),
+        Some(false) => Err(EnvelopingModuleError::FirstApproximationArgumentNotCotilting),
+        None => Err(EnvelopingModuleError::CotiltingApproximationPropertyUnbound),
+    }
+}
+
+fn cotilting_approximation_exact_sequences<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    dimension: usize,
+) -> Result<Vec<PathAlgebraModuleHomomorphismPair<F>>, EnvelopingModuleError> {
+    let resolution = projective_resolution(module)?;
+    let _ = resolution.object(&Integer::from(dimension))?;
+    let mut exact_sequences = Vec::with_capacity(dimension);
+    for degree in 0..dimension {
+        let differential = resolution.differential(&Integer::from(degree))?;
+        exact_sequences.push((
+            kernel_inclusion(&differential)?,
+            image_projection(&differential)?,
+        ));
+    }
+    if exact_sequences.is_empty() {
+        return Err(EnvelopingModuleError::EmptyCotiltingApproximationExactSequences);
+    }
+    Ok(exact_sequences)
+}
+
+fn cotilting_approximation_isomorphism<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    isomorphism_of_modules(source, range)?
+        .ok_or(EnvelopingModuleError::InternalCotiltingApproximationIsomorphismFailed)
+}
+
+fn cotilting_approximation_push_out<F: Field>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    Ok(push_out(first, second)?
+        .ok_or(EnvelopingModuleError::InternalCotiltingApproximationPushOutFailed)?
+        .0)
+}
+
+/// Translate QPA's `RightApproximationByPerpT(T, M)` operation.
+///
+/// QPA requires the already-installed `IsCotiltingModule(T)` property, then
+/// returns the zero map immediately for zero `M`. For nonzero `M`, this
+/// source-faithful path takes the projective resolution through
+/// `InjDimension(T)`, splices its short exact sequences by the same ordered
+/// minimal left add(T)-approximations and pushouts, and finally applies
+/// `RightMinimalVersion`.
+///
+/// # Errors
+///
+/// Preserves the unbound/false cotilting-property distinction, reports QPA's
+/// unbound injective-dimension and zero-dimension indexing failures as typed
+/// errors, and propagates resolution, approximation, isomorphism, pushout,
+/// cokernel, composition, and right-minimal-version failures.
+pub fn right_approximation_by_perp_t<F: QpaCoefficientField>(
+    cotilting: &PathAlgebraModule<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    require_cotilting_for_approximation(cotilting)?;
+    if module.dimension() == 0 {
+        return Ok(zero_module_mapping(
+            zero_module(module.right_acting_algebra())?,
+            module.clone(),
+        )?);
+    }
+    let dimension = inj_dimension(cotilting)
+        .ok_or(EnvelopingModuleError::MissingCotiltingApproximationInjectiveDimensionCache)?;
+    let exact_sequences = cotilting_approximation_exact_sequences(module, dimension)?;
+    let mut approximation =
+        minimal_left_approximation(exact_sequences[dimension - 1].0.source(), cotilting)?;
+    let mut result = None;
+    for iteration in 1..=dimension {
+        let exact_sequence = &exact_sequences[dimension - iteration];
+        let comparison =
+            cotilting_approximation_isomorphism(exact_sequence.0.source(), approximation.source())?;
+        approximation = comparison.compose(&approximation)?;
+        let pushout = cotilting_approximation_push_out(&exact_sequence.0, &approximation)?;
+        let mut projection = cokernel_projection(&pushout)?;
+        let comparison =
+            cotilting_approximation_isomorphism(projection.range(), exact_sequence.1.range())?;
+        projection = projection.compose(&comparison)?;
+        if iteration < dimension {
+            let next = minimal_left_approximation(projection.source(), cotilting)?;
+            approximation = cotilting_approximation_push_out(&next, &projection)?;
+        }
+        result = Some(projection);
+    }
+    let result = result.ok_or(EnvelopingModuleError::EmptyCotiltingApproximationExactSequences)?;
+    Ok(right_minimal_version(&result)?.0)
+}
+
+/// Translate QPA's `LeftApproximationByAddTHat(T, M)` operation.
+///
+/// This follows the same installed-cotilting check and projective-resolution
+/// splice as [`right_approximation_by_perp_t`]. QPA omits the intermediate
+/// source isomorphism here and performs one final minimal left
+/// add(T)-approximation/pushout before taking `LeftMinimalVersion`.
+///
+/// # Errors
+///
+/// Preserves QPA's property and attribute ordering and propagates the exact
+/// resolution, approximation, isomorphism, pushout, cokernel, composition,
+/// and left-minimal-version failure paths.
+pub fn left_approximation_by_add_t_hat<F: QpaCoefficientField>(
+    cotilting: &PathAlgebraModule<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    require_cotilting_for_approximation(cotilting)?;
+    if module.dimension() == 0 {
+        return Ok(zero_module_mapping(
+            module.clone(),
+            zero_module(module.right_acting_algebra())?,
+        )?);
+    }
+    let dimension = inj_dimension(cotilting)
+        .ok_or(EnvelopingModuleError::MissingCotiltingApproximationInjectiveDimensionCache)?;
+    let exact_sequences = cotilting_approximation_exact_sequences(module, dimension)?;
+    let mut approximation =
+        minimal_left_approximation(exact_sequences[dimension - 1].0.source(), cotilting)?;
+    for iteration in 1..=dimension {
+        let exact_sequence = &exact_sequences[dimension - iteration];
+        let pushout = cotilting_approximation_push_out(&exact_sequence.0, &approximation)?;
+        let mut projection = cokernel_projection(&pushout)?;
+        let comparison =
+            cotilting_approximation_isomorphism(projection.range(), exact_sequence.1.range())?;
+        projection = projection.compose(&comparison)?;
+        let next = minimal_left_approximation(projection.source(), cotilting)?;
+        approximation = cotilting_approximation_push_out(&next, &projection)?;
+    }
+    Ok(left_minimal_version(&approximation)?.0)
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7335,6 +7475,24 @@ pub enum EnvelopingModuleError {
     /// A successful bounded injective-dimension call must bind the attribute.
     #[error("CotiltingModule found no cached injective dimension after a successful bounded check")]
     MissingCotiltingInjectiveDimensionCache,
+    /// QPA's first cotilting-approximation check calls an unbound attribute.
+    #[error("IsCotiltingModule is not installed on the first approximation argument")]
+    CotiltingApproximationPropertyUnbound,
+    /// QPA explicitly rejects a cached false cotilting property.
+    #[error("the first approximation argument is not a cotilting module")]
+    FirstApproximationArgumentNotCotilting,
+    /// The approximation methods read QPA's non-computing attribute directly.
+    #[error("the cotilting approximation has no cached injective dimension")]
+    MissingCotiltingApproximationInjectiveDimensionCache,
+    /// At injective dimension zero QPA constructs an empty list and indexes it.
+    #[error("the cotilting approximation produced no projective-resolution exact sequences")]
+    EmptyCotiltingApproximationExactSequences,
+    /// QPA assumes its resolution and pushout objects are isomorphic here.
+    #[error("an internal cotilting-approximation module isomorphism returned false")]
+    InternalCotiltingApproximationIsomorphismFailed,
+    /// QPA indexes the first component of each internal pushout directly.
+    #[error("an internal cotilting-approximation pushout returned fail")]
+    InternalCotiltingApproximationPushOutFailed,
     /// QPA applies `Minimum` to the complete indecomposable-projective list.
     #[error("FaithfulDimension cannot take Minimum of an empty projective list")]
     EmptyFaithfulDimensionProjectiveList,
@@ -8014,23 +8172,24 @@ mod tests {
         is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
         is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
         is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_tilting_module,
-        is_weakly_symmetric_algebra, left_approximation_by_add_m, left_fac_m_approximation,
-        left_mutation_of_cotilting_module_complement, left_mutation_of_tilting_module_complement,
-        left_sub_m_approximation, lifting_morphism_from_projective,
-        matrix_of_homomorphism_between_projectives, minimal_left_approximation,
-        minimal_left_fac_m_approximation, minimal_left_sub_m_approximation,
-        minimal_right_approximation, minimal_right_sub_m_approximation, n_rigid_module,
-        nakayama_automorphism, nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
-        nakayama_permutation, number_of_complements_of_almost_complete_cotilting_module,
+        is_weakly_symmetric_algebra, left_approximation_by_add_m, left_approximation_by_add_t_hat,
+        left_fac_m_approximation, left_mutation_of_cotilting_module_complement,
+        left_mutation_of_tilting_module_complement, left_sub_m_approximation,
+        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
+        minimal_left_approximation, minimal_left_fac_m_approximation,
+        minimal_left_sub_m_approximation, minimal_right_approximation,
+        minimal_right_sub_m_approximation, n_rigid_module, nakayama_automorphism,
+        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
+        number_of_complements_of_almost_complete_cotilting_module,
         number_of_complements_of_almost_complete_tilting_module,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
         proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
-        right_mutation_of_cotilting_module_complement, right_mutation_of_tilting_module_complement,
-        right_sub_m_approximation, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tensor_product_of_modules, tilting_module, tr_d,
-        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
-        transpose_of_module_homomorphism,
+        right_approximation_by_perp_t, right_mutation_of_cotilting_module_complement,
+        right_mutation_of_tilting_module_complement, right_sub_m_approximation, simple_modules,
+        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules,
+        tilting_module, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated,
+        transpose_of_module, transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -10179,6 +10338,170 @@ mod tests {
             "rational": modulehomalg_complement_mutations_case(&Q),
         });
         assert_eq!(actual, expected);
+    }
+
+    fn cotilting_approximation_map_json<F: Field>(
+        map: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "source_dimension": map.source().dimension_vector(),
+            "range_dimension": map.range().dimension_vector(),
+            "matrices": map
+                .vertex_matrices()
+                .iter()
+                .map(|matrix| (0..matrix.nrows())
+                    .map(|row| matrix.row(row).iter().map(coefficient).collect::<Vec<_>>())
+                    .collect::<Vec<_>>())
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn modulehomalg_cotilting_approximations_case<F: QpaCoefficientField>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let injectives = indec_injective_modules(&a2).unwrap();
+        let simples = simple_modules(&a2).unwrap();
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let cotilting = direct_sum_of_qpa_modules(&[injectives[1].clone(), simples[1].clone()])
+            .unwrap()
+            .unwrap();
+        let zero = zero_module(&a2).unwrap();
+        cotilting_module(&cotilting, &Integer::from(1))
+            .unwrap()
+            .expect("the pinned A2 module is cotilting");
+
+        let check = |module: &PathAlgebraModule<F>| {
+            json!({
+                "right": cotilting_approximation_map_json(
+                    &right_approximation_by_perp_t(&cotilting, module).unwrap(),
+                    coefficient,
+                ),
+                "left": cotilting_approximation_map_json(
+                    &left_approximation_by_add_t_hat(&cotilting, module).unwrap(),
+                    coefficient,
+                ),
+            })
+        };
+        json!({
+            "zero": check(&zero),
+            "simple_one": check(&simples[0]),
+            "simple_two": check(&simples[1]),
+            "projective_one": check(&projectives[0]),
+            "projective_two": check(&projectives[1]),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_cotilting_approximations_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_cotilting_approximations",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_cotilting_approximations_case(&Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehomalg_cotilting_approximations_case(&field5, |entry| json!(
+                field5_coefficients
+                    .to_integer(entry)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+            )),
+            "rational": modulehomalg_cotilting_approximations_case(&Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn cotilting_approximations_preserve_attribute_check_order() {
+        let unbound_algebra = isolated_path_algebra(Z2, 1);
+        let unbound = zero_module(&unbound_algebra).unwrap();
+        assert!(matches!(
+            right_approximation_by_perp_t(&unbound, &unbound),
+            Err(EnvelopingModuleError::CotiltingApproximationPropertyUnbound)
+        ));
+        assert!(matches!(
+            left_approximation_by_add_t_hat(&unbound, &unbound),
+            Err(EnvelopingModuleError::CotiltingApproximationPropertyUnbound)
+        ));
+
+        let false_algebra = isolated_path_algebra(Z2, 1);
+        let false_module = zero_module(&false_algebra).unwrap();
+        let _ = false_module.cache_is_cotilting_module(false);
+        assert!(matches!(
+            right_approximation_by_perp_t(&false_module, &false_module),
+            Err(EnvelopingModuleError::FirstApproximationArgumentNotCotilting)
+        ));
+        assert!(matches!(
+            left_approximation_by_add_t_hat(&false_module, &false_module),
+            Err(EnvelopingModuleError::FirstApproximationArgumentNotCotilting)
+        ));
+
+        let true_algebra = isolated_path_algebra(Z2, 1);
+        let true_without_dimension = zero_module(&true_algebra).unwrap();
+        let _ = true_without_dimension.cache_is_cotilting_module(true);
+        assert!(
+            right_approximation_by_perp_t(&true_without_dimension, &true_without_dimension)
+                .unwrap()
+                .is_zero()
+        );
+        assert!(
+            left_approximation_by_add_t_hat(&true_without_dimension, &true_without_dimension)
+                .unwrap()
+                .is_zero()
+        );
+
+        let nonzero = simple_modules(&true_algebra).unwrap()[0].clone();
+        assert!(matches!(
+            right_approximation_by_perp_t(&true_without_dimension, &nonzero),
+            Err(EnvelopingModuleError::MissingCotiltingApproximationInjectiveDimensionCache)
+        ));
+        assert!(matches!(
+            left_approximation_by_add_t_hat(&true_without_dimension, &nonzero),
+            Err(EnvelopingModuleError::MissingCotiltingApproximationInjectiveDimensionCache)
+        ));
+    }
+
+    #[test]
+    fn cotilting_approximations_preserve_dimension_zero_index_failure() {
+        let algebra = isolated_path_algebra(Z2, 1);
+        let cotilting = simple_modules(&algebra).unwrap()[0].clone();
+        cotilting_module(&cotilting, &Integer::from(0))
+            .unwrap()
+            .expect("the isolated simple is injective cotilting");
+        assert!(matches!(
+            right_approximation_by_perp_t(&cotilting, &cotilting),
+            Err(EnvelopingModuleError::EmptyCotiltingApproximationExactSequences)
+        ));
+        assert!(matches!(
+            left_approximation_by_add_t_hat(&cotilting, &cotilting),
+            Err(EnvelopingModuleError::EmptyCotiltingApproximationExactSequences)
+        ));
     }
 
     #[test]

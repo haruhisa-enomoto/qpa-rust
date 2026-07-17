@@ -14585,9 +14585,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 57
 source_end = 57
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_approximation_by_perp_t"
+tests = ["tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14598,9 +14598,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 58
 source_end = 58
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_approximation_by_add_t_hat"
+tests = ["tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15157,9 +15157,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1645
 source_end = 1682
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_approximation_by_perp_t"
+tests = ["tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15170,9 +15170,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1693
 source_end = 1726
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_approximation_by_add_t_hat"
+tests = ["tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
