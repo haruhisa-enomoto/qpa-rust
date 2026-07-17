@@ -19,6 +19,7 @@ pub mod ordering;
 pub mod path_algebra;
 pub mod path_module;
 pub mod poset;
+pub mod projective_path_module;
 pub mod projective_presentation;
 pub mod quiver;
 pub mod quotient;
@@ -158,6 +159,11 @@ pub use path_module::{
     underlying_linear_map, zero_module, zero_module_mapping,
 };
 pub use poset::{Poset, PosetError};
+pub use projective_path_module::{
+    PathAlgebraVector, ProjectivePathModuleError, RightProjectivePathAlgebraModule, left_division,
+    right_projective_path_algebra_module, tip_reduce_path_algebra_vector,
+    tip_reduce_path_algebra_vectors,
+};
 pub use projective_presentation::{ProjectivePresentation, ProjectivePresentationError};
 pub use quiver::{
     Arrow, ArrowIndex, ArrowSpec, DYNKIN_NOT_CONNECTED_MESSAGE, DYNKIN_UNORIENTED_CYCLE_MESSAGE,
