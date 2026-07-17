@@ -18,12 +18,12 @@ use crate::{
     common_direct_summand, direct_sum_of_qpa_modules, end_over_algebra, from_end_m_to_hom_mm,
     from_hom_mm_to_end_m, hom_over_algebra,
     idempotent::{factor_finite_field_polynomial, polynomial_product},
-    image_inclusion, image_of_module_homomorphism, image_projection, isomorphism_of_modules,
-    kernel_inclusion, kernel_of_module_homomorphism,
+    identity_module_mapping, image_inclusion, image_of_module_homomorphism, image_projection,
+    is_simple_qpa_module, isomorphism_of_modules, kernel_inclusion, kernel_of_module_homomorphism,
     path_module::ModuleDecompositionMultiplicitiesCache,
-    right_module_hom_over_algebra,
+    pull_back, right_module_hom_over_algebra, socle_of_module_inclusion,
     structure_constants::{StructureConstantsSubalgebra, add_rows, span_rows, subtract_rows},
-    top_of_module_homomorphism,
+    subrepresentation_inclusion, top_of_module_homomorphism,
 };
 
 /// Translate QPA's `ComplementInFullRowSpace(V)` operation.
@@ -601,6 +601,49 @@ pub struct ModuleDecompositionWithMultiplicities<F: Field> {
     multiplicities: Vec<usize>,
 }
 
+/// QPA's heterogeneous `AllSubmodulesOfModule` return value.
+///
+/// The zero and simple branches return one flat list, while the general
+/// branch returns a list indexed by vector-space dimension.
+#[derive(Clone, Debug)]
+pub enum AllSubmodulesOfModuleResult<F: Field> {
+    /// QPA's zero- or simple-module early return.
+    Flat(Vec<PathAlgebraModuleHomomorphism<F>>),
+    /// General result, with level `d` containing the `d`-dimensional
+    /// submodules (and therefore stored at zero-based index `d`).
+    ByDimension(Vec<Vec<PathAlgebraModuleHomomorphism<F>>>),
+}
+
+impl<F: Field> AllSubmodulesOfModuleResult<F> {
+    /// Return the early-return list, if QPA selected that branch.
+    #[must_use]
+    pub fn flat(&self) -> Option<&[PathAlgebraModuleHomomorphism<F>]> {
+        match self {
+            Self::Flat(maps) => Some(maps),
+            Self::ByDimension(_) => None,
+        }
+    }
+
+    /// Return the dimension-indexed levels, if QPA selected its general
+    /// branch.
+    #[must_use]
+    pub fn by_dimension(&self) -> Option<&[Vec<PathAlgebraModuleHomomorphism<F>>]> {
+        match self {
+            Self::Flat(_) => None,
+            Self::ByDimension(levels) => Some(levels),
+        }
+    }
+
+    /// Consume the source-shaped result and flatten its maps in QPA order.
+    #[must_use]
+    pub fn into_flattened(self) -> Vec<PathAlgebraModuleHomomorphism<F>> {
+        match self {
+            Self::Flat(maps) => maps,
+            Self::ByDimension(levels) => levels.into_iter().flatten().collect(),
+        }
+    }
+}
+
 impl<F: Field> ModuleDecompositionWithMultiplicities<F> {
     /// Return the first summand retained from each isomorphism class.
     #[must_use]
@@ -753,6 +796,179 @@ pub fn block_decomposition_of_module<F: QpaCoefficientField>(
         .map(image_of_module_homomorphism)
         .collect::<Result<Vec<_>, _>>()
         .map_err(Into::into)
+}
+
+/// Translate QPA's `AllSimpleSubmodulesOfModule(M)` operation.
+///
+/// QPA passes to the socle, splits its isotypic blocks with
+/// `BlockSplittingIdempotents`, enumerates every one-dimensional field
+/// subspace of each block in GAP order, and closes its canonical basis under
+/// the module action. The resulting inclusions are composed back into `M`.
+///
+/// # Errors
+///
+/// Rejects infinite coefficient fields and propagates socle, block-splitting,
+/// subrepresentation, image, and composition failures.
+pub fn all_simple_submodules_of_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, ModuleDecompositionError> {
+    let field = module.right_acting_algebra().field();
+    let elements = field
+        .qpa_elements()?
+        .ok_or(ModuleDecompositionError::FiniteFieldRequired)?;
+    if module.dimension() == 0 || is_simple_qpa_module(module) {
+        return Ok(vec![identity_module_mapping(module.clone())?]);
+    }
+
+    let socle_inclusion = socle_of_module_inclusion(module.clone())?;
+    let socle = socle_inclusion.source();
+    let mut simple_inclusions = Vec::new();
+    for block_idempotent in block_splitting_idempotents(socle)? {
+        let block_inclusion = image_inclusion(&block_idempotent)?;
+        let block = block_inclusion.source();
+        let basis = block.basis_elements();
+        for coordinates in one_dimensional_subspace_bases(field, &elements, block.dimension()) {
+            let mut generator = block.zero_element();
+            for (basis_element, coefficient) in basis.iter().zip(&coordinates) {
+                generator = generator.add(&basis_element.scale(coefficient))?;
+            }
+            let simple = subrepresentation_inclusion(block.clone(), &[generator])?;
+            simple_inclusions.push(
+                simple
+                    .compose(&block_inclusion)?
+                    .compose(&socle_inclusion)?,
+            );
+        }
+    }
+    Ok(simple_inclusions)
+}
+
+/// Translate QPA's `AllSubmodulesOfModule(M)` operation.
+///
+/// Starting with all simple submodules, the source repeatedly quotients by a
+/// submodule, enumerates the simple submodules of that quotient, and pulls
+/// them back. Equal underlying row spaces are removed within each dimension
+/// in their first-occurrence order.
+///
+/// # Errors
+///
+/// Rejects infinite coefficient fields and propagates simple-submodule,
+/// cokernel, pullback, map-image, and exact row-space failures.
+pub fn all_submodules_of_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<AllSubmodulesOfModuleResult<F>, ModuleDecompositionError> {
+    if module
+        .right_acting_algebra()
+        .field()
+        .qpa_elements()?
+        .is_none()
+    {
+        return Err(ModuleDecompositionError::FiniteFieldRequired);
+    }
+    if module.dimension() == 0 {
+        return Ok(AllSubmodulesOfModuleResult::Flat(vec![
+            identity_module_mapping(module.clone())?,
+        ]));
+    }
+
+    let zero = subrepresentation_inclusion(module.clone(), &[])?;
+    if is_simple_qpa_module(module) {
+        return Ok(AllSubmodulesOfModuleResult::Flat(vec![
+            zero,
+            identity_module_mapping(module.clone())?,
+        ]));
+    }
+
+    let simples = all_simple_submodules_of_module(module)?;
+    let mut levels = vec![vec![zero], simples.clone()];
+    let mut previous = simples;
+    let mut submodule_dimension = 1_usize;
+    while submodule_dimension < module.dimension() {
+        submodule_dimension += 1;
+        let mut spaces = Vec::<DenseMatrix<F>>::new();
+        let mut next = Vec::new();
+        for submodule in &previous {
+            let quotient = cokernel_projection(submodule)?;
+            for simple in all_simple_submodules_of_module(quotient.range())? {
+                let pullback = pull_back(&quotient, &simple)?
+                    .ok_or(PathAlgebraModuleError::InternalCommonRangePullbackFailed)?;
+                let inclusion = pullback.1;
+                let space = underlying_submodule_row_space(&inclusion)?;
+                if !spaces.contains(&space) {
+                    spaces.push(space);
+                    next.push(inclusion);
+                }
+            }
+        }
+        levels.push(next.clone());
+        previous = next;
+    }
+    Ok(AllSubmodulesOfModuleResult::ByDimension(levels))
+}
+
+fn one_dimensional_subspace_bases<F: Field>(
+    field: &F,
+    elements: &[F::Element],
+    dimension: usize,
+) -> Vec<Vec<F::Element>> {
+    debug_assert!(!elements.is_empty());
+    let mut result = Vec::new();
+    for pivot in 0..dimension {
+        let suffix_length = dimension - pivot - 1;
+        let mut indices = vec![0_usize; suffix_length];
+        loop {
+            let mut row = vec![field.zero(); dimension];
+            row[pivot] = field.one();
+            for (offset, &index) in indices.iter().enumerate() {
+                row[pivot + 1 + offset] = elements[index].clone();
+            }
+            result.push(row);
+            if suffix_length == 0 {
+                break;
+            }
+            let mut position = suffix_length;
+            let mut exhausted = false;
+            loop {
+                position -= 1;
+                indices[position] += 1;
+                if indices[position] < elements.len() {
+                    break;
+                }
+                indices[position] = 0;
+                if position == 0 {
+                    exhausted = true;
+                    break;
+                }
+            }
+            if exhausted {
+                break;
+            }
+        }
+    }
+    result
+}
+
+fn underlying_submodule_row_space<F: Field>(
+    inclusion: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<DenseMatrix<F>, ModuleDecompositionError> {
+    let rows = inclusion
+        .source()
+        .basis_elements()
+        .iter()
+        .map(|basis_element| {
+            inclusion
+                .image(basis_element)
+                .map(|image| image.basis_coefficients())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let entries = rows.into_iter().flatten().collect();
+    Ok(DenseMatrix::from_flat(
+        inclusion.source().dimension(),
+        inclusion.range().dimension(),
+        entries,
+        inclusion.range().right_acting_algebra().field().clone(),
+    )?
+    .canonical_row_space_basis())
 }
 
 /// Translate QPA's `BasicVersionOfModule(M)` operation.
@@ -1636,7 +1852,8 @@ mod tests {
     };
 
     use super::{
-        ModuleDecompositionError, ProbabilisticModuleDecomposition, basic_version_of_module,
+        AllSubmodulesOfModuleResult, ModuleDecompositionError, ProbabilisticModuleDecomposition,
+        all_simple_submodules_of_module, all_submodules_of_module, basic_version_of_module,
         block_decomposition_of_module, block_splitting_idempotents, complement_in_full_row_space,
         decompose_module, decompose_module_probabilistic, decompose_module_via_char_poly,
         decompose_module_via_top, decompose_module_with_inclusions,
@@ -1708,6 +1925,76 @@ mod tests {
             "source_dimension": inclusion.source().dimension_vector(),
             "matrices": inclusion.vertex_matrices().iter()
                 .map(|matrix| matrix_json(matrix, integer)).collect::<Vec<_>>(),
+        })
+    }
+
+    fn all_submodules_json<F: Field>(
+        result: &AllSubmodulesOfModuleResult<F>,
+        integer: impl Fn(&F::Element) -> i64 + Copy,
+    ) -> Value {
+        match result {
+            AllSubmodulesOfModuleResult::Flat(maps) => json!({
+                "shape": "flat",
+                "maps": maps.iter().map(|map| inclusion_json(map, integer)).collect::<Vec<_>>(),
+            }),
+            AllSubmodulesOfModuleResult::ByDimension(levels) => json!({
+                "shape": "levels",
+                "levels": levels.iter().map(|level| level.iter()
+                    .map(|map| inclusion_json(map, integer)).collect::<Vec<_>>())
+                    .collect::<Vec<_>>(),
+            }),
+        }
+    }
+
+    fn submodules_case<F: QpaCoefficientField>(
+        field: F,
+        integer: impl Fn(&F::Element) -> i64 + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let zero = right_module_over_path_algebra(algebra.clone(), vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let semisimple = right_module_over_path_algebra(algebra.clone(), vec![2, 1], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            algebra,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![field.one()]], field).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let simple_json = |module: &PathAlgebraModule<F>| {
+            all_simple_submodules_of_module(module)
+                .unwrap()
+                .iter()
+                .map(|map| inclusion_json(map, integer))
+                .collect::<Vec<_>>()
+        };
+        json!({
+            "all_simple": {
+                "zero": simple_json(&zero),
+                "simple": simple_json(&simple),
+                "semisimple": simple_json(&semisimple),
+                "projective": simple_json(&projective),
+            },
+            "all_submodules": {
+                "zero": all_submodules_json(&all_submodules_of_module(&zero).unwrap(), integer),
+                "simple": all_submodules_json(&all_submodules_of_module(&simple).unwrap(), integer),
+                "semisimple": all_submodules_json(
+                    &all_submodules_of_module(&semisimple).unwrap(), integer),
+                "projective": all_submodules_json(
+                    &all_submodules_of_module(&projective).unwrap(), integer),
+            },
         })
     }
 
@@ -2052,6 +2339,48 @@ mod tests {
         ));
         assert!(matches!(
             decompose_module_via_char_poly(&module),
+            Err(ModuleDecompositionError::FiniteFieldRequired)
+        ));
+    }
+
+    #[test]
+    fn pinned_qpa_submodule_enumeration_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_submodules.schema-v1.json"
+        ))
+        .unwrap();
+        let f5 = Zp::new(5);
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehom_submodules",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654",
+            },
+            "binary": submodules_case(Z2, |entry| i64::from(*entry)),
+            "quinary": submodules_case(
+                f5.clone(), |entry| i64::from(f5.from_element(entry))),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn submodule_enumeration_preserves_qpa_finite_field_precondition() {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let simple = right_module_over_path_algebra(algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            all_simple_submodules_of_module(&simple),
+            Err(ModuleDecompositionError::FiniteFieldRequired)
+        ));
+        assert!(matches!(
+            all_submodules_of_module(&simple),
             Err(ModuleDecompositionError::FiniteFieldRequired)
         ));
     }

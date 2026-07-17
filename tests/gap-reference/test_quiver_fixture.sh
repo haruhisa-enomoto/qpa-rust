@@ -316,6 +316,27 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_end_quiver.g" \
     "$repo_root/tests/fixtures/modulehom_end_quiver.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_submodules.g" \
+    "$repo_root/tests/fixtures/modulehom_submodules.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_all_simple_rational_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly enumerated simple submodules over the rationals" >&2
+    exit 1
+fi
+grep -Fq "not a module over an algebra over a finite field" "$actual"
+grep -Fq "modulehom.gi:3754" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_all_submodules_rational_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly enumerated all submodules over the rationals" >&2
+    exit 1
+fi
+grep -Fq "not a module over an algebra over a finite field" "$actual"
+grep -Fq "modulehom.gi:3797" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_end_quiver_nonbasic_error.g" \
     >"$actual" 2>&1

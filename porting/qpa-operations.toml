@@ -12505,9 +12505,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 69
 source_end = 69
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_submodules_of_module; AllSubmodulesOfModuleResult"
+tests = ["tests/fixtures/modulehom_submodules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12518,9 +12518,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 70
 source_end = 70
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_simple_submodules_of_module"
+tests = ["tests/fixtures/modulehom_submodules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13727,9 +13727,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3745
 source_end = 3776
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_simple_submodules_of_module"
+tests = ["tests/fixtures/modulehom_submodules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13740,9 +13740,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3787
 source_end = 3846
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "all_submodules_of_module; AllSubmodulesOfModuleResult"
+tests = ["tests/fixtures/modulehom_submodules.schema-v1.json"]
 deviations = []
 
 [[entries]]
