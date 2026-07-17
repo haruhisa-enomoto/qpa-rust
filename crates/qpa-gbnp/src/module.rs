@@ -4230,6 +4230,190 @@ pub fn star_of_module<F: Field>(
     Ok(module.cache_star_of_module(&star))
 }
 
+/// Translate QPA's cached `FromIdentityToDoubleStarHomomorphism(M)` attribute.
+///
+/// At a basis vector `m` in vertex `i`, the source constructs the evaluation
+/// map `Hom_A(M,A) -> e_i A` sending `g` to `g(m)`, converts its projective
+/// values through the opposite algebra, and expresses that map in QPA's
+/// ordered basis of `Hom_{A^op}(M^*, e_i A^op)`. Those coefficients are the
+/// corresponding row of the natural map `M -> M^{**}`.
+///
+/// # Errors
+///
+/// Requires finite projective and canonical bases and propagates opposite
+/// algebra, Hom-space, module-action, exact-coordinate, and checked-map
+/// failures.
+#[allow(clippy::too_many_lines)]
+pub fn from_identity_to_double_star_homomorphism<F: Field>(
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_identity_to_double_star() {
+        return Ok(cached);
+    }
+    let algebra = module.right_acting_algebra();
+    let opposite = opposite_module_algebra(algebra)?;
+    let field = algebra.field().clone();
+    let projectives = indec_projective_modules(algebra)?;
+    let vertex_count = projectives.len();
+    let hom_spaces = projectives
+        .iter()
+        .map(|projective| {
+            hom_over_algebra(module, projective)?
+                .ok_or(EnvelopingModuleError::InternalDoubleStarHomRejected)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+    let _hom_coordinate_bases = module_hom_flat_coordinate_bases(&hom_spaces, &field)?;
+
+    let star = star_of_module(module)?;
+    let opposite_projectives = indec_projective_modules(&opposite)?;
+    let opposite_hom_spaces = opposite_projectives
+        .iter()
+        .map(|projective| {
+            hom_over_algebra(&star, projective)?
+                .ok_or(EnvelopingModuleError::InternalDoubleStarHomRejected)
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+    let opposite_hom_coordinate_bases =
+        module_hom_flat_coordinate_bases(&opposite_hom_spaces, &field)?;
+    let double_star = star_of_module(&star)?;
+
+    let opposite_projective_bases = basis_of_projectives(&opposite)?
+        .ok_or(EnvelopingModuleError::ProjectiveBasisUnavailable)?;
+    let opposite_canonical_basis = finite_canonical_basis(&opposite)?
+        .ok_or(EnvelopingModuleError::MissingDoubleStarCanonicalBasis)?;
+    let opposite_projective_basis_positions = opposite_projective_bases
+        .iter()
+        .enumerate()
+        .map(|(projective, vertex_bases)| {
+            vertex_bases
+                .iter()
+                .enumerate()
+                .map(|(vertex, basis)| {
+                    basis
+                        .iter()
+                        .enumerate()
+                        .map(|(position, element)| {
+                            opposite_canonical_basis
+                                .iter()
+                                .position(|candidate| candidate == element)
+                                .ok_or(
+                                    EnvelopingModuleError::MissingDoubleStarProjectiveBasisElement {
+                                        projective: projective + 1,
+                                        vertex: vertex + 1,
+                                        position: position + 1,
+                                    },
+                                )
+                        })
+                        .collect::<Result<Vec<_>, EnvelopingModuleError>>()
+                })
+                .collect::<Result<Vec<_>, EnvelopingModuleError>>()
+        })
+        .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+
+    let module_basis = module.basis_elements();
+    let module_dimensions = module.dimension_vector();
+    let double_star_dimensions = double_star.dimension_vector();
+    let mut matrices = Vec::with_capacity(vertex_count);
+    let mut module_basis_offset = 0_usize;
+    for projective_vertex in 0..vertex_count {
+        let source_dimension = module_dimensions[projective_vertex];
+        let range_dimension = double_star_dimensions[projective_vertex];
+        if source_dimension == 0 || range_dimension == 0 {
+            matrices.push(DenseMatrix::zero(
+                source_dimension.max(1),
+                range_dimension.max(1),
+                field.clone(),
+            ));
+            module_basis_offset += source_dimension;
+            continue;
+        }
+        let coordinate_basis = opposite_hom_coordinate_bases[projective_vertex]
+            .as_ref()
+            .ok_or(EnvelopingModuleError::MissingDoubleStarHomCoordinateBasis {
+                vertex: projective_vertex + 1,
+            })?;
+        let mut rows = Vec::with_capacity(source_dimension);
+        for module_element in
+            &module_basis[module_basis_offset..module_basis_offset + source_dimension]
+        {
+            let mut evaluation_matrices = Vec::with_capacity(vertex_count);
+            for (target_vertex, hom_basis) in hom_spaces.iter().enumerate() {
+                let projective_dimension =
+                    opposite_projectives[projective_vertex].dimension_vector()[target_vertex];
+                if hom_basis.is_empty() || projective_dimension == 0 {
+                    evaluation_matrices.push(DenseMatrix::zero(
+                        hom_basis.len().max(1),
+                        projective_dimension.max(1),
+                        field.clone(),
+                    ));
+                    continue;
+                }
+                let value_rows = hom_basis
+                    .iter()
+                    .map(|homomorphism| {
+                        let image = homomorphism.image(module_element)?;
+                        let parent_element =
+                            element_in_indec_projective(algebra, &image, target_vertex + 1)?;
+                        let opposite_element =
+                            opposite_projective_path_element(algebra, &parent_element)?;
+                        let canonical_coordinates = canonical_basis_coefficients(
+                            &opposite,
+                            &opposite_canonical_basis,
+                            &opposite_element,
+                        )?;
+                        Ok(
+                            opposite_projective_basis_positions[projective_vertex][target_vertex]
+                                .iter()
+                                .map(|&position| canonical_coordinates[position].clone())
+                                .collect::<Vec<_>>(),
+                        )
+                    })
+                    .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+                evaluation_matrices.push(DenseMatrix::from_rows(value_rows, field.clone())?);
+            }
+            let evaluation = right_module_hom_over_algebra(
+                star.clone(),
+                opposite_projectives[projective_vertex].clone(),
+                evaluation_matrices,
+            )?;
+            rows.push(
+                coordinate_basis
+                    .solution_row(&evaluation.flat_vertex_matrix_entries())?
+                    .ok_or(EnvelopingModuleError::DoubleStarEvaluationOutsideHomBasis {
+                        vertex: projective_vertex + 1,
+                    })?,
+            );
+        }
+        matrices.push(DenseMatrix::from_rows(rows, field.clone())?);
+        module_basis_offset += source_dimension;
+    }
+    let evaluation = right_module_hom_over_algebra(module.clone(), double_star, matrices)?;
+    Ok(module.cache_identity_to_double_star(&evaluation))
+}
+
+fn module_hom_flat_coordinate_bases<F: Field>(
+    hom_spaces: &[Vec<PathAlgebraModuleHomomorphism<F>>],
+    field: &F,
+) -> Result<Vec<Option<DenseMatrix<F>>>, EnvelopingModuleError> {
+    hom_spaces
+        .iter()
+        .map(|basis| {
+            let Some(first) = basis.first() else {
+                return Ok(None);
+            };
+            Ok(Some(DenseMatrix::from_flat(
+                basis.len(),
+                first.flat_vertex_matrix_entries().len(),
+                basis
+                    .iter()
+                    .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+                    .collect(),
+                field.clone(),
+            )?))
+        })
+        .collect()
+}
+
 /// Translate QPA's cached contravariant `StarOfModuleHomomorphism(f)`.
 ///
 /// # Errors
@@ -5190,6 +5374,36 @@ pub enum EnvelopingModuleError {
     /// Composition with left multiplication remains in the corresponding Hom space.
     #[error("a StarOfModule composite lies outside its Hom basis")]
     StarCompositionOutsideHomBasis,
+    /// Both Hom-space families used by the evaluation construction share one algebra.
+    #[error("HomOverAlgebra rejected an internal double-star Hom space")]
+    InternalDoubleStarHomRejected,
+    /// A nonzero double-star vertex has a nonempty raw physical Hom basis.
+    #[error("double-star vertex {vertex} has no Hom coordinate basis")]
+    MissingDoubleStarHomCoordinateBasis {
+        /// One-based vertex position.
+        vertex: usize,
+    },
+    /// Evaluation at a module basis vector is an element of the computed double dual.
+    #[error("the evaluation map at vertex {vertex} lies outside the double-star Hom basis")]
+    DoubleStarEvaluationOutsideHomBasis {
+        /// One-based vertex position.
+        vertex: usize,
+    },
+    /// Finite projective bases require the opposite algebra's canonical basis.
+    #[error("the opposite algebra has no canonical basis for double-star evaluation")]
+    MissingDoubleStarCanonicalBasis,
+    /// Every projective-basis element occurs in the opposite canonical basis.
+    #[error(
+        "opposite projective {projective}, vertex {vertex}, basis element {position} is absent from the canonical basis"
+    )]
+    MissingDoubleStarProjectiveBasisElement {
+        /// One-based indecomposable-projective position.
+        projective: usize,
+        /// One-based representation vertex.
+        vertex: usize,
+        /// One-based position inside that vertex basis.
+        position: usize,
+    },
     /// Source-generated star actions satisfy the opposite relations.
     #[error("the generated StarOfModule does not satisfy the opposite-algebra relations")]
     GeneratedStarViolatesRelations,
@@ -5476,10 +5690,10 @@ mod tests {
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
-        frobenius_linear_functional, from_matrix_to_homomorphism_of_projectives,
-        global_dimension_from_known_properties, global_dimension_of_algebra,
-        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
-        indec_projective_modules, injective_envelope,
+        frobenius_linear_functional, from_identity_to_double_star_homomorphism,
+        from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
+        global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
+        indec_injective_modules, indec_projective_modules, injective_envelope,
         is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
         is_injective_module, is_projective_module, is_rigid_module, is_schurian_algebra,
         is_selfinjective_algebra, is_semicommutative_algebra, is_symmetric_algebra,
@@ -5915,6 +6129,175 @@ mod tests {
             all_modules_of_length_plus_one(&[first, double]),
             Err(ModuleLengthError::ModulesOfDifferentLengths)
         ));
+    }
+
+    fn double_star_map_json<F: Field>(
+        map: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "source_dimension": map.source().dimension_vector(),
+            "range_dimension": map.range().dimension_vector(),
+            "matrices": map.vertex_matrices().iter().map(|matrix| json!(
+                (0..matrix.nrows()).map(|row| matrix.row(row).iter()
+                    .map(coefficient).collect::<Vec<_>>()).collect::<Vec<_>>()
+            )).collect::<Vec<_>>(),
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_double_star_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let a2_zero = zero_module(&a2).unwrap();
+        let a2_simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let a2_simple_two = right_module_over_path_algebra(a2.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let a2_projective = right_module_over_path_algebra(
+            a2.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let a2_semisimple_pair = right_module_over_path_algebra(
+            a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![zero.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual.clone(),
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let dual_regular = right_module_over_path_algebra(
+            dual,
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(
+                    vec![vec![zero.clone(), one.clone()], vec![zero.clone(), zero]],
+                    field,
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let evaluate = |module: &PathAlgebraModule<F>| {
+            double_star_map_json(
+                &from_identity_to_double_star_homomorphism(module).unwrap(),
+                coefficient,
+            )
+        };
+        json!({
+            "a2_zero": evaluate(&a2_zero),
+            "a2_simple_one": evaluate(&a2_simple_one),
+            "a2_simple_two": evaluate(&a2_simple_two),
+            "a2_projective": evaluate(&a2_projective),
+            "a2_semisimple_pair": evaluate(&a2_semisimple_pair),
+            "dual_simple": evaluate(&dual_simple),
+            "dual_regular": evaluate(&dual_regular),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_double_star_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_double_star.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehom_double_star",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehom_double_star_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehom_double_star_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational": modulehom_double_star_case(Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn identity_to_double_star_homomorphism_is_cached_with_star_modules() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let module = right_module_over_path_algebra(
+            algebra,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![Q.one()]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let first = from_identity_to_double_star_homomorphism(&module).unwrap();
+        let second = from_identity_to_double_star_homomorphism(&module).unwrap();
+        let double_star = star_of_module(&star_of_module(&module).unwrap()).unwrap();
+
+        assert!(first.is_identical(&second));
+        assert!(first.source().is_identical(&module));
+        assert!(first.range().is_identical(&double_star));
     }
 
     fn module_map_json<F: Field>(

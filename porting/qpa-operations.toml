@@ -12583,9 +12583,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 75
 source_end = 75
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_identity_to_double_star_homomorphism"
+tests = ["tests/fixtures/modulehom_double_star.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13805,9 +13805,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4064
 source_end = 4196
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "from_identity_to_double_star_homomorphism"
+tests = ["tests/fixtures/modulehom_double_star.schema-v1.json"]
 deviations = []
 
 [[entries]]

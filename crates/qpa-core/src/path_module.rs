@@ -117,6 +117,7 @@ struct PathAlgebraModuleData<F: Field> {
     is_tau_rigid: OnceLock<bool>,
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    identity_to_double_star_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     first_syzygy: OnceLock<PathAlgebraModule<F>>,
     annihilator: OnceLock<Vec<QuiverAlgebraElement<F>>>,
 }
@@ -160,6 +161,7 @@ impl<F: Field> PathAlgebraModuleData<F> {
             is_tau_rigid: OnceLock::new(),
             projective_cover_weak: RwLock::new(None),
             injective_envelope_weak: RwLock::new(None),
+            identity_to_double_star_weak: RwLock::new(None),
             first_syzygy: OnceLock::new(),
             annihilator: OnceLock::new(),
         }
@@ -620,6 +622,28 @@ impl<F: Field> PathAlgebraModule<F> {
         }
         *slot = Some(envelope.downgrade());
         envelope.clone()
+    }
+
+    /// Return an already-live cached `FromIdentityToDoubleStarHomomorphism` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_identity_to_double_star(&self) -> Option<PathAlgebraModuleHomomorphism<F>> {
+        self.0
+            .identity_to_double_star_weak
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .as_ref()
+            .and_then(WeakPathAlgebraModuleHomomorphism::upgrade)
+    }
+
+    /// Install `FromIdentityToDoubleStarHomomorphism` without an `Arc` cycle.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_identity_to_double_star(
+        &self,
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+    ) -> PathAlgebraModuleHomomorphism<F> {
+        cache_weak_homomorphism(&self.0.identity_to_double_star_weak, homomorphism)
     }
 
     /// Return QPA's cached `1stSyzygy` attribute, if installed.
