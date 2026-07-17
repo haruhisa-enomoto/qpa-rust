@@ -3969,6 +3969,72 @@ pub fn number_of_complements_of_almost_complete_cotilting_module<F: QpaCoefficie
     number_of_complements_of_almost_complete_tilting_module(module)
 }
 
+/// Translate `LeftMutationOfTiltingModuleComplement(M, N)`.
+///
+/// QPA constructs the minimal left add(M)-approximation of `N` and returns
+/// its cokernel exactly when that approximation is injective. `None` is the
+/// source's `false` result.
+///
+/// # Errors
+///
+/// Propagates minimal-approximation and cokernel construction failures,
+/// including the source's different-algebra rejection.
+pub fn left_mutation_of_tilting_module_complement<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    complement: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    let approximation = minimal_left_approximation(complement, module)?;
+    if approximation.is_injective() {
+        return Ok(Some(cokernel_of_module_homomorphism(&approximation)?));
+    }
+    Ok(None)
+}
+
+/// Translate `RightMutationOfTiltingModuleComplement(M, N)`.
+///
+/// QPA constructs the minimal right add(M)-approximation of `N` and returns
+/// its kernel exactly when that approximation is surjective. `None` is the
+/// source's `false` result.
+///
+/// # Errors
+///
+/// Propagates minimal-approximation and kernel construction failures,
+/// including the source's different-algebra rejection.
+pub fn right_mutation_of_tilting_module_complement<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    complement: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    let approximation = minimal_right_approximation(module, complement)?;
+    if approximation.is_surjective() {
+        return Ok(Some(kernel_of_module_homomorphism(&approximation)?));
+    }
+    Ok(None)
+}
+
+/// QPA's synonym `LeftMutationOfCotiltingModuleComplement`.
+///
+/// # Errors
+///
+/// Propagates [`left_mutation_of_tilting_module_complement`].
+pub fn left_mutation_of_cotilting_module_complement<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    complement: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    left_mutation_of_tilting_module_complement(module, complement)
+}
+
+/// QPA's synonym `RightMutationOfCotiltingModuleComplement`.
+///
+/// # Errors
+///
+/// Propagates [`right_mutation_of_tilting_module_complement`].
+pub fn right_mutation_of_cotilting_module_complement<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    complement: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModule<F>>, EnvelopingModuleError> {
+    right_mutation_of_tilting_module_complement(module, complement)
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7949,6 +8015,7 @@ mod tests {
         is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
         is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_tilting_module,
         is_weakly_symmetric_algebra, left_approximation_by_add_m, left_fac_m_approximation,
+        left_mutation_of_cotilting_module_complement, left_mutation_of_tilting_module_complement,
         left_sub_m_approximation, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, minimal_left_approximation,
         minimal_left_fac_m_approximation, minimal_left_sub_m_approximation,
@@ -7959,6 +8026,7 @@ mod tests {
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
         proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
+        right_mutation_of_cotilting_module_complement, right_mutation_of_tilting_module_complement,
         right_sub_m_approximation, simple_modules, socle_series, star_of_module,
         star_of_module_homomorphism, tensor_product_of_modules, tilting_module, tr_d,
         tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
@@ -10037,6 +10105,94 @@ mod tests {
             "rational": modulehomalg_number_complements_case(&Q),
         });
         assert_eq!(actual, expected);
+    }
+
+    fn complement_mutation_json<F: Field>(module: Option<PathAlgebraModule<F>>) -> Value {
+        module.map_or(
+            Value::Bool(false),
+            |module| json!({"dimension": module.dimension_vector()}),
+        )
+    }
+
+    fn modulehomalg_complement_mutations_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let simples = simple_modules(&a2).unwrap();
+        let zero = zero_module(&a2).unwrap();
+
+        let dual = fresh_dual_numbers(field);
+        let dual_regular = indec_projective_modules(&dual).unwrap()[0].clone();
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+        let dual_zero = zero_module(&dual).unwrap();
+
+        let check = |module: &PathAlgebraModule<F>, complement: &PathAlgebraModule<F>| {
+            json!({
+                "left": complement_mutation_json(
+                    left_mutation_of_tilting_module_complement(module, complement).unwrap()
+                ),
+                "right": complement_mutation_json(
+                    right_mutation_of_tilting_module_complement(module, complement).unwrap()
+                ),
+                "left_cotilting": complement_mutation_json(
+                    left_mutation_of_cotilting_module_complement(module, complement).unwrap()
+                ),
+                "right_cotilting": complement_mutation_json(
+                    right_mutation_of_cotilting_module_complement(module, complement).unwrap()
+                ),
+            })
+        };
+        json!({
+            "p1_complement_p2": check(&projectives[0], &projectives[1]),
+            "p1_complement_s1": check(&projectives[0], &simples[0]),
+            "p2_complement_p1": check(&projectives[1], &projectives[0]),
+            "zero_complement_s1": check(&zero, &simples[0]),
+            "dual_regular_complement_simple": check(&dual_regular, &dual_simple),
+            "dual_zero_complement_regular": check(&dual_zero, &dual_regular),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_complement_mutations_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_complement_mutations",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_complement_mutations_case(&Z2),
+            "quinary": modulehomalg_complement_mutations_case(&Zp::new(5)),
+            "rational": modulehomalg_complement_mutations_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn complement_mutations_reject_foreign_algebras() {
+        let first = fresh_a2_zero(&Z2);
+        let second = fresh_a2_zero(&Z2);
+        assert!(matches!(
+            left_mutation_of_tilting_module_complement(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
+        assert!(matches!(
+            right_mutation_of_tilting_module_complement(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
     }
 
     #[test]

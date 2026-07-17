@@ -14533,9 +14533,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 53
 source_end = 53
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_mutation_of_tilting_module_complement"
+tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14546,9 +14546,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 54
 source_end = 54
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_mutation_of_tilting_module_complement"
+tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14559,9 +14559,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 55
 source_end = 55
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_mutation_of_cotilting_module_complement"
+tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14572,9 +14572,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 56
 source_end = 56
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_mutation_of_cotilting_module_complement"
+tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15118,9 +15118,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1560
 source_end = 1575
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_mutation_of_tilting_module_complement"
+tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15131,9 +15131,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1586
 source_end = 1601
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_mutation_of_tilting_module_complement"
+tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
 
 [[entries]]
