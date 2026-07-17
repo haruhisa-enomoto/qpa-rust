@@ -2643,6 +2643,80 @@ pub fn first_syzygy<F: Field>(
     Ok(module.cache_first_syzygy(&syzygy))
 }
 
+/// Translate QPA's `IsOmegaPeriodic(M, n)` search.
+///
+/// Starting with the entered module, the source computes successive first
+/// syzygies and returns the first one-based degree at which the result is
+/// isomorphic to `M`. `None` is QPA's `false`, including for zero and negative
+/// bounds. The unbounded GAP integer is retained rather than narrowed to a
+/// machine integer.
+///
+/// QPA prints `Computing syzygy number: i` before every iteration. The normal
+/// Rust entry point is quiet; [`is_omega_periodic_with_progress`] exposes the
+/// same one-based iteration values without imposing process-global output.
+///
+/// # Errors
+///
+/// Propagates first-syzygy construction and QPA's module-isomorphism test.
+pub fn is_omega_periodic<F: Field>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<Integer>, EnvelopingModuleError> {
+    is_omega_periodic_with_progress(module, bound, |_| {})
+}
+
+/// Run [`is_omega_periodic`] while reporting each iteration at the exact point
+/// where QPA emits its progress line.
+///
+/// # Errors
+///
+/// Propagates first-syzygy construction and QPA's module-isomorphism test.
+pub fn is_omega_periodic_with_progress<F: Field>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+    mut progress: impl FnMut(&Integer),
+) -> Result<Option<Integer>, EnvelopingModuleError> {
+    let mut current = module.clone();
+    let mut degree = Integer::one();
+    while &degree <= bound {
+        progress(&degree);
+        let next = first_syzygy(&current)?;
+        if isomorphic_modules(module, &next)? {
+            return Ok(Some(degree));
+        }
+        current = next;
+        degree += 1;
+    }
+    Ok(None)
+}
+
+/// Translate QPA's `IsTauPeriodic(M, n)` search.
+///
+/// Starting with the entered module, the source repeatedly applies [`d_tr`]
+/// and returns the first one-based degree at which the result is isomorphic to
+/// `M`. `None` is QPA's `false`, including for zero and negative bounds. The
+/// unbounded GAP integer is retained rather than narrowed to a machine integer.
+///
+/// # Errors
+///
+/// Propagates `DTr` construction and QPA's module-isomorphism test.
+pub fn is_tau_periodic<F: Field>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<Integer>, EnvelopingModuleError> {
+    let mut current = module.clone();
+    let mut degree = Integer::one();
+    while &degree <= bound {
+        let next = d_tr(&current)?;
+        if isomorphic_modules(module, &next)? {
+            return Ok(Some(degree));
+        }
+        current = next;
+        degree += 1;
+    }
+    Ok(None)
+}
+
 /// Translate QPA's cached `InjectiveEnvelope(M)` attribute.
 ///
 /// The computation is the exact source expression
@@ -6453,9 +6527,10 @@ mod tests {
         indec_injective_modules, indec_projective_modules, injective_envelope,
         irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_exceptional_module,
         is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
-        is_injective_module, is_projective_module, is_rigid_module, is_schurian_algebra,
-        is_selfinjective_algebra, is_semicommutative_algebra, is_symmetric_algebra,
-        is_tau_rigid_module, is_weakly_symmetric_algebra, lifting_morphism_from_projective,
+        is_injective_module, is_omega_periodic, is_omega_periodic_with_progress,
+        is_projective_module, is_rigid_module, is_schurian_algebra, is_selfinjective_algebra,
+        is_semicommutative_algebra, is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module,
+        is_weakly_symmetric_algebra, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, nakayama_automorphism,
         nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
@@ -7090,6 +7165,126 @@ mod tests {
         assert_eq!(is_exceptional_module(&rational_simple).unwrap(), Some(true));
         assert_eq!(rational_simple.cached_is_exceptional_module(), Some(true));
         assert_eq!(is_exceptional_module(&rational_simple).unwrap(), Some(true));
+    }
+
+    fn periodicity_json(period: Option<Integer>) -> Value {
+        period.map_or(Value::Bool(false), |degree| {
+            serde_json::from_str(&degree.to_string()).unwrap()
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
+    fn modulehomalg_periodicity_case<F: QpaCoefficientField>(field: F) -> Value {
+        let zero = field.zero();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let zero_module = zero_module(&a2).unwrap();
+        let simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(a2, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual,
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero]], field).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        json!({
+            "omega_zero_n0": periodicity_json(is_omega_periodic(&zero_module, &Integer::from(0)).unwrap()),
+            "omega_zero_negative": periodicity_json(is_omega_periodic(&zero_module, &Integer::from(-2)).unwrap()),
+            "omega_zero_n3": periodicity_json(is_omega_periodic(&zero_module, &Integer::from(3)).unwrap()),
+            "omega_a2_simple_one_n4": periodicity_json(is_omega_periodic(&simple_one, &Integer::from(4)).unwrap()),
+            "omega_a2_simple_two_n4": periodicity_json(is_omega_periodic(&simple_two, &Integer::from(4)).unwrap()),
+            "omega_dual_simple_n1": periodicity_json(is_omega_periodic(&dual_simple, &Integer::from(1)).unwrap()),
+            "omega_dual_simple_n4": periodicity_json(is_omega_periodic(&dual_simple, &Integer::from(4)).unwrap()),
+            "tau_zero_n0": periodicity_json(is_tau_periodic(&zero_module, &Integer::from(0)).unwrap()),
+            "tau_zero_negative": periodicity_json(is_tau_periodic(&zero_module, &Integer::from(-2)).unwrap()),
+            "tau_zero_n3": periodicity_json(is_tau_periodic(&zero_module, &Integer::from(3)).unwrap()),
+            "tau_a2_simple_one_n4": periodicity_json(is_tau_periodic(&simple_one, &Integer::from(4)).unwrap()),
+            "tau_a2_simple_two_n4": periodicity_json(is_tau_periodic(&simple_two, &Integer::from(4)).unwrap()),
+            "tau_dual_simple_n1": periodicity_json(is_tau_periodic(&dual_simple, &Integer::from(1)).unwrap()),
+            "tau_dual_simple_n4": periodicity_json(is_tau_periodic(&dual_simple, &Integer::from(4)).unwrap()),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_periodicity_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_periodicity.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_periodicity",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_periodicity_case(Z2),
+            "quinary": modulehomalg_periodicity_case(Zp::new(5)),
+            "rational": modulehomalg_periodicity_case(Q),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn omega_periodicity_exposes_qpa_progress_without_global_output() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simple_one = right_module_over_path_algebra(algebra, vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let mut progress = Vec::new();
+        assert_eq!(
+            is_omega_periodic_with_progress(&simple_one, &Integer::from(4), |degree| {
+                progress.push(degree.clone());
+            })
+            .unwrap(),
+            None
+        );
+        assert_eq!(progress, (1..=4).map(Integer::from).collect::<Vec<_>>());
+
+        progress.clear();
+        assert_eq!(
+            is_omega_periodic_with_progress(&simple_one, &Integer::from(-1), |degree| {
+                progress.push(degree.clone());
+            })
+            .unwrap(),
+            None
+        );
+        assert!(progress.is_empty());
     }
 
     fn double_star_map_json<F: Field>(

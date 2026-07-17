@@ -13935,9 +13935,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_omega_periodic; is_omega_periodic_with_progress"
+tests = ["tests/fixtures/modulehomalg_periodicity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13948,9 +13948,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_tau_periodic"
+tests = ["tests/fixtures/modulehomalg_periodicity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14689,9 +14689,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 83
 source_end = 102
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_omega_periodic; is_omega_periodic_with_progress"
+tests = ["tests/fixtures/modulehomalg_periodicity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14702,9 +14702,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 112
 source_end = 130
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_tau_periodic"
+tests = ["tests/fixtures/modulehomalg_periodicity.schema-v1.json"]
 deviations = []
 
 [[entries]]
