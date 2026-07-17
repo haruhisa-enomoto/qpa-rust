@@ -3306,6 +3306,140 @@ pub fn minimal_left_sub_m_approximation<F: QpaCoefficientField>(
     left_sub_m_approximation(source, module)
 }
 
+/// The finite complex returned by QPA's
+/// `HaveFiniteCoresolutionInAddM(N, M, n)` operation.
+///
+/// `base_position` and `differentials` are exactly the arguments passed to
+/// QPA's `FiniteComplex`: the first stored map is the differential in the
+/// base degree and maps to the object one degree below. Outside the stored
+/// interval, [`Self::differential`] reproduces `FiniteComplex`'s zero tails.
+#[derive(Clone, Debug)]
+pub struct AddMCoresolution<F: Field> {
+    base_position: Integer,
+    differentials: Vec<PathAlgebraModuleHomomorphism<F>>,
+    zero: PathAlgebraModule<F>,
+}
+
+impl<F: Field> AddMCoresolution<F> {
+    /// Return the base degree passed to QPA's `FiniteComplex` constructor.
+    #[must_use]
+    pub const fn base_position(&self) -> &Integer {
+        &self.base_position
+    }
+
+    /// Return QPA's reversed list passed to `FiniteComplex`.
+    #[must_use]
+    pub fn differentials(&self) -> &[PathAlgebraModuleHomomorphism<F>] {
+        &self.differentials
+    }
+
+    /// Return QPA's `DifferentialOfComplex` map in an arbitrary degree.
+    ///
+    /// # Errors
+    ///
+    /// Propagates zero-map construction at either finite boundary.
+    pub fn differential(
+        &self,
+        degree: &Integer,
+    ) -> Result<PathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+        let offset = degree - &self.base_position;
+        if offset >= 0
+            && let Ok(position) = usize::try_from(offset)
+            && let Some(differential) = self.differentials.get(position)
+        {
+            return Ok(differential.clone());
+        }
+        if degree == &(&self.base_position - Integer::one()) {
+            return zero_module_mapping(self.differentials[0].range().clone(), self.zero.clone());
+        }
+        if degree == &(&self.base_position + Integer::from(self.differentials.len())) {
+            let Some(last) = self.differentials.last() else {
+                return zero_module_mapping(self.zero.clone(), self.zero.clone());
+            };
+            return zero_module_mapping(self.zero.clone(), last.source().clone());
+        }
+        zero_module_mapping(self.zero.clone(), self.zero.clone())
+    }
+
+    /// Return QPA's `ObjectOfComplex` value in an arbitrary degree.
+    ///
+    /// # Errors
+    ///
+    /// Propagates [`Self::differential`].
+    pub fn object(&self, degree: &Integer) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+        Ok(self.differential(degree)?.source().clone())
+    }
+}
+
+/// Translate QPA's `HaveFiniteCoresolutionInAddM(N, M, n)` operation.
+///
+/// `None` is QPA's `false`. The zero bound uses QPA's separate isomorphism
+/// test. A negative bound makes GAP's literal range `[0..n]` empty, after
+/// which `FiniteComplex` fails by indexing the empty differential list; Rust
+/// reports that source failure after computing the initial approximation. For
+/// a positive bound, every iteration requires the current minimal left
+/// add(M)-approximation to be injective, appends `g*f`, and continues from its
+/// cokernel. QPA also computes the next approximation after a nonzero final
+/// cokernel before leaving the range. The maps are then reversed and passed
+/// to `FiniteComplex` in degree `-Length + 1`.
+///
+/// # Errors
+///
+/// Rejects modules over different algebras and propagates approximation,
+/// composition, cokernel, identity-map, and zero-module failures.
+pub fn have_finite_coresolution_in_add_m<F: QpaCoefficientField>(
+    source: &PathAlgebraModule<F>,
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<AddMCoresolution<F>>, EnvelopingModuleError> {
+    require_common_approximation_algebra(source, module)?;
+    let mut differentials = Vec::new();
+    let mut connecting = identity_module_mapping(source.clone())?;
+    let mut approximation = minimal_left_approximation(source, module)?;
+
+    if bound == &Integer::from(0) {
+        if !approximation.is_isomorphism() {
+            return Ok(None);
+        }
+        return Ok(Some(AddMCoresolution {
+            base_position: Integer::from(0),
+            differentials: vec![approximation],
+            zero: zero_module(module.right_acting_algebra())?,
+        }));
+    }
+
+    if bound < &Integer::from(0) {
+        return Err(EnvelopingModuleError::EmptyCoresolutionDifferentialList {
+            bound: bound.clone(),
+        });
+    }
+
+    let mut degree = Integer::from(0);
+    loop {
+        if !approximation.is_injective() {
+            return Ok(None);
+        }
+        differentials.push(connecting.compose(&approximation)?);
+        connecting = cokernel_projection(&approximation)?;
+        if connecting.range().dimension() == 0 {
+            break;
+        }
+        approximation = minimal_left_approximation(connecting.range(), module)?;
+        if &degree == bound {
+            break;
+        }
+        degree += 1;
+    }
+
+    differentials.reverse();
+    let base_position = Integer::one() - Integer::from(differentials.len());
+    Ok(Some(AddMCoresolution {
+        base_position,
+        differentials,
+        zero: zero_module(module.right_acting_algebra())?,
+    }))
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -6588,6 +6722,12 @@ pub enum EnvelopingModuleError {
     /// The injective envelope and its add(M)-approximation share their range.
     #[error("the internal RightSubMApproximation pullback returned fail")]
     InternalRightSubPullBackFailed,
+    /// GAP's negative-bound range is empty and `FiniteComplex` indexes it.
+    #[error("HaveFiniteCoresolutionInAddM produced no differentials for bound {bound}")]
+    EmptyCoresolutionDifferentialList {
+        /// Entered negative GAP integer.
+        bound: Integer,
+    },
     /// A generated GAP resolution degree must fit Rust's addressable lazy
     /// cache in its direction from degree zero.
     #[error("resolution degree is not representable by usize: {degree}")]
@@ -7228,16 +7368,16 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        AlmostSplitSide, DominantDimensionResult, EnvelopingModuleError, ExtOverAlgebraResult,
-        GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
-        PredecessorMultiplicity, PredecessorsOfModuleResult, TensorProductOfModulesResult,
-        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        all_indec_modules_of_length_at_most, all_modules_of_length_at_most,
-        all_modules_of_length_plus_one, almost_split_sequence, almost_split_sequence_from_side,
-        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, cartan_matrix,
-        complexity_of_algebra, complexity_of_module, coxeter_matrix, coxeter_polynomial, d_tr,
-        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
-        dominant_dimension_of_algebra, dominant_dimension_of_module,
+        AddMCoresolution, AlmostSplitSide, DominantDimensionResult, EnvelopingModuleError,
+        ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult, ModuleLengthError,
+        NakayamaAutomorphismOrder, PredecessorMultiplicity, PredecessorsOfModuleResult,
+        TensorProductOfModulesResult, algebra_as_module_of_enveloping_algebra,
+        algebra_as_module_over_enveloping_algebra, all_indec_modules_of_length_at_most,
+        all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
+        almost_split_sequence_from_side, annihilator_of_module, basis_of_projectives,
+        canonical_basis_coefficients, cartan_matrix, complexity_of_algebra, complexity_of_module,
+        coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
+        d_tr_iterated, dominant_dimension_of_algebra, dominant_dimension_of_module,
         dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
@@ -7245,25 +7385,26 @@ mod tests {
         frobenius_linear_functional, from_identity_to_double_star_homomorphism,
         from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
         global_dimension_of_algebra, gorenstein_dimension, gorenstein_dimension_of_algebra,
-        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
-        indec_projective_modules, inj_dimension, inj_dimension_of_module, injective_envelope,
-        irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_exceptional_module,
-        is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
-        is_injective_module, is_omega_periodic, is_omega_periodic_with_progress,
-        is_projective_module, is_rigid_module, is_schurian_algebra, is_selfinjective_algebra,
-        is_semicommutative_algebra, is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module,
-        is_weakly_symmetric_algebra, left_approximation_by_add_m, left_fac_m_approximation,
-        left_sub_m_approximation, lifting_morphism_from_projective,
-        matrix_of_homomorphism_between_projectives, minimal_left_approximation,
-        minimal_left_fac_m_approximation, minimal_left_sub_m_approximation,
-        minimal_right_approximation, minimal_right_sub_m_approximation, n_rigid_module,
-        nakayama_automorphism, nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
-        nakayama_permutation, opposite_nakayama_functor_of_module,
-        opposite_nakayama_functor_of_module_homomorphism, order_of_nakayama_automorphism,
-        predecessors_of_module, proj_dimension, proj_dimension_of_module, projective_cover,
-        random_module, right_approximation_by_add_m, right_sub_m_approximation, simple_modules,
-        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules, tr_d,
-        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        have_finite_coresolution_in_add_m, hom_factoring_through_projectives, hom_from_projective,
+        indec_injective_modules, indec_projective_modules, inj_dimension, inj_dimension_of_module,
+        injective_envelope, irreducible_morphisms_ending_in, irreducible_morphisms_starting_in,
+        is_exceptional_module, is_finite_global_dimension_from_known_properties,
+        is_hereditary_algebra, is_injective_module, is_omega_periodic,
+        is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
+        is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
+        is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_weakly_symmetric_algebra,
+        left_approximation_by_add_m, left_fac_m_approximation, left_sub_m_approximation,
+        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
+        minimal_left_approximation, minimal_left_fac_m_approximation,
+        minimal_left_sub_m_approximation, minimal_right_approximation,
+        minimal_right_sub_m_approximation, n_rigid_module, nakayama_automorphism,
+        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
+        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
+        order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
+        proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
+        right_sub_m_approximation, simple_modules, socle_series, star_of_module,
+        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
+        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
         transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
@@ -8526,6 +8667,169 @@ mod tests {
         ));
         assert!(matches!(
             minimal_left_sub_m_approximation(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
+    }
+
+    fn add_m_coresolution_json<F: Field>(
+        result: Option<AddMCoresolution<F>>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let Some(coresolution) = result else {
+            return Value::Bool(false);
+        };
+        json!({
+            "degrees": {
+                "-3": double_star_map_json(
+                    &coresolution.differential(&Integer::from(-3)).unwrap(),
+                    coefficient,
+                ),
+                "-2": double_star_map_json(
+                    &coresolution.differential(&Integer::from(-2)).unwrap(),
+                    coefficient,
+                ),
+                "-1": double_star_map_json(
+                    &coresolution.differential(&Integer::from(-1)).unwrap(),
+                    coefficient,
+                ),
+                "0": double_star_map_json(
+                    &coresolution.differential(&Integer::from(0)).unwrap(),
+                    coefficient,
+                ),
+                "1": double_star_map_json(
+                    &coresolution.differential(&Integer::from(1)).unwrap(),
+                    coefficient,
+                ),
+            }
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehomalg_add_m_coresolution_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let zero_scalar = field.zero();
+        let one_scalar = field.one();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one_scalar.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual.clone(),
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero_scalar.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let dual_regular = right_module_over_path_algebra(
+            dual,
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![zero_scalar.clone(), one_scalar],
+                        vec![zero_scalar.clone(), zero_scalar],
+                    ],
+                    field,
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let evaluate = |source, module, bound| {
+            add_m_coresolution_json(
+                have_finite_coresolution_in_add_m(source, module, &Integer::from(bound)).unwrap(),
+                coefficient,
+            )
+        };
+        json!({
+            "simple_in_simple_0": evaluate(&simple_one, &simple_one, 0),
+            "projective_in_simple_0": evaluate(&projective, &simple_one, 0),
+            "projective_in_simple_1": evaluate(&projective, &simple_one, 1),
+            "dual_simple_in_regular_1": evaluate(&dual_simple, &dual_regular, 1),
+            "dual_regular_in_simple_2": evaluate(&dual_regular, &dual_simple, 2),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_add_m_coresolution_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_add_m_coresolution.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_add_m_coresolution",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_add_m_coresolution_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehomalg_add_m_coresolution_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational": modulehomalg_add_m_coresolution_case(Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn add_m_coresolution_preserves_negative_bound_and_foreign_algebra_failures() {
+        let module = fresh_dual_simple(&Z2);
+        assert!(matches!(
+            have_finite_coresolution_in_add_m(&module, &module, &Integer::from(-1)),
+            Err(EnvelopingModuleError::EmptyCoresolutionDifferentialList { bound })
+                if bound == -1
+        ));
+
+        let first = fresh_a2_zero(&Z2);
+        let second = fresh_a2_zero(&Z2);
+        assert!(matches!(
+            have_finite_coresolution_in_add_m(&first, &second, &Integer::from(0)),
             Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
         ));
     }
