@@ -4312,6 +4312,113 @@ pub fn right_approximation_by_add_m_list<F: QpaCoefficientField>(
     )
 }
 
+/// Translate QPA's `RadicalRightApproximationByAddM(modulelist, t)`.
+///
+/// The one-based entry `N = modulelist[t]` is first approximated by all other
+/// list entries using [`right_approximation_by_add_m_list`]. QPA then maps
+/// `Hom(N, Source(f))` through `f`, quotients `rad End(N)` by the span of those
+/// composites, and appends one copy of `N` for each radical basis map with a
+/// nonzero quotient image. Projection composites are summed in the resulting
+/// source order.
+///
+/// # Errors
+///
+/// Rejects a GAP integer outside the one-based module-list interval and
+/// propagates list approximation, Hom, radical, row-span, direct-sum, and map
+/// failures.
+pub fn radical_right_approximation_by_add_m<F: QpaCoefficientField>(
+    modules: &[PathAlgebraModule<F>],
+    index: &Integer,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    let length = modules.len();
+    if index < &Integer::one() || index > &Integer::from(length) {
+        return Err(EnvelopingModuleError::RadicalApproximationIndexOutOfRange {
+            index: index.clone(),
+            length,
+        });
+    }
+    let position = usize::try_from(index.clone()).map_err(|_| {
+        EnvelopingModuleError::RadicalApproximationIndexOutOfRange {
+            index: index.clone(),
+            length,
+        }
+    })? - 1;
+    let module = &modules[position];
+    let other_modules = modules
+        .iter()
+        .enumerate()
+        .filter(|(candidate, _)| *candidate != position)
+        .map(|(_, module)| module.clone())
+        .collect::<Vec<_>>();
+    let mut approximation = right_approximation_by_add_m_list(&other_modules, module)?;
+    let approximation_source = approximation.source().clone();
+
+    let radical_maps = end_over_algebra(module)?
+        .radical_basis_matrices()?
+        .iter()
+        .map(|matrix| from_end_m_to_hom_mm(module, matrix))
+        .collect::<Result<Vec<_>, _>>()?;
+    if radical_maps.is_empty() {
+        return Ok(approximation);
+    }
+
+    let factoring_composites = hom_over_algebra(module, &approximation_source)?
+        .ok_or(EnvelopingModuleError::ApproximationHomUnavailable)?
+        .iter()
+        .map(|homomorphism| homomorphism.compose(&approximation))
+        .collect::<Result<Vec<_>, _>>()?;
+    let row_length = radical_maps[0].flat_vertex_matrix_entries().len();
+    let factoring_span = if factoring_composites.is_empty() {
+        None
+    } else {
+        Some(DenseMatrix::from_flat(
+            factoring_composites.len(),
+            row_length,
+            factoring_composites
+                .iter()
+                .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+                .collect(),
+            module.right_acting_algebra().field().clone(),
+        )?)
+    };
+    let selected_radicals = radical_maps
+        .iter()
+        .filter_map(|radical| {
+            let row = radical.flat_vertex_matrix_entries();
+            match flat_row_in_span(
+                factoring_span.as_ref(),
+                &row,
+                module.right_acting_algebra().field(),
+            ) {
+                Ok(true) => None,
+                Ok(false) => Some(Ok(radical.clone())),
+                Err(error) => Some(Err(error)),
+            }
+        })
+        .collect::<Result<Vec<_>, MatrixError>>()?;
+
+    let mut sources = Vec::with_capacity(selected_radicals.len() + 1);
+    sources.push(approximation_source);
+    sources.extend((0..selected_radicals.len()).map(|_| module.clone()));
+    let direct_sum = direct_sum_of_qpa_modules(&sources)?
+        .ok_or(EnvelopingModuleError::InternalRadicalApproximationDirectSumFailed)?;
+    let projections = direct_sum_projections(&direct_sum)?;
+    let mut homomorphisms = Vec::with_capacity(selected_radicals.len() + 1);
+    homomorphisms.push(approximation);
+    homomorphisms.extend(selected_radicals);
+    if projections.len() != homomorphisms.len() {
+        return Err(EnvelopingModuleError::ApproximationMapCountMismatch);
+    }
+    approximation = sum_nonempty_module_maps(
+        projections
+            .iter()
+            .zip(&homomorphisms)
+            .map(|(projection, homomorphism)| Ok(projection.compose(homomorphism)?))
+            .collect::<Result<Vec<_>, EnvelopingModuleError>>()?,
+    )?;
+    Ok(approximation)
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7597,6 +7704,17 @@ pub enum EnvelopingModuleError {
     /// A scanned Hom row must occur in the Hom basis it came from.
     #[error("a list add(M)-approximation row disappeared from its Hom basis")]
     MissingListApproximationHomPosition,
+    /// QPA accepts only a one-based index into the entered module list.
+    #[error("radical approximation index {index} is outside 1..={length}")]
+    RadicalApproximationIndexOutOfRange {
+        /// Rejected arbitrary-precision GAP integer.
+        index: Integer,
+        /// Entered list length.
+        length: usize,
+    },
+    /// QPA's radical branch always direct-sums a nonempty source list.
+    #[error("the internal radical add(M)-approximation direct sum returned fail")]
+    InternalRadicalApproximationDirectSumFailed,
     /// The projective cover and its add(M)-approximation share their source.
     #[error("the internal LeftFacMApproximation pushout returned fail")]
     InternalLeftFacPushOutFailed,
@@ -8333,13 +8451,13 @@ mod tests {
         number_of_complements_of_almost_complete_tilting_module,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
-        proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
-        right_approximation_by_add_m_list, right_approximation_by_perp_t,
-        right_mutation_of_cotilting_module_complement, right_mutation_of_tilting_module_complement,
-        right_sub_m_approximation, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tensor_product_of_modules, tilting_module, tr_d,
-        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
-        transpose_of_module_homomorphism,
+        proj_dimension_of_module, projective_cover, radical_right_approximation_by_add_m,
+        random_module, right_approximation_by_add_m, right_approximation_by_add_m_list,
+        right_approximation_by_perp_t, right_mutation_of_cotilting_module_complement,
+        right_mutation_of_tilting_module_complement, right_sub_m_approximation, simple_modules,
+        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules,
+        tilting_module, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated,
+        transpose_of_module, transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -10836,6 +10954,120 @@ mod tests {
         let simples = simple_modules(&a2).unwrap();
         assert!(matches!(
             right_approximation_by_add_m_list(&[simples[1].clone()], &simples[0]),
+            Err(EnvelopingModuleError::EmptyListApproximationDirectSum)
+        ));
+    }
+
+    fn modulehomalg_radical_list_approximation_case<F: QpaCoefficientField>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&a2).unwrap();
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let dual = fresh_dual_numbers(field);
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+        let dual_regular = indec_projective_modules(&dual).unwrap()[0].clone();
+        let evaluate = |modules: &[PathAlgebraModule<F>], index| {
+            cotilting_approximation_map_json(
+                &radical_right_approximation_by_add_m(modules, &Integer::from(index)).unwrap(),
+                coefficient,
+            )
+        };
+        json!({
+            "projectives_at_one": evaluate(&projectives, 1),
+            "s1_p1_at_one": evaluate(
+                &[simples[0].clone(), projectives[0].clone()],
+                1,
+            ),
+            "p1_s1_at_two": evaluate(
+                &[projectives[0].clone(), simples[0].clone()],
+                2,
+            ),
+            "single_s1": evaluate(std::slice::from_ref(&simples[0]), 1),
+            "repeated_s1": evaluate(&[simples[0].clone(), simples[0].clone()], 1),
+            "single_dual_simple": evaluate(std::slice::from_ref(&dual_simple), 1),
+            "single_dual_regular": evaluate(std::slice::from_ref(&dual_regular), 1),
+            "dual_regular_simple_at_one": evaluate(
+                &[dual_regular.clone(), dual_simple.clone()],
+                1,
+            ),
+            "dual_regular_simple_at_two": evaluate(
+                &[dual_regular.clone(), dual_simple.clone()],
+                2,
+            ),
+            "repeated_dual_regular": evaluate(
+                &[dual_regular.clone(), dual_regular.clone()],
+                1,
+            ),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_radical_list_approximation_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_radical_list_approximation.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_radical_list_approximation",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_radical_list_approximation_case(&Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehomalg_radical_list_approximation_case(&field5, |entry| json!(
+                field5_coefficients
+                    .to_integer(entry)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+            )),
+            "rational": modulehomalg_radical_list_approximation_case(&Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn radical_list_approximation_preserves_index_and_inner_failure_order() {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let projectives = indec_projective_modules(&a2).unwrap();
+        for index in [-1, 0, 3] {
+            assert!(matches!(
+                radical_right_approximation_by_add_m(&projectives, &Integer::from(index)),
+                Err(EnvelopingModuleError::RadicalApproximationIndexOutOfRange { .. })
+            ));
+        }
+        assert!(matches!(
+            radical_right_approximation_by_add_m::<Z2>(&[], &Integer::from(1)),
+            Err(EnvelopingModuleError::RadicalApproximationIndexOutOfRange { .. })
+        ));
+        assert!(matches!(
+            radical_right_approximation_by_add_m(&projectives, &Integer::from(2)),
             Err(EnvelopingModuleError::EmptyListApproximationDirectSum)
         ));
     }

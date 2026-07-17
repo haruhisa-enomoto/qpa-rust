@@ -14637,9 +14637,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 61
 source_end = 61
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "radical_right_approximation_by_add_m"
+tests = ["tests/fixtures/modulehomalg_radical_list_approximation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15209,9 +15209,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1811
 source_end = 1866
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "radical_right_approximation_by_add_m"
+tests = ["tests/fixtures/modulehomalg_radical_list_approximation.schema-v1.json"]
 deviations = []
 
 [[entries]]
