@@ -14182,9 +14182,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "proj_dimension_of_module"
+tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14195,9 +14195,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "proj_dimension; PathAlgebraModule::cached_projective_dimension"
+tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14364,9 +14364,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 40
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "inj_dimension_of_module"
+tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14377,9 +14377,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 41
 source_end = 41
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "inj_dimension; PathAlgebraModule::cached_injective_dimension"
+tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14910,9 +14910,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 875
 source_end = 903
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "proj_dimension_of_module"
+tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15014,9 +15014,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1138
 source_end = 1170
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "inj_dimension_of_module"
+tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
 
 [[entries]]

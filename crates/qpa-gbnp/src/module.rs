@@ -555,6 +555,105 @@ pub fn global_dimension_of_algebra<F: Field>(
     Ok(Some(GlobalDimensionOfAlgebraResult::Finite(dimension)))
 }
 
+/// Return QPA's installed `ProjDimension(M)` attribute, if it is bound.
+///
+/// QPA declares this attribute without a computing method: bounded
+/// [`proj_dimension_of_module`] calls install finite values when they find
+/// them. Rust exposes the unbound state explicitly as `None`.
+#[must_use]
+pub fn proj_dimension<F: Field>(module: &PathAlgebraModule<F>) -> Option<usize> {
+    module.cached_projective_dimension()
+}
+
+/// Translate QPA's bounded `ProjDimensionOfModule(M, n)` method.
+///
+/// An already-installed dimension is compared with the entered GAP integer.
+/// Otherwise QPA scans its minimal projective resolution in degrees
+/// `1, ..., n + 1`, installs `i - 1` at the first zero object, and returns
+/// `false` when the scan does not find one. `None` represents that `false`.
+/// For an uncached negative bound, QPA still constructs the resolution and
+/// then returns `false` without evaluating a positive-degree object; that
+/// eager constructor ordering is retained.
+///
+/// # Errors
+///
+/// Propagates lazy projective-resolution construction and evaluation
+/// failures.
+pub fn proj_dimension_of_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<usize>, EnvelopingModuleError> {
+    if let Some(dimension) = module.cached_projective_dimension() {
+        return Ok((dimension <= *bound).then_some(dimension));
+    }
+    let cutoff = bound + &Integer::from(2);
+    let resolution = projective_resolution(module)?;
+    let mut degree = Integer::one();
+    while degree < cutoff {
+        if resolution.object(&degree)?.dimension() == 0 {
+            let dimension = usize::try_from(degree.clone()).map_err(|_| {
+                EnvelopingModuleError::ResolutionDegreeNotRepresentable {
+                    degree: degree.clone(),
+                }
+            })? - 1;
+            return Ok(Some(module.cache_projective_dimension(dimension)));
+        }
+        degree += &Integer::one();
+    }
+    Ok(None)
+}
+
+/// Return QPA's installed `InjDimension(M)` attribute, if it is bound.
+///
+/// As with [`proj_dimension`], QPA only binds this attribute as a side effect
+/// of a successful bounded computation.
+#[must_use]
+pub fn inj_dimension<F: Field>(module: &PathAlgebraModule<F>) -> Option<usize> {
+    module.cached_injective_dimension()
+}
+
+/// Translate QPA's bounded `InjDimensionOfModule(M, n)` method.
+///
+/// The source computes projective dimension on `DualOfModule(M)`. Its exact
+/// cache ordering is retained: an already-installed injective dimension is
+/// compared with `n`, while an already-installed projective dimension on the
+/// dual is returned immediately even when it exceeds `n`. Otherwise the same
+/// degree scan as [`proj_dimension_of_module`] installs only the injective
+/// dimension on `M`. `None` represents QPA's `false`.
+///
+/// # Errors
+///
+/// Propagates dualization and lazy projective-resolution failures. As in the
+/// projective method, an uncached negative bound still constructs the dual
+/// resolution before its scan ends immediately.
+pub fn inj_dimension_of_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<usize>, EnvelopingModuleError> {
+    if let Some(dimension) = module.cached_injective_dimension() {
+        return Ok((dimension <= *bound).then_some(dimension));
+    }
+    let dual = dual_of_module(module)?;
+    if let Some(dimension) = dual.cached_projective_dimension() {
+        return Ok(Some(dimension));
+    }
+    let cutoff = bound + &Integer::from(2);
+    let resolution = projective_resolution(&dual)?;
+    let mut degree = Integer::one();
+    while degree < cutoff {
+        if resolution.object(&degree)?.dimension() == 0 {
+            let dimension = usize::try_from(degree.clone()).map_err(|_| {
+                EnvelopingModuleError::ResolutionDegreeNotRepresentable {
+                    degree: degree.clone(),
+                }
+            })? - 1;
+            return Ok(Some(module.cache_injective_dimension(dimension)));
+        }
+        degree += &Integer::one();
+    }
+    Ok(None)
+}
+
 /// Translate QPA's Nakayama-socle test for `IsSelfinjectiveAlgebra(A)`.
 ///
 /// Infinite-dimensional input returns `Some(false)` before path-algebra
@@ -6791,22 +6890,23 @@ mod tests {
         frobenius_linear_functional, from_identity_to_double_star_homomorphism,
         from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
         global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
-        indec_injective_modules, indec_projective_modules, injective_envelope,
-        irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_exceptional_module,
-        is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
-        is_injective_module, is_omega_periodic, is_omega_periodic_with_progress,
-        is_projective_module, is_rigid_module, is_schurian_algebra, is_selfinjective_algebra,
-        is_semicommutative_algebra, is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module,
-        is_weakly_symmetric_algebra, left_approximation_by_add_m, lifting_morphism_from_projective,
+        indec_injective_modules, indec_projective_modules, inj_dimension, inj_dimension_of_module,
+        injective_envelope, irreducible_morphisms_ending_in, irreducible_morphisms_starting_in,
+        is_exceptional_module, is_finite_global_dimension_from_known_properties,
+        is_hereditary_algebra, is_injective_module, is_omega_periodic,
+        is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
+        is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
+        is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_weakly_symmetric_algebra,
+        left_approximation_by_add_m, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, minimal_left_approximation,
         minimal_right_approximation, nakayama_automorphism, nakayama_functor_of_module,
         nakayama_functor_of_module_homomorphism, nakayama_permutation,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        order_of_nakayama_automorphism, predecessors_of_module, projective_cover, random_module,
-        right_approximation_by_add_m, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
-        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
-        transpose_of_module_homomorphism,
+        order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
+        proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
+        simple_modules, socle_series, star_of_module, star_of_module_homomorphism,
+        tensor_product_of_modules, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated,
+        tr_d_iterated, transpose_of_module, transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -6833,6 +6933,55 @@ mod tests {
             Some(AlgebraGlobalDimension::Infinite) => "infinity".into(),
             None => Value::Null,
         }
+    }
+
+    fn bounded_dimension_json(result: Option<usize>) -> Value {
+        result.map_or(Value::Bool(false), Into::into)
+    }
+
+    fn fresh_a2_module<F: Field>(field: &F, dimension_vector: Vec<usize>) -> PathAlgebraModule<F> {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        right_module_over_path_algebra(algebra, dimension_vector, &[])
+            .unwrap()
+            .unwrap()
+    }
+
+    fn fresh_a2_zero<F: Field>(field: &F) -> PathAlgebraModule<F> {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "z")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        zero_module(&algebra).unwrap()
+    }
+
+    fn fresh_dual_simple<F: Field>(field: &F) -> PathAlgebraModule<F> {
+        let parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = parent.generators()[1].clone();
+        let algebra =
+            QuiverAlgebra::Quotient(quotient_by_relations(parent, &[x.pow(2).unwrap()]).unwrap());
+        right_module_over_path_algebra(
+            algebra,
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![field.zero()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap()
     }
 
     fn isolated_path_algebra<F: Field>(field: F, vertex_count: usize) -> QuiverAlgebra<F> {
@@ -11120,6 +11269,113 @@ mod tests {
         assert_eq!(ternary_json, expected["ternary"]);
         assert_eq!(rational_json, expected["rational"]);
         assert_eq!(isolated_json, expected["isolated"]);
+    }
+
+    fn modulehomalg_dimensions_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let negative_one = Integer::from(-1);
+        let zero_bound = Integer::from(0);
+        let one_bound = Integer::from(1);
+        let two_bound = Integer::from(2);
+
+        let pd_one = fresh_a2_module(field, vec![1, 0]);
+        let pd_one_initially_bound = proj_dimension(&pd_one).is_some();
+        let pd_one_bound_0 = proj_dimension_of_module(&pd_one, &zero_bound).unwrap();
+        let pd_one_bound_after_0 = proj_dimension(&pd_one).is_some();
+        let pd_one_bound_1 = proj_dimension_of_module(&pd_one, &one_bound).unwrap();
+        let pd_one_attribute = proj_dimension(&pd_one).unwrap();
+        let pd_one_cached_bound_0 = proj_dimension_of_module(&pd_one, &zero_bound).unwrap();
+        let pd_one_cached_bound_2 = proj_dimension_of_module(&pd_one, &two_bound).unwrap();
+
+        let pd_two = fresh_a2_module(field, vec![0, 1]);
+        let pd_two_bound_0 = proj_dimension_of_module(&pd_two, &zero_bound).unwrap();
+        let pd_dual = fresh_dual_simple(field);
+        let pd_dual_bound_2 = proj_dimension_of_module(&pd_dual, &two_bound).unwrap();
+        let pd_negative = fresh_a2_module(field, vec![0, 1]);
+        let pd_negative_bound = proj_dimension_of_module(&pd_negative, &negative_one).unwrap();
+        let pd_negative_bound_after = proj_dimension(&pd_negative).is_some();
+        let pd_zero = fresh_a2_zero(field);
+        let pd_zero_bound_0 = proj_dimension_of_module(&pd_zero, &zero_bound).unwrap();
+
+        let id_two = fresh_a2_module(field, vec![0, 1]);
+        let id_two_initially_bound = inj_dimension(&id_two).is_some();
+        let id_two_bound_0 = inj_dimension_of_module(&id_two, &zero_bound).unwrap();
+        let id_two_bound_after_0 = inj_dimension(&id_two).is_some();
+        let id_two_bound_1 = inj_dimension_of_module(&id_two, &one_bound).unwrap();
+        let id_two_attribute = inj_dimension(&id_two).unwrap();
+        let id_two_cached_bound_0 = inj_dimension_of_module(&id_two, &zero_bound).unwrap();
+        let id_two_cached_bound_2 = inj_dimension_of_module(&id_two, &two_bound).unwrap();
+
+        let id_one = fresh_a2_module(field, vec![1, 0]);
+        let id_one_bound_0 = inj_dimension_of_module(&id_one, &zero_bound).unwrap();
+        let id_dual = fresh_dual_simple(field);
+        let id_dual_bound_2 = inj_dimension_of_module(&id_dual, &two_bound).unwrap();
+        let id_negative = fresh_a2_module(field, vec![1, 0]);
+        let id_negative_bound = inj_dimension_of_module(&id_negative, &negative_one).unwrap();
+        let id_negative_bound_after = inj_dimension(&id_negative).is_some();
+        let id_zero = fresh_a2_zero(field);
+        let id_zero_bound_0 = inj_dimension_of_module(&id_zero, &zero_bound).unwrap();
+
+        let shortcut = fresh_a2_module(field, vec![0, 1]);
+        let shortcut_dual = dual_of_module(&shortcut).unwrap();
+        let id_dual_cache_setup = proj_dimension_of_module(&shortcut_dual, &one_bound).unwrap();
+        let id_dual_cache_shortcut_bound_0 =
+            inj_dimension_of_module(&shortcut, &zero_bound).unwrap();
+        let id_dual_cache_shortcut_bound_after = inj_dimension(&shortcut).is_some();
+
+        json!({
+            "pd_one_initially_bound": pd_one_initially_bound,
+            "pd_one_bound_0": bounded_dimension_json(pd_one_bound_0),
+            "pd_one_bound_after_0": pd_one_bound_after_0,
+            "pd_one_bound_1": bounded_dimension_json(pd_one_bound_1),
+            "pd_one_attribute": pd_one_attribute,
+            "pd_one_cached_bound_0": bounded_dimension_json(pd_one_cached_bound_0),
+            "pd_one_cached_bound_2": bounded_dimension_json(pd_one_cached_bound_2),
+            "pd_two_bound_0": bounded_dimension_json(pd_two_bound_0),
+            "pd_dual_bound_2": bounded_dimension_json(pd_dual_bound_2),
+            "pd_negative_bound": bounded_dimension_json(pd_negative_bound),
+            "pd_negative_bound_after": pd_negative_bound_after,
+            "pd_zero_bound_0": bounded_dimension_json(pd_zero_bound_0),
+            "id_two_initially_bound": id_two_initially_bound,
+            "id_two_bound_0": bounded_dimension_json(id_two_bound_0),
+            "id_two_bound_after_0": id_two_bound_after_0,
+            "id_two_bound_1": bounded_dimension_json(id_two_bound_1),
+            "id_two_attribute": id_two_attribute,
+            "id_two_cached_bound_0": bounded_dimension_json(id_two_cached_bound_0),
+            "id_two_cached_bound_2": bounded_dimension_json(id_two_cached_bound_2),
+            "id_one_bound_0": bounded_dimension_json(id_one_bound_0),
+            "id_dual_bound_2": bounded_dimension_json(id_dual_bound_2),
+            "id_negative_bound": bounded_dimension_json(id_negative_bound),
+            "id_negative_bound_after": id_negative_bound_after,
+            "id_zero_bound_0": bounded_dimension_json(id_zero_bound_0),
+            "id_dual_cache_setup": bounded_dimension_json(id_dual_cache_setup),
+            "id_dual_cache_shortcut_bound_0": bounded_dimension_json(
+                id_dual_cache_shortcut_bound_0),
+            "id_dual_cache_shortcut_bound_after": id_dual_cache_shortcut_bound_after,
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_dimensions_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_dimensions.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_dimensions",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_dimensions_case(&Z2),
+            "quinary": modulehomalg_dimensions_case(&Zp::new(5)),
+            "rational": modulehomalg_dimensions_case(&Q),
+        });
+        assert_eq!(actual, expected);
     }
 
     #[test]

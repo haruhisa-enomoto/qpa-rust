@@ -110,6 +110,8 @@ struct PathAlgebraModuleData<F: Field> {
     minimal_generators: OnceLock<Vec<Vec<Vec<F::Element>>>>,
     is_projective: OnceLock<bool>,
     is_injective: OnceLock<bool>,
+    projective_dimension: OnceLock<usize>,
+    injective_dimension: OnceLock<usize>,
     is_indecomposable: OnceLock<bool>,
     is_simple_qpa: OnceLock<bool>,
     is_semisimple: OnceLock<bool>,
@@ -158,6 +160,8 @@ impl<F: Field> PathAlgebraModuleData<F> {
             minimal_generators: OnceLock::new(),
             is_projective: OnceLock::new(),
             is_injective: OnceLock::new(),
+            projective_dimension: OnceLock::new(),
+            injective_dimension: OnceLock::new(),
             is_indecomposable: OnceLock::new(),
             is_simple_qpa: OnceLock::new(),
             is_semisimple: OnceLock::new(),
@@ -483,6 +487,34 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_is_injective_module(&self, value: bool) -> bool {
         *self.0.is_injective.get_or_init(|| value)
+    }
+
+    /// Return QPA's installed `ProjDimension` attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_projective_dimension(&self) -> Option<usize> {
+        self.0.projective_dimension.get().copied()
+    }
+
+    /// Install QPA's finite `ProjDimension` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_projective_dimension(&self, value: usize) -> usize {
+        *self.0.projective_dimension.get_or_init(|| value)
+    }
+
+    /// Return QPA's installed `InjDimension` attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_injective_dimension(&self) -> Option<usize> {
+        self.0.injective_dimension.get().copied()
+    }
+
+    /// Install QPA's finite `InjDimension` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_injective_dimension(&self, value: usize) -> usize {
+        *self.0.injective_dimension.get_or_init(|| value)
     }
 
     /// Return QPA's cached `IsIndecomposableModule` value, if installed.
