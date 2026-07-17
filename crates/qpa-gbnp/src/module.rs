@@ -26,8 +26,8 @@ use qpa_core::{
     decompose_module_with_multiplicities, direct_sum_inclusions, direct_sum_of_qpa_modules,
     direct_sum_projections, end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m,
     hom_over_algebra, identity_module_mapping, image_projection, include_in_path_algebra,
-    is_indecomposable_module, isomorphic_modules, isomorphism_of_modules, kernel_inclusion,
-    kernel_of_module_homomorphism, left_minimal_version, loewy_length_of_module,
+    is_direct_summand, is_indecomposable_module, isomorphic_modules, isomorphism_of_modules,
+    kernel_inclusion, kernel_of_module_homomorphism, left_minimal_version, loewy_length_of_module,
     minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_kernel,
     natural_endomorphism_quotient_by_ideal, project_from_product_quiver, pull_back, push_out,
     radical_of_module, radical_of_module_inclusion, right_minimal_version,
@@ -4175,6 +4175,32 @@ pub fn left_approximation_by_add_t_hat<F: QpaCoefficientField>(
     Ok(left_minimal_version(&approximation)?.0)
 }
 
+/// Translate QPA's `IsNthSyzygy(M, n)` operation.
+///
+/// The source takes the `n`th syzygy after dualizing, dualizes and takes the
+/// `n`th syzygy again, adds the source of `ProjectiveCover(M)`, and asks QPA's
+/// literal `IsDirectSummand(M, N)` decision. In particular, this preserves
+/// QPA's perhaps surprising `false` result for the zero module.
+///
+/// # Errors
+///
+/// Propagates both dualizations, both `NthSyzygy` calls, the projective cover,
+/// direct sum, and direct-summand decision. Negative degrees retain
+/// [`nth_syzygy`]'s typed source failure.
+pub fn is_nth_syzygy<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    degree: &Integer,
+) -> Result<bool, EnvelopingModuleError> {
+    let dual = dual_of_module(module)?;
+    let dual_syzygy = nth_syzygy(&dual, degree)?;
+    let double_dual_syzygy = dual_of_module(&dual_syzygy)?;
+    let candidate = nth_syzygy(&double_dual_syzygy, degree)?;
+    let projective = projective_cover(module)?;
+    let ambient = direct_sum_of_qpa_modules(&[candidate, projective.source().clone()])?
+        .ok_or(EnvelopingModuleError::InternalNthSyzygyDirectSumFailed)?;
+    Ok(is_direct_summand(module, &ambient)?)
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7538,6 +7564,9 @@ pub enum EnvelopingModuleError {
         /// Rejected arbitrary-precision degree.
         degree: Integer,
     },
+    /// QPA's two-element `IsNthSyzygy` direct sum cannot be empty.
+    #[error("the internal IsNthSyzygy direct sum returned fail")]
+    InternalNthSyzygyDirectSumFailed,
     /// QPA's sum of indecomposable-projective socle dimension vectors must
     /// fit Rust's addressable module dimensions.
     #[error("the selfinjective socle multiplicity at vertex {vertex} overflows usize")]
@@ -8168,7 +8197,7 @@ mod tests {
         indec_projective_modules, inj_dimension, inj_dimension_of_module, injective_envelope,
         irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_cotilting_module,
         is_exceptional_module, is_finite_global_dimension_from_known_properties,
-        is_hereditary_algebra, is_injective_module, is_omega_periodic,
+        is_hereditary_algebra, is_injective_module, is_nth_syzygy, is_omega_periodic,
         is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
         is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
         is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_tilting_module,
@@ -10501,6 +10530,68 @@ mod tests {
         assert!(matches!(
             left_approximation_by_add_t_hat(&cotilting, &cotilting),
             Err(EnvelopingModuleError::EmptyCotiltingApproximationExactSequences)
+        ));
+    }
+
+    fn modulehomalg_is_nth_syzygy_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&a2).unwrap();
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let zero = zero_module(&a2).unwrap();
+        let dual = fresh_dual_numbers(field);
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+        let dual_regular = indec_projective_modules(&dual).unwrap()[0].clone();
+        json!({
+            "zero_0": is_nth_syzygy(&zero, &Integer::from(0)).unwrap(),
+            "zero_1": is_nth_syzygy(&zero, &Integer::from(1)).unwrap(),
+            "simple_one_0": is_nth_syzygy(&simples[0], &Integer::from(0)).unwrap(),
+            "simple_one_1": is_nth_syzygy(&simples[0], &Integer::from(1)).unwrap(),
+            "simple_one_2": is_nth_syzygy(&simples[0], &Integer::from(2)).unwrap(),
+            "simple_two_1": is_nth_syzygy(&simples[1], &Integer::from(1)).unwrap(),
+            "projective_one_1": is_nth_syzygy(&projectives[0], &Integer::from(1)).unwrap(),
+            "projective_two_2": is_nth_syzygy(&projectives[1], &Integer::from(2)).unwrap(),
+            "dual_simple_1": is_nth_syzygy(&dual_simple, &Integer::from(1)).unwrap(),
+            "dual_simple_2": is_nth_syzygy(&dual_simple, &Integer::from(2)).unwrap(),
+            "dual_regular_1": is_nth_syzygy(&dual_regular, &Integer::from(1)).unwrap(),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_is_nth_syzygy_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_is_nth_syzygy",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_is_nth_syzygy_case(&Z2),
+            "quinary": modulehomalg_is_nth_syzygy_case(&Zp::new(5)),
+            "rational": modulehomalg_is_nth_syzygy_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn is_nth_syzygy_propagates_negative_degree_failure() {
+        let module = fresh_a2_module(&Z2, vec![1, 0]);
+        assert!(matches!(
+            is_nth_syzygy(&module, &Integer::from(-1)),
+            Err(EnvelopingModuleError::NegativeSyzygyDegree { .. })
         ));
     }
 

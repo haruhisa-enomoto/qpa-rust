@@ -14611,9 +14611,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 59
 source_end = 59
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_nth_syzygy"
+tests = ["tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15183,9 +15183,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1728
 source_end = 1742
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_nth_syzygy"
+tests = ["tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"]
 deviations = []
 
 [[entries]]
