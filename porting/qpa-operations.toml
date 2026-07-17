@@ -10386,9 +10386,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 48
 source_end = 48
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "restriction_via_algebra_homomorphism"
+tests = ["tests/fixtures/modulehom_restriction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11127,9 +11127,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 2229
 source_end = 2261
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "restriction_via_algebra_homomorphism"
+tests = ["tests/fixtures/modulehom_restriction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12531,9 +12531,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 71
 source_end = 71
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "restriction_via_algebra_homomorphism_map"
+tests = ["tests/fixtures/modulehom_restriction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13753,9 +13753,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3856
 source_end = 3889
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "restriction_via_algebra_homomorphism_map"
+tests = ["tests/fixtures/modulehom_restriction.schema-v1.json"]
 deviations = []
 
 [[entries]]

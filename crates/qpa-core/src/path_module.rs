@@ -16,7 +16,8 @@ use thiserror::Error;
 
 use crate::{
     DenseMatrix, Generator, MatrixError, Path, PathEndpoint, QpaCoefficientField, QuiverAlgebra,
-    QuiverAlgebraElement, QuiverAlgebraElementError, QuotientError, StructureConstantsAlgebra,
+    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverAlgebraHomomorphism,
+    QuiverAlgebraHomomorphismError, QuotientError, StructureConstantsAlgebra,
     StructureConstantsError, TensorProductAlgebra,
 };
 
@@ -3472,6 +3473,172 @@ pub fn image_of_module_homomorphism<F: Field>(
     Ok(image_projection(homomorphism)?.range().clone())
 }
 
+struct RestrictedModuleData<F: Field> {
+    module: PathAlgebraModule<F>,
+    original_basis_by_vertex: Vec<Vec<PathAlgebraModuleElement<F>>>,
+    original_basis_rows: Vec<DenseMatrix<F>>,
+}
+
+/// Translate QPA's `RestrictionViaAlgebraHomomorphism(f, M)` operation.
+///
+/// For `f: A -> B`, QPA applies the images of the vertex idempotents of `A`
+/// to the standard basis of the `B`-module, takes each resulting canonical
+/// vector-space basis, and computes the `A`-arrow action in those bases.
+///
+/// # Errors
+///
+/// Requires the module to act over the range of `f` and propagates algebra-map
+/// evaluation, exact basis, action, and checked restricted-module failures.
+pub fn restriction_via_algebra_homomorphism<F: Field>(
+    homomorphism: &QuiverAlgebraHomomorphism<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, RestrictionViaAlgebraHomomorphismError> {
+    Ok(restricted_module_data(homomorphism, module)?.module)
+}
+
+/// Translate QPA's `RestrictionViaAlgebraHomomorphismMap(f, h)` operation.
+///
+/// The source and range are independently restricted by QPA's module method;
+/// the entered map is then expressed between their vertex-idempotent bases.
+///
+/// # Errors
+///
+/// Requires `h` to be over the range of `f` and propagates both module
+/// restrictions, map application, exact coordinates, and checked-map errors.
+pub fn restriction_via_algebra_homomorphism_map<F: Field>(
+    algebra_homomorphism: &QuiverAlgebraHomomorphism<F>,
+    module_homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, RestrictionViaAlgebraHomomorphismError> {
+    if module_homomorphism.source().right_acting_algebra() != algebra_homomorphism.range() {
+        return Err(RestrictionViaAlgebraHomomorphismError::HomomorphismNotOverRangeAlgebra);
+    }
+    let source = restricted_module_data(algebra_homomorphism, module_homomorphism.source())?;
+    let range = restricted_module_data(algebra_homomorphism, module_homomorphism.range())?;
+    let field = algebra_homomorphism.source().field().clone();
+    let matrices = source
+        .original_basis_by_vertex
+        .iter()
+        .enumerate()
+        .map(
+            |(vertex, basis)| -> Result<DenseMatrix<F>, RestrictionViaAlgebraHomomorphismError> {
+                let source_dimension = basis.len();
+                let range_dimension = range.original_basis_by_vertex[vertex].len();
+                if source_dimension == 0 || range_dimension == 0 {
+                    return Ok(DenseMatrix::zero(
+                        physical_dimension(source_dimension),
+                        physical_dimension(range_dimension),
+                        field.clone(),
+                    ));
+                }
+                let mut entries = Vec::with_capacity(source_dimension * range_dimension);
+                for element in basis {
+                    let image = module_homomorphism.image(element)?;
+                    entries.extend(
+                        range.original_basis_rows[vertex]
+                            .solution_row(&image.basis_coefficients())?
+                            .ok_or(
+                                RestrictionViaAlgebraHomomorphismError::MapImageOutsideRestrictedVertex,
+                            )?,
+                    );
+                }
+                Ok(DenseMatrix::from_flat(
+                    source_dimension,
+                    range_dimension,
+                    entries,
+                    field.clone(),
+                )?)
+            },
+        )
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(right_module_hom_over_algebra(
+        source.module,
+        range.module,
+        matrices,
+    )?)
+}
+
+fn restricted_module_data<F: Field>(
+    homomorphism: &QuiverAlgebraHomomorphism<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<RestrictedModuleData<F>, RestrictionViaAlgebraHomomorphismError> {
+    if module.right_acting_algebra() != homomorphism.range() {
+        return Err(RestrictionViaAlgebraHomomorphismError::ModuleNotOverRangeAlgebra);
+    }
+    let source = homomorphism.source();
+    let field = source.field().clone();
+    let vertex_count = source.quiver().number_of_vertices();
+    let source_generators = source.generators_with_one()?;
+    let module_basis = module.basis_elements();
+    let mut basis_by_vertex = Vec::with_capacity(vertex_count);
+    let mut basis_rows = Vec::with_capacity(vertex_count);
+    for vertex in &source_generators[..vertex_count] {
+        let vertex_image = homomorphism.image(vertex)?;
+        let spanning_rows = module_basis
+            .iter()
+            .map(|basis| basis.act(&vertex_image))
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .filter(|element| !element.is_zero())
+            .map(|element| element.basis_coefficients())
+            .collect::<Vec<_>>();
+        let basis = DenseMatrix::from_flat(
+            spanning_rows.len(),
+            module.dimension(),
+            spanning_rows.into_iter().flatten().collect(),
+            field.clone(),
+        )?
+        .canonical_row_space_basis();
+        let elements = (0..basis.nrows())
+            .map(|row| PathAlgebraModuleElement::from_logical_flat(module.clone(), basis.row(row)))
+            .collect::<Result<Vec<_>, _>>()?;
+        basis_rows.push(basis);
+        basis_by_vertex.push(elements);
+    }
+
+    let dimensions = basis_by_vertex.iter().map(Vec::len).collect::<Vec<_>>();
+    let mut arrow_matrices = Vec::new();
+    for (arrow, arrow_generator) in source
+        .quiver()
+        .arrows()
+        .zip(source_generators.iter().skip(vertex_count))
+    {
+        let arrow_source = arrow.source().index().zero_based();
+        let arrow_target = arrow.target().index().zero_based();
+        if dimensions[arrow_source] == 0 || dimensions[arrow_target] == 0 {
+            continue;
+        }
+        let arrow_image = homomorphism.image(arrow_generator)?;
+        let mut entries =
+            Vec::with_capacity(dimensions[arrow_source].saturating_mul(dimensions[arrow_target]));
+        for element in &basis_by_vertex[arrow_source] {
+            let image = element.act(&arrow_image)?;
+            entries.extend(
+                basis_rows[arrow_target]
+                    .solution_row(&image.basis_coefficients())?
+                    .ok_or(
+                        RestrictionViaAlgebraHomomorphismError::ArrowImageOutsideRestrictedVertex,
+                    )?,
+            );
+        }
+        arrow_matrices.push(NamedArrowMatrix::new(
+            arrow.name(),
+            DenseMatrix::from_flat(
+                dimensions[arrow_source],
+                dimensions[arrow_target],
+                entries,
+                field.clone(),
+            )?,
+        ));
+    }
+    let restricted = right_module_over_path_algebra(source.clone(), dimensions, &arrow_matrices)?
+        .ok_or(RestrictionViaAlgebraHomomorphismError::RestrictedModuleRejected)?;
+    Ok(RestrictedModuleData {
+        module: restricted,
+        original_basis_by_vertex: basis_by_vertex,
+        original_basis_rows: basis_rows,
+    })
+}
+
 /// Translate QPA's linear-equation `HomOverAlgebra(M, N)` method.
 ///
 /// Unknown vertex-map entries are ordered vertex-major, then row-major. The
@@ -6174,6 +6341,38 @@ fn path_action_matrix<F: Field>(
     Ok(result)
 }
 
+/// Failure in QPA's restriction of modules and maps along an algebra map.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum RestrictionViaAlgebraHomomorphismError {
+    /// The entered module must act over the algebra-map range.
+    #[error("the entered module is not over the range of the algebra homomorphism")]
+    ModuleNotOverRangeAlgebra,
+    /// The entered module map must be a map over the algebra-map range.
+    #[error("the entered homomorphism is not over the range of the algebra homomorphism")]
+    HomomorphismNotOverRangeAlgebra,
+    /// A restricted arrow action must land in its target idempotent space.
+    #[error("a restricted arrow image lies outside its target vertex space")]
+    ArrowImageOutsideRestrictedVertex,
+    /// A restricted module-map image must land in its target idempotent space.
+    #[error("a restricted map image lies outside its target vertex space")]
+    MapImageOutsideRestrictedVertex,
+    /// An algebra homomorphism must make the restricted action satisfy the source relations.
+    #[error("the restricted module does not satisfy the source-algebra relations")]
+    RestrictedModuleRejected,
+    /// Algebra generator construction failed.
+    #[error(transparent)]
+    AlgebraElement(#[from] QuiverAlgebraElementError),
+    /// Applying the algebra homomorphism failed.
+    #[error(transparent)]
+    AlgebraHomomorphism(#[from] QuiverAlgebraHomomorphismError),
+    /// Exact row-space and coordinate computations failed.
+    #[error(transparent)]
+    Matrix(#[from] MatrixError),
+    /// Original-module action or checked restricted module/map construction failed.
+    #[error(transparent)]
+    Module(#[from] PathAlgebraModuleError),
+}
+
 /// Failure in QPA's checked right-module constructor.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum PathAlgebraModuleError {
@@ -6570,7 +6769,7 @@ mod tests {
 
     use numerica::domains::{
         Field, Ring,
-        finite_field::{Z2, Zp},
+        finite_field::{FiniteFieldCore, Z2, Zp},
         integer::Integer,
         rational::{Q, Rational},
     };
@@ -6578,7 +6777,7 @@ mod tests {
 
     use crate::{
         ArrowSpec, DenseMatrix, PathAlgebra, QpaCoefficientField, Quiver, QuiverAlgebra,
-        QuotientPathAlgebra, StructureConstantsError, VertexIndex,
+        QuiverAlgebraHomomorphism, QuotientPathAlgebra, StructureConstantsError, VertexIndex,
     };
 
     use super::{
@@ -6596,12 +6795,13 @@ mod tests {
         more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
         morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
         natural_endomorphism_quotient_by_ideal, number_of_nonisomorphic_direct_summands, pull_back,
-        push_out, radical_of_module_inclusion, reject_of_module, right_fac_approximation,
-        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
-        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
-        socle_of_module, socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list,
-        top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
-        zero_module_mapping,
+        push_out, radical_of_module_inclusion, reject_of_module,
+        restriction_via_algebra_homomorphism, restriction_via_algebra_homomorphism_map,
+        right_fac_approximation, right_fac_approximation_via_all_basis_images,
+        right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
+        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
+        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
+        top_of_module_projection, trace_of_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -6726,6 +6926,118 @@ mod tests {
             "range_dimension": homomorphism.range().dimension_vector(),
             "matrices": homomorphism.vertex_matrices().iter()
                 .map(|matrix| matrix_json(matrix, coefficient)).collect::<Vec<_>>(),
+        })
+    }
+
+    fn restriction_module_json<F: Field>(
+        module: &super::PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "dimension": module.dimension_vector(),
+            "matrices": module.arrow_matrices().iter().map(|matrix| {
+                (0..matrix.nrows()).map(|row| {
+                    matrix.row(row).iter().map(coefficient).collect::<Vec<_>>()
+                }).collect::<Vec<_>>()
+            }).collect::<Vec<_>>(),
+        })
+    }
+
+    fn restriction_map_json<F: Field>(
+        homomorphism: &PathAlgebraModuleHomomorphism<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "source": restriction_module_json(homomorphism.source(), coefficient),
+            "range": restriction_module_json(homomorphism.range(), coefficient),
+            "matrices": homomorphism.vertex_matrices().iter().map(|matrix| {
+                (0..matrix.nrows()).map(|row| {
+                    matrix.row(row).iter().map(coefficient).collect::<Vec<_>>()
+                }).collect::<Vec<_>>()
+            }).collect::<Vec<_>>(),
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_restriction_case<F: Field>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let loop_parent = PathAlgebra::new(field.clone(), loop_quiver).unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            QuotientPathAlgebra::by_relations_high_level(loop_parent, &[x.pow(2).unwrap()])
+                .unwrap(),
+        );
+        let dual_generators = dual.generators_with_one().unwrap();
+        let zero_arrow_map = QuiverAlgebraHomomorphism::by_generators_with_one_images(
+            dual.clone(),
+            dual.clone(),
+            vec![dual_generators[0].clone(), dual.zero()],
+        )
+        .unwrap();
+        let radical_matrix = DenseMatrix::from_rows(
+            vec![
+                vec![field.zero(), field.one()],
+                vec![field.zero(), field.zero()],
+            ],
+            field.clone(),
+        )
+        .unwrap();
+        let regular = right_module_over_path_algebra(
+            dual,
+            vec![2],
+            &[NamedArrowMatrix::new("x", radical_matrix.clone())],
+        )
+        .unwrap()
+        .unwrap();
+        let radical_map =
+            right_module_hom_over_algebra(regular.clone(), regular.clone(), vec![radical_matrix])
+                .unwrap();
+        let restricted_regular =
+            restriction_via_algebra_homomorphism(&zero_arrow_map, &regular).unwrap();
+        let restricted_radical_map =
+            restriction_via_algebra_homomorphism_map(&zero_arrow_map, &radical_map).unwrap();
+
+        let a2_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), a2_quiver).unwrap());
+        let field_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let field_inclusion = QuiverAlgebraHomomorphism::by_generators_with_one_images(
+            field_algebra,
+            a2.clone(),
+            vec![a2.one().unwrap()],
+        )
+        .unwrap();
+        let projective = right_module_over_path_algebra(
+            a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![field.one()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let identity_map = identity_module_mapping(projective.clone()).unwrap();
+        let restricted_projective =
+            restriction_via_algebra_homomorphism(&field_inclusion, &projective).unwrap();
+        let restricted_identity =
+            restriction_via_algebra_homomorphism_map(&field_inclusion, &identity_map).unwrap();
+
+        json!({
+            "zero_arrow_module": restriction_module_json(&restricted_regular, coefficient),
+            "zero_arrow_map": restriction_map_json(&restricted_radical_map, coefficient),
+            "field_module": restriction_module_json(&restricted_projective, coefficient),
+            "field_identity_map": restriction_map_json(&restricted_identity, coefficient),
         })
     }
 
@@ -7966,6 +8278,73 @@ mod tests {
 
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_restriction_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_restriction.schema-v1.json"
+        ))
+        .unwrap();
+        let quinary = Zp::new(5);
+        let quinary_coefficients = quinary.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehom_restriction",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehom_restriction_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehom_restriction_case(quinary, |entry| json!(
+                quinary_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational": modulehom_restriction_case(Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn restriction_preserves_qpa_range_validation_boundaries() {
+        let field_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(Q, Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap()).unwrap(),
+        );
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let inclusion = QuiverAlgebraHomomorphism::by_generators_with_one_images(
+            field_algebra.clone(),
+            a2.clone(),
+            vec![a2.one().unwrap()],
+        )
+        .unwrap();
+        let wrong = right_module_over_path_algebra(field_algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let wrong_identity = identity_module_mapping(wrong.clone()).unwrap();
+
+        assert_eq!(
+            restriction_via_algebra_homomorphism(&inclusion, &wrong).unwrap_err(),
+            super::RestrictionViaAlgebraHomomorphismError::ModuleNotOverRangeAlgebra
+        );
+        assert_eq!(
+            restriction_via_algebra_homomorphism_map(&inclusion, &wrong_identity).unwrap_err(),
+            super::RestrictionViaAlgebraHomomorphismError::HomomorphismNotOverRangeAlgebra
+        );
     }
 
     #[test]
