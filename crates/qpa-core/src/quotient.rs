@@ -451,6 +451,7 @@ struct QuotientPathAlgebraData<F: Field> {
     schurian: OnceLock<bool>,
     semicommutative: OnceLock<bool>,
     global_dimension: OnceLock<AlgebraGlobalDimension>,
+    gorenstein_dimension: OnceLock<usize>,
     cartan_matrix: OnceLock<Option<Vec<Vec<usize>>>>,
     coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
     coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
@@ -579,6 +580,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             schurian: OnceLock::new(),
             semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
+            gorenstein_dimension: OnceLock::new(),
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
@@ -635,6 +637,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             schurian: OnceLock::new(),
             semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
+            gorenstein_dimension: OnceLock::new(),
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
@@ -839,6 +842,20 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn cache_global_dimension(&self, value: AlgebraGlobalDimension) -> AlgebraGlobalDimension {
         *self.0.global_dimension.get_or_init(|| value)
+    }
+
+    /// Return QPA's installed `GorensteinDimension` attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gorenstein_dimension(&self) -> Option<usize> {
+        self.0.gorenstein_dimension.get().copied()
+    }
+
+    /// Install QPA's finite `GorensteinDimension` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gorenstein_dimension(&self, value: usize) -> usize {
+        *self.0.gorenstein_dimension.get_or_init(|| value)
     }
 
     pub(crate) fn cached_cartan_matrix_attribute(&self) -> CachedAttribute<Vec<Vec<usize>>> {
@@ -1593,6 +1610,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             schurian: OnceLock::new(),
             semicommutative: OnceLock::new(),
             global_dimension: OnceLock::new(),
+            gorenstein_dimension: OnceLock::new(),
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),

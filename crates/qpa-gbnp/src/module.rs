@@ -760,6 +760,99 @@ pub fn dominant_dimension_of_algebra<F: QpaCoefficientField>(
     )))
 }
 
+/// Return QPA's installed `GorensteinDimension(A)` attribute, if bound.
+///
+/// The bounded operation installs finite values; Rust exposes QPA's unbound
+/// attribute state as `None`.
+#[must_use]
+pub fn gorenstein_dimension<F: Field>(algebra: &QuiverAlgebra<F>) -> Option<usize> {
+    match algebra {
+        QuiverAlgebra::Path(algebra) => algebra.cached_gorenstein_dimension(),
+        QuiverAlgebra::Quotient(algebra) => algebra.cached_gorenstein_dimension(),
+    }
+}
+
+fn cache_gorenstein_dimension<F: Field>(algebra: &QuiverAlgebra<F>, value: usize) -> usize {
+    match algebra {
+        QuiverAlgebra::Path(algebra) => algebra.cache_gorenstein_dimension(value),
+        QuiverAlgebra::Quotient(algebra) => algebra.cache_gorenstein_dimension(value),
+    }
+}
+
+/// Translate QPA's bounded `GorensteinDimensionOfAlgebra(A, n)` method.
+///
+/// `None` is QPA's `false`. QPA first returns any known finite global
+/// dimension, regardless of `n`, and then any cached Gorenstein dimension,
+/// again without comparing the bound. Otherwise it takes the maximum
+/// projective dimension of the indecomposable injectives on `A` and on
+/// `OppositeAlgebra(A)`, stopping with `false` as soon as either side exceeds
+/// `n`. The ordinary Rust entry point suppresses QPA's conjecture diagnostic;
+/// use [`gorenstein_dimension_of_algebra_with_progress`] to receive it.
+///
+/// # Errors
+///
+/// Propagates indecomposable-injective, bounded projective-dimension, and
+/// opposite-algebra construction failures.
+pub fn gorenstein_dimension_of_algebra<F: QpaCoefficientField>(
+    algebra: &QuiverAlgebra<F>,
+    bound: &Integer,
+) -> Result<Option<usize>, EnvelopingModuleError> {
+    gorenstein_dimension_of_algebra_with_progress(algebra, bound, |_| {})
+}
+
+/// Evaluate [`gorenstein_dimension_of_algebra`] while exposing QPA's printed
+/// warning when the left and right dimensions differ.
+///
+/// # Errors
+///
+/// Propagates the same failures as [`gorenstein_dimension_of_algebra`].
+pub fn gorenstein_dimension_of_algebra_with_progress<F, R>(
+    algebra: &QuiverAlgebra<F>,
+    bound: &Integer,
+    mut report: R,
+) -> Result<Option<usize>, EnvelopingModuleError>
+where
+    F: QpaCoefficientField,
+    R: FnMut(&'static str),
+{
+    let known_global_dimension = match algebra {
+        QuiverAlgebra::Path(algebra) => Some(AlgebraGlobalDimension::Finite(
+            algebra.qpa_global_dimension(),
+        )),
+        QuiverAlgebra::Quotient(algebra) => algebra.cached_global_dimension(),
+    };
+    if let Some(AlgebraGlobalDimension::Finite(dimension)) = known_global_dimension {
+        return Ok(Some(cache_gorenstein_dimension(algebra, dimension)));
+    }
+    if let Some(dimension) = gorenstein_dimension(algebra) {
+        return Ok(Some(dimension));
+    }
+
+    let mut dimension_right = 0;
+    for injective in indec_injective_modules(algebra)? {
+        let Some(dimension) = proj_dimension_of_module(&injective, bound)? else {
+            return Ok(None);
+        };
+        dimension_right = dimension_right.max(dimension);
+    }
+
+    let opposite = opposite_module_algebra(algebra)?;
+    let mut dimension_left = 0;
+    for injective in indec_injective_modules(&opposite)? {
+        let Some(dimension) = proj_dimension_of_module(&injective, bound)? else {
+            return Ok(None);
+        };
+        dimension_left = dimension_left.max(dimension);
+    }
+    if dimension_left != dimension_right {
+        report("You have a counterexample to the Gorenstein conjecture!\n\n");
+    }
+    Ok(Some(cache_gorenstein_dimension(
+        algebra,
+        dimension_left.max(dimension_right),
+    )))
+}
+
 /// Translate QPA's Nakayama-socle test for `IsSelfinjectiveAlgebra(A)`.
 ///
 /// Infinite-dimensional input returns `Some(false)` before path-algebra
@@ -7004,15 +7097,15 @@ mod tests {
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
         frobenius_linear_functional, from_identity_to_double_star_homomorphism,
         from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
-        global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
-        indec_injective_modules, indec_projective_modules, inj_dimension, inj_dimension_of_module,
-        injective_envelope, irreducible_morphisms_ending_in, irreducible_morphisms_starting_in,
-        is_exceptional_module, is_finite_global_dimension_from_known_properties,
-        is_hereditary_algebra, is_injective_module, is_omega_periodic,
-        is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
-        is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
-        is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_weakly_symmetric_algebra,
-        left_approximation_by_add_m, lifting_morphism_from_projective,
+        global_dimension_of_algebra, gorenstein_dimension, gorenstein_dimension_of_algebra,
+        hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
+        indec_projective_modules, inj_dimension, inj_dimension_of_module, injective_envelope,
+        irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_exceptional_module,
+        is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
+        is_injective_module, is_omega_periodic, is_omega_periodic_with_progress,
+        is_projective_module, is_rigid_module, is_schurian_algebra, is_selfinjective_algebra,
+        is_semicommutative_algebra, is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module,
+        is_weakly_symmetric_algebra, left_approximation_by_add_m, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, minimal_left_approximation,
         minimal_right_approximation, nakayama_automorphism, nakayama_functor_of_module,
         nakayama_functor_of_module_homomorphism, nakayama_permutation,
@@ -7088,14 +7181,7 @@ mod tests {
     }
 
     fn fresh_dual_simple<F: Field>(field: &F) -> PathAlgebraModule<F> {
-        let parent = PathAlgebra::new(
-            field.clone(),
-            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
-        )
-        .unwrap();
-        let x = parent.generators()[1].clone();
-        let algebra =
-            QuiverAlgebra::Quotient(quotient_by_relations(parent, &[x.pow(2).unwrap()]).unwrap());
+        let algebra = fresh_dual_numbers(field);
         right_module_over_path_algebra(
             algebra,
             vec![1],
@@ -7106,6 +7192,35 @@ mod tests {
         )
         .unwrap()
         .unwrap()
+    }
+
+    fn fresh_dual_numbers<F: Field>(field: &F) -> QuiverAlgebra<F> {
+        let parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = parent.generators()[1].clone();
+        QuiverAlgebra::Quotient(quotient_by_relations(parent, &[x.pow(2).unwrap()]).unwrap())
+    }
+
+    fn fresh_radical_square_zero_a3<F: Field>(field: &F) -> QuiverAlgebra<F> {
+        let parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(
+                3,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "x"),
+                    ArrowSpec::named(vertex(2), vertex(3), "y"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let arrows = parent.quiver().arrows().collect::<Vec<_>>();
+        let x = parent.element(arrows[0].path()).unwrap();
+        let y = parent.element(arrows[1].path()).unwrap();
+        QuiverAlgebra::Quotient(quotient_by_relations(parent, &[x.multiply(&y).unwrap()]).unwrap())
     }
 
     fn isolated_path_algebra<F: Field>(field: F, vertex_count: usize) -> QuiverAlgebra<F> {
@@ -11393,6 +11508,97 @@ mod tests {
         assert_eq!(ternary_json, expected["ternary"]);
         assert_eq!(rational_json, expected["rational"]);
         assert_eq!(isolated_json, expected["isolated"]);
+    }
+
+    fn modulehomalg_gorenstein_dimension_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let discrete = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let radical_square = fresh_radical_square_zero_a3(field);
+        let known_finite = fresh_radical_square_zero_a3(field);
+        let dual = fresh_dual_numbers(field);
+        let known_infinite = fresh_dual_numbers(field);
+        let negative_one = Integer::from(-1);
+        let zero_bound = Integer::from(0);
+        let two_bound = Integer::from(2);
+
+        let discrete_bound_0 = gorenstein_dimension_of_algebra(&discrete, &zero_bound).unwrap();
+        let a2_bound_0 = gorenstein_dimension_of_algebra(&a2, &zero_bound).unwrap();
+        let a2_attribute = gorenstein_dimension(&a2).unwrap();
+        let a2_cached_negative = gorenstein_dimension_of_algebra(&a2, &negative_one).unwrap();
+
+        let radical_initially_bound = gorenstein_dimension(&radical_square).is_some();
+        let radical_bound_0 =
+            gorenstein_dimension_of_algebra(&radical_square, &zero_bound).unwrap();
+        let radical_bound_after_0 = gorenstein_dimension(&radical_square).is_some();
+        let radical_bound_2 = gorenstein_dimension_of_algebra(&radical_square, &two_bound).unwrap();
+        let radical_attribute = gorenstein_dimension(&radical_square).unwrap();
+        let radical_cached_bound_0 =
+            gorenstein_dimension_of_algebra(&radical_square, &zero_bound).unwrap();
+
+        let known_finite_setup = global_dimension_of_algebra(&known_finite, 2).unwrap();
+        let known_finite_negative =
+            gorenstein_dimension_of_algebra(&known_finite, &negative_one).unwrap();
+
+        let dual_bound_0 = gorenstein_dimension_of_algebra(&dual, &zero_bound).unwrap();
+        let dual_attribute = gorenstein_dimension(&dual).unwrap();
+        let known_infinite_setup = global_dimension_of_algebra(&known_infinite, 0).unwrap();
+        let known_infinite_bound_0 =
+            gorenstein_dimension_of_algebra(&known_infinite, &zero_bound).unwrap();
+
+        json!({
+            "discrete_bound_0": bounded_dimension_json(discrete_bound_0),
+            "a2_bound_0": bounded_dimension_json(a2_bound_0),
+            "a2_attribute": a2_attribute,
+            "a2_cached_negative": bounded_dimension_json(a2_cached_negative),
+            "radical_initially_bound": radical_initially_bound,
+            "radical_bound_0": bounded_dimension_json(radical_bound_0),
+            "radical_bound_after_0": radical_bound_after_0,
+            "radical_bound_2": bounded_dimension_json(radical_bound_2),
+            "radical_attribute": radical_attribute,
+            "radical_cached_bound_0": bounded_dimension_json(radical_cached_bound_0),
+            "known_finite_setup": global_dimension_json(known_finite_setup),
+            "known_finite_negative": bounded_dimension_json(known_finite_negative),
+            "dual_bound_0": bounded_dimension_json(dual_bound_0),
+            "dual_attribute": dual_attribute,
+            "known_infinite_setup": global_dimension_json(known_infinite_setup),
+            "known_infinite_bound_0": bounded_dimension_json(known_infinite_bound_0),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_gorenstein_dimension_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_gorenstein_dimension.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_gorenstein_dimension",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_gorenstein_dimension_case(&Z2),
+            "quinary": modulehomalg_gorenstein_dimension_case(&Zp::new(5)),
+            "rational": modulehomalg_gorenstein_dimension_case(&Q),
+        });
+        assert_eq!(actual, expected);
     }
 
     fn modulehomalg_dominant_dimension_case<F: QpaCoefficientField>(field: &F) -> Value {

@@ -44,6 +44,7 @@ struct PathAlgebraData<F: Field> {
     indec_projective_modules: WeakPathAlgebraModuleListCache<F>,
     indec_injective_modules: WeakPathAlgebraModuleListCache<F>,
     simple_modules: WeakPathAlgebraModuleListCache<F>,
+    gorenstein_dimension: OnceLock<usize>,
     cartan_matrix: OnceLock<Option<Vec<Vec<usize>>>>,
     coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
     coxeter_polynomial: OnceLock<Option<Vec<Rational>>>,
@@ -161,6 +162,7 @@ impl<F: Field> PathAlgebra<F> {
             indec_projective_modules: WeakPathAlgebraModuleListCache::new(),
             indec_injective_modules: WeakPathAlgebraModuleListCache::new(),
             simple_modules: WeakPathAlgebraModuleListCache::new(),
+            gorenstein_dimension: OnceLock::new(),
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
             coxeter_polynomial: OnceLock::new(),
@@ -611,6 +613,20 @@ impl<F: Field> PathAlgebra<F> {
     #[must_use]
     pub fn qpa_global_dimension(&self) -> usize {
         usize::from(self.quiver().number_of_arrows() > 0)
+    }
+
+    /// Return QPA's installed `GorensteinDimension` attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gorenstein_dimension(&self) -> Option<usize> {
+        self.0.gorenstein_dimension.get().copied()
+    }
+
+    /// Install QPA's finite `GorensteinDimension` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gorenstein_dimension(&self, value: usize) -> usize {
+        *self.0.gorenstein_dimension.get_or_init(|| value)
     }
 
     /// Return whether QPA can construct the canonical basis by enumerating the
