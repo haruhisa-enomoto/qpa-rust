@@ -24,8 +24,11 @@ pub mod tensor;
 pub mod trivial_extension;
 
 pub use algebra_conversion::{
-    AlgebraAsQuiverAlgebraError, AlgebraAsQuiverAlgebraResult, EndOfModuleAsQuiverAlgebraError,
-    EndOfModuleAsQuiverAlgebraResult, algebra_as_quiver_algebra, end_of_module_as_quiver_algebra,
+    AlgebraAsQuiverAlgebraError, AlgebraAsQuiverAlgebraResult,
+    EndOfBasicModuleAsQuiverAlgebraError, EndOfBasicModuleAsQuiverAlgebraResult,
+    EndOfModuleAsQuiverAlgebraError, EndOfModuleAsQuiverAlgebraResult, algebra_as_quiver_algebra,
+    end_of_basic_module_as_quiver_algebra, end_of_basic_module_as_quiver_algebra_with_bound,
+    end_of_module_as_quiver_algebra,
 };
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{

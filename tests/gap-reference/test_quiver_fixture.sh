@@ -317,6 +317,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_end_quiver.g" \
     "$repo_root/tests/fixtures/modulehom_end_quiver.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_basic_end.g" \
+    "$repo_root/tests/fixtures/modulehom_basic_end.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_submodules.g" \
     "$repo_root/tests/fixtures/modulehom_submodules.schema-v1.json"
 compare_fixture \
@@ -367,6 +370,33 @@ then
 fi
 grep -Fq "no 1st choice method found for \`NewBasis'" "$actual"
 grep -Fq "module.gi:254" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_basic_end_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an empty basic-module list" >&2
+    exit 1
+fi
+grep -Fq "The entered list <L> must be non-empty" "$actual"
+grep -Fq "modulehom.gi:4434" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_basic_end_different_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted basic modules over different algebras" >&2
+    exit 1
+fi
+grep -Fq "Not all the entered modules are modules over the same algebra" "$actual"
+grep -Fq "modulehom.gi:4453" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_basic_end_nonelementary_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a non-K-elementary diagonal endomorphism ring" >&2
+    exit 1
+fi
+grep -Fq "endomorphism ring of the entered module is not K-elementary" "$actual"
+grep -Fq "modulehom.gi:4483" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_all_simple_rational_error.g" \
     >"$actual" 2>&1

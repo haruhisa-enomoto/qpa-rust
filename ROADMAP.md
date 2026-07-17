@@ -674,7 +674,10 @@ Primary QPA files: `modulehom` and `moduledecomp`.
   documented repair of QPA's empty-radical list-product crash.
   `MakeBasicListOfModules`, used by the ADR pipeline, preserves QPA's ordered
   maximal-common-summand removal, final decomposition, input failures, and
-  early-break behavior. Basic endomorphism and ADR algebra construction remain.
+  early-break behavior. `EndOfBasicModuleAsQuiverAlgebra` now follows QPA's
+  radical-Hom and radical-square quotient construction, ordered direct-sum
+  embedding, Loewy/bounded path-dictionary search, and default GBNP quotient
+  over prime fields and the rationals. ADR algebra construction remains.
 - [x] Port deterministic and probabilistic module decomposition methods,
   including seed control and idempotent lifting. The complete
   `moduledecomp.gd`/`.gi` ledger is verified: deterministic decomposition and

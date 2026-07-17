@@ -12635,9 +12635,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 79
 source_end = 79
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "end_of_basic_module_as_quiver_algebra; end_of_basic_module_as_quiver_algebra_with_bound; EndOfBasicModuleAsQuiverAlgebraResult; EndOfBasicModuleAsQuiverAlgebraError"
+tests = ["tests/fixtures/modulehom_basic_end.schema-v1.json","tests/gap-reference/modulehom_basic_end_empty_error.g","tests/gap-reference/modulehom_basic_end_different_error.g","tests/gap-reference/modulehom_basic_end_nonelementary_error.g"]
 deviations = []
 
 [[entries]]
@@ -13857,9 +13857,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4420
 source_end = 4623
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "end_of_basic_module_as_quiver_algebra; end_of_basic_module_as_quiver_algebra_with_bound; EndOfBasicModuleAsQuiverAlgebraResult; EndOfBasicModuleAsQuiverAlgebraError"
+tests = ["tests/fixtures/modulehom_basic_end.schema-v1.json","tests/gap-reference/modulehom_basic_end_empty_error.g","tests/gap-reference/modulehom_basic_end_different_error.g","tests/gap-reference/modulehom_basic_end_nonelementary_error.g"]
 deviations = []
 
 [[entries]]
