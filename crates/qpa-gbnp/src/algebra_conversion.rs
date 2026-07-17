@@ -7,9 +7,10 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    DenseMatrix, MatrixError, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathEndpoint,
-    QpaCoefficientField, Quiver, QuiverAlgebra, QuiverError, QuotientError,
-    StructureConstantsAlgebra, StructureConstantsError,
+    DenseMatrix, MatrixError, ModuleEndomorphismAlgebra, PathAlgebra, PathAlgebraElement,
+    PathAlgebraError, PathAlgebraModule, PathAlgebraModuleError, PathEndpoint, QpaCoefficientField,
+    Quiver, QuiverAlgebra, QuiverError, QuotientError, StructureConstantsAlgebra,
+    StructureConstantsError, end_over_algebra,
 };
 use thiserror::Error;
 
@@ -48,6 +49,77 @@ impl<F: Field> AlgebraAsQuiverAlgebraResult<F> {
     pub fn into_parts(self) -> (QuiverAlgebra<F>, Vec<Vec<F::Element>>) {
         (self.algebra, self.generator_images)
     }
+}
+
+/// QPA's successful `EndOfModuleAsQuiverAlgebra` return value.
+#[derive(Clone, Debug)]
+pub struct EndOfModuleAsQuiverAlgebraResult<F: Field> {
+    endomorphism_algebra: ModuleEndomorphismAlgebra<F>,
+    quiver_algebra: QuiverAlgebra<F>,
+}
+
+impl<F: Field> EndOfModuleAsQuiverAlgebraResult<F> {
+    /// Return the entered module's QPA endomorphism algebra.
+    #[must_use]
+    pub const fn endomorphism_algebra(&self) -> &ModuleEndomorphismAlgebra<F> {
+        &self.endomorphism_algebra
+    }
+
+    /// Return the adjacency matrix of the converted endomorphism quiver.
+    #[must_use]
+    pub fn adjacency_matrix(&self) -> &[Box<[usize]>] {
+        self.quiver_algebra.quiver().adjacency_matrix()
+    }
+
+    /// Return the endomorphism ring as QPA's quiver algebra.
+    #[must_use]
+    pub const fn quiver_algebra(&self) -> &QuiverAlgebra<F> {
+        &self.quiver_algebra
+    }
+
+    /// Consume QPA's three-component result in the same order.
+    #[must_use]
+    pub fn into_parts(
+        self,
+    ) -> (
+        ModuleEndomorphismAlgebra<F>,
+        Vec<Vec<usize>>,
+        QuiverAlgebra<F>,
+    ) {
+        let adjacency = self
+            .quiver_algebra
+            .quiver()
+            .adjacency_matrix()
+            .iter()
+            .map(|row| row.to_vec())
+            .collect();
+        (self.endomorphism_algebra, adjacency, self.quiver_algebra)
+    }
+}
+
+/// Translate QPA's `EndOfModuleAsQuiverAlgebra(M)` adapter.
+///
+/// QPA constructs `EndOverAlgebra(M)`, delegates the actual computation to
+/// `AlgebraAsQuiverAlgebra`, and returns the endomorphism algebra, converted
+/// quiver adjacency matrix, and converted quiver algebra. Rust preserves that
+/// exact dependency chain rather than reconstructing a quiver from a module
+/// decomposition.
+///
+/// # Errors
+///
+/// Propagates endomorphism structure-constant conversion and QPA's finite,
+/// indecomposable, basic, elementary prime-field conversion boundaries.
+pub fn end_of_module_as_quiver_algebra<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<EndOfModuleAsQuiverAlgebraResult<F>, EndOfModuleAsQuiverAlgebraError> {
+    let endomorphism_algebra = end_over_algebra(module)?;
+    let structure_constants = endomorphism_algebra.structure_constants_algebra()?;
+    let converted = algebra_as_quiver_algebra(&structure_constants)?;
+    let (quiver_algebra, _) = converted.into_parts();
+    Ok(EndOfModuleAsQuiverAlgebraResult {
+        endomorphism_algebra,
+        quiver_algebra,
+    })
 }
 
 /// Translate QPA's `AlgebraAsQuiverAlgebra` on its split prime-field branch.
@@ -453,6 +525,17 @@ pub enum AlgebraAsQuiverAlgebraError {
     Coefficient(#[from] qpa_core::CoefficientDomainError),
 }
 
+/// Failure while applying QPA's module-endomorphism conversion adapter.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum EndOfModuleAsQuiverAlgebraError {
+    /// Constructing or converting `EndOverAlgebra(M)` failed.
+    #[error(transparent)]
+    Module(#[from] PathAlgebraModuleError),
+    /// QPA's delegated `AlgebraAsQuiverAlgebra` computation failed.
+    #[error(transparent)]
+    Conversion(#[from] AlgebraAsQuiverAlgebraError),
+}
+
 #[cfg(test)]
 mod tests {
     use numerica::domains::{
@@ -461,10 +544,22 @@ mod tests {
         integer::Integer,
         rational::Q,
     };
-    use qpa_core::{QuiverAlgebra, StructureConstantsAlgebra};
+    use qpa_core::{
+        ArrowSpec, DenseMatrix, NamedArrowMatrix, PathAlgebra, QpaCoefficientField, Quiver,
+        QuiverAlgebra, StructureConstantsAlgebra, VertexIndex, right_module_over_path_algebra,
+    };
     use serde_json::{Value, json};
 
-    use super::{AlgebraAsQuiverAlgebraError, algebra_as_quiver_algebra};
+    use crate::quotient_by_relations;
+
+    use super::{
+        AlgebraAsQuiverAlgebraError, EndOfModuleAsQuiverAlgebraError, algebra_as_quiver_algebra,
+        end_of_module_as_quiver_algebra,
+    };
+
+    fn vertex(index: usize) -> VertexIndex {
+        VertexIndex::new(index).unwrap()
+    }
 
     fn set_basis_product<F: Field>(
         tensor: &mut [F::Element],
@@ -581,6 +676,46 @@ mod tests {
         value.to_string().parse().unwrap()
     }
 
+    fn end_of_module_json<F: QpaCoefficientField>(field: F) -> Value {
+        let quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let parent = PathAlgebra::new(field.clone(), quiver).unwrap();
+        let x = parent
+            .element(parent.quiver().arrows().next().unwrap().path())
+            .unwrap();
+        let algebra = QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[x.multiply(&x).unwrap()]).unwrap(),
+        );
+        let regular = right_module_over_path_algebra(
+            algebra,
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![field.zero(), field.one()],
+                        vec![field.zero(), field.zero()],
+                    ],
+                    field,
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let converted = end_of_module_as_quiver_algebra(&regular).unwrap();
+        let quiver_dimension = match converted.quiver_algebra() {
+            QuiverAlgebra::Path(algebra) => algebra.canonical_basis().unwrap().len(),
+            QuiverAlgebra::Quotient(algebra) => algebra.canonical_basis().unwrap().unwrap().len(),
+        };
+        json!({
+            "endomorphism_dimension": converted.endomorphism_algebra().dimension(),
+            "adjacency": converted.adjacency_matrix().iter()
+                .map(|row| row.to_vec()).collect::<Vec<_>>(),
+            "quiver_algebra_dimension": quiver_dimension,
+        })
+    }
+
     #[test]
     fn pinned_qpa_conversion_branches_match() {
         let fixture: Value = serde_json::from_str(include_str!(
@@ -615,6 +750,50 @@ mod tests {
         assert!(matches!(
             algebra_as_quiver_algebra(&two_by_two_matrix_algebra(Z2)),
             Err(AlgebraAsQuiverAlgebraError::NonBasicAlgebra)
+        ));
+    }
+
+    #[test]
+    fn pinned_qpa_end_of_module_as_quiver_algebra_matches() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_end_quiver.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            end_of_module_json(Z2),
+            fixture["binary"]["regular_dual_numbers"]
+        );
+        assert_eq!(
+            end_of_module_json(Zp::new(5)),
+            fixture["quinary"]["regular_dual_numbers"]
+        );
+
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let repeated = right_module_over_path_algebra(algebra, vec![2], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            end_of_module_as_quiver_algebra(&repeated),
+            Err(EndOfModuleAsQuiverAlgebraError::Conversion(
+                AlgebraAsQuiverAlgebraError::NonBasicAlgebra
+            ))
+        ));
+
+        // QPA reaches the same zero radical here, but its multiplication of
+        // the empty radical-basis list aborts before it can return K.  The
+        // translated converter handles that zero space explicitly.
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let simple = right_module_over_path_algebra(algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let converted = end_of_module_as_quiver_algebra(&simple).unwrap();
+        assert_eq!(converted.endomorphism_algebra().dimension(), 1);
+        assert_eq!(converted.adjacency_matrix(), &[vec![0].into_boxed_slice()]);
+        assert!(matches!(
+            converted.quiver_algebra(),
+            QuiverAlgebra::Path(algebra) if algebra.canonical_basis().unwrap().len() == 1
         ));
     }
 }

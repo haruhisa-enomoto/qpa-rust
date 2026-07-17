@@ -98,7 +98,8 @@ PrintCase := function(field)
           block_decomposition, repeated_block_idempotents,
           repeated_block_decomposition, basic_mixed, basic_repeated, basic_zero,
           via_top, repeated_via_top, simple_module, probabilistic_repeated,
-          probabilistic_simple, char_poly_repeated, char_poly_simple;
+          probabilistic_simple, char_poly_repeated, char_poly_simple,
+          noniso_mixed, noniso_repeated;
     quiver := Quiver(["v1", "v2"], [["v1", "v2", "a"]]);
     algebra := PathAlgebra(field, quiver);
     module := RightModuleOverPathAlgebra(
@@ -140,6 +141,8 @@ PrintCase := function(field)
         HomOverAlgebra(simple_module, simple_module), simple_module);
     char_poly_repeated := DecomposeModuleViaCharPoly(repeated_module);
     char_poly_simple := DecomposeModuleViaCharPoly(simple_module);
+    noniso_mixed := NumberOfNonIsoDirSummands(module);
+    noniso_repeated := NumberOfNonIsoDirSummands(repeated_module);
 
     Print("{\"algorithm\":{");
     Print("\"endomorphism_basis\":"); PrintMatrixList(endomorphism_basis);
@@ -194,6 +197,11 @@ PrintCase := function(field)
     PrintModules(char_poly_repeated);
     Print(",\"simple\":"); PrintModules(char_poly_simple);
     Print("}");
+    Print(",\"noniso\":{\"mixed\":[", noniso_mixed[1], ",");
+    PrintIntegerList(noniso_mixed[2]);
+    Print("],\"repeated\":[", noniso_repeated[1], ",");
+    PrintIntegerList(noniso_repeated[2]);
+    Print("]}");
     Print("}");
 end;
 

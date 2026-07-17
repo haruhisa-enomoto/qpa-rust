@@ -1159,6 +1159,27 @@ pub type PathAlgebraModuleHomomorphismTriple<F> = (
     PathAlgebraModuleHomomorphism<F>,
 );
 
+/// QPA's `NumberOfNonIsoDirSummands` result.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NonisomorphicDirectSummandData {
+    count: usize,
+    block_dimensions: Vec<usize>,
+}
+
+impl NonisomorphicDirectSummandData {
+    /// Number of nonisomorphic indecomposable direct-summand types.
+    #[must_use]
+    pub const fn count(&self) -> usize {
+        self.count
+    }
+
+    /// Dimensions of the simple blocks of `End(M) / rad End(M)` in QPA order.
+    #[must_use]
+    pub fn block_dimensions(&self) -> &[usize] {
+        &self.block_dimensions
+    }
+}
+
 /// The heterogeneous result of QPA's one-step minimal-version operations.
 #[derive(Clone, Debug)]
 pub enum MoreMinimalVersionResult<F: Field> {
@@ -3721,6 +3742,35 @@ pub fn end_over_algebra<F: Field>(
         one: DenseMatrix::identity(dimension, field),
     }));
     Ok(module.cache_endomorphism_algebra(&algebra))
+}
+
+/// Translate QPA's `NumberOfNonIsoDirSummands(M)` operation.
+///
+/// The source constructs `End(M)`, quotients by its algebra radical, obtains
+/// the central-idempotent direct-sum decomposition, and returns the number and
+/// dimensions of those semisimple blocks. This implementation follows the
+/// same structure-constant route on the currently supported split prime-field
+/// coefficient tier.
+///
+/// # Errors
+///
+/// Propagates endomorphism-algebra, radical, quotient, central-idempotent, and
+/// block construction failures. In particular, the present central splitting
+/// backend reports a typed finite-field error for rational coefficients.
+pub fn number_of_nonisomorphic_direct_summands<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<NonisomorphicDirectSummandData, PathAlgebraModuleError> {
+    let endomorphism_algebra = end_over_algebra(module)?.structure_constants_algebra()?;
+    let radical = endomorphism_algebra.radical()?;
+    let semisimple = endomorphism_algebra.quotient_by_ideal_basis(radical.basis().clone())?;
+    let blocks = semisimple.algebra().blocks()?;
+    Ok(NonisomorphicDirectSummandData {
+        count: blocks.len(),
+        block_dimensions: blocks
+            .iter()
+            .map(|block| block.algebra().dimension())
+            .collect(),
+    })
 }
 
 /// Translate QPA's `FromHomMMToEndM(f)` block-diagonal embedding.
@@ -6528,7 +6578,7 @@ mod tests {
 
     use crate::{
         ArrowSpec, DenseMatrix, PathAlgebra, QpaCoefficientField, Quiver, QuiverAlgebra,
-        QuotientPathAlgebra, VertexIndex,
+        QuotientPathAlgebra, StructureConstantsError, VertexIndex,
     };
 
     use super::{
@@ -6545,12 +6595,13 @@ mod tests {
         left_minimal_version, maximal_common_direct_summand, minimal_generating_set_of_module,
         more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
         morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
-        natural_endomorphism_quotient_by_ideal, pull_back, push_out, radical_of_module_inclusion,
-        reject_of_module, right_fac_approximation, right_fac_approximation_via_all_basis_images,
-        right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
-        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
-        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
-        top_of_module_projection, trace_of_module, zero_module_mapping,
+        natural_endomorphism_quotient_by_ideal, number_of_nonisomorphic_direct_summands, pull_back,
+        push_out, radical_of_module_inclusion, reject_of_module, right_fac_approximation,
+        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
+        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
+        socle_of_module, socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list,
+        top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
+        zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -6559,6 +6610,21 @@ mod tests {
 
     fn q(value: i64) -> Rational {
         Q.nth(value.into())
+    }
+
+    #[test]
+    fn number_of_nonisomorphic_summands_reports_rational_central_split_tier() {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let module = right_module_over_path_algebra(algebra, vec![2], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            number_of_nonisomorphic_direct_summands(&module),
+            Err(PathAlgebraModuleError::StructureConstants(
+                StructureConstantsError::FiniteFieldRequired
+            ))
+        ));
     }
 
     #[test]

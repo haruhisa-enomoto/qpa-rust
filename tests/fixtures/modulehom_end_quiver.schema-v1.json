@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "modulehom_end_quiver",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "binary": {
+    "regular_dual_numbers": {
+      "endomorphism_dimension": 2,
+      "adjacency": [[1]],
+      "quiver_algebra_dimension": 2
+    }
+  },
+  "quinary": {
+    "regular_dual_numbers": {
+      "endomorphism_dimension": 2,
+      "adjacency": [[1]],
+      "quiver_algebra_dimension": 2
+    }
+  }
+}

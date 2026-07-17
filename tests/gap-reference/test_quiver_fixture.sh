@@ -313,6 +313,27 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_isomorphism.g" \
     "$repo_root/tests/fixtures/modulehom_isomorphism.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_end_quiver.g" \
+    "$repo_root/tests/fixtures/modulehom_end_quiver.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_end_quiver_nonbasic_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly converted a nonbasic module endomorphism algebra" >&2
+    exit 1
+fi
+grep -Fq "the entered algebra is not basic" "$actual"
+grep -Fq "algebra.gi:691" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_end_quiver_simple_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly converted a simple module endomorphism algebra" >&2
+    exit 1
+fi
+grep -Fq "Inner product multiplication of lists: no summands" "$actual"
+grep -Fq "algebra.gi:811" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_inverse_noniso_error.g" \
     >"$actual" 2>&1

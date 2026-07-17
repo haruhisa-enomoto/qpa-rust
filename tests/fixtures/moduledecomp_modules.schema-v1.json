@@ -104,6 +104,10 @@
         { "dimension": [1], "matrices": [] }
       ],
       "simple": [{ "dimension": [1], "matrices": [] }]
+    },
+    "noniso": {
+      "mixed": [2, [1, 1]],
+      "repeated": [1, [4]]
     }
   },
   "quinary": {
@@ -201,6 +205,10 @@
         { "dimension": [1], "matrices": [] }
       ],
       "simple": [{ "dimension": [1], "matrices": [] }]
+    },
+    "noniso": {
+      "mixed": [2, [1, 1]],
+      "repeated": [1, [4]]
     }
   }
 }

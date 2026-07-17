@@ -11790,10 +11790,10 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "number_of_nonisomorphic_direct_summands; NonisomorphicDirectSummandData"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
+deviations = ["MODULEHOM-001"]
 
 [[entries]]
 id = "modulehom:DeclareOperation:LiftIdempotents:1"
@@ -12466,10 +12466,10 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 66
 source_end = 66
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "end_of_module_as_quiver_algebra; EndOfModuleAsQuiverAlgebraResult; EndOfModuleAsQuiverAlgebraError"
+tests = ["tests/fixtures/modulehom_end_quiver.schema-v1.json"]
+deviations = ["MODULEHOM-002"]
 
 [[entries]]
 id = "modulehom:DeclareOperation:TraceOfModule:1"
@@ -13207,10 +13207,10 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1761
 source_end = 1779
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "number_of_nonisomorphic_direct_summands; NonisomorphicDirectSummandData"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
+deviations = ["MODULEHOM-001"]
 
 [[entries]]
 id = "modulehom:InstallMethod:DualOfModuleHomomorphism:1"
@@ -13688,10 +13688,10 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 3634
 source_end = 3650
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "end_of_module_as_quiver_algebra; EndOfModuleAsQuiverAlgebraResult; EndOfModuleAsQuiverAlgebraError"
+tests = ["tests/fixtures/modulehom_end_quiver.schema-v1.json"]
+deviations = ["MODULEHOM-002"]
 
 [[entries]]
 id = "modulehom:InstallMethod:TraceOfModule:1"

@@ -252,3 +252,50 @@ the computations remain translations of the cited source methods.
 - Evidence: the pinned idempotent fixture checks GAP's identical cache, while
   Rust tests check unbound/bound transitions, stable repeated values, and
   shared algebra-parent identity.
+
+## MODULEHOM-001 — Semisimple block counting uses the split-prime tier
+
+- Source: QPA `lib/modulehom.gi`, `NumberOfNonIsoDirSummands` at lines
+  1761–1779; GAP `CentralIdempotentsOfAlgebra` and
+  `DirectSumDecomposition` dependencies.
+- Affected Rust operation: `number_of_nonisomorphic_direct_summands`.
+- Difference: QPA can factor the centre of `End(M)/rad End(M)` over the
+  rationals and finite extension fields. Rust currently follows the same
+  radical-quotient, central-idempotent, and block-decomposition route on
+  Numerica prime fields; rational input reaches the exact radical quotient
+  and then returns the typed `FiniteFieldRequired` central-splitting error.
+- Reason: the pinned Rust coefficient tier has GAP-compatible finite-field
+  polynomial factorization for prime fields, while Numerica 2.1 provides no
+  rational polynomial factorizer or finite extension-field domain. Replacing
+  QPA's block method with a decomposition-derived formula would violate the
+  source-faithful porting rule.
+- Compatibility impact: supported prime-field results retain QPA's block
+  order and dimensions. Rational and extension-field calls are explicitly
+  outside this operation's current coefficient tier instead of using a
+  different computational method.
+- Evidence: `tests/fixtures/moduledecomp_modules.schema-v1.json` pins the
+  repeated and mixed results over `GF(2)` and `GF(5)`; the path-module test
+  pins the rational typed boundary.
+
+## MODULEHOM-002 — Endomorphism-quiver conversion handles the zero radical
+
+- Source: QPA `lib/modulehom.gi`, `EndOfModuleAsQuiverAlgebra` at lines
+  3634–3650, delegating to `AlgebraAsQuiverAlgebra` in `lib/algebra.gi` at
+  lines 634–926.
+- Affected Rust operation: `end_of_module_as_quiver_algebra` through
+  `algebra_as_quiver_algebra`.
+- Difference: on a one-dimensional simple module, QPA aborts while forming
+  `e_i Basis(rad(A)/rad(A)^2) e_j` because GAP's list inner product has no
+  summands when the radical basis is empty. Rust treats that basis as the zero
+  space, obtains the zero-arrow quiver, and returns the field algebra.
+- Reason: the empty list represents the mathematically well-defined zero
+  radical. Handling it explicitly is the zero-dimensional branch of QPA's
+  stated `rad(A)/rad(A)^2` construction and avoids an incidental GAP container
+  error without selecting a different computational method.
+- Compatibility impact: nonzero-radical successes and QPA's structural
+  rejections are unchanged. Only this accidental source crash becomes a
+  successful zero-arrow conversion.
+- Evidence: `tests/gap-reference/modulehom_end_quiver_simple_error.g` pins the
+  QPA error; the Rust algebra-conversion test pins the repaired field-algebra
+  result. `tests/fixtures/modulehom_end_quiver.schema-v1.json` pins successful
+  nonzero-radical conversions over `GF(2)` and `GF(5)`.

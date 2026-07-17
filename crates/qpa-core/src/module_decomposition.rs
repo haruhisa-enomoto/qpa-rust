@@ -1632,7 +1632,7 @@ mod tests {
         ArrowSpec, DenseMatrix, NamedArrowMatrix, PathAlgebra, PathAlgebraModule,
         PathAlgebraModuleHomomorphism, QpaCoefficientField, Quiver, QuiverAlgebra,
         StructureConstantsAlgebra, VertexIndex, direct_sum_of_qpa_modules, end_over_algebra,
-        hom_over_algebra, right_module_over_path_algebra,
+        hom_over_algebra, number_of_nonisomorphic_direct_summands, right_module_over_path_algebra,
     };
 
     use super::{
@@ -1831,6 +1831,8 @@ mod tests {
             decompose_module_probabilistic(&simple_endomorphisms, &simple_module).unwrap();
         let char_poly_repeated = decompose_module_via_char_poly(&repeated_module).unwrap();
         let char_poly_simple = decompose_module_via_char_poly(&simple_module).unwrap();
+        let noniso_mixed = number_of_nonisomorphic_direct_summands(&module).unwrap();
+        let noniso_repeated = number_of_nonisomorphic_direct_summands(&repeated_module).unwrap();
 
         json!({
             "algorithm": {
@@ -1902,6 +1904,13 @@ mod tests {
                     .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
                 "simple": char_poly_simple.iter()
                     .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
+            },
+            "noniso": {
+                "mixed": [json!(noniso_mixed.count()), json!(noniso_mixed.block_dimensions())],
+                "repeated": [
+                    json!(noniso_repeated.count()),
+                    json!(noniso_repeated.block_dimensions()),
+                ],
             },
         })
     }

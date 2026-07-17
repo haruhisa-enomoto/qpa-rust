@@ -659,11 +659,17 @@ Primary QPA files: `modulehom` and `moduledecomp`.
 - [ ] Port liftings, split maps, inverses, minimal versions, and factoring through
   projectives.
 - [ ] Port isomorphism/direct-summand/additive-closure computations.
+  `NumberOfNonIsoDirSummands` now follows QPA through the radical quotient and
+  central block decomposition over the supported split prime-field tier.
 - [ ] Port traces, rejects, submodule enumeration, and length-bounded module
   generation. `TraceOfModule` and all three right-`Fac(M)` synonyms preserve
   QPA's minimal-generator/Hom ordering and zero/error branches; rejects and
   enumeration remain pending.
 - [ ] Port endomorphism quiver-algebra and ADR-algebra constructions.
+  `EndOfModuleAsQuiverAlgebra` now preserves QPA's `EndOverAlgebra` followed by
+  `AlgebraAsQuiverAlgebra` delegation, including the nonbasic rejection and a
+  documented repair of QPA's empty-radical list-product crash. Basic and ADR
+  endomorphism-algebra variants remain.
 - [x] Port deterministic and probabilistic module decomposition methods,
   including seed control and idempotent lifting. The complete
   `moduledecomp.gd`/`.gi` ledger is verified: deterministic decomposition and
