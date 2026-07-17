@@ -3928,6 +3928,47 @@ pub fn faithful_dimension<F: QpaCoefficientField>(
     Ok(FaithfulDimensionResult::from_cache(cached))
 }
 
+/// QPA's integer-or-infinity complement count.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NumberOfComplementsResult {
+    /// A finite number of complements.
+    Finite(usize),
+    /// QPA's `infinity` value.
+    Infinite,
+}
+
+/// Translate `NumberOfComplementsOfAlmostCompleteTiltingModule(M)`.
+///
+/// The source returns `FaithfulDimension(M) + 1`, including GAP's arithmetic
+/// rule `infinity + 1 = infinity`.
+///
+/// # Errors
+///
+/// Propagates [`faithful_dimension`] and reports a finite result beyond
+/// Rust's addressable range.
+pub fn number_of_complements_of_almost_complete_tilting_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<NumberOfComplementsResult, EnvelopingModuleError> {
+    match faithful_dimension(module)? {
+        FaithfulDimensionResult::Finite(value) => value
+            .checked_add(1)
+            .map(NumberOfComplementsResult::Finite)
+            .ok_or(EnvelopingModuleError::NumberOfComplementsOverflow),
+        FaithfulDimensionResult::Infinite => Ok(NumberOfComplementsResult::Infinite),
+    }
+}
+
+/// QPA's synonym `NumberOfComplementsOfAlmostCompleteCotiltingModule`.
+///
+/// # Errors
+///
+/// Propagates [`number_of_complements_of_almost_complete_tilting_module`].
+pub fn number_of_complements_of_almost_complete_cotilting_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<NumberOfComplementsResult, EnvelopingModuleError> {
+    number_of_complements_of_almost_complete_tilting_module(module)
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7234,6 +7275,9 @@ pub enum EnvelopingModuleError {
     /// A faithful-dimension approximation chain must remain addressable.
     #[error("the FaithfulDimension approximation length overflows usize")]
     FaithfulDimensionOverflow,
+    /// A finite faithful dimension is incremented exactly once by QPA.
+    #[error("the number of complements overflows usize")]
+    NumberOfComplementsOverflow,
     /// A generated GAP resolution degree must fit Rust's addressable lazy
     /// cache in its direction from degree zero.
     #[error("resolution degree is not representable by usize: {degree}")]
@@ -7878,8 +7922,8 @@ mod tests {
         CotiltingModuleResult, DominantDimensionResult, EnvelopingModuleError,
         ExtOverAlgebraResult, FaithfulDimensionResult, FiniteAddMResolutionResult,
         GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
-        PredecessorMultiplicity, PredecessorsOfModuleResult, TensorProductOfModulesResult,
-        TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
+        NumberOfComplementsResult, PredecessorMultiplicity, PredecessorsOfModuleResult,
+        TensorProductOfModulesResult, TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
         algebra_as_module_over_enveloping_algebra,
         all_complements_of_almost_complete_cotilting_module,
         all_complements_of_almost_complete_tilting_module, all_indec_modules_of_length_at_most,
@@ -7910,13 +7954,15 @@ mod tests {
         minimal_left_fac_m_approximation, minimal_left_sub_m_approximation,
         minimal_right_approximation, minimal_right_sub_m_approximation, n_rigid_module,
         nakayama_automorphism, nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
-        nakayama_permutation, opposite_nakayama_functor_of_module,
-        opposite_nakayama_functor_of_module_homomorphism, order_of_nakayama_automorphism,
-        predecessors_of_module, proj_dimension, proj_dimension_of_module, projective_cover,
-        random_module, right_approximation_by_add_m, right_sub_m_approximation, simple_modules,
-        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules,
-        tilting_module, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated,
-        transpose_of_module, transpose_of_module_homomorphism,
+        nakayama_permutation, number_of_complements_of_almost_complete_cotilting_module,
+        number_of_complements_of_almost_complete_tilting_module,
+        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
+        order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
+        proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
+        right_sub_m_approximation, simple_modules, socle_series, star_of_module,
+        star_of_module_homomorphism, tensor_product_of_modules, tilting_module, tr_d,
+        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -9924,6 +9970,71 @@ mod tests {
             "binary": modulehomalg_faithful_dimension_case(&Z2),
             "quinary": modulehomalg_faithful_dimension_case(&Zp::new(5)),
             "rational": modulehomalg_faithful_dimension_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    fn number_of_complements_json(result: NumberOfComplementsResult) -> Value {
+        match result {
+            NumberOfComplementsResult::Finite(value) => value.into(),
+            NumberOfComplementsResult::Infinite => "infinity".into(),
+        }
+    }
+
+    fn modulehomalg_number_complements_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let regular = direct_sum_of_qpa_modules(&projectives).unwrap().unwrap();
+        let simples = simple_modules(&a2).unwrap();
+        let zero = zero_module(&a2).unwrap();
+
+        let check = |module: &PathAlgebraModule<F>| {
+            let has_before = module.cached_faithful_dimension().is_some();
+            let tilting = number_of_complements_of_almost_complete_tilting_module(module).unwrap();
+            let has_after = module.cached_faithful_dimension().is_some();
+            let cotilting =
+                number_of_complements_of_almost_complete_cotilting_module(module).unwrap();
+            json!({
+                "has_before": has_before,
+                "tilting": number_of_complements_json(tilting),
+                "has_after": has_after,
+                "cotilting": number_of_complements_json(cotilting),
+            })
+        };
+        json!({
+            "regular": check(&regular),
+            "projective_1": check(&projectives[0]),
+            "simple_1": check(&simples[0]),
+            "zero": check(&zero),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_number_complements_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_number_complements.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_number_complements",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_number_complements_case(&Z2),
+            "quinary": modulehomalg_number_complements_case(&Zp::new(5)),
+            "rational": modulehomalg_number_complements_case(&Q),
         });
         assert_eq!(actual, expected);
     }
