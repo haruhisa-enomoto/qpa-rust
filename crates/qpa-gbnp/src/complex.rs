@@ -8,11 +8,11 @@ use std::sync::{Arc, Mutex};
 
 use numerica::domains::{Field, integer::Integer};
 use qpa_core::{
-    PathAlgebraModule, PathAlgebraModuleHomomorphism, QpaCoefficientField, kernel_inclusion,
-    zero_module, zero_module_mapping,
+    PathAlgebraModule, PathAlgebraModuleHomomorphism, QpaCoefficientField, cokernel_projection,
+    kernel_inclusion, zero_module, zero_module_mapping,
 };
 
-use crate::module::{EnvelopingModuleError, projective_cover};
+use crate::module::{EnvelopingModuleError, injective_envelope, projective_cover};
 
 #[derive(Debug)]
 struct ProjectiveResolutionData<F: Field> {
@@ -130,6 +130,122 @@ pub fn projective_resolution<F: QpaCoefficientField>(
     })))
 }
 
+#[derive(Debug)]
+struct InjectiveResolutionData<F: Field> {
+    module: PathAlgebraModule<F>,
+    zero: PathAlgebraModule<F>,
+    zero_complex: bool,
+    nonpositive_differentials: Mutex<Vec<PathAlgebraModuleHomomorphism<F>>>,
+}
+
+/// QPA's lazy `InjectiveResolution(M)` complex, including `M` in degree zero.
+///
+/// The differential in degree zero is `InjectiveEnvelope(M)`. Negative
+/// differentials are generated on demand from the preceding differential by
+/// QPA's exact closure
+/// `CoKernelProjection(d) * InjectiveEnvelope(CoKernel(d))`. Positive degrees
+/// use the zero part installed by `Complex`, with `0 -> M` in degree one.
+#[derive(Clone, Debug)]
+pub struct InjectiveResolution<F: Field>(Arc<InjectiveResolutionData<F>>);
+
+impl<F: QpaCoefficientField> InjectiveResolution<F> {
+    /// Return QPA's differential in an arbitrary GAP integer degree.
+    ///
+    /// # Errors
+    ///
+    /// Reports a nonpositive degree whose distance from zero is outside
+    /// Rust's address space and propagates cokernel-projection,
+    /// injective-envelope, composition, and lazy cache failures.
+    pub fn differential(
+        &self,
+        degree: &Integer,
+    ) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+        if self.0.zero_complex {
+            return Ok(zero_module_mapping(
+                self.0.zero.clone(),
+                self.0.zero.clone(),
+            )?);
+        }
+        if degree > &Integer::from(0) {
+            if degree == &Integer::from(1) {
+                return Ok(zero_module_mapping(
+                    self.0.zero.clone(),
+                    self.0.module.clone(),
+                )?);
+            }
+            return Ok(zero_module_mapping(
+                self.0.zero.clone(),
+                self.0.zero.clone(),
+            )?);
+        }
+        let index = usize::try_from(degree.abs()).map_err(|_| {
+            EnvelopingModuleError::ResolutionDegreeNotRepresentable {
+                degree: degree.clone(),
+            }
+        })?;
+        let mut differentials = self
+            .0
+            .nonpositive_differentials
+            .lock()
+            .map_err(|_| EnvelopingModuleError::InjectiveResolutionCachePoisoned)?;
+        while differentials.len() <= index {
+            let previous = differentials
+                .last()
+                .ok_or(EnvelopingModuleError::EmptyInjectiveResolutionCache)?;
+            let projection = cokernel_projection(previous)?;
+            let envelope = injective_envelope(projection.range())?;
+            differentials.push(projection.compose(&envelope)?);
+        }
+        Ok(differentials[index].clone())
+    }
+
+    /// Return QPA's `ObjectOfComplex` value, the source of the differential in
+    /// the entered degree.
+    ///
+    /// # Errors
+    ///
+    /// Propagates [`Self::differential`].
+    pub fn object(&self, degree: &Integer) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+        Ok(self.differential(degree)?.source().clone())
+    }
+}
+
+/// Translate QPA's `InjectiveResolution(M)` constructor.
+///
+/// QPA computes the degree-zero envelope eagerly, then installs the negative
+/// `"next/repeat"` closure. For a zero module, `Complex` evaluates one further
+/// differential and collapses the result to its canonical zero complex; this
+/// branch is reproduced here.
+///
+/// # Errors
+///
+/// Propagates injective-envelope, cokernel-projection, composition, and
+/// zero-module construction failures.
+pub fn injective_resolution<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<InjectiveResolution<F>, EnvelopingModuleError> {
+    let envelope = injective_envelope(module)?;
+    let zero = zero_module(module.right_acting_algebra())?;
+    let zero_complex = if envelope.is_zero() {
+        let projection = cokernel_projection(&envelope)?;
+        let next_envelope = injective_envelope(projection.range())?;
+        projection.compose(&next_envelope)?.is_zero()
+    } else {
+        false
+    };
+    let differentials = if zero_complex {
+        Vec::new()
+    } else {
+        vec![envelope]
+    };
+    Ok(InjectiveResolution(Arc::new(InjectiveResolutionData {
+        module: module.clone(),
+        zero,
+        zero_complex,
+        nonpositive_differentials: Mutex::new(differentials),
+    })))
+}
+
 #[cfg(test)]
 mod tests {
     use numerica::domains::{
@@ -145,7 +261,9 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use super::{ProjectiveResolution, projective_resolution};
+    use super::{
+        InjectiveResolution, ProjectiveResolution, injective_resolution, projective_resolution,
+    };
     use crate::{EnvelopingModuleError, nth_syzygy, quotient_by_relations};
 
     fn vertex(index: usize) -> VertexIndex {
@@ -168,6 +286,21 @@ mod tests {
 
     fn resolution_json<F: QpaCoefficientField>(
         resolution: &ProjectiveResolution<F>,
+        degrees: &[i64],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "objects": degrees.iter().map(|&degree| resolution
+                .object(&Integer::from(degree)).unwrap().dimension_vector().to_vec())
+                .collect::<Vec<_>>(),
+            "differentials": degrees.iter().map(|&degree| map_json(
+                &resolution.differential(&Integer::from(degree)).unwrap(), coefficient))
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn injective_resolution_json<F: QpaCoefficientField>(
+        resolution: &InjectiveResolution<F>,
         degrees: &[i64],
         coefficient: impl Fn(&F::Element) -> Value + Copy,
     ) -> Value {
@@ -256,6 +389,55 @@ mod tests {
         })
     }
 
+    #[allow(clippy::needless_pass_by_value)]
+    fn injective_resolution_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "c")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let a2_zero = zero_module(&a2).unwrap();
+        let simple_two = right_module_over_path_algebra(a2, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual,
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero]], field).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let degrees = [-3, -2, -1, 0, 1, 2];
+
+        json!({
+            "dual_simple_resolution": injective_resolution_json(
+                &injective_resolution(&dual_simple).unwrap(), &degrees, coefficient),
+            "a2_simple_two_resolution": injective_resolution_json(
+                &injective_resolution(&simple_two).unwrap(), &degrees, coefficient),
+            "zero_resolution": injective_resolution_json(
+                &injective_resolution(&a2_zero).unwrap(), &degrees, coefficient),
+        })
+    }
+
     #[test]
     fn pinned_qpa_projective_resolution_fixture_matches() {
         let expected: Value = serde_json::from_str(include_str!(
@@ -282,6 +464,40 @@ mod tests {
                 field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
             )),
             "rational": projective_resolution_case(Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn pinned_qpa_injective_resolution_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/complex_injective_resolution.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "complex_injective_resolution",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": injective_resolution_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": injective_resolution_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational": injective_resolution_case(Q, |entry| json!([
                 entry.numerator_ref().to_string().parse::<i64>().unwrap(),
                 entry.denominator_ref().to_string().parse::<i64>().unwrap(),
             ])),

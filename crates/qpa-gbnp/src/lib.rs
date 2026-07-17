@@ -32,7 +32,9 @@ pub use algebra_conversion::{
     algebra_as_quiver_algebra, end_of_basic_module_as_quiver_algebra,
     end_of_basic_module_as_quiver_algebra_with_bound, end_of_module_as_quiver_algebra,
 };
-pub use complex::{ProjectiveResolution, projective_resolution};
+pub use complex::{
+    InjectiveResolution, ProjectiveResolution, injective_resolution, projective_resolution,
+};
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{
     ModulePreprojectiveError, ModulePreprojectiveStructure, module_preprojective_algebra,

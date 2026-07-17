@@ -6143,8 +6143,9 @@ pub enum EnvelopingModuleError {
     /// The source takes `Sum` only after a nonempty quotient-basis branch.
     #[error("an internal add(M)-approximation map sum was empty")]
     EmptyApproximationGeneratorList,
-    /// A nonnegative GAP degree must fit Rust's addressable lazy cache.
-    #[error("projective-resolution degree is not representable by usize: {degree}")]
+    /// A generated GAP resolution degree must fit Rust's addressable lazy
+    /// cache in its direction from degree zero.
+    #[error("resolution degree is not representable by usize: {degree}")]
     ResolutionDegreeNotRepresentable {
         /// Rejected arbitrary-precision degree.
         degree: Integer,
@@ -6155,6 +6156,14 @@ pub enum EnvelopingModuleError {
     /// Every nonzero projective resolution starts with its degree-zero cover.
     #[error("the nonzero projective-resolution differential cache is empty")]
     EmptyProjectiveResolutionCache,
+    /// A panic while generating a lazy injective differential poisons the
+    /// shared cache.
+    #[error("the lazy injective-resolution cache was poisoned")]
+    InjectiveResolutionCachePoisoned,
+    /// Every nonzero injective resolution starts with its degree-zero
+    /// envelope.
+    #[error("the nonzero injective-resolution differential cache is empty")]
+    EmptyInjectiveResolutionCache,
     /// QPA rejects negative arguments to `NthSyzygy` before constructing the
     /// resolution.
     #[error("entered syzygy degree is negative: {degree}")]

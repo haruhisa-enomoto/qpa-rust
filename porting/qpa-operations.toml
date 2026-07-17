@@ -2339,9 +2339,9 @@ source_file = "upstream/qpa/lib/complex.gd"
 source_start = 74
 source_end = 74
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "injective_resolution; InjectiveResolution"
+tests = ["tests/fixtures/complex_injective_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -3210,9 +3210,9 @@ source_file = "upstream/qpa/lib/complex.gi"
 source_start = 1297
 source_end = 1315
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "injective_resolution; InjectiveResolution"
+tests = ["tests/fixtures/complex_injective_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
