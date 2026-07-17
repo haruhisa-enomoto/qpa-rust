@@ -7,16 +7,21 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    DenseMatrix, MatrixError, ModuleEndomorphismAlgebra, PathAlgebra, PathAlgebraElement,
-    PathAlgebraError, PathAlgebraModule, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
-    PathEndpoint, QpaCoefficientField, Quiver, QuiverAlgebra, QuiverError, QuotientError,
-    StructureConstantsAlgebra, StructureConstantsError, direct_sum_inclusions,
-    direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, from_end_m_to_hom_mm,
-    from_hom_mm_to_end_m, hom_over_algebra,
+    CoefficientDomainError, DenseMatrix, MatrixError, ModuleDecompositionError,
+    ModuleEndomorphismAlgebra, PathAlgebra, PathAlgebraElement, PathAlgebraError,
+    PathAlgebraModule, PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathEndpoint,
+    QpaCoefficientField, Quiver, QuiverAlgebra, QuiverError, QuotientError,
+    StructureConstantsAlgebra, StructureConstantsError, cokernel_of_module_homomorphism,
+    direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
+    from_end_m_to_hom_mm, from_hom_mm_to_end_m, hom_over_algebra, identity_module_mapping,
+    loewy_length_of_module, make_basic_list_of_modules, radical_of_module_inclusion,
 };
 use thiserror::Error;
 
-use crate::{PathalgGbnpError, quotient_by_relations};
+use crate::{
+    EnvelopingModuleError, PathalgGbnpError, indec_projective_modules, loewy_length_of_algebra,
+    quotient_by_relations, quotient_is_finite_dimensional,
+};
 
 /// QPA's `[KQ/I, images]` return value from `AlgebraAsQuiverAlgebra`.
 #[derive(Clone, Debug)]
@@ -423,6 +428,135 @@ fn end_of_basic_module_as_quiver_algebra_impl<F: QpaCoefficientField>(
         final_search_length: length,
         relations_may_be_incomplete,
     })
+}
+
+/// QPA's `ADRAlgebraOfAlgebra` result and installed finite-global-dimension fact.
+#[derive(Clone, Debug)]
+pub struct AdrAlgebraOfAlgebraResult<F: Field> {
+    algebra: QuiverAlgebra<F>,
+}
+
+impl<F: Field> AdrAlgebraOfAlgebraResult<F> {
+    /// Return the ADR quiver algebra.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuiverAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return QPA's explicit `SetIsFiniteGlobalDimensionAlgebra(B, true)` fact.
+    #[must_use]
+    pub const fn is_finite_global_dimension_algebra(&self) -> bool {
+        true
+    }
+
+    /// Consume the metadata wrapper and return QPA's public algebra value.
+    #[must_use]
+    pub fn into_algebra(self) -> QuiverAlgebra<F> {
+        self.algebra
+    }
+}
+
+/// Translate QPA's `ADRAlgebraOfAlgebra(A)` construction.
+///
+/// Starting from QPA's ordered indecomposable projectives, this follows the
+/// successive radical-inclusion composites and cokernels, reverses the full
+/// list of proper radical quotients, and delegates the presentation to
+/// [`end_of_basic_module_as_quiver_algebra`].
+///
+/// # Errors
+///
+/// Reproduces the finite-dimensional precondition and propagates projective,
+/// Loewy-length, radical, cokernel, and basic-endomorphism failures.
+pub fn adr_algebra_of_algebra<F: QpaCoefficientField>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<AdrAlgebraOfAlgebraResult<F>, AdrAlgebraError> {
+    if !quiver_algebra_is_finite_dimensional(algebra)? {
+        return Err(AdrAlgebraError::InfiniteDimensionalAlgebra);
+    }
+    let loewy_length = loewy_length_of_algebra(algebra)?;
+    let mut modules = indec_projective_modules(algebra)?;
+    let mut new_modules = proper_radical_quotients(&modules, loewy_length)?;
+    new_modules.reverse();
+    modules.extend(new_modules);
+    let algebra = end_of_basic_module_as_quiver_algebra(&modules)?.into_algebra();
+    Ok(AdrAlgebraOfAlgebraResult { algebra })
+}
+
+/// Translate QPA's `ADRAlgebraOfBasicModule(L)` construction.
+///
+/// QPA forms every proper quotient `M_i/rad^j(M_i)`, reverses the generated
+/// quotient list, applies `MakeBasicListOfModules`, and then invokes
+/// `EndOfBasicModuleAsQuiverAlgebra`. Rust preserves that exact dependency
+/// chain and its finite-field restriction.
+///
+/// # Errors
+///
+/// Reproduces QPA's nonempty, common-algebra, finite-field, and
+/// finite-dimensional checks and propagates radical, cokernel, deterministic
+/// decomposition, and basic-endomorphism failures.
+pub fn adr_algebra_of_basic_module<F: QpaCoefficientField>(
+    modules: &[PathAlgebraModule<F>],
+) -> Result<QuiverAlgebra<F>, AdrAlgebraError> {
+    let Some(first) = modules.first() else {
+        return Err(AdrAlgebraError::EmptyModuleList);
+    };
+    let algebra = first.right_acting_algebra();
+    if modules
+        .iter()
+        .any(|module| module.right_acting_algebra() != algebra)
+    {
+        return Err(AdrAlgebraError::DifferentActingAlgebras);
+    }
+    if algebra.field().qpa_elements()?.is_none() {
+        return Err(AdrAlgebraError::FiniteFieldRequired);
+    }
+    if !quiver_algebra_is_finite_dimensional(algebra)? {
+        return Err(AdrAlgebraError::InfiniteDimensionalAlgebra);
+    }
+    let mut loewy_length = 0usize;
+    for module in modules {
+        loewy_length = loewy_length.max(loewy_length_of_module(module.clone())?);
+    }
+    let mut new_modules = proper_radical_quotients(modules, loewy_length)?;
+    new_modules.reverse();
+    let mut all_modules = modules.to_vec();
+    all_modules.extend(new_modules);
+    let basic_modules = make_basic_list_of_modules(&all_modules)?;
+    Ok(end_of_basic_module_as_quiver_algebra(&basic_modules)?.into_algebra())
+}
+
+fn proper_radical_quotients<F: Field>(
+    modules: &[PathAlgebraModule<F>],
+    loewy_length: usize,
+) -> Result<Vec<PathAlgebraModule<F>>, PathAlgebraModuleError> {
+    let mut inclusions = modules
+        .iter()
+        .cloned()
+        .map(identity_module_mapping)
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut quotients = Vec::new();
+    for _ in 0..loewy_length {
+        let mut new_inclusions = Vec::new();
+        for inclusion in inclusions {
+            let radical = radical_of_module_inclusion(inclusion.source().clone())?;
+            if radical.source().dimension() > 0 {
+                let composite = radical.compose(&inclusion)?;
+                quotients.push(cokernel_of_module_homomorphism(&composite)?);
+                new_inclusions.push(composite);
+            }
+        }
+        inclusions = new_inclusions;
+    }
+    Ok(quotients)
+}
+
+fn quiver_algebra_is_finite_dimensional<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<bool, PathalgGbnpError> {
+    match algebra {
+        QuiverAlgebra::Path(algebra) => Ok(algebra.has_finite_canonical_basis()),
+        QuiverAlgebra::Quotient(algebra) => quotient_is_finite_dimensional(algebra),
+    }
 }
 
 /// Translate QPA's `EndOfModuleAsQuiverAlgebra(M)` adapter.
@@ -911,6 +1045,41 @@ fn add_row_assign<F: Field>(field: &F, target: &mut [F::Element], source: &[F::E
     }
 }
 
+/// Failure in QPA's two ADR-algebra constructors.
+#[derive(Debug, Error)]
+pub enum AdrAlgebraError {
+    /// `ADRAlgebraOfBasicModule` requires a nonempty list.
+    #[error("the entered module list is empty")]
+    EmptyModuleList,
+    /// Every basic-module input must use one structurally equal algebra.
+    #[error("not all modules are over the same algebra")]
+    DifferentActingAlgebras,
+    /// QPA's basic-module overload is restricted to finite fields.
+    #[error("the entered module is not over an algebra over a finite field")]
+    FiniteFieldRequired,
+    /// Both source methods explicitly require finite-dimensional algebras.
+    #[error("the entered algebra is not a finite-dimensional algebra")]
+    InfiniteDimensionalAlgebra,
+    /// Coefficient-field enumeration failed.
+    #[error(transparent)]
+    Coefficient(#[from] CoefficientDomainError),
+    /// The configured QPA/GBNP finite-dimensionality path failed.
+    #[error(transparent)]
+    Backend(#[from] PathalgGbnpError),
+    /// QPA's projective or algebra-Loewy construction failed.
+    #[error(transparent)]
+    Enveloping(#[from] EnvelopingModuleError),
+    /// Exact radical, cokernel, module-Loewy, or map construction failed.
+    #[error(transparent)]
+    Module(#[from] PathAlgebraModuleError),
+    /// `MakeBasicListOfModules` failed in the basic-module overload.
+    #[error(transparent)]
+    Decomposition(#[from] ModuleDecompositionError),
+    /// The final QPA basic-endomorphism presentation failed.
+    #[error(transparent)]
+    BasicEndomorphism(#[from] EndOfBasicModuleAsQuiverAlgebraError),
+}
+
 /// Failure in QPA's basic-module endomorphism presentation algorithm.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum EndOfBasicModuleAsQuiverAlgebraError {
@@ -1070,10 +1239,10 @@ mod tests {
     use crate::quotient_by_relations;
 
     use super::{
-        AlgebraAsQuiverAlgebraError, EndOfBasicModuleAsQuiverAlgebraError,
-        EndOfModuleAsQuiverAlgebraError, algebra_as_quiver_algebra,
-        end_of_basic_module_as_quiver_algebra, end_of_basic_module_as_quiver_algebra_with_bound,
-        end_of_module_as_quiver_algebra,
+        AdrAlgebraError, AlgebraAsQuiverAlgebraError, EndOfBasicModuleAsQuiverAlgebraError,
+        EndOfModuleAsQuiverAlgebraError, adr_algebra_of_algebra, adr_algebra_of_basic_module,
+        algebra_as_quiver_algebra, end_of_basic_module_as_quiver_algebra,
+        end_of_basic_module_as_quiver_algebra_with_bound, end_of_module_as_quiver_algebra,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1301,7 +1470,13 @@ mod tests {
             None => end_of_basic_module_as_quiver_algebra(modules),
         }
         .unwrap();
-        let algebra = result.algebra();
+        quiver_algebra_json(result.algebra(), coefficient_json)
+    }
+
+    fn quiver_algebra_json<F: Field>(
+        algebra: &QuiverAlgebra<F>,
+        coefficient_json: &impl Fn(&F::Element) -> Value,
+    ) -> Value {
         let dimension = match algebra {
             QuiverAlgebra::Path(algebra) => algebra.canonical_basis().unwrap().len(),
             QuiverAlgebra::Quotient(algebra) => algebra.canonical_basis().unwrap().unwrap().len(),
@@ -1320,6 +1495,24 @@ mod tests {
                     "coefficient": coefficient_json(term.coefficient())
                 })).collect::<Vec<_>>()
             }).collect::<Vec<_>>()
+        })
+    }
+
+    fn adr_algebra_json<F: QpaCoefficientField>(
+        field: F,
+        coefficient_json: &impl Fn(&F::Element) -> Value,
+    ) -> Value {
+        let a2_modules = basic_end_modules(field.clone());
+        let a2 = adr_algebra_of_algebra(a2_modules[0].right_acting_algebra()).unwrap();
+        let dual_modules = dual_numbers_generator(field);
+        let dual = adr_algebra_of_algebra(dual_modules[0].right_acting_algebra()).unwrap();
+        json!({
+            "a2": quiver_algebra_json(a2.algebra(), coefficient_json),
+            "a2_finite_global_dimension_cached":
+                a2.is_finite_global_dimension_algebra(),
+            "dual_numbers": quiver_algebra_json(dual.algebra(), coefficient_json),
+            "dual_numbers_finite_global_dimension_cached":
+                dual.is_finite_global_dimension_algebra()
         })
     }
 
@@ -1543,6 +1736,97 @@ mod tests {
         assert!(matches!(
             end_of_basic_module_as_quiver_algebra(&[repeated]),
             Err(EndOfBasicModuleAsQuiverAlgebraError::EndomorphismRingNotKElementary { module: 1 })
+        ));
+    }
+
+    #[test]
+    fn pinned_qpa_adr_algebra_constructions_match() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_adr.schema-v1.json"
+        ))
+        .unwrap();
+
+        assert_eq!(
+            adr_algebra_json(Z2, &|coefficient| {
+                small_integer(&Z2.to_integer(coefficient)).into()
+            }),
+            fixture["binary"]["algebra"]
+        );
+        let binary = basic_end_modules(Z2);
+        let binary_basic = adr_algebra_of_basic_module(&[binary[1].clone()]).unwrap();
+        assert_eq!(
+            quiver_algebra_json(&binary_basic, &|coefficient| {
+                small_integer(&Z2.to_integer(coefficient)).into()
+            }),
+            fixture["binary"]["basic_module"]
+        );
+
+        let quinary_field = Zp::new(5);
+        assert_eq!(
+            adr_algebra_json(quinary_field.clone(), &|coefficient| {
+                small_integer(&quinary_field.to_integer(coefficient)).into()
+            }),
+            fixture["quinary"]["algebra"]
+        );
+        let quinary = basic_end_modules(quinary_field.clone());
+        let quinary_basic = adr_algebra_of_basic_module(&[quinary[1].clone()]).unwrap();
+        assert_eq!(
+            quiver_algebra_json(&quinary_basic, &|coefficient| {
+                small_integer(&quinary_field.to_integer(coefficient)).into()
+            }),
+            fixture["quinary"]["basic_module"]
+        );
+
+        let rational_json = |coefficient: &Rational| {
+            json!([
+                small_integer(coefficient.numerator_ref()),
+                small_integer(coefficient.denominator_ref())
+            ])
+        };
+        assert_eq!(
+            adr_algebra_json(Q, &rational_json),
+            fixture["rational"]["algebra"]
+        );
+    }
+
+    #[test]
+    fn qpa_adr_validation_branches_match() {
+        assert!(matches!(
+            adr_algebra_of_basic_module::<Z2>(&[]),
+            Err(AdrAlgebraError::EmptyModuleList)
+        ));
+
+        let binary = basic_end_modules(Z2);
+        let foreign_parent =
+            PathAlgebra::new(Z2, Quiver::from_indexed(1, vec![]).unwrap()).unwrap();
+        let foreign =
+            right_module_over_path_algebra(QuiverAlgebra::Path(foreign_parent), vec![1], &[])
+                .unwrap()
+                .unwrap();
+        assert!(matches!(
+            adr_algebra_of_basic_module(&[binary[0].clone(), foreign]),
+            Err(AdrAlgebraError::DifferentActingAlgebras)
+        ));
+
+        let rational = basic_end_modules(Q);
+        assert!(matches!(
+            adr_algebra_of_basic_module(&[rational[0].clone()]),
+            Err(AdrAlgebraError::FiniteFieldRequired)
+        ));
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "a")]).unwrap();
+        let loop_algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, loop_quiver).unwrap());
+        assert!(matches!(
+            adr_algebra_of_algebra(&loop_algebra),
+            Err(AdrAlgebraError::InfiniteDimensionalAlgebra)
+        ));
+        let loop_module = right_module_over_path_algebra(loop_algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            adr_algebra_of_basic_module(&[loop_module]),
+            Err(AdrAlgebraError::InfiniteDimensionalAlgebra)
         ));
     }
 }

@@ -320,6 +320,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_basic_end.g" \
     "$repo_root/tests/fixtures/modulehom_basic_end.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_adr.g" \
+    "$repo_root/tests/fixtures/modulehom_adr.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_submodules.g" \
     "$repo_root/tests/fixtures/modulehom_submodules.schema-v1.json"
 compare_fixture \
@@ -397,6 +400,51 @@ then
 fi
 grep -Fq "endomorphism ring of the entered module is not K-elementary" "$actual"
 grep -Fq "modulehom.gi:4483" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_adr_algebra_infinite_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly formed the ADR algebra of an infinite algebra" >&2
+    exit 1
+fi
+grep -Fq "entered algebra is not a finite dimensional algebra" "$actual"
+grep -Fq "modulehom.gi:4645" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_adr_basic_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an empty ADR basic-module list" >&2
+    exit 1
+fi
+grep -Fq "entered list of modules is empty" "$actual"
+grep -Fq "modulehom.gi:4690" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_adr_basic_different_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted ADR modules over different algebras" >&2
+    exit 1
+fi
+grep -Fq "Not all modules are over the same algebra" "$actual"
+grep -Fq "modulehom.gi:4694" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_adr_basic_rational_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted rational ADR basic modules" >&2
+    exit 1
+fi
+grep -Fq "not over an algebra over a finite field" "$actual"
+grep -Fq "modulehom.gi:4698" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_adr_basic_infinite_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an infinite ADR basic-module algebra" >&2
+    exit 1
+fi
+grep -Fq "entered algebra is not a finite dimensional algebra" "$actual"
+grep -Fq "modulehom.gi:4701" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_all_simple_rational_error.g" \
     >"$actual" 2>&1

@@ -668,7 +668,7 @@ Primary QPA files: `modulehom` and `moduledecomp`.
   uses QPA's socle block splitting and GAP-ordered projective lines, and all
   submodules are built by its quotient/simple/pullback induction with
   dimension-level deduplication. Length-bounded module generation remains.
-- [ ] Port endomorphism quiver-algebra and ADR-algebra constructions.
+- [x] Port endomorphism quiver-algebra and ADR-algebra constructions.
   `EndOfModuleAsQuiverAlgebra` now preserves QPA's `EndOverAlgebra` followed by
   `AlgebraAsQuiverAlgebra` delegation, including the nonbasic rejection and a
   documented repair of QPA's empty-radical list-product crash.
@@ -677,7 +677,9 @@ Primary QPA files: `modulehom` and `moduledecomp`.
   early-break behavior. `EndOfBasicModuleAsQuiverAlgebra` now follows QPA's
   radical-Hom and radical-square quotient construction, ordered direct-sum
   embedding, Loewy/bounded path-dictionary search, and default GBNP quotient
-  over prime fields and the rationals. ADR algebra construction remains.
+  over prime fields and the rationals. Both ADR constructors preserve QPA's
+  successive radical inclusions, cokernel ordering and reversal, optional
+  basic-list reduction, and finite-global-dimension property installation.
 - [x] Port deterministic and probabilistic module decomposition methods,
   including seed control and idempotent lifting. The complete
   `moduledecomp.gd`/`.gi` ledger is verified: deterministic decomposition and

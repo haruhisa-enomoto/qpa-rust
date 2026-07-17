@@ -12648,9 +12648,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 80
 source_end = 80
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "adr_algebra_of_algebra; AdrAlgebraOfAlgebraResult; AdrAlgebraError"
+tests = ["tests/fixtures/modulehom_adr.schema-v1.json","tests/gap-reference/modulehom_adr_algebra_infinite_error.g"]
 deviations = []
 
 [[entries]]
@@ -12661,9 +12661,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 81
 source_end = 81
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "adr_algebra_of_basic_module; AdrAlgebraError"
+tests = ["tests/fixtures/modulehom_adr.schema-v1.json","tests/gap-reference/modulehom_adr_basic_empty_error.g","tests/gap-reference/modulehom_adr_basic_different_error.g","tests/gap-reference/modulehom_adr_basic_rational_error.g","tests/gap-reference/modulehom_adr_basic_infinite_error.g"]
 deviations = []
 
 [[entries]]
@@ -13870,9 +13870,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4635
 source_end = 4667
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "adr_algebra_of_algebra; AdrAlgebraOfAlgebraResult; AdrAlgebraError"
+tests = ["tests/fixtures/modulehom_adr.schema-v1.json","tests/gap-reference/modulehom_adr_algebra_infinite_error.g"]
 deviations = []
 
 [[entries]]
@@ -13883,9 +13883,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4681
 source_end = 4722
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "adr_algebra_of_basic_module; AdrAlgebraError"
+tests = ["tests/fixtures/modulehom_adr.schema-v1.json","tests/gap-reference/modulehom_adr_basic_empty_error.g","tests/gap-reference/modulehom_adr_basic_different_error.g","tests/gap-reference/modulehom_adr_basic_rational_error.g","tests/gap-reference/modulehom_adr_basic_infinite_error.g"]
 deviations = []
 
 [[entries]]
