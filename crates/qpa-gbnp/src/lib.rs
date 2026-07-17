@@ -68,14 +68,20 @@ pub use module::{
     is_omega_periodic, is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
     is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
     is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_weakly_symmetric_algebra,
-    lifting_morphism_from_projective, loewy_length_of_algebra,
-    matrix_of_homomorphism_between_projectives, nakayama_automorphism, nakayama_functor_of_module,
+    left_approximation_by_add_m, lifting_morphism_from_projective, loewy_length_of_algebra,
+    matrix_of_homomorphism_between_projectives, minimal_left_approximation,
+    minimal_right_approximation, nakayama_automorphism, nakayama_functor_of_module,
     nakayama_functor_of_module_homomorphism, nakayama_permutation,
     opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
     order_of_nakayama_automorphism, predecessors_of_module, projective_cover, random_module,
-    simple_modules, socle_series, star_of_module, star_of_module_homomorphism,
-    tensor_product_of_modules, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated,
-    transpose_of_module, transpose_of_module_homomorphism,
+    right_approximation_by_add_m, simple_modules, socle_series, star_of_module,
+    star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
+    tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+    transpose_of_module_homomorphism,
+};
+pub use module::{
+    minimal_left_approximation as minimal_left_add_m_approximation,
+    minimal_right_approximation as minimal_right_add_m_approximation,
 };
 pub use np::{
     NpError, NpMonomial, NpPolynomial, NpTerm, add_np, bimul_np, clean_np, gt_np, lmon_np, lt_np,
