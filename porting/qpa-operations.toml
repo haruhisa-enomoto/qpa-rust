@@ -11140,9 +11140,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "almost_split_sequence; almost_split_sequence_from_side"
+tests = ["tests/fixtures/module_ar_almost_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11179,9 +11179,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "irreducible_morphisms_ending_in"
+tests = ["tests/fixtures/module_ar_irreducible.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11192,9 +11192,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "irreducible_morphisms_starting_in"
+tests = ["tests/fixtures/module_ar_irreducible.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11205,9 +11205,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gi"
 source_start = 13
 source_end = 106
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "almost_split_sequence"
+tests = ["tests/fixtures/module_ar_almost_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11218,9 +11218,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gi"
 source_start = 124
 source_end = 153
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "almost_split_sequence_from_side; AlmostSplitSide"
+tests = ["tests/fixtures/module_ar_almost_split.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11231,9 +11231,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gi"
 source_start = 163
 source_end = 183
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "irreducible_morphisms_ending_in"
+tests = ["tests/fixtures/module_ar_irreducible.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11244,9 +11244,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gi"
 source_start = 193
 source_end = 209
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "irreducible_morphisms_starting_in"
+tests = ["tests/fixtures/module_ar_irreducible.schema-v1.json"]
 deviations = []
 
 [[entries]]

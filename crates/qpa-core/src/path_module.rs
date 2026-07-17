@@ -15,8 +15,8 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    DenseMatrix, Generator, MatrixError, Path, PathEndpoint, QpaCoefficientField, QuiverAlgebra,
-    QuiverAlgebraElement, QuiverAlgebraElementError, QuiverAlgebraHomomorphism,
+    CachedAttribute, DenseMatrix, Generator, MatrixError, Path, PathEndpoint, QpaCoefficientField,
+    QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverAlgebraHomomorphism,
     QuiverAlgebraHomomorphismError, QuotientError, StructureConstantsAlgebra,
     StructureConstantsError, TensorProductAlgebra,
 };
@@ -119,6 +119,9 @@ struct PathAlgebraModuleData<F: Field> {
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     identity_to_double_star_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
+    almost_split_sequence: OnceLock<Option<PathAlgebraModuleHomomorphismPair<F>>>,
+    irreducible_ending: WeakPathAlgebraModuleHomomorphismListCache<F>,
+    irreducible_starting: WeakPathAlgebraModuleHomomorphismListCache<F>,
     first_syzygy: OnceLock<PathAlgebraModule<F>>,
     annihilator: OnceLock<Vec<QuiverAlgebraElement<F>>>,
 }
@@ -164,6 +167,9 @@ impl<F: Field> PathAlgebraModuleData<F> {
             projective_cover_weak: RwLock::new(None),
             injective_envelope_weak: RwLock::new(None),
             identity_to_double_star_weak: RwLock::new(None),
+            almost_split_sequence: OnceLock::new(),
+            irreducible_ending: WeakPathAlgebraModuleHomomorphismListCache::new(),
+            irreducible_starting: WeakPathAlgebraModuleHomomorphismListCache::new(),
             first_syzygy: OnceLock::new(),
             annihilator: OnceLock::new(),
         }
@@ -660,6 +666,70 @@ impl<F: Field> PathAlgebraModule<F> {
         homomorphism: &PathAlgebraModuleHomomorphism<F>,
     ) -> PathAlgebraModuleHomomorphism<F> {
         cache_weak_homomorphism(&self.0.identity_to_double_star_weak, homomorphism)
+    }
+
+    /// Return QPA's cached `AlmostSplitSequence` attribute state.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_almost_split_sequence(
+        &self,
+    ) -> CachedAttribute<PathAlgebraModuleHomomorphismPair<F>> {
+        match self.0.almost_split_sequence.get() {
+            None => CachedAttribute::Unbound,
+            Some(None) => CachedAttribute::Fail,
+            Some(Some(sequence)) => CachedAttribute::Value(sequence.clone()),
+        }
+    }
+
+    /// Install QPA's `AlmostSplitSequence` value or `fail` sentinel.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_almost_split_sequence(
+        &self,
+        sequence: Option<&PathAlgebraModuleHomomorphismPair<F>>,
+    ) -> Option<PathAlgebraModuleHomomorphismPair<F>> {
+        self.0
+            .almost_split_sequence
+            .get_or_init(|| sequence.cloned())
+            .clone()
+    }
+
+    /// Return already-live cached `IrreducibleMorphismsEndingIn` maps.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_irreducible_morphisms_ending_in(
+        &self,
+    ) -> Option<Vec<PathAlgebraModuleHomomorphism<F>>> {
+        self.0.irreducible_ending.cached()
+    }
+
+    /// Install `IrreducibleMorphismsEndingIn` without retaining an `Arc` cycle.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_irreducible_morphisms_ending_in(
+        &self,
+        homomorphisms: &[PathAlgebraModuleHomomorphism<F>],
+    ) -> Vec<PathAlgebraModuleHomomorphism<F>> {
+        self.0.irreducible_ending.merge(homomorphisms)
+    }
+
+    /// Return already-live cached `IrreducibleMorphismsStartingIn` maps.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_irreducible_morphisms_starting_in(
+        &self,
+    ) -> Option<Vec<PathAlgebraModuleHomomorphism<F>>> {
+        self.0.irreducible_starting.cached()
+    }
+
+    /// Install `IrreducibleMorphismsStartingIn` without retaining an `Arc` cycle.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_irreducible_morphisms_starting_in(
+        &self,
+        homomorphisms: &[PathAlgebraModuleHomomorphism<F>],
+    ) -> Vec<PathAlgebraModuleHomomorphism<F>> {
+        self.0.irreducible_starting.merge(homomorphisms)
     }
 
     /// Return QPA's cached `1stSyzygy` attribute, if installed.

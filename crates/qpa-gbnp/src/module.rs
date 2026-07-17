@@ -17,18 +17,21 @@ use qpa_core::{
     CoefficientDomainError, DenseMatrix, MatrixError, ModuleDecompositionError,
     ModuleDimensionSeries, ModuleEndomorphismQuotientHomomorphism, NamedArrowMatrix,
     PathAlgebraElement, PathAlgebraError, PathAlgebraModule, PathAlgebraModuleElement,
-    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraTensorError, PathEndpoint,
-    PathError, QpaCoefficientField, QpaFieldCharacteristic, QuiverAlgebra, QuiverAlgebraElement,
-    QuiverAlgebraElementError, QuiverProduct, QuiverProductError, QuotientError,
-    QuotientPathAlgebra, cokernel_of_module_homomorphism, direct_sum_inclusions,
-    direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, from_hom_mm_to_end_m,
-    hom_over_algebra, identity_module_mapping, include_in_path_algebra, is_indecomposable_module,
-    isomorphic_modules, isomorphism_of_modules, kernel_inclusion, kernel_of_module_homomorphism,
-    loewy_length_of_module, minimal_generating_set_of_module, morphism_on_cokernel,
-    morphism_on_kernel, natural_endomorphism_quotient_by_ideal, project_from_product_quiver,
-    push_out, radical_of_module, right_module_hom_over_algebra, right_module_over_path_algebra,
-    right_module_over_path_algebra_with_tensor, socle_of_module, socle_of_module_inclusion,
-    subrepresentation_inclusion, top_of_module, zero_module, zero_module_mapping,
+    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraModuleHomomorphismPair,
+    PathAlgebraTensorError, PathEndpoint, PathError, QpaCoefficientField, QpaFieldCharacteristic,
+    QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverProduct,
+    QuiverProductError, QuotientError, QuotientPathAlgebra, StructureConstantsError,
+    cokernel_of_module_homomorphism, cokernel_projection, decompose_module_with_inclusions,
+    direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
+    from_end_m_to_hom_mm, from_hom_mm_to_end_m, hom_over_algebra, identity_module_mapping,
+    include_in_path_algebra, is_indecomposable_module, isomorphic_modules, isomorphism_of_modules,
+    kernel_inclusion, kernel_of_module_homomorphism, loewy_length_of_module,
+    minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_kernel,
+    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, push_out,
+    radical_of_module, radical_of_module_inclusion, right_module_hom_over_algebra,
+    right_module_over_path_algebra, right_module_over_path_algebra_with_tensor, socle_of_module,
+    socle_of_module_inclusion, subrepresentation_inclusion, top_of_module, zero_module,
+    zero_module_mapping,
 };
 use rand::Rng;
 use thiserror::Error;
@@ -3142,6 +3145,291 @@ pub enum ExceptionalModuleError {
     Decomposition(#[from] ModuleDecompositionError),
 }
 
+/// Choose whether QPA's two-argument `AlmostSplitSequence(M, e)` dispatch
+/// starts at or ends in the entered module.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum AlmostSplitSide {
+    /// QPA's `"l"`: construct a sequence starting at the module by duality.
+    Starting,
+    /// QPA's `"r"`: construct the cached sequence ending in the module.
+    Ending,
+}
+
+/// Translate QPA's cached `AlmostSplitSequence(M)` attribute.
+///
+/// For a projective module, `Ok(None)` is QPA's `fail`. Otherwise the source
+/// chooses the first basis class outside the image of
+/// `Hom(P(M), DTr(M))`, repeatedly acts by the radical of `End(DTr(M))`
+/// until that Ext class reaches the socle, and realizes the class as a
+/// pushout. The returned pair is the monomorphism followed by the epimorphism.
+///
+/// # Errors
+///
+/// Propagates projectivity, `DTr`, projective-cover, Hom-space,
+/// endomorphism-radical, exact row-space, pushout, and cokernel failures.
+pub fn almost_split_sequence<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphismPair<F>>, AuslanderReitenError> {
+    match module.cached_almost_split_sequence() {
+        CachedAttribute::Unbound => {}
+        CachedAttribute::Fail => return Ok(None),
+        CachedAttribute::False => {
+            return Err(AuslanderReitenError::InvalidAlmostSplitCacheState);
+        }
+        CachedAttribute::Value(sequence) => return Ok(Some(sequence)),
+    }
+    if is_projective_module(module)? {
+        return Ok(module.cache_almost_split_sequence(None));
+    }
+
+    let translate = d_tr(module)?;
+    let cover = projective_cover(module)?;
+    let syzygy_inclusion = kernel_inclusion(&cover)?;
+    let projective_homs = hom_over_algebra(cover.source(), &translate)?
+        .ok_or(AuslanderReitenError::InternalProjectiveHomRejected)?;
+    let syzygy_homs = hom_over_algebra(syzygy_inclusion.source(), &translate)?
+        .ok_or(AuslanderReitenError::InternalSyzygyHomRejected)?;
+    let Some(first_syzygy_hom) = syzygy_homs.first() else {
+        return Err(AuslanderReitenError::NoNonzeroExtClass);
+    };
+    let flat_length = first_syzygy_hom.flat_vertex_matrix_entries().len();
+    let image_generators = projective_homs
+        .iter()
+        .map(|homomorphism| syzygy_inclusion.compose(homomorphism))
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .filter(|homomorphism| !homomorphism.is_zero())
+        .collect::<Vec<_>>();
+    let image_span = if image_generators.is_empty() {
+        None
+    } else {
+        Some(DenseMatrix::from_flat(
+            image_generators.len(),
+            flat_length,
+            image_generators
+                .iter()
+                .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+                .collect(),
+            module.right_acting_algebra().field().clone(),
+        )?)
+    };
+    let mut extension = syzygy_homs
+        .into_iter()
+        .find_map(|homomorphism| {
+            match flat_row_in_span(
+                image_span.as_ref(),
+                &homomorphism.flat_vertex_matrix_entries(),
+                module.right_acting_algebra().field(),
+            ) {
+                Ok(true) => None,
+                Ok(false) => Some(Ok(homomorphism)),
+                Err(error) => Some(Err(error)),
+            }
+        })
+        .transpose()?
+        .ok_or(AuslanderReitenError::NoNonzeroExtClass)?;
+
+    let endomorphism_algebra = end_over_algebra(&translate)?;
+    let structure_constants = endomorphism_algebra.structure_constants_algebra()?;
+    let radical = structure_constants.radical()?;
+    let radical_homomorphisms = (0..radical.basis().nrows())
+        .map(|row| {
+            let matrix = endomorphism_algebra.matrix_from_coefficients(radical.basis().row(row))?;
+            Ok(from_end_m_to_hom_mm(&translate, &matrix)?)
+        })
+        .collect::<Result<Vec<_>, AuslanderReitenError>>()?;
+
+    loop {
+        let composites = radical_homomorphisms
+            .iter()
+            .map(|radical_map| extension.compose(radical_map))
+            .collect::<Result<Vec<_>, _>>()?;
+        let mut first_outside = None;
+        for (position, composite) in composites.iter().enumerate() {
+            if !flat_row_in_span(
+                image_span.as_ref(),
+                &composite.flat_vertex_matrix_entries(),
+                module.right_acting_algebra().field(),
+            )? {
+                first_outside = Some(position);
+                break;
+            }
+        }
+        let Some(position) = first_outside else {
+            break;
+        };
+        extension = composites[position].clone();
+    }
+
+    let pushout = push_out(&syzygy_inclusion, &extension)?
+        .ok_or(AuslanderReitenError::InternalAlmostSplitPushOutFailed)?;
+    let monomorphism = pushout.0;
+    let epimorphism = cokernel_projection(&monomorphism)?;
+    let sequence = (monomorphism, epimorphism);
+    Ok(module.cache_almost_split_sequence(Some(&sequence)))
+}
+
+/// Translate QPA's two-argument `AlmostSplitSequence(M, "l"|"r")`
+/// overload with a typed side selector.
+///
+/// # Errors
+///
+/// The ending case delegates to [`almost_split_sequence`]. The starting case
+/// additionally propagates module and map dualization failures.
+pub fn almost_split_sequence_from_side<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    side: AlmostSplitSide,
+) -> Result<Option<PathAlgebraModuleHomomorphismPair<F>>, AuslanderReitenError> {
+    if side == AlmostSplitSide::Ending {
+        return almost_split_sequence(module);
+    }
+    let dual = dual_of_module(module)?;
+    let Some((monomorphism, epimorphism)) = almost_split_sequence(&dual)? else {
+        return Ok(None);
+    };
+    Ok(Some((
+        dual_of_module_homomorphism(&epimorphism)?,
+        dual_of_module_homomorphism(&monomorphism)?,
+    )))
+}
+
+/// Translate QPA's cached `IrreducibleMorphismsEndingIn(M)` attribute.
+///
+/// Over a finite field, the source uses the radical inclusion for a
+/// projective module and the almost-split epimorphism otherwise. It decomposes
+/// that map's source with inclusions and composes every inclusion into the
+/// selected map, preserving decomposition order and repeated isomorphic
+/// summands.
+///
+/// # Errors
+///
+/// Requires a supported finite field and propagates projectivity,
+/// almost-split, radical, decomposition, and map-composition failures.
+pub fn irreducible_morphisms_ending_in<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, AuslanderReitenError> {
+    if let Some(cached) = module.cached_irreducible_morphisms_ending_in() {
+        return Ok(cached);
+    }
+    if module
+        .right_acting_algebra()
+        .field()
+        .qpa_elements()?
+        .is_none()
+    {
+        return Err(AuslanderReitenError::FiniteFieldRequired);
+    }
+    let right_almost_split = if is_projective_module(module)? {
+        radical_of_module_inclusion(module.clone())?
+    } else {
+        almost_split_sequence(module)?
+            .ok_or(AuslanderReitenError::UnexpectedProjectiveAlmostSplitFail)?
+            .1
+    };
+    if right_almost_split.source().dimension() == 0 {
+        return Err(AuslanderReitenError::ZeroIrreducibleSourceDecomposition);
+    }
+    let inclusions = decompose_module_with_inclusions(right_almost_split.source())?;
+    let homomorphisms = inclusions
+        .iter()
+        .map(|inclusion| inclusion.compose(&right_almost_split))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(module.cache_irreducible_morphisms_ending_in(&homomorphisms))
+}
+
+/// Translate QPA's cached `IrreducibleMorphismsStartingIn(M)` attribute by
+/// dualizing every irreducible morphism ending in `DualOfModule(M)`.
+///
+/// # Errors
+///
+/// Requires a supported finite field and propagates dualization and ending-map
+/// construction failures.
+pub fn irreducible_morphisms_starting_in<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<Vec<PathAlgebraModuleHomomorphism<F>>, AuslanderReitenError> {
+    if let Some(cached) = module.cached_irreducible_morphisms_starting_in() {
+        return Ok(cached);
+    }
+    if module
+        .right_acting_algebra()
+        .field()
+        .qpa_elements()?
+        .is_none()
+    {
+        return Err(AuslanderReitenError::FiniteFieldRequired);
+    }
+    let dual = dual_of_module(module)?;
+    let homomorphisms = irreducible_morphisms_ending_in(&dual)?
+        .iter()
+        .map(dual_of_module_homomorphism)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(module.cache_irreducible_morphisms_starting_in(&homomorphisms))
+}
+
+fn flat_row_in_span<F: Field>(
+    span: Option<&DenseMatrix<F>>,
+    row: &[F::Element],
+    field: &F,
+) -> Result<bool, MatrixError> {
+    match span {
+        Some(span) => Ok(span.solution_row(row)?.is_some()),
+        None => Ok(row.iter().all(|entry| field.is_zero(entry))),
+    }
+}
+
+/// Failure while constructing QPA's almost-split sequences and neighboring
+/// Auslander--Reiten data.
+#[derive(Debug, Error)]
+pub enum AuslanderReitenError {
+    /// The attribute accepts only unbound, `fail`, or a two-map sequence.
+    #[error("the AlmostSplitSequence attribute cache contains boolean false")]
+    InvalidAlmostSplitCacheState,
+    /// The projective-cover Hom call uses modules over one acting algebra.
+    #[error("HomOverAlgebra rejected the projective-to-DTr Hom space")]
+    InternalProjectiveHomRejected,
+    /// The syzygy Hom call uses modules over one acting algebra.
+    #[error("HomOverAlgebra rejected the syzygy-to-DTr Hom space")]
+    InternalSyzygyHomRejected,
+    /// An indecomposable nonprojective module must have nonzero
+    /// `Ext^1(M,DTr(M))`.
+    #[error("AlmostSplitSequence found no nonzero Ext class")]
+    NoNonzeroExtClass,
+    /// Both source maps in the almost-split pushout share the syzygy source.
+    #[error("the internal AlmostSplitSequence pushout returned fail")]
+    InternalAlmostSplitPushOutFailed,
+    /// QPA restricts irreducible-morphism enumeration to finite fields.
+    #[error("module is not over a quiver algebra with a finite field as ground ring")]
+    FiniteFieldRequired,
+    /// The nonprojective branch cannot receive the projective `fail` result.
+    #[error("AlmostSplitSequence unexpectedly returned fail for a nonprojective module")]
+    UnexpectedProjectiveAlmostSplitFail,
+    /// QPA's decomposition route errors when a projective simple has zero
+    /// radical (and dually for a simple injective starting map).
+    #[error("IrreducibleMorphisms attempts to decompose a zero map source")]
+    ZeroIrreducibleSourceDecomposition,
+    /// Supported-field enumeration failed.
+    #[error(transparent)]
+    Coefficient(#[from] CoefficientDomainError),
+    /// Enveloping-module and AR-functor construction failed.
+    #[error(transparent)]
+    Enveloping(#[from] EnvelopingModuleError),
+    /// Generic module or map dualization failed.
+    #[error(transparent)]
+    Functor(#[from] ModuleFunctorError),
+    /// Module maps, projective covers, pushouts, or cokernels failed.
+    #[error(transparent)]
+    Module(#[from] PathAlgebraModuleError),
+    /// Exact row-space or endomorphism-matrix arithmetic failed.
+    #[error(transparent)]
+    Matrix(#[from] MatrixError),
+    /// The radical of the exact endomorphism algebra failed.
+    #[error(transparent)]
+    StructureConstants(#[from] StructureConstantsError),
+    /// Finite-field indecomposable decomposition failed.
+    #[error(transparent)]
+    Decomposition(#[from] ModuleDecompositionError),
+}
+
 /// Translate QPA's `AllModulesOfLengthPlusOne(list)` operation.
 ///
 /// The input is a nonempty list of equal-dimensional modules over one
@@ -5846,12 +6134,12 @@ mod tests {
     use qpa_core::{
         AlgebraGlobalDimension, ArrowSpec, CachedAttribute, DenseMatrix, ModuleDimensionSeries,
         NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement,
-        PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, QpaCoefficientField, Quiver,
-        QuiverAlgebra, QuiverAlgebraElement, StructureConstantsAlgebra, VertexIndex,
-        dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
-        from_end_m_to_hom_mm, from_hom_mm_to_end_m, identity_module_mapping,
-        include_in_path_algebra, is_indecomposable_module, is_semisimple_module,
-        is_simple_qpa_module, kernel_inclusion, lifting_inclusion_morphisms,
+        PathAlgebraModuleHomomorphism, PathAlgebraModuleHomomorphismPair, PathAlgebraModuleMatrix,
+        QpaCoefficientField, Quiver, QuiverAlgebra, QuiverAlgebraElement,
+        StructureConstantsAlgebra, VertexIndex, dimension_vector_partial_order,
+        direct_sum_of_qpa_modules, end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m,
+        identity_module_mapping, include_in_path_algebra, is_indecomposable_module,
+        is_semisimple_module, is_simple_qpa_module, kernel_inclusion, lifting_inclusion_morphisms,
         minimal_generating_set_of_module, radical_series, right_fac_approximation,
         right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
         socle_of_module_inclusion, top_of_module, top_of_module_projection, trace_of_module,
@@ -5861,11 +6149,12 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        EnvelopingModuleError, ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult,
-        ModuleLengthError, NakayamaAutomorphismOrder, TensorProductOfModulesResult,
-        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        all_indec_modules_of_length_at_most, all_modules_of_length_at_most,
-        all_modules_of_length_plus_one, annihilator_of_module, basis_of_projectives,
+        AlmostSplitSide, EnvelopingModuleError, ExtOverAlgebraResult,
+        GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
+        TensorProductOfModulesResult, algebra_as_module_of_enveloping_algebra,
+        algebra_as_module_over_enveloping_algebra, all_indec_modules_of_length_at_most,
+        all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
+        almost_split_sequence_from_side, annihilator_of_module, basis_of_projectives,
         canonical_basis_coefficients, cartan_matrix, complexity_of_algebra, complexity_of_module,
         coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism, d_tr_homomorphism_iterated,
         d_tr_iterated, dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
@@ -5876,17 +6165,17 @@ mod tests {
         from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
         global_dimension_of_algebra, hom_factoring_through_projectives, hom_from_projective,
         indec_injective_modules, indec_projective_modules, injective_envelope,
-        is_exceptional_module, is_finite_global_dimension_from_known_properties,
-        is_hereditary_algebra, is_injective_module, is_projective_module, is_rigid_module,
-        is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
-        is_symmetric_algebra, is_tau_rigid_module, is_weakly_symmetric_algebra,
-        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
-        nakayama_automorphism, nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
-        nakayama_permutation, opposite_nakayama_functor_of_module,
-        opposite_nakayama_functor_of_module_homomorphism, order_of_nakayama_automorphism,
-        projective_cover, random_module, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
-        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_exceptional_module,
+        is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
+        is_injective_module, is_projective_module, is_rigid_module, is_schurian_algebra,
+        is_selfinjective_algebra, is_semicommutative_algebra, is_symmetric_algebra,
+        is_tau_rigid_module, is_weakly_symmetric_algebra, lifting_morphism_from_projective,
+        matrix_of_homomorphism_between_projectives, nakayama_automorphism,
+        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
+        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
+        order_of_nakayama_automorphism, projective_cover, random_module, simple_modules,
+        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules, tr_d,
+        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
         transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
@@ -6684,6 +6973,296 @@ mod tests {
         assert!(first.is_identical(&second));
         assert!(first.source().is_identical(&module));
         assert!(first.range().is_identical(&double_star));
+    }
+
+    fn almost_split_sequence_json<F: Field>(
+        sequence: Option<PathAlgebraModuleHomomorphismPair<F>>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        match sequence {
+            None => Value::Null,
+            Some((monomorphism, epimorphism)) => json!({
+                "monomorphism": double_star_map_json(&monomorphism, coefficient),
+                "epimorphism": double_star_map_json(&epimorphism, coefficient),
+            }),
+        }
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn module_ar_almost_split_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(a2.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual,
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero]], field).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        json!({
+            "ending_simple_one": almost_split_sequence_json(
+                almost_split_sequence(&simple_one).unwrap(), coefficient),
+            "ending_simple_two": almost_split_sequence_json(
+                almost_split_sequence(&simple_two).unwrap(), coefficient),
+            "ending_projective": almost_split_sequence_json(
+                almost_split_sequence(&projective).unwrap(), coefficient),
+            "ending_dual_simple": almost_split_sequence_json(
+                almost_split_sequence(&dual_simple).unwrap(), coefficient),
+            "starting_simple_one": almost_split_sequence_json(
+                almost_split_sequence_from_side(&simple_one, AlmostSplitSide::Starting).unwrap(),
+                coefficient),
+            "starting_simple_two": almost_split_sequence_json(
+                almost_split_sequence_from_side(&simple_two, AlmostSplitSide::Starting).unwrap(),
+                coefficient),
+            "starting_dual_simple": almost_split_sequence_json(
+                almost_split_sequence_from_side(&dual_simple, AlmostSplitSide::Starting).unwrap(),
+                coefficient),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_module_ar_almost_split_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_ar_almost_split.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "module_ar_almost_split",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": module_ar_almost_split_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": module_ar_almost_split_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational": module_ar_almost_split_case(Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn almost_split_sequence_caches_values_and_projective_fail() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let nonprojective = simple_modules(&algebra).unwrap()[0].clone();
+        let projective = simple_modules(&algebra).unwrap()[1].clone();
+        let first = almost_split_sequence(&nonprojective).unwrap().unwrap();
+        let second = almost_split_sequence(&nonprojective).unwrap().unwrap();
+
+        assert!(first.0.is_identical(&second.0));
+        assert!(first.1.is_identical(&second.1));
+        assert!(almost_split_sequence(&projective).unwrap().is_none());
+        assert!(matches!(
+            projective.cached_almost_split_sequence(),
+            CachedAttribute::Fail
+        ));
+        assert!(almost_split_sequence(&projective).unwrap().is_none());
+    }
+
+    fn irreducible_maps_json<F: Field>(
+        maps: &[PathAlgebraModuleHomomorphism<F>],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!(
+            maps.iter()
+                .map(|map| double_star_map_json(map, coefficient))
+                .collect::<Vec<_>>()
+        )
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn module_ar_irreducible_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let zero = field.zero();
+        let one = field.one();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(a2.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual,
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero]], field).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        json!({
+            "ending_simple_one": irreducible_maps_json(
+                &irreducible_morphisms_ending_in(&simple_one).unwrap(), coefficient),
+            "ending_projective": irreducible_maps_json(
+                &irreducible_morphisms_ending_in(&projective).unwrap(), coefficient),
+            "ending_dual_simple": irreducible_maps_json(
+                &irreducible_morphisms_ending_in(&dual_simple).unwrap(), coefficient),
+            "starting_simple_two": irreducible_maps_json(
+                &irreducible_morphisms_starting_in(&simple_two).unwrap(), coefficient),
+            "starting_dual_simple": irreducible_maps_json(
+                &irreducible_morphisms_starting_in(&dual_simple).unwrap(), coefficient),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_module_ar_irreducible_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_ar_irreducible.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "module_ar_irreducible",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": module_ar_irreducible_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": module_ar_irreducible_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+        });
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn irreducible_morphisms_preserve_qpa_field_error_and_live_cache() {
+        let binary = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&binary).unwrap();
+        let first = irreducible_morphisms_ending_in(&simples[0]).unwrap();
+        let second = irreducible_morphisms_ending_in(&simples[0]).unwrap();
+        assert_eq!(first.len(), second.len());
+        assert!(
+            first
+                .iter()
+                .zip(&second)
+                .all(|(left, right)| left.is_identical(right))
+        );
+        assert!(matches!(
+            irreducible_morphisms_ending_in(&simples[1]),
+            Err(super::AuslanderReitenError::ZeroIrreducibleSourceDecomposition)
+        ));
+
+        let rational = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let rational_simple = simple_modules(&rational).unwrap()[0].clone();
+        assert!(matches!(
+            irreducible_morphisms_ending_in(&rational_simple),
+            Err(super::AuslanderReitenError::FiniteFieldRequired)
+        ));
+        assert!(matches!(
+            irreducible_morphisms_starting_in(&rational_simple),
+            Err(super::AuslanderReitenError::FiniteFieldRequired)
+        ));
     }
 
     fn module_map_json<F: Field>(
