@@ -14650,9 +14650,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 62
 source_end = 62
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution_of_simple_module_over_endo"
+tests = ["tests/fixtures/modulehomalg_projective_resolution_simple_endo.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15222,9 +15222,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1868
 source_end = 1908
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution_of_simple_module_over_endo"
+tests = ["tests/fixtures/modulehomalg_projective_resolution_simple_endo.schema-v1.json"]
 deviations = []
 
 [[entries]]

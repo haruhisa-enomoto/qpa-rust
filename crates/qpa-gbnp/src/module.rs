@@ -4419,6 +4419,128 @@ pub fn radical_right_approximation_by_add_m<F: QpaCoefficientField>(
     Ok(approximation)
 }
 
+/// QPA's heterogeneous first result component from
+/// `ProjectiveResolutionOfSimpleModuleOverEndo`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ProjectiveResolutionOfSimpleModuleOverEndoStatus {
+    /// QPA found this finite projective dimension.
+    Finite(Integer),
+    /// QPA exhausted the entered loop and returned `"projdim > t"`.
+    ///
+    /// The source interpolates the one-based module index `t`, rather than
+    /// the entered resolution length. The index is retained here so bindings
+    /// can reproduce that literal result without making the Rust API stringly
+    /// typed.
+    GreaterThanModuleIndex(Integer),
+}
+
+/// QPA's pair returned by `ProjectiveResolutionOfSimpleModuleOverEndo`.
+#[derive(Clone, Debug)]
+pub struct ProjectiveResolutionOfSimpleModuleOverEndoResult<F: Field> {
+    projective_dimension: ProjectiveResolutionOfSimpleModuleOverEndoStatus,
+    syzygies: Vec<PathAlgebraModule<F>>,
+}
+
+impl<F: Field> ProjectiveResolutionOfSimpleModuleOverEndoResult<F> {
+    /// Return QPA's integer-or-string first result component in typed form.
+    #[must_use]
+    pub const fn projective_dimension(&self) -> &ProjectiveResolutionOfSimpleModuleOverEndoStatus {
+        &self.projective_dimension
+    }
+
+    /// Return the nonzero stripped kernels accumulated in QPA loop order.
+    #[must_use]
+    pub fn syzygies(&self) -> &[PathAlgebraModule<F>] {
+        &self.syzygies
+    }
+}
+
+/// Translate QPA's `ProjectiveResolutionOfSimpleModuleOverEndo(L, t, length)`.
+///
+/// The source begins with [`radical_right_approximation_by_add_m`] at the
+/// one-based list position `t`. In each degree it checks a zero source before
+/// injectivity, takes the kernel, and repeatedly removes every common direct
+/// summand with each entry of `L` in list order. A nonzero stripped kernel is
+/// recorded and approximated through the list overload
+/// [`right_approximation_by_add_m_list`]. The GAP range `[1..length-2]` and
+/// all of its early-return offsets are preserved with arbitrary-precision
+/// integers.
+///
+/// # Errors
+///
+/// Rejects a negative length before inspecting the list or index, then
+/// propagates radical/list approximation, kernel, and common-summand
+/// failures. QPA's invalid attempt to index the `fail` returned by
+/// `CommonDirectSummand` for different algebras is exposed as a typed error.
+pub fn projective_resolution_of_simple_module_over_endo<F: QpaCoefficientField>(
+    modules: &[PathAlgebraModule<F>],
+    index: &Integer,
+    length: &Integer,
+) -> Result<ProjectiveResolutionOfSimpleModuleOverEndoResult<F>, EnvelopingModuleError> {
+    if length < &Integer::from(0) {
+        return Err(
+            EnvelopingModuleError::NegativeSimpleEndoProjectiveResolutionLength {
+                length: length.clone(),
+            },
+        );
+    }
+
+    let mut approximation = radical_right_approximation_by_add_m(modules, index)?;
+    let mut syzygies = Vec::new();
+    let cutoff = length - 2;
+    let mut degree = Integer::one();
+    while degree <= cutoff {
+        if approximation.source().dimension() == 0 {
+            return Ok(ProjectiveResolutionOfSimpleModuleOverEndoResult {
+                projective_dimension: ProjectiveResolutionOfSimpleModuleOverEndoStatus::Finite(
+                    &degree - 1,
+                ),
+                syzygies,
+            });
+        }
+        if approximation.is_injective() {
+            return Ok(ProjectiveResolutionOfSimpleModuleOverEndoResult {
+                projective_dimension: ProjectiveResolutionOfSimpleModuleOverEndoStatus::Finite(
+                    degree,
+                ),
+                syzygies,
+            });
+        }
+
+        let mut kernel = kernel_of_module_homomorphism(&approximation)?;
+        for module in modules {
+            loop {
+                match common_direct_summand(&kernel, module)? {
+                    CommonDirectSummandResult::DifferentAlgebras => {
+                        return Err(EnvelopingModuleError::SimpleEndoResolutionCommonSummandFail);
+                    }
+                    CommonDirectSummandResult::NoCommonSummand => break,
+                    CommonDirectSummandResult::Found(common) => {
+                        kernel = common.source_complement().clone();
+                    }
+                }
+            }
+        }
+        if kernel.dimension() == 0 {
+            return Ok(ProjectiveResolutionOfSimpleModuleOverEndoResult {
+                projective_dimension: ProjectiveResolutionOfSimpleModuleOverEndoStatus::Finite(
+                    &degree + 1,
+                ),
+                syzygies,
+            });
+        }
+        syzygies.push(kernel.clone());
+        approximation = right_approximation_by_add_m_list(modules, &kernel)?;
+        degree += 1;
+    }
+
+    Ok(ProjectiveResolutionOfSimpleModuleOverEndoResult {
+        projective_dimension:
+            ProjectiveResolutionOfSimpleModuleOverEndoStatus::GreaterThanModuleIndex(index.clone()),
+        syzygies,
+    })
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7715,6 +7837,17 @@ pub enum EnvelopingModuleError {
     /// QPA's radical branch always direct-sums a nonempty source list.
     #[error("the internal radical add(M)-approximation direct sum returned fail")]
     InternalRadicalApproximationDirectSumFailed,
+    /// QPA rejects a negative length before constructing its initial radical
+    /// approximation.
+    #[error("the entered simple-endo projective-resolution length is negative: {length}")]
+    NegativeSimpleEndoProjectiveResolutionLength {
+        /// Rejected arbitrary-precision GAP integer.
+        length: Integer,
+    },
+    /// QPA receives `fail` here and then attempts to select its second list
+    /// component.
+    #[error("CommonDirectSummand returned fail inside the simple-endo projective resolution")]
+    SimpleEndoResolutionCommonSummandFail,
     /// The projective cover and its add(M)-approximation share their source.
     #[error("the internal LeftFacMApproximation pushout returned fail")]
     InternalLeftFacPushOutFailed,
@@ -8414,7 +8547,9 @@ mod tests {
         ExtOverAlgebraResult, FaithfulDimensionResult, FiniteAddMResolutionResult,
         GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
         NumberOfComplementsResult, PredecessorMultiplicity, PredecessorsOfModuleResult,
-        TensorProductOfModulesResult, TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
+        ProjectiveResolutionOfSimpleModuleOverEndoResult,
+        ProjectiveResolutionOfSimpleModuleOverEndoStatus, TensorProductOfModulesResult,
+        TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
         algebra_as_module_over_enveloping_algebra,
         all_complements_of_almost_complete_cotilting_module,
         all_complements_of_almost_complete_tilting_module, all_indec_modules_of_length_at_most,
@@ -8451,7 +8586,8 @@ mod tests {
         number_of_complements_of_almost_complete_tilting_module,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
-        proj_dimension_of_module, projective_cover, radical_right_approximation_by_add_m,
+        proj_dimension_of_module, projective_cover,
+        projective_resolution_of_simple_module_over_endo, radical_right_approximation_by_add_m,
         random_module, right_approximation_by_add_m, right_approximation_by_add_m_list,
         right_approximation_by_perp_t, right_mutation_of_cotilting_module_complement,
         right_mutation_of_tilting_module_complement, right_sub_m_approximation, simple_modules,
@@ -11044,6 +11180,132 @@ mod tests {
             ])),
         });
         assert_eq!(actual, expected);
+    }
+
+    fn simple_endo_resolution_json<F: Field>(
+        result: &ProjectiveResolutionOfSimpleModuleOverEndoResult<F>,
+    ) -> Value {
+        let projective_dimension = match result.projective_dimension() {
+            ProjectiveResolutionOfSimpleModuleOverEndoStatus::Finite(dimension) => {
+                json!(dimension.to_string().parse::<i64>().unwrap())
+            }
+            ProjectiveResolutionOfSimpleModuleOverEndoStatus::GreaterThanModuleIndex(index) => {
+                Value::String(format!("projdim > {index}"))
+            }
+        };
+        json!({
+            "projective_dimension": projective_dimension,
+            "syzygy_dimension_vectors": result
+                .syzygies()
+                .iter()
+                .map(PathAlgebraModule::dimension_vector)
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn modulehomalg_projective_resolution_simple_endo_case<F: QpaCoefficientField>(
+        field: &F,
+    ) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&a2).unwrap();
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let dual = fresh_dual_numbers(field);
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+        let dual_regular = indec_projective_modules(&dual).unwrap()[0].clone();
+        let evaluate = |modules: &[PathAlgebraModule<F>], index, length| {
+            simple_endo_resolution_json(
+                &projective_resolution_of_simple_module_over_endo(
+                    modules,
+                    &Integer::from(index),
+                    &Integer::from(length),
+                )
+                .unwrap(),
+            )
+        };
+        json!({
+            "single_s1_length_3": evaluate(std::slice::from_ref(&simples[0]), 1, 3),
+            "projectives_at_one_length_3": evaluate(&projectives, 1, 3),
+            "dual_regular_simple_at_two_length_3": evaluate(
+                &[dual_regular.clone(), dual_simple.clone()],
+                2,
+                3,
+            ),
+            "dual_regular_simple_at_two_length_0": evaluate(
+                &[dual_regular.clone(), dual_simple],
+                2,
+                0,
+            ),
+            "single_dual_regular_length_0": evaluate(
+                std::slice::from_ref(&dual_regular),
+                1,
+                0,
+            ),
+            "single_dual_regular_length_2": evaluate(
+                std::slice::from_ref(&dual_regular),
+                1,
+                2,
+            ),
+            "single_dual_regular_length_3": evaluate(
+                std::slice::from_ref(&dual_regular),
+                1,
+                3,
+            ),
+            "single_dual_regular_length_4": evaluate(
+                std::slice::from_ref(&dual_regular),
+                1,
+                4,
+            ),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_projective_resolution_simple_endo_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_projective_resolution_simple_endo.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_projective_resolution_simple_endo",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_projective_resolution_simple_endo_case(&Z2),
+            "quinary": modulehomalg_projective_resolution_simple_endo_case(&Zp::new(5)),
+            "rational": modulehomalg_projective_resolution_simple_endo_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn simple_endo_resolution_preserves_negative_length_check_order() {
+        assert!(matches!(
+            projective_resolution_of_simple_module_over_endo::<Z2>(
+                &[],
+                &Integer::from(99),
+                &Integer::from(-1),
+            ),
+            Err(EnvelopingModuleError::NegativeSimpleEndoProjectiveResolutionLength { .. })
+        ));
+        assert!(matches!(
+            projective_resolution_of_simple_module_over_endo::<Z2>(
+                &[],
+                &Integer::from(99),
+                &Integer::from(0),
+            ),
+            Err(EnvelopingModuleError::RadicalApproximationIndexOutOfRange { .. })
+        ));
     }
 
     #[test]

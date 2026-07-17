@@ -1023,6 +1023,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehomalg_radical_list_approximation.g" \
     "$repo_root/tests/fixtures/modulehomalg_radical_list_approximation.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehomalg_projective_resolution_simple_endo.g" \
+    "$repo_root/tests/fixtures/modulehomalg_projective_resolution_simple_endo.schema-v1.json"
 
 # QPA's public unchecked GBNP adapter deliberately prints informational lines.
 # Its fixture is the final line emitted by the reference script.
