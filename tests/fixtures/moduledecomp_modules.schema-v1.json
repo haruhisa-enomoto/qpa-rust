@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "kind": "moduledecomp_modules",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "binary": {
+    "algorithm": {
+      "endomorphism_basis": [
+        [[0, 1, 0], [0, 0, 0], [0, 0, 0]],
+        [[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+        [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
+      ],
+      "transposed_basis": [
+        [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        [[0, 0, 0], [1, 0, 0], [0, 0, 0]],
+        [[0, 0, 0], [0, 1, 0], [0, 0, 0]]
+      ],
+      "idempotents": [
+        [[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+        [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
+      ]
+    },
+    "decomposition": [
+      { "dimension": [1, 0], "matrices": [[[0]]] },
+      { "dimension": [1, 1], "matrices": [[[1]]] }
+    ],
+    "inclusions": [
+      { "source_dimension": [1, 0], "matrices": [[[0, 1]], [[0]]] },
+      { "source_dimension": [1, 1], "matrices": [[[1, 0]], [[1]]] }
+    ],
+    "cache": {
+      "decomposition_first": true,
+      "inclusion_first": true
+    },
+    "direct_sum": [
+      { "dimension": [1, 0], "matrices": [[[0]]] },
+      { "dimension": [0, 1], "matrices": [[[0]]] }
+    ],
+    "multiplicities": {
+      "mixed": {
+        "basic": [
+          { "dimension": [1, 0], "matrices": [[[0]]] },
+          { "dimension": [1, 1], "matrices": [[[1]]] }
+        ],
+        "values": [1, 1]
+      },
+      "repeated": {
+        "basic": [{ "dimension": [1], "matrices": [] }],
+        "values": [2],
+        "cache_first": true
+      },
+      "zero_is_fail": true
+    },
+    "blocks": {
+      "mixed_idempotents": [
+        [[[1, 0], [0, 0]], [[1]]],
+        [[[0, 0], [0, 1]], [[0]]]
+      ],
+      "mixed_modules": [
+        { "dimension": [1, 1], "matrices": [[[1]]] },
+        { "dimension": [1, 0], "matrices": [[[0]]] }
+      ],
+      "repeated_idempotents": [[[[1, 0], [0, 1]]]],
+      "repeated_modules": [{ "dimension": [2], "matrices": [] }],
+      "zero_idempotents_empty": true
+    },
+    "basic": {
+      "mixed": [{ "dimension": [2, 1], "matrices": [[[0], [1]]] }],
+      "repeated": [{ "dimension": [1], "matrices": [] }],
+      "zero_identical": true
+    }
+  },
+  "quinary": {
+    "algorithm": {
+      "endomorphism_basis": [
+        [[0, 1, 0], [0, 0, 0], [0, 0, 0]],
+        [[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+        [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
+      ],
+      "transposed_basis": [
+        [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        [[0, 0, 0], [1, 0, 0], [0, 0, 0]],
+        [[0, 0, 0], [0, 1, 0], [0, 0, 0]]
+      ],
+      "idempotents": [
+        [[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+        [[1, 0, 0], [0, 0, 0], [0, 0, 1]]
+      ]
+    },
+    "decomposition": [
+      { "dimension": [1, 0], "matrices": [[[0]]] },
+      { "dimension": [1, 1], "matrices": [[[1]]] }
+    ],
+    "inclusions": [
+      { "source_dimension": [1, 0], "matrices": [[[0, 1]], [[0]]] },
+      { "source_dimension": [1, 1], "matrices": [[[1, 0]], [[1]]] }
+    ],
+    "cache": {
+      "decomposition_first": true,
+      "inclusion_first": true
+    },
+    "direct_sum": [
+      { "dimension": [1, 0], "matrices": [[[0]]] },
+      { "dimension": [0, 1], "matrices": [[[0]]] }
+    ],
+    "multiplicities": {
+      "mixed": {
+        "basic": [
+          { "dimension": [1, 0], "matrices": [[[0]]] },
+          { "dimension": [1, 1], "matrices": [[[1]]] }
+        ],
+        "values": [1, 1]
+      },
+      "repeated": {
+        "basic": [{ "dimension": [1], "matrices": [] }],
+        "values": [2],
+        "cache_first": true
+      },
+      "zero_is_fail": true
+    },
+    "blocks": {
+      "mixed_idempotents": [
+        [[[1, 0], [0, 0]], [[1]]],
+        [[[0, 0], [0, 1]], [[0]]]
+      ],
+      "mixed_modules": [
+        { "dimension": [1, 1], "matrices": [[[1]]] },
+        { "dimension": [1, 0], "matrices": [[[0]]] }
+      ],
+      "repeated_idempotents": [[[[1, 0], [0, 1]]]],
+      "repeated_modules": [{ "dimension": [2], "matrices": [] }],
+      "zero_idempotents_empty": true
+    },
+    "basic": {
+      "mixed": [{ "dimension": [2, 1], "matrices": [[[0], [1]]] }],
+      "repeated": [{ "dimension": [1], "matrices": [] }],
+      "zero_identical": true
+    }
+  }
+}

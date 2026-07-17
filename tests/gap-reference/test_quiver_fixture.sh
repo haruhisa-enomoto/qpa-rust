@@ -122,6 +122,12 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/algebra_structure_constants.g" \
     "$repo_root/tests/fixtures/algebra_structure_constants.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/moduledecomp_foundation.g" \
+    "$repo_root/tests/fixtures/moduledecomp_foundation.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/moduledecomp_modules.g" \
+    "$repo_root/tests/fixtures/moduledecomp_modules.schema-v1.json"
 compare_catching_fixture \
     "$repo_root/tests/gap-reference/idempotent.g" \
     "$repo_root/tests/fixtures/idempotent.schema-v1.json"

@@ -11283,9 +11283,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "complement_in_full_row_space"
+tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11296,9 +11296,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "lift_idempotents_for_decomposition; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_idempotents_for_decomposition"
+tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11309,9 +11309,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::idempotents_for_decomposition"
+tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11322,9 +11322,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11335,9 +11335,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_with_inclusions"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11348,9 +11348,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_with_multiplicities; ModuleDecompositionWithMultiplicities"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11375,8 +11375,8 @@ source_start = 11
 source_end = 11
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "StructureConstantsQuotient::lift_idempotent"
-tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
+rust_symbol = "lift_idempotent; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_idempotent"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11388,8 +11388,8 @@ source_start = 12
 source_end = 12
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "StructureConstantsQuotient::lift_two_orthogonal_idempotents"
-tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
+rust_symbol = "lift_two_orthogonal_idempotents; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_two_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11400,9 +11400,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "block_splitting_idempotents"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11413,9 +11413,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "block_decomposition_of_module"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11426,9 +11426,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "basic_version_of_module"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11465,9 +11465,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 11
 source_end = 51
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "complement_in_full_row_space"
+tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11478,9 +11478,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 62
 source_end = 86
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "lift_idempotents_for_decomposition; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_idempotents_for_decomposition"
+tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11491,9 +11491,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 94
 source_end = 119
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "StructureConstantsAlgebra::idempotents_for_decomposition"
+tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11504,9 +11504,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 129
 source_end = 150
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11517,9 +11517,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 160
 source_end = 181
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_with_inclusions"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11530,9 +11530,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 192
 source_end = 207
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11543,9 +11543,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 247
 source_end = 299
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "decompose_module_with_multiplicities; ModuleDecompositionWithMultiplicities"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11557,8 +11557,8 @@ source_start = 313
 source_end = 344
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "StructureConstantsQuotient::lift_idempotent"
-tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
+rust_symbol = "lift_idempotent; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_idempotent"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11570,8 +11570,8 @@ source_start = 361
 source_end = 384
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "StructureConstantsQuotient::lift_two_orthogonal_idempotents"
-tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
+rust_symbol = "lift_two_orthogonal_idempotents; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_two_orthogonal_idempotents"
+tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11582,9 +11582,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 396
 source_end = 421
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "block_splitting_idempotents"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11595,9 +11595,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 433
 source_end = 440
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "block_decomposition_of_module"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11608,9 +11608,9 @@ source_file = "upstream/qpa/lib/moduledecomp.gi"
 source_start = 453
 source_end = 467
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "basic_version_of_module"
+tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
 
 [[entries]]

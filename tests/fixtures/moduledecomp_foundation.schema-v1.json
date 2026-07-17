@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "kind": "moduledecomp_foundation",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "complement": {
+    "rational": [[0, 1, 0, 0], [0, 0, 0, 1]],
+    "f2": [[0, 1, 0, 0], [0, 0, 0, 1]],
+    "full_f5": []
+  },
+  "f5": {
+    "quotient_ids": [[0, 1], [1, 0]],
+    "lifted_for_decomposition": [[0, 1, 0], [1, 0, 3]],
+    "idempotents_for_decomposition": [[0, 1, 0], [1, 0, 3]],
+    "lift_idempotent": [[0, 1, 0]],
+    "lift_two": [[0, 1, 0], [1, 0, 3]]
+  }
+}

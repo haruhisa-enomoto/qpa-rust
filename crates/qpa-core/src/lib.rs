@@ -14,6 +14,7 @@ pub mod homomorphism;
 pub mod idempotent;
 pub mod koszul;
 pub mod matrix;
+pub mod module_decomposition;
 pub mod ordering;
 pub mod path_algebra;
 pub mod path_module;
@@ -102,6 +103,13 @@ pub use koszul::{
     quadratic_perpendicular_of_path_algebra_ideal,
 };
 pub use matrix::{DenseMatrix, MatrixError, SemiEchelonTransformation};
+pub use module_decomposition::{
+    ModuleDecompositionError, ModuleDecompositionWithMultiplicities,
+    StructureConstantsAlgebraHomomorphism, basic_version_of_module, block_decomposition_of_module,
+    block_splitting_idempotents, complement_in_full_row_space, decompose_module,
+    decompose_module_with_inclusions, decompose_module_with_multiplicities, lift_idempotent,
+    lift_idempotents_for_decomposition, lift_two_orthogonal_idempotents,
+};
 pub use ordering::{
     OrderingError, QuiverOrdering, QuiverOrderingKind, check_blocks_for_cycles,
     check_quiver_subset_for_cycles,

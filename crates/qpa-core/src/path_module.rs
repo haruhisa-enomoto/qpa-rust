@@ -75,6 +75,15 @@ pub enum ModuleDimensionSeries {
     Layers(Vec<Vec<usize>>),
 }
 
+#[derive(Clone, Debug)]
+pub(crate) enum ModuleDecompositionMultiplicitiesCache<F: Field> {
+    Fail,
+    Value {
+        basic_summands: Vec<PathAlgebraModule<F>>,
+        multiplicities: Vec<usize>,
+    },
+}
+
 #[derive(Debug)]
 struct PathAlgebraModuleData<F: Field> {
     acting_algebra: QuiverAlgebra<F>,
@@ -91,6 +100,9 @@ struct PathAlgebraModuleData<F: Field> {
     nakayama_functor: OnceLock<PathAlgebraModule<F>>,
     opposite_nakayama_functor: OnceLock<PathAlgebraModule<F>>,
     endomorphism_algebra: OnceLock<ModuleEndomorphismAlgebra<F>>,
+    decomposition: OnceLock<Vec<PathAlgebraModule<F>>>,
+    decomposition_inclusions: WeakPathAlgebraModuleHomomorphismListCache<F>,
+    decomposition_multiplicities: OnceLock<ModuleDecompositionMultiplicitiesCache<F>>,
     top_module: OnceLock<PathAlgebraModule<F>>,
     top_projection_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     direct_sum: OnceLock<DirectSumMetadata<F>>,
@@ -131,6 +143,9 @@ impl<F: Field> PathAlgebraModuleData<F> {
             nakayama_functor: OnceLock::new(),
             opposite_nakayama_functor: OnceLock::new(),
             endomorphism_algebra: OnceLock::new(),
+            decomposition: OnceLock::new(),
+            decomposition_inclusions: WeakPathAlgebraModuleHomomorphismListCache::new(),
+            decomposition_multiplicities: OnceLock::new(),
             top_module: OnceLock::new(),
             top_projection_weak: RwLock::new(None),
             direct_sum: OnceLock::new(),
@@ -713,6 +728,46 @@ impl<F: Field> PathAlgebraModule<F> {
             .clone()
     }
 
+    pub(crate) fn cached_decomposition(&self) -> Option<Vec<Self>> {
+        self.0.decomposition.get().cloned()
+    }
+
+    pub(crate) fn cache_decomposition(&self, decomposition: &[Self]) -> Vec<Self> {
+        self.0
+            .decomposition
+            .get_or_init(|| decomposition.to_vec())
+            .clone()
+    }
+
+    pub(crate) fn cached_decomposition_inclusions(
+        &self,
+    ) -> Option<Vec<PathAlgebraModuleHomomorphism<F>>> {
+        self.0.decomposition_inclusions.cached()
+    }
+
+    pub(crate) fn cache_decomposition_inclusions(
+        &self,
+        inclusions: &[PathAlgebraModuleHomomorphism<F>],
+    ) -> Vec<PathAlgebraModuleHomomorphism<F>> {
+        self.0.decomposition_inclusions.merge(inclusions)
+    }
+
+    pub(crate) fn cached_decomposition_multiplicities(
+        &self,
+    ) -> Option<ModuleDecompositionMultiplicitiesCache<F>> {
+        self.0.decomposition_multiplicities.get().cloned()
+    }
+
+    pub(crate) fn cache_decomposition_multiplicities(
+        &self,
+        decomposition: ModuleDecompositionMultiplicitiesCache<F>,
+    ) -> ModuleDecompositionMultiplicitiesCache<F> {
+        self.0
+            .decomposition_multiplicities
+            .get_or_init(|| decomposition)
+            .clone()
+    }
+
     fn cached_top_module(&self) -> Option<Self> {
         self.0.top_module.get().cloned()
     }
@@ -1215,6 +1270,61 @@ impl<F: Field> WeakPathAlgebraModuleHomomorphism<F> {
     }
 }
 
+#[derive(Debug)]
+struct WeakPathAlgebraModuleHomomorphismListCache<F: Field> {
+    homomorphisms: RwLock<Vec<WeakPathAlgebraModuleHomomorphism<F>>>,
+    bound: OnceLock<()>,
+}
+
+impl<F: Field> WeakPathAlgebraModuleHomomorphismListCache<F> {
+    const fn new() -> Self {
+        Self {
+            homomorphisms: RwLock::new(Vec::new()),
+            bound: OnceLock::new(),
+        }
+    }
+
+    fn cached(&self) -> Option<Vec<PathAlgebraModuleHomomorphism<F>>> {
+        self.bound.get()?;
+        self.homomorphisms
+            .read()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .iter()
+            .map(WeakPathAlgebraModuleHomomorphism::upgrade)
+            .collect()
+    }
+
+    fn merge(
+        &self,
+        generated: &[PathAlgebraModuleHomomorphism<F>],
+    ) -> Vec<PathAlgebraModuleHomomorphism<F>> {
+        let mut slot = self
+            .homomorphisms
+            .write()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if self.bound.get().is_none() || slot.len() != generated.len() {
+            *slot = generated
+                .iter()
+                .map(PathAlgebraModuleHomomorphism::downgrade)
+                .collect();
+            let _ = self.bound.set(());
+            return generated.to_vec();
+        }
+        generated
+            .iter()
+            .enumerate()
+            .map(|(index, homomorphism)| {
+                if let Some(cached) = slot[index].upgrade() {
+                    cached
+                } else {
+                    slot[index] = homomorphism.downgrade();
+                    homomorphism.clone()
+                }
+            })
+            .collect()
+    }
+}
+
 fn cache_weak_homomorphism<F: Field>(
     slot: &RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     homomorphism: &PathAlgebraModuleHomomorphism<F>,
@@ -1392,20 +1502,17 @@ impl<F: Field> ModuleEndomorphismAlgebra<F> {
 }
 
 impl<F: QpaCoefficientField> ModuleEndomorphismAlgebra<F> {
-    /// Translate QPA's `RadicalOfAlgebra` conversion for an algebra represented
-    /// by linear mappings.
-    ///
-    /// QPA transposes the mapping matrices, computes the radical in the
-    /// resulting ordinary matrix algebra, and transposes the radical basis
-    /// back. The represented endomorphism algebra already stores the logical
-    /// ordinary matrices, so Rust constructs the identical multiplication
-    /// table directly and lifts the radical coordinates to those matrices.
+    /// Convert QPA's ordered `EndOverAlgebra` matrix basis to structure
+    /// constants without changing its multiplication order.
     ///
     /// # Errors
     ///
-    /// Propagates matrix multiplication/coordinate failures and the exact
-    /// structure-constant radical computation.
-    pub fn radical_basis_matrices(&self) -> Result<Vec<DenseMatrix<F>>, PathAlgebraModuleError> {
+    /// Every matrix product must remain in the represented basis. Exact
+    /// multiplication, coordinate, and structure-constant construction
+    /// failures propagate.
+    pub fn structure_constants_algebra(
+        &self,
+    ) -> Result<StructureConstantsAlgebra<F>, PathAlgebraModuleError> {
         let dimension = self.dimension();
         let capacity = dimension
             .checked_mul(dimension)
@@ -1421,7 +1528,102 @@ impl<F: QpaCoefficientField> ModuleEndomorphismAlgebra<F> {
                 );
             }
         }
+        Ok(StructureConstantsAlgebra::new(
+            self.field().clone(),
+            dimension,
+            products,
+        )?)
+    }
+
+    /// Construct the structure-constant model generated by the transposes of
+    /// QPA's ordered `EndOverAlgebra` basis matrices.
+    ///
+    /// This is the exact `AlgebraWithOne(K, genmats)` input used by
+    /// `DecomposeModule`. The returned matrices are the transposes of GAP's
+    /// canonical `AlgebraWithOne` basis and therefore convert its coordinates
+    /// back to `EndOverAlgebra` matrices.
+    ///
+    /// # Errors
+    ///
+    /// Every matrix product must remain in GAP's generated canonical basis.
+    /// Exact multiplication, coordinate, and structure-constant construction
+    /// failures propagate.
+    pub(crate) fn transposed_structure_constants_model(
+        &self,
+    ) -> Result<(StructureConstantsAlgebra<F>, Vec<DenseMatrix<F>>), PathAlgebraModuleError> {
+        let matrix_dimension = self.0.one.nrows();
+        let flattened_dimension = matrix_dimension
+            .checked_mul(matrix_dimension)
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let generator_count = self
+            .dimension()
+            .checked_add(1)
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let generator_capacity = generator_count
+            .checked_mul(flattened_dimension)
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let mut generators = Vec::with_capacity(generator_capacity);
+        generators.extend(flatten_matrix(self.one()));
+        for basis in self.basis_matrices() {
+            generators.extend(flatten_matrix(&basis.transpose()));
+        }
+        let flattened_basis = DenseMatrix::from_flat(
+            generator_count,
+            flattened_dimension,
+            generators,
+            self.field().clone(),
+        )?
+        .semi_echelon_transformation()
+        .vectors;
+        let transposed_basis = (0..flattened_basis.nrows())
+            .map(|row| {
+                DenseMatrix::from_flat(
+                    matrix_dimension,
+                    matrix_dimension,
+                    flattened_basis.row(row).to_vec(),
+                    self.field().clone(),
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let dimension = transposed_basis.len();
+        let capacity = dimension
+            .checked_mul(dimension)
+            .and_then(|square| square.checked_mul(dimension))
+            .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+        let mut products = Vec::with_capacity(capacity);
+        for left in &transposed_basis {
+            for right in &transposed_basis {
+                let product = left.multiply(right)?;
+                products.extend(
+                    flattened_basis
+                        .solution_row(&flatten_matrix(&product))?
+                        .ok_or(PathAlgebraModuleError::EndomorphismAlgebraProductOutsideBasis)?,
+                );
+            }
+        }
         let algebra = StructureConstantsAlgebra::new(self.field().clone(), dimension, products)?;
+        let endomorphism_basis = transposed_basis
+            .into_iter()
+            .map(|matrix| matrix.transpose())
+            .collect();
+        Ok((algebra, endomorphism_basis))
+    }
+
+    /// Translate QPA's `RadicalOfAlgebra` conversion for an algebra represented
+    /// by linear mappings.
+    ///
+    /// QPA transposes the mapping matrices, computes the radical in the
+    /// resulting ordinary matrix algebra, and transposes the radical basis
+    /// back. The represented endomorphism algebra already stores the logical
+    /// ordinary matrices, so Rust constructs the identical multiplication
+    /// table directly and lifts the radical coordinates to those matrices.
+    ///
+    /// # Errors
+    ///
+    /// Propagates matrix multiplication/coordinate failures and the exact
+    /// structure-constant radical computation.
+    pub fn radical_basis_matrices(&self) -> Result<Vec<DenseMatrix<F>>, PathAlgebraModuleError> {
+        let algebra = self.structure_constants_algebra()?;
         let radical = algebra.radical()?;
         (0..radical.basis().nrows())
             .map(|row| {
