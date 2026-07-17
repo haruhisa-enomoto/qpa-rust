@@ -12674,9 +12674,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 82
 source_end = 82
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "make_basic_list_of_modules"
+tests = ["tests/fixtures/modulehom_make_basic.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13896,9 +13896,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 4734
 source_end = 4783
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "make_basic_list_of_modules"
+tests = ["tests/fixtures/modulehom_make_basic.schema-v1.json"]
 deviations = []
 
 [[entries]]

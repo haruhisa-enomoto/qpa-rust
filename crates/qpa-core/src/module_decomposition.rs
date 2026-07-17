@@ -13,13 +13,14 @@ use thiserror::Error;
 use crate::{
     CoefficientDomainError, CommonDirectSummandResult, DenseMatrix, HopfError, MatrixError,
     PathAlgebraModule, PathAlgebraModuleError, PathAlgebraModuleHomomorphism, QpaCoefficientField,
-    QpaFieldCharacteristic, StructureConstantsAlgebra, StructureConstantsAlgebraElement,
-    StructureConstantsError, StructureConstantsQuotient, cokernel_projection,
-    common_direct_summand, direct_sum_of_qpa_modules, end_over_algebra, from_end_m_to_hom_mm,
-    from_hom_mm_to_end_m, hom_over_algebra,
+    QpaFieldCharacteristic, QuiverAlgebra, QuotientError, StructureConstantsAlgebra,
+    StructureConstantsAlgebraElement, StructureConstantsError, StructureConstantsQuotient,
+    cokernel_projection, common_direct_summand, direct_sum_of_qpa_modules, end_over_algebra,
+    from_end_m_to_hom_mm, from_hom_mm_to_end_m, hom_over_algebra,
     idempotent::{factor_finite_field_polynomial, polynomial_product},
     identity_module_mapping, image_inclusion, image_of_module_homomorphism, image_projection,
     is_simple_qpa_module, isomorphism_of_modules, kernel_inclusion, kernel_of_module_homomorphism,
+    maximal_common_direct_summand,
     path_module::ModuleDecompositionMultiplicitiesCache,
     pull_back, right_module_hom_over_algebra, socle_of_module_inclusion,
     structure_constants::{StructureConstantsSubalgebra, add_rows, span_rows, subtract_rows},
@@ -906,6 +907,69 @@ pub fn all_submodules_of_module<F: QpaCoefficientField>(
     Ok(AllSubmodulesOfModuleResult::ByDimension(levels))
 }
 
+/// Translate QPA's `MakeBasicListOfModules(L)` operation.
+///
+/// QPA walks the entered list from left to right, removes from each later
+/// module the maximal common direct summand with the current module, filters
+/// removed entries, and finally decomposes every retained remainder. This
+/// preserves the source's early termination when a previously removed entry
+/// becomes the current outer-loop position.
+///
+/// # Errors
+///
+/// Rejects an empty list, different acting algebras, infinite fields, and
+/// infinite-dimensional algebras; propagates maximal-common-summand and
+/// deterministic-decomposition failures.
+pub fn make_basic_list_of_modules<F: QpaCoefficientField>(
+    modules: &[PathAlgebraModule<F>],
+) -> Result<Vec<PathAlgebraModule<F>>, ModuleDecompositionError> {
+    let Some(first) = modules.first() else {
+        return Err(ModuleDecompositionError::EmptyBasicModuleList);
+    };
+    let algebra = first.right_acting_algebra();
+    if modules
+        .iter()
+        .any(|module| module.right_acting_algebra() != algebra)
+    {
+        return Err(ModuleDecompositionError::BasicModulesOverDifferentAlgebras);
+    }
+    if algebra.field().qpa_elements()?.is_none() {
+        return Err(ModuleDecompositionError::FiniteFieldRequired);
+    }
+    let finite_dimensional = match algebra {
+        QuiverAlgebra::Path(path_algebra) => path_algebra.has_finite_canonical_basis(),
+        QuiverAlgebra::Quotient(quotient) => quotient.is_finite_dimensional()?,
+    };
+    if !finite_dimensional {
+        return Err(ModuleDecompositionError::InfiniteDimensionalActingAlgebra);
+    }
+
+    let mut remainders = modules.iter().cloned().map(Some).collect::<Vec<_>>();
+    for current in 0..modules.len().saturating_sub(1) {
+        let Some(current_module) = remainders[current].clone() else {
+            break;
+        };
+        for remainder in remainders.iter_mut().skip(current + 1) {
+            let Some(later_module) = remainder.clone() else {
+                continue;
+            };
+            if let Some(common) = maximal_common_direct_summand(&current_module, &later_module)? {
+                *remainder = (common.range_remainder().dimension() > 0)
+                    .then(|| common.range_remainder().clone());
+            }
+        }
+    }
+
+    let mut basic = Vec::new();
+    for module in remainders.into_iter().flatten() {
+        if module.dimension() == 0 {
+            return Err(ModuleDecompositionError::ZeroModuleInBasicList);
+        }
+        basic.extend(decompose_module(&module)?);
+    }
+    Ok(basic)
+}
+
 fn one_dimensional_subspace_bases<F: Field>(
     field: &F,
     elements: &[F::Element],
@@ -1755,6 +1819,9 @@ pub enum ModuleDecompositionError {
     /// Path-algebra module or homomorphism failure.
     #[error(transparent)]
     PathAlgebraModule(#[from] PathAlgebraModuleError),
+    /// Finite-dimensional quotient detection can require its Gröbner basis.
+    #[error(transparent)]
+    Quotient(#[from] QuotientError),
     /// A nonzero module must have at least one primitive-idempotent image.
     #[error("a nonzero module unexpectedly has an empty decomposition")]
     EmptyNonzeroDecomposition,
@@ -1771,6 +1838,20 @@ pub enum ModuleDecompositionError {
     /// QPA's alternative top-decomposition method is finite-field-only.
     #[error("the entered module is not over a finite field")]
     FiniteFieldRequired,
+    /// `MakeBasicListOfModules` indexes its first entered module.
+    #[error("the entered list of modules is empty")]
+    EmptyBasicModuleList,
+    /// Every module in `MakeBasicListOfModules` must use one acting algebra.
+    #[error("not all modules are over the same algebra")]
+    BasicModulesOverDifferentAlgebras,
+    /// QPA requires a finite-dimensional acting algebra before simplifying
+    /// the entered module list.
+    #[error("the entered algebra is not finite dimensional")]
+    InfiniteDimensionalActingAlgebra,
+    /// QPA's final `DecomposeModule(0)` step fails while constructing the
+    /// zero module's basis or empty endomorphism algebra.
+    #[error("MakeBasicListOfModules cannot decompose a zero module")]
+    ZeroModuleInBasicList,
     /// A generated matrix algebra needs at least one nonzero generator.
     #[error("cannot construct the generated matrix algebra from an empty basis")]
     EmptyGeneratedMatrixAlgebra,
@@ -1858,7 +1939,7 @@ mod tests {
         decompose_module, decompose_module_probabilistic, decompose_module_via_char_poly,
         decompose_module_via_top, decompose_module_with_inclusions,
         decompose_module_with_multiplicities, lift_idempotent, lift_idempotents_for_decomposition,
-        lift_two_orthogonal_idempotents,
+        lift_two_orthogonal_idempotents, make_basic_list_of_modules,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1995,6 +2076,56 @@ mod tests {
                 "projective": all_submodules_json(
                     &all_submodules_of_module(&projective).unwrap(), integer),
             },
+        })
+    }
+
+    fn make_basic_case<F: QpaCoefficientField>(
+        field: F,
+        integer: impl Fn(&F::Element) -> i64 + Copy,
+    ) -> Value {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            algebra,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![field.one()]], field).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let projective_plus_simple =
+            direct_sum_of_qpa_modules(&[projective.clone(), simple_one.clone()])
+                .unwrap()
+                .unwrap();
+        let ordered = make_basic_list_of_modules(&[
+            projective.clone(),
+            simple_one.clone(),
+            simple_two,
+            projective.clone(),
+            projective_plus_simple,
+        ])
+        .unwrap();
+        let early_break = make_basic_list_of_modules(&[
+            projective.clone(),
+            projective,
+            simple_one.clone(),
+            simple_one,
+        ])
+        .unwrap();
+        json!({
+            "ordered_removal": ordered.iter()
+                .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
+            "early_break": early_break.iter()
+                .map(|module| module_json(module, integer)).collect::<Vec<_>>(),
         })
     }
 
@@ -2382,6 +2513,100 @@ mod tests {
         assert!(matches!(
             all_submodules_of_module(&simple),
             Err(ModuleDecompositionError::FiniteFieldRequired)
+        ));
+    }
+
+    #[test]
+    fn pinned_qpa_make_basic_list_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_make_basic.schema-v1.json"
+        ))
+        .unwrap();
+        let f5 = Zp::new(5);
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehom_make_basic",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654",
+            },
+            "binary": make_basic_case(Z2, |entry| i64::from(*entry)),
+            "quinary": make_basic_case(
+                f5.clone(), |entry| i64::from(f5.from_element(entry))),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn make_basic_list_preserves_qpa_input_failures() {
+        assert!(matches!(
+            make_basic_list_of_modules::<numerica::domains::finite_field::Z2>(&[]),
+            Err(ModuleDecompositionError::EmptyBasicModuleList)
+        ));
+
+        let rational_quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let rational_algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, rational_quiver).unwrap());
+        let rational = right_module_over_path_algebra(rational_algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            make_basic_list_of_modules(&[rational]),
+            Err(ModuleDecompositionError::FiniteFieldRequired)
+        ));
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let loop_algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, loop_quiver).unwrap());
+        let loop_module = right_module_over_path_algebra(loop_algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            make_basic_list_of_modules(&[loop_module]),
+            Err(ModuleDecompositionError::InfiniteDimensionalActingAlgebra)
+        ));
+
+        let first_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let second_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(2, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let first = right_module_over_path_algebra(first_algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let second = right_module_over_path_algebra(second_algebra, vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            make_basic_list_of_modules(&[first, second]),
+            Err(ModuleDecompositionError::BasicModulesOverDifferentAlgebras)
+        ));
+
+        let zero_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let zero = right_module_over_path_algebra(zero_algebra, vec![0], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            make_basic_list_of_modules(&[zero]),
+            Err(ModuleDecompositionError::ZeroModuleInBasicList)
         ));
     }
 }

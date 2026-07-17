@@ -319,6 +319,54 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_submodules.g" \
     "$repo_root/tests/fixtures/modulehom_submodules.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_make_basic.g" \
+    "$repo_root/tests/fixtures/modulehom_make_basic.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_make_basic_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an empty module list for MakeBasicListOfModules" >&2
+    exit 1
+fi
+grep -Fq "The entered list of modules is empty" "$actual"
+grep -Fq "modulehom.gi:4743" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_make_basic_different_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted modules over different algebras" >&2
+    exit 1
+fi
+grep -Fq "Not all modules are over the same algebra" "$actual"
+grep -Fq "modulehom.gi:4747" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_make_basic_rational_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly made a basic module list over the rationals" >&2
+    exit 1
+fi
+grep -Fq "not over an algebra over a finite field" "$actual"
+grep -Fq "modulehom.gi:4751" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_make_basic_infinite_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an infinite-dimensional acting algebra" >&2
+    exit 1
+fi
+grep -Fq "not a finite dimensional algebra" "$actual"
+grep -Fq "modulehom.gi:4754" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/modulehom_make_basic_zero_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly decomposed a zero module in MakeBasicListOfModules" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`NewBasis'" "$actual"
+grep -Fq "module.gi:254" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/modulehom_all_simple_rational_error.g" \
     >"$actual" 2>&1

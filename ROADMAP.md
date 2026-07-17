@@ -671,8 +671,10 @@ Primary QPA files: `modulehom` and `moduledecomp`.
 - [ ] Port endomorphism quiver-algebra and ADR-algebra constructions.
   `EndOfModuleAsQuiverAlgebra` now preserves QPA's `EndOverAlgebra` followed by
   `AlgebraAsQuiverAlgebra` delegation, including the nonbasic rejection and a
-  documented repair of QPA's empty-radical list-product crash. Basic and ADR
-  endomorphism-algebra variants remain.
+  documented repair of QPA's empty-radical list-product crash.
+  `MakeBasicListOfModules`, used by the ADR pipeline, preserves QPA's ordered
+  maximal-common-summand removal, final decomposition, input failures, and
+  early-break behavior. Basic endomorphism and ADR algebra construction remain.
 - [x] Port deterministic and probabilistic module decomposition methods,
   including seed control and idempotent lifting. The complete
   `moduledecomp.gd`/`.gi` ledger is verified: deterministic decomposition and

@@ -115,6 +115,7 @@ pub use module_decomposition::{
     decompose_module_via_top, decompose_module_with_inclusions,
     decompose_module_with_multiplicities, lift_idempotent, lift_idempotents_for_decomposition,
     lift_two_orthogonal_idempotents, lifting_complete_set_of_orthogonal_idempotents,
+    make_basic_list_of_modules,
 };
 pub use ordering::{
     OrderingError, QuiverOrdering, QuiverOrderingKind, check_blocks_for_cycles,
