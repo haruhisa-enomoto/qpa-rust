@@ -4201,6 +4201,117 @@ pub fn is_nth_syzygy<F: QpaCoefficientField>(
     Ok(is_direct_summand(module, &ambient)?)
 }
 
+/// Translate QPA's list overload `RightApproximationByAddM(L, C)`.
+///
+/// QPA scans `L` in order. For each `L_i`, it starts with maps to `C` that
+/// factor through already selected approximation maps and maps obtained by
+/// precomposing `Hom(L_i,C)` with `rad End(L_i)`. It then scans QPA's ordered
+/// Hom basis and retains precisely those flattened map rows that extend this
+/// span. The selected sources are direct-summed in selection order and their
+/// projection composites are added. This order-sensitive algorithm is kept
+/// separate from the one-module quotient-basis implementation in
+/// [`right_approximation_by_add_m`].
+///
+/// # Errors
+///
+/// An empty list or zero target takes QPA's zero-map shortcut before checking
+/// acting algebras. Otherwise this rejects a foreign list entry, preserves the
+/// source's failure when no map is selected from a nonempty list, and
+/// propagates Hom, radical, exact row-span, direct-sum, and map failures.
+pub fn right_approximation_by_add_m_list<F: QpaCoefficientField>(
+    modules: &[PathAlgebraModule<F>],
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    let algebra = target.right_acting_algebra();
+    if modules.is_empty() || target.dimension() == 0 {
+        return Ok(zero_module_mapping(zero_module(algebra)?, target.clone())?);
+    }
+    if modules
+        .iter()
+        .any(|module| module.right_acting_algebra() != algebra)
+    {
+        return Err(EnvelopingModuleError::ListApproximationModulesOverDifferentAlgebras);
+    }
+
+    let field = algebra.field().clone();
+    let mut approximation = Vec::<PathAlgebraModuleHomomorphism<F>>::new();
+    for module in modules {
+        let homomorphisms = hom_over_algebra(module, target)?
+            .ok_or(EnvelopingModuleError::ApproximationHomUnavailable)?;
+        let Some(first_homomorphism) = homomorphisms.first() else {
+            continue;
+        };
+        let row_length = first_homomorphism.flat_vertex_matrix_entries().len();
+        let mut generator_rows = Vec::<Vec<F::Element>>::new();
+
+        for selected in &approximation {
+            let factoring_maps = hom_over_algebra(module, selected.source())?
+                .ok_or(EnvelopingModuleError::ApproximationHomUnavailable)?;
+            for factoring in factoring_maps {
+                let composite = factoring.compose(selected)?;
+                if !composite.is_zero() {
+                    generator_rows.push(composite.flat_vertex_matrix_entries());
+                }
+            }
+        }
+
+        let radical_maps = end_over_algebra(module)?
+            .radical_basis_matrices()?
+            .iter()
+            .map(|matrix| from_end_m_to_hom_mm(module, matrix))
+            .collect::<Result<Vec<_>, _>>()?;
+        for homomorphism in &homomorphisms {
+            for radical in &radical_maps {
+                generator_rows.push(radical.compose(homomorphism)?.flat_vertex_matrix_entries());
+            }
+        }
+
+        let homomorphism_rows = homomorphisms
+            .iter()
+            .map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+            .collect::<Vec<_>>();
+        if generator_rows.is_empty() {
+            generator_rows.push(
+                zero_module_mapping(module.clone(), target.clone())?.flat_vertex_matrix_entries(),
+            );
+        }
+        for candidate in &homomorphism_rows {
+            let span = DenseMatrix::from_flat(
+                generator_rows.len(),
+                row_length,
+                generator_rows.iter().flatten().cloned().collect(),
+                field.clone(),
+            )?;
+            if span.solution_row(candidate)?.is_none() {
+                generator_rows.push(candidate.clone());
+                let position = homomorphism_rows
+                    .iter()
+                    .position(|row| row == candidate)
+                    .ok_or(EnvelopingModuleError::MissingListApproximationHomPosition)?;
+                approximation.push(homomorphisms[position].clone());
+            }
+        }
+    }
+
+    let sources = approximation
+        .iter()
+        .map(|homomorphism| homomorphism.source().clone())
+        .collect::<Vec<_>>();
+    let direct_sum = direct_sum_of_qpa_modules(&sources)?
+        .ok_or(EnvelopingModuleError::EmptyListApproximationDirectSum)?;
+    let projections = direct_sum_projections(&direct_sum)?;
+    if projections.len() != approximation.len() {
+        return Err(EnvelopingModuleError::ApproximationMapCountMismatch);
+    }
+    sum_nonempty_module_maps(
+        projections
+            .iter()
+            .zip(&approximation)
+            .map(|(projection, homomorphism)| Ok(projection.compose(homomorphism)?))
+            .collect::<Result<Vec<_>, EnvelopingModuleError>>()?,
+    )
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7462,6 +7573,9 @@ pub enum EnvelopingModuleError {
     /// algebra.
     #[error("the two modules entered into the add(M)-approximation are not over the same algebra")]
     ApproximationModulesOverDifferentAlgebras,
+    /// Every module in QPA's list overload must use the target algebra.
+    #[error("not all modules in the approximation list are over the target algebra")]
+    ListApproximationModulesOverDifferentAlgebras,
     /// The common-algebra check makes QPA's internal Hom dispatch applicable.
     #[error("HomOverAlgebra unexpectedly rejected add(M)-approximation inputs")]
     ApproximationHomUnavailable,
@@ -7477,6 +7591,12 @@ pub enum EnvelopingModuleError {
     /// The source takes `Sum` only after a nonempty quotient-basis branch.
     #[error("an internal add(M)-approximation map sum was empty")]
     EmptyApproximationGeneratorList,
+    /// QPA's nonempty-list branch indexes direct-sum data even if it selected no map.
+    #[error("the list add(M)-approximation selected no source map")]
+    EmptyListApproximationDirectSum,
+    /// A scanned Hom row must occur in the Hom basis it came from.
+    #[error("a list add(M)-approximation row disappeared from its Hom basis")]
+    MissingListApproximationHomPosition,
     /// The projective cover and its add(M)-approximation share their source.
     #[error("the internal LeftFacMApproximation pushout returned fail")]
     InternalLeftFacPushOutFailed,
@@ -8214,11 +8334,12 @@ mod tests {
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
         proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
-        right_approximation_by_perp_t, right_mutation_of_cotilting_module_complement,
-        right_mutation_of_tilting_module_complement, right_sub_m_approximation, simple_modules,
-        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules,
-        tilting_module, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated,
-        transpose_of_module, transpose_of_module_homomorphism,
+        right_approximation_by_add_m_list, right_approximation_by_perp_t,
+        right_mutation_of_cotilting_module_complement, right_mutation_of_tilting_module_complement,
+        right_sub_m_approximation, simple_modules, socle_series, star_of_module,
+        star_of_module_homomorphism, tensor_product_of_modules, tilting_module, tr_d,
+        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -10592,6 +10713,130 @@ mod tests {
         assert!(matches!(
             is_nth_syzygy(&module, &Integer::from(-1)),
             Err(EnvelopingModuleError::NegativeSyzygyDegree { .. })
+        ));
+    }
+
+    fn modulehomalg_list_approximation_case<F: QpaCoefficientField>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&a2).unwrap();
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let zero = zero_module(&a2).unwrap();
+        let dual = fresh_dual_numbers(field);
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+        let dual_regular = indec_projective_modules(&dual).unwrap()[0].clone();
+        let evaluate = |modules: &[PathAlgebraModule<F>], target: &PathAlgebraModule<F>| {
+            cotilting_approximation_map_json(
+                &right_approximation_by_add_m_list(modules, target).unwrap(),
+                coefficient,
+            )
+        };
+        json!({
+            "empty_to_simple_one": evaluate(&[], &simples[0]),
+            "p1_p2_to_simple_one": evaluate(&projectives, &simples[0]),
+            "s1_p1_to_simple_one": evaluate(
+                &[simples[0].clone(), projectives[0].clone()],
+                &simples[0],
+            ),
+            "p1_s1_to_simple_one": evaluate(
+                &[projectives[0].clone(), simples[0].clone()],
+                &simples[0],
+            ),
+            "repeated_s1_to_simple_one": evaluate(
+                &[simples[0].clone(), simples[0].clone()],
+                &simples[0],
+            ),
+            "modules_to_zero": evaluate(&projectives, &zero),
+            "dual_simple_regular_to_simple": evaluate(
+                &[dual_simple.clone(), dual_regular.clone()],
+                &dual_simple,
+            ),
+            "dual_regular_simple_to_simple": evaluate(
+                &[dual_regular.clone(), dual_simple.clone()],
+                &dual_simple,
+            ),
+            "dual_regular_to_simple": evaluate(&[dual_regular], &dual_simple),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_list_approximation_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_list_approximation.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_list_approximation",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_list_approximation_case(&Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehomalg_list_approximation_case(&field5, |entry| json!(
+                field5_coefficients
+                    .to_integer(entry)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+            )),
+            "rational": modulehomalg_list_approximation_case(&Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn list_approximation_preserves_qpa_shortcut_and_empty_selection_order() {
+        let first_algebra = isolated_path_algebra(Z2, 2);
+        let second_algebra = isolated_path_algebra(Z2, 2);
+        let target = simple_modules(&first_algebra).unwrap()[0].clone();
+        let zero_target = zero_module(&first_algebra).unwrap();
+        let foreign = simple_modules(&second_algebra).unwrap()[0].clone();
+        assert!(
+            right_approximation_by_add_m_list(std::slice::from_ref(&foreign), &zero_target)
+                .unwrap()
+                .is_zero()
+        );
+        assert!(
+            right_approximation_by_add_m_list(&[], &target)
+                .unwrap()
+                .is_zero()
+        );
+        assert!(matches!(
+            right_approximation_by_add_m_list(&[foreign], &target),
+            Err(EnvelopingModuleError::ListApproximationModulesOverDifferentAlgebras)
+        ));
+
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&a2).unwrap();
+        assert!(matches!(
+            right_approximation_by_add_m_list(&[simples[1].clone()], &simples[0]),
+            Err(EnvelopingModuleError::EmptyListApproximationDirectSum)
         ));
     }
 
