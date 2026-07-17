@@ -14312,9 +14312,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 35
 source_end = 35
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_sub_m_approximation"
+tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14325,9 +14325,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_right_sub_m_approximation"
+tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14338,9 +14338,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_sub_m_approximation"
+tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14351,9 +14351,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 39
 source_end = 39
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_left_sub_m_approximation"
+tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14975,9 +14975,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1064
 source_end = 1082
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_sub_m_approximation"
+tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14988,9 +14988,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1092
 source_end = 1099
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "minimal_right_sub_m_approximation"
+tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15001,9 +15001,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1113
 source_end = 1129
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "left_sub_m_approximation"
+tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
 
 [[entries]]

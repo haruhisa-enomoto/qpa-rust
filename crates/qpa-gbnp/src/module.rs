@@ -25,12 +25,13 @@ use qpa_core::{
     cokernel_projection, common_direct_summand, decompose_module_with_inclusions,
     decompose_module_with_multiplicities, direct_sum_inclusions, direct_sum_of_qpa_modules,
     direct_sum_projections, end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m,
-    hom_over_algebra, identity_module_mapping, include_in_path_algebra, is_indecomposable_module,
-    isomorphic_modules, isomorphism_of_modules, kernel_inclusion, kernel_of_module_homomorphism,
-    left_minimal_version, loewy_length_of_module, minimal_generating_set_of_module,
-    morphism_on_cokernel, morphism_on_kernel, natural_endomorphism_quotient_by_ideal,
-    project_from_product_quiver, push_out, radical_of_module, radical_of_module_inclusion,
-    right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
+    hom_over_algebra, identity_module_mapping, image_projection, include_in_path_algebra,
+    is_indecomposable_module, isomorphic_modules, isomorphism_of_modules, kernel_inclusion,
+    kernel_of_module_homomorphism, left_minimal_version, loewy_length_of_module,
+    minimal_generating_set_of_module, morphism_on_cokernel, morphism_on_kernel,
+    natural_endomorphism_quotient_by_ideal, project_from_product_quiver, pull_back, push_out,
+    radical_of_module, radical_of_module_inclusion, right_minimal_version,
+    right_module_hom_over_algebra, right_module_over_path_algebra,
     right_module_over_path_algebra_with_tensor, socle_of_module, socle_of_module_inclusion,
     subrepresentation_inclusion, top_of_module, zero_module, zero_module_mapping,
 };
@@ -3231,6 +3232,78 @@ pub fn minimal_left_fac_m_approximation<F: QpaCoefficientField>(
 ) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
     let approximation = left_fac_m_approximation(source, module)?;
     Ok(left_minimal_version(&approximation)?.0)
+}
+
+/// Translate QPA's `RightSubMApproximation(M, C)` operation.
+///
+/// QPA constructs the injective-envelope map of `C` as the dual of the
+/// projective cover of `DualOfModule(C)`, takes the minimal right
+/// add(M)-approximation of its range, and returns `PullBack(i, f)[2]`, the map
+/// from the pullback into `C`.
+///
+/// # Errors
+///
+/// Rejects modules over different algebras and propagates dualization,
+/// projective-cover, add(M)-approximation, and pullback failures.
+pub fn right_sub_m_approximation<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    require_common_approximation_algebra(module, target)?;
+    let dual_target = dual_of_module(target)?;
+    let opposite_cover = projective_cover(&dual_target)?;
+    let envelope = dual_of_module_homomorphism(&opposite_cover)?;
+    let approximation = minimal_right_approximation(module, envelope.range())?;
+    let pullback = pull_back(&envelope, &approximation)?
+        .ok_or(EnvelopingModuleError::InternalRightSubPullBackFailed)?;
+    Ok(pullback.1)
+}
+
+/// Translate QPA's `MinimalRightSubMApproximation(M, C)` operation.
+///
+/// This is the exact source composition of [`right_sub_m_approximation`] with
+/// QPA's cached `RightMinimalVersion`, returning its first component.
+///
+/// # Errors
+///
+/// Propagates right-Sub(M)-approximation and right-minimal-version failures.
+pub fn minimal_right_sub_m_approximation<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    target: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    let approximation = right_sub_m_approximation(module, target)?;
+    Ok(right_minimal_version(&approximation)?.0)
+}
+
+/// Translate QPA's `LeftSubMApproximation(C, M)` operation.
+///
+/// The source computes the minimal left add(M)-approximation of `C` and
+/// returns its natural projection onto its image. QPA documents this map as
+/// already minimal.
+///
+/// # Errors
+///
+/// Rejects modules over different algebras and propagates add(M)-approximation
+/// and image-projection failures.
+pub fn left_sub_m_approximation<F: QpaCoefficientField>(
+    source: &PathAlgebraModule<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    require_common_approximation_algebra(source, module)?;
+    let approximation = minimal_left_approximation(source, module)?;
+    Ok(image_projection(&approximation)?)
+}
+
+/// QPA synonym of [`left_sub_m_approximation`].
+///
+/// # Errors
+///
+/// Propagates [`left_sub_m_approximation`].
+pub fn minimal_left_sub_m_approximation<F: QpaCoefficientField>(
+    source: &PathAlgebraModule<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, EnvelopingModuleError> {
+    left_sub_m_approximation(source, module)
 }
 
 #[derive(Clone, Copy)]
@@ -6512,6 +6585,9 @@ pub enum EnvelopingModuleError {
     /// The projective cover and its add(M)-approximation share their source.
     #[error("the internal LeftFacMApproximation pushout returned fail")]
     InternalLeftFacPushOutFailed,
+    /// The injective envelope and its add(M)-approximation share their range.
+    #[error("the internal RightSubMApproximation pullback returned fail")]
+    InternalRightSubPullBackFailed,
     /// A generated GAP resolution degree must fit Rust's addressable lazy
     /// cache in its direction from degree zero.
     #[error("resolution degree is not representable by usize: {degree}")]
@@ -7177,16 +7253,18 @@ mod tests {
         is_projective_module, is_rigid_module, is_schurian_algebra, is_selfinjective_algebra,
         is_semicommutative_algebra, is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module,
         is_weakly_symmetric_algebra, left_approximation_by_add_m, left_fac_m_approximation,
-        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
-        minimal_left_approximation, minimal_left_fac_m_approximation, minimal_right_approximation,
-        n_rigid_module, nakayama_automorphism, nakayama_functor_of_module,
-        nakayama_functor_of_module_homomorphism, nakayama_permutation,
-        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
-        proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
-        simple_modules, socle_series, star_of_module, star_of_module_homomorphism,
-        tensor_product_of_modules, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated,
-        tr_d_iterated, transpose_of_module, transpose_of_module_homomorphism,
+        left_sub_m_approximation, lifting_morphism_from_projective,
+        matrix_of_homomorphism_between_projectives, minimal_left_approximation,
+        minimal_left_fac_m_approximation, minimal_left_sub_m_approximation,
+        minimal_right_approximation, minimal_right_sub_m_approximation, n_rigid_module,
+        nakayama_automorphism, nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
+        nakayama_permutation, opposite_nakayama_functor_of_module,
+        opposite_nakayama_functor_of_module_homomorphism, order_of_nakayama_automorphism,
+        predecessors_of_module, proj_dimension, proj_dimension_of_module, projective_cover,
+        random_module, right_approximation_by_add_m, right_sub_m_approximation, simple_modules,
+        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules, tr_d,
+        tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
+        transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -8299,6 +8377,155 @@ mod tests {
         ));
         assert!(matches!(
             minimal_left_fac_m_approximation(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehomalg_sub_approximations_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let zero_scalar = field.zero();
+        let one_scalar = field.one();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let zero = zero_module(&a2).unwrap();
+        let simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            a2,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one_scalar.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual.clone(),
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero_scalar.clone()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let dual_regular = right_module_over_path_algebra(
+            dual,
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(
+                    vec![
+                        vec![zero_scalar.clone(), one_scalar],
+                        vec![zero_scalar.clone(), zero_scalar],
+                    ],
+                    field,
+                )
+                .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let evaluate = |source: &PathAlgebraModule<F>, module: &PathAlgebraModule<F>| {
+            json!({
+                "right": double_star_map_json(
+                    &right_sub_m_approximation(module, source).unwrap(),
+                    coefficient,
+                ),
+                "minimal_right": double_star_map_json(
+                    &minimal_right_sub_m_approximation(module, source).unwrap(),
+                    coefficient,
+                ),
+                "left": double_star_map_json(
+                    &left_sub_m_approximation(source, module).unwrap(),
+                    coefficient,
+                ),
+                "minimal_left": double_star_map_json(
+                    &minimal_left_sub_m_approximation(source, module).unwrap(),
+                    coefficient,
+                ),
+            })
+        };
+        json!({
+            "zero_and_simple": evaluate(&zero, &simple_one),
+            "simple_and_zero": evaluate(&simple_one, &zero),
+            "projective_and_simple": evaluate(&projective, &simple_one),
+            "dual_regular_and_simple": evaluate(&dual_regular, &dual_simple),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_sub_approximations_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_sub_approximations",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_sub_approximations_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": modulehomalg_sub_approximations_case(field5, |entry| json!(
+                field5_coefficients.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational": modulehomalg_sub_approximations_case(Q, |entry| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn sub_m_approximations_reject_foreign_algebras() {
+        let first = fresh_a2_zero(&Z2);
+        let second = fresh_a2_zero(&Z2);
+        assert!(matches!(
+            right_sub_m_approximation(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
+        assert!(matches!(
+            minimal_right_sub_m_approximation(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
+        assert!(matches!(
+            left_sub_m_approximation(&first, &second),
+            Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
+        assert!(matches!(
+            minimal_left_sub_m_approximation(&first, &second),
             Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
         ));
     }
