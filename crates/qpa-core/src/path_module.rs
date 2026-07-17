@@ -117,6 +117,7 @@ struct PathAlgebraModuleData<F: Field> {
     is_semisimple: OnceLock<bool>,
     is_rigid: OnceLock<bool>,
     is_exceptional: OnceLock<bool>,
+    is_tilting: OnceLock<bool>,
     is_tau_rigid: OnceLock<bool>,
     projective_cover_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
     injective_envelope_weak: RwLock<Option<WeakPathAlgebraModuleHomomorphism<F>>>,
@@ -167,6 +168,7 @@ impl<F: Field> PathAlgebraModuleData<F> {
             is_semisimple: OnceLock::new(),
             is_rigid: OnceLock::new(),
             is_exceptional: OnceLock::new(),
+            is_tilting: OnceLock::new(),
             is_tau_rigid: OnceLock::new(),
             projective_cover_weak: RwLock::new(None),
             injective_envelope_weak: RwLock::new(None),
@@ -366,6 +368,20 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_is_exceptional_module(&self, value: bool) -> bool {
         *self.0.is_exceptional.get_or_init(|| value)
+    }
+
+    /// Return QPA's installed `IsTiltingModule` attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_tilting_module(&self) -> Option<bool> {
+        self.0.is_tilting.get().copied()
+    }
+
+    /// Install QPA's successful `IsTiltingModule` attribute.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_tilting_module(&self, value: bool) -> bool {
+        *self.0.is_tilting.get_or_init(|| value)
     }
 
     /// Return QPA's cached `TransposeOfModule` attribute, if installed.

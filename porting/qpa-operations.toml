@@ -14403,9 +14403,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 43
 source_end = 43
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tilting_module; TiltingModuleResult"
+tests = ["tests/fixtures/modulehomalg_tilting.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14416,9 +14416,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 44
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_tilting_module"
+tests = ["tests/fixtures/modulehomalg_tilting.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15040,9 +15040,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1235
 source_end = 1291
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tilting_module; TiltingModuleResult"
+tests = ["tests/fixtures/modulehomalg_tilting.schema-v1.json"]
 deviations = []
 
 [[entries]]

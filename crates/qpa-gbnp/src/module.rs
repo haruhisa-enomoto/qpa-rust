@@ -3440,6 +3440,97 @@ pub fn have_finite_coresolution_in_add_m<F: QpaCoefficientField>(
     }))
 }
 
+/// Return QPA's installed `IsTiltingModule(M)` attribute, if bound.
+///
+/// QPA's bounded operation installs only the successful value `true`; Rust
+/// exposes the unbound attribute state as `None`.
+#[must_use]
+pub fn is_tilting_module<F: Field>(module: &PathAlgebraModule<F>) -> Option<bool> {
+    module.cached_is_tilting_module()
+}
+
+/// QPA's successful `[m, coresolution]` value from `TiltingModule(M, n)`.
+#[derive(Clone, Debug)]
+pub struct TiltingModuleResult<F: Field> {
+    projective_dimension: usize,
+    coresolutions: Vec<AddMCoresolution<F>>,
+}
+
+impl<F: Field> TiltingModuleResult<F> {
+    /// Return QPA's first result component, the projective dimension of `M`.
+    #[must_use]
+    pub const fn projective_dimension(&self) -> usize {
+        self.projective_dimension
+    }
+
+    /// Return the projective-indexed add(M)-coresolutions in QPA order.
+    #[must_use]
+    pub fn coresolutions(&self) -> &[AddMCoresolution<F>] {
+        &self.coresolutions
+    }
+}
+
+/// Translate QPA's bounded `TiltingModule(M, n)` operation.
+///
+/// `None` is QPA's `false`. The source first establishes projective dimension
+/// at most `n`, then performs its literal self-orthogonality loop. In
+/// particular, for projective dimension `m`, QPA makes `m + 1` Ext calls but
+/// advances the syzygy only while the one-based loop counter is strictly less
+/// than `m`, so its final Ext degree is repeated. Finally, every
+/// indecomposable projective must have the source's finite add(M)-coresolution
+/// of bound `m`. Only success installs `IsTiltingModule(M) := true`.
+///
+/// # Errors
+///
+/// Propagates bounded projective-dimension, Ext, syzygy, indecomposable
+/// projective, and finite-coresolution failures.
+pub fn tilting_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<TiltingModuleResult<F>>, EnvelopingModuleError> {
+    match proj_dimension(module) {
+        Some(dimension) => {
+            if &Integer::from(dimension) > bound {
+                return Ok(None);
+            }
+        }
+        None => {
+            if proj_dimension_of_module(module, bound)?.is_none() {
+                return Ok(None);
+            }
+        }
+    }
+    let dimension = proj_dimension(module)
+        .ok_or(EnvelopingModuleError::MissingTiltingProjectiveDimensionCache)?;
+
+    let mut syzygy = module.clone();
+    let syzygy_cutoff = dimension.saturating_sub(1);
+    for iteration in 0..=dimension {
+        if ext_over_algebra(&syzygy, module)?.dimension() != 0 {
+            return Ok(None);
+        }
+        if iteration < syzygy_cutoff {
+            syzygy = nth_syzygy(&syzygy, &Integer::one())?;
+        }
+    }
+
+    let coresolution_bound = Integer::from(dimension);
+    let mut coresolutions = Vec::new();
+    for projective in indec_projective_modules(module.right_acting_algebra())? {
+        let Some(coresolution) =
+            have_finite_coresolution_in_add_m(&projective, module, &coresolution_bound)?
+        else {
+            return Ok(None);
+        };
+        coresolutions.push(coresolution);
+    }
+    let _ = module.cache_is_tilting_module(true);
+    Ok(Some(TiltingModuleResult {
+        projective_dimension: dimension,
+        coresolutions,
+    }))
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -6728,6 +6819,9 @@ pub enum EnvelopingModuleError {
         /// Entered negative GAP integer.
         bound: Integer,
     },
+    /// A successful bounded projective-dimension call must bind the attribute.
+    #[error("TiltingModule found no cached projective dimension after a successful bounded check")]
+    MissingTiltingProjectiveDimensionCache,
     /// A generated GAP resolution degree must fit Rust's addressable lazy
     /// cache in its direction from degree zero.
     #[error("resolution degree is not representable by usize: {degree}")]
@@ -7371,7 +7465,7 @@ mod tests {
         AddMCoresolution, AlmostSplitSide, DominantDimensionResult, EnvelopingModuleError,
         ExtOverAlgebraResult, GlobalDimensionOfAlgebraResult, ModuleLengthError,
         NakayamaAutomorphismOrder, PredecessorMultiplicity, PredecessorsOfModuleResult,
-        TensorProductOfModulesResult, algebra_as_module_of_enveloping_algebra,
+        TensorProductOfModulesResult, TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
         algebra_as_module_over_enveloping_algebra, all_indec_modules_of_length_at_most,
         all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
         almost_split_sequence_from_side, annihilator_of_module, basis_of_projectives,
@@ -7392,20 +7486,20 @@ mod tests {
         is_hereditary_algebra, is_injective_module, is_omega_periodic,
         is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
         is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
-        is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_weakly_symmetric_algebra,
-        left_approximation_by_add_m, left_fac_m_approximation, left_sub_m_approximation,
-        lifting_morphism_from_projective, matrix_of_homomorphism_between_projectives,
-        minimal_left_approximation, minimal_left_fac_m_approximation,
-        minimal_left_sub_m_approximation, minimal_right_approximation,
-        minimal_right_sub_m_approximation, n_rigid_module, nakayama_automorphism,
-        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
-        opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
-        order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
-        proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
-        right_sub_m_approximation, simple_modules, socle_series, star_of_module,
-        star_of_module_homomorphism, tensor_product_of_modules, tr_d, tr_d_homomorphism,
-        tr_d_homomorphism_iterated, tr_d_iterated, transpose_of_module,
-        transpose_of_module_homomorphism,
+        is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_tilting_module,
+        is_weakly_symmetric_algebra, left_approximation_by_add_m, left_fac_m_approximation,
+        left_sub_m_approximation, lifting_morphism_from_projective,
+        matrix_of_homomorphism_between_projectives, minimal_left_approximation,
+        minimal_left_fac_m_approximation, minimal_left_sub_m_approximation,
+        minimal_right_approximation, minimal_right_sub_m_approximation, n_rigid_module,
+        nakayama_automorphism, nakayama_functor_of_module, nakayama_functor_of_module_homomorphism,
+        nakayama_permutation, opposite_nakayama_functor_of_module,
+        opposite_nakayama_functor_of_module_homomorphism, order_of_nakayama_automorphism,
+        predecessors_of_module, proj_dimension, proj_dimension_of_module, projective_cover,
+        random_module, right_approximation_by_add_m, right_sub_m_approximation, simple_modules,
+        socle_series, star_of_module, star_of_module_homomorphism, tensor_product_of_modules,
+        tilting_module, tr_d, tr_d_homomorphism, tr_d_homomorphism_iterated, tr_d_iterated,
+        transpose_of_module, transpose_of_module_homomorphism,
     };
     use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_relations};
 
@@ -8832,6 +8926,102 @@ mod tests {
             have_finite_coresolution_in_add_m(&first, &second, &Integer::from(0)),
             Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
         ));
+    }
+
+    fn tilting_coresolution_shape<F: Field>(coresolution: &AddMCoresolution<F>) -> Value {
+        let map_shape = |degree| {
+            let differential = coresolution.differential(&Integer::from(degree)).unwrap();
+            json!({
+                "source": differential.source().dimension_vector(),
+                "range": differential.range().dimension_vector(),
+            })
+        };
+        json!({
+            "-2": map_shape(-2),
+            "-1": map_shape(-1),
+            "0": map_shape(0),
+        })
+    }
+
+    fn tilting_value_json<F: Field>(result: Option<TiltingModuleResult<F>>) -> Value {
+        let Some(result) = result else {
+            return Value::Bool(false);
+        };
+        json!({
+            "projective_dimension": result.projective_dimension(),
+            "coresolution_count": result.coresolutions().len(),
+            "coresolutions": result
+                .coresolutions()
+                .iter()
+                .map(tilting_coresolution_shape)
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn modulehomalg_tilting_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let regular = direct_sum_of_qpa_modules(&projectives).unwrap().unwrap();
+        let simple = simple_modules(&a2).unwrap()[0].clone();
+        let pd_one = direct_sum_of_qpa_modules(&[projectives[0].clone(), simple.clone()])
+            .unwrap()
+            .unwrap();
+
+        let dual = fresh_dual_numbers(field);
+        let dual_regular = direct_sum_of_qpa_modules(&indec_projective_modules(&dual).unwrap())
+            .unwrap()
+            .unwrap();
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+
+        let check = |module: &PathAlgebraModule<F>, bound| {
+            let has_before = is_tilting_module(module).is_some();
+            let value = tilting_value_json(tilting_module(module, &Integer::from(bound)).unwrap());
+            let has_after = is_tilting_module(module).is_some();
+            json!({
+                "has_before": has_before,
+                "value": value,
+                "has_after": has_after,
+            })
+        };
+        json!({
+            "regular_bound_0": check(&regular, 0),
+            "regular_cached_negative": check(&regular, -1),
+            "pd_one_bound_0": check(&pd_one, 0),
+            "pd_one_bound_1": check(&pd_one, 1),
+            "simple_bound_1": check(&simple, 1),
+            "dual_regular_bound_0": check(&dual_regular, 0),
+            "dual_simple_bound_1": check(&dual_simple, 1),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_tilting_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_tilting.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_tilting",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_tilting_case(&Z2),
+            "quinary": modulehomalg_tilting_case(&Zp::new(5)),
+            "rational": modulehomalg_tilting_case(&Q),
+        });
+        assert_eq!(actual, expected);
     }
 
     #[test]
