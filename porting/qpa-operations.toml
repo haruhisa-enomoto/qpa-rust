@@ -14156,9 +14156,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dominant_dimension_of_module; DominantDimensionResult"
+tests = ["tests/fixtures/modulehomalg_dominant_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14169,9 +14169,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dominant_dimension_of_algebra; DominantDimensionResult"
+tests = ["tests/fixtures/modulehomalg_dominant_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14884,9 +14884,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 775
 source_end = 822
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dominant_dimension_of_module; DominantDimensionResult"
+tests = ["tests/fixtures/modulehomalg_dominant_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14897,9 +14897,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 833
 source_end = 866
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "dominant_dimension_of_algebra; DominantDimensionResult"
+tests = ["tests/fixtures/modulehomalg_dominant_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]

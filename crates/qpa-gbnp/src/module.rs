@@ -481,6 +481,17 @@ pub enum GlobalDimensionOfAlgebraResult {
     ExceedsBound,
 }
 
+/// QPA's three-valued bounded dominant-dimension result.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum DominantDimensionResult {
+    /// QPA found this finite dominant dimension within the entered bound.
+    Finite(usize),
+    /// The module is projective-injective, or the algebra is selfinjective.
+    Infinite,
+    /// QPA returned `false` because the dominant dimension exceeds the bound.
+    ExceedsBound,
+}
+
 /// Translate QPA's bounded `GlobalDimensionOfAlgebra(A, n)` algorithm.
 ///
 /// `None` preserves `TryNextMethod()` for infinite-dimensional input. A path
@@ -652,6 +663,101 @@ pub fn inj_dimension_of_module<F: QpaCoefficientField>(
         degree += &Integer::one();
     }
     Ok(None)
+}
+
+/// Translate QPA's bounded `DominantDimensionOfModule(M, n)` method.
+///
+/// `None` preserves the method's `TryNextMethod()` on an infinite-dimensional
+/// acting algebra. A projective-injective module returns `Infinite` before
+/// the bound is used. Otherwise QPA dualizes `M` and scans the projective
+/// resolution of the dual for the first noninjective projective term.
+/// `ExceedsBound` is QPA's `false`. In particular, negative bounds retain the
+/// source behavior: degree `n` is still inspected, so the result can be
+/// finite zero or `false`.
+///
+/// # Errors
+///
+/// Propagates finite-dimensionality, projectivity/injectivity, dualization,
+/// and lazy projective-resolution failures.
+pub fn dominant_dimension_of_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<DominantDimensionResult>, EnvelopingModuleError> {
+    if finite_canonical_basis(module.right_acting_algebra())?.is_none() {
+        return Ok(None);
+    }
+    if is_injective_module(module)? && is_projective_module(module)? {
+        return Ok(Some(DominantDimensionResult::Infinite));
+    }
+
+    let dual = dual_of_module(module)?;
+    let resolution = projective_resolution(&dual)?;
+    let mut degree = Integer::from(0);
+    while degree < *bound && is_injective_module(&resolution.object(&degree)?)? {
+        degree += &Integer::one();
+    }
+    if degree < *bound {
+        let dimension = usize::try_from(degree.clone()).map_err(|_| {
+            EnvelopingModuleError::ResolutionDegreeNotRepresentable {
+                degree: degree.clone(),
+            }
+        })?;
+        return Ok(Some(DominantDimensionResult::Finite(dimension)));
+    }
+    if !is_injective_module(&resolution.object(bound)?)? {
+        let dimension = if bound < &Integer::from(0) {
+            0
+        } else {
+            usize::try_from(bound.clone()).map_err(|_| {
+                EnvelopingModuleError::ResolutionDegreeNotRepresentable {
+                    degree: bound.clone(),
+                }
+            })?
+        };
+        return Ok(Some(DominantDimensionResult::Finite(dimension)));
+    }
+    Ok(Some(DominantDimensionResult::ExceedsBound))
+}
+
+/// Translate QPA's bounded `DominantDimensionOfAlgebra(A, n)` method.
+///
+/// `None` preserves the method's explicit `TryNextMethod()` for
+/// infinite-dimensional input. A selfinjective algebra returns `Infinite`.
+/// Otherwise QPA computes the module result for every indecomposable
+/// projective, discards `Infinite` and `ExceedsBound`, and returns the minimum
+/// remaining finite value; if there is none, it returns `false`, represented
+/// by `ExceedsBound`.
+///
+/// # Errors
+///
+/// Propagates finite-dimensionality, selfinjectivity, indecomposable
+/// projective construction, and module dominant-dimension failures.
+pub fn dominant_dimension_of_algebra<F: QpaCoefficientField>(
+    algebra: &QuiverAlgebra<F>,
+    bound: &Integer,
+) -> Result<Option<DominantDimensionResult>, EnvelopingModuleError> {
+    if finite_canonical_basis(algebra)?.is_none() {
+        return Ok(None);
+    }
+    match is_selfinjective_algebra(algebra)? {
+        Some(true) => return Ok(Some(DominantDimensionResult::Infinite)),
+        Some(false) => {}
+        None => {
+            return Err(EnvelopingModuleError::DominantSelfinjectivityUnavailable);
+        }
+    }
+    let mut minimum = None;
+    for projective in indec_projective_modules(algebra)? {
+        let result = dominant_dimension_of_module(&projective, bound)?
+            .ok_or(EnvelopingModuleError::FiniteDominantModuleUnavailable)?;
+        if let DominantDimensionResult::Finite(dimension) = result {
+            minimum = Some(minimum.map_or(dimension, |current: usize| current.min(dimension)));
+        }
+    }
+    Ok(Some(minimum.map_or(
+        DominantDimensionResult::ExceedsBound,
+        DominantDimensionResult::Finite,
+    )))
 }
 
 /// Translate QPA's Nakayama-socle test for `IsSelfinjectiveAlgebra(A)`.
@@ -6263,6 +6369,14 @@ pub enum EnvelopingModuleError {
     /// envelope.
     #[error("the nonzero injective-resolution differential cache is empty")]
     EmptyInjectiveResolutionCache,
+    /// QPA's algebra dominant-dimension method requires a boolean
+    /// selfinjectivity property after its finite-dimensionality check.
+    #[error("selfinjectivity is unavailable for this finite dominant-dimension input")]
+    DominantSelfinjectivityUnavailable,
+    /// Every indecomposable projective of the checked finite algebra must
+    /// remain in the module dominant-dimension method domain.
+    #[error("a finite-algebra projective has no dominant-dimension method")]
+    FiniteDominantModuleUnavailable,
     /// QPA rejects negative arguments to `NthSyzygy` before constructing the
     /// resolution.
     #[error("entered syzygy degree is negative: {degree}")]
@@ -6874,7 +6988,7 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        AlmostSplitSide, EnvelopingModuleError, ExtOverAlgebraResult,
+        AlmostSplitSide, DominantDimensionResult, EnvelopingModuleError, ExtOverAlgebraResult,
         GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
         PredecessorMultiplicity, PredecessorsOfModuleResult, TensorProductOfModulesResult,
         algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
@@ -6883,6 +6997,7 @@ mod tests {
         annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, cartan_matrix,
         complexity_of_algebra, complexity_of_module, coxeter_matrix, coxeter_polynomial, d_tr,
         d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
+        dominant_dimension_of_algebra, dominant_dimension_of_module,
         dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
         dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
@@ -6937,6 +7052,15 @@ mod tests {
 
     fn bounded_dimension_json(result: Option<usize>) -> Value {
         result.map_or(Value::Bool(false), Into::into)
+    }
+
+    fn dominant_dimension_json(result: Option<DominantDimensionResult>) -> Value {
+        match result {
+            Some(DominantDimensionResult::Finite(dimension)) => dimension.into(),
+            Some(DominantDimensionResult::Infinite) => "infinity".into(),
+            Some(DominantDimensionResult::ExceedsBound) => false.into(),
+            None => Value::Null,
+        }
     }
 
     fn fresh_a2_module<F: Field>(field: &F, dimension_vector: Vec<usize>) -> PathAlgebraModule<F> {
@@ -11269,6 +11393,152 @@ mod tests {
         assert_eq!(ternary_json, expected["ternary"]);
         assert_eq!(rational_json, expected["rational"]);
         assert_eq!(isolated_json, expected["isolated"]);
+    }
+
+    fn modulehomalg_dominant_dimension_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let zero_scalar = field.zero();
+        let one_scalar = field.one();
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simple_one = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(a2.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let projective = right_module_over_path_algebra(
+            a2.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![one_scalar]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let zero = zero_module(&a2).unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual.clone(),
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![zero_scalar]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let discrete = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let negative_one = Integer::from(-1);
+        let zero_bound = Integer::from(0);
+        let one_bound = Integer::from(1);
+        let two_bound = Integer::from(2);
+
+        json!({
+            "simple_one_bound_0": dominant_dimension_json(
+                dominant_dimension_of_module(&simple_one, &zero_bound).unwrap()),
+            "simple_one_bound_2": dominant_dimension_json(
+                dominant_dimension_of_module(&simple_one, &two_bound).unwrap()),
+            "simple_one_bound_negative": dominant_dimension_json(
+                dominant_dimension_of_module(&simple_one, &negative_one).unwrap()),
+            "simple_two_bound_0": dominant_dimension_json(
+                dominant_dimension_of_module(&simple_two, &zero_bound).unwrap()),
+            "simple_two_bound_1": dominant_dimension_json(
+                dominant_dimension_of_module(&simple_two, &one_bound).unwrap()),
+            "simple_two_bound_2": dominant_dimension_json(
+                dominant_dimension_of_module(&simple_two, &two_bound).unwrap()),
+            "simple_two_bound_negative": dominant_dimension_json(
+                dominant_dimension_of_module(&simple_two, &negative_one).unwrap()),
+            "projective_injective": dominant_dimension_json(
+                dominant_dimension_of_module(&projective, &zero_bound).unwrap()),
+            "zero": dominant_dimension_json(
+                dominant_dimension_of_module(&zero, &zero_bound).unwrap()),
+            "dual_simple_bound_2": dominant_dimension_json(
+                dominant_dimension_of_module(&dual_simple, &two_bound).unwrap()),
+            "a2_bound_0": dominant_dimension_json(
+                dominant_dimension_of_algebra(&a2, &zero_bound).unwrap()),
+            "a2_bound_1": dominant_dimension_json(
+                dominant_dimension_of_algebra(&a2, &one_bound).unwrap()),
+            "a2_bound_2": dominant_dimension_json(
+                dominant_dimension_of_algebra(&a2, &two_bound).unwrap()),
+            "dual_algebra": dominant_dimension_json(
+                dominant_dimension_of_algebra(&dual, &two_bound).unwrap()),
+            "discrete_algebra": dominant_dimension_json(
+                dominant_dimension_of_algebra(&discrete, &zero_bound).unwrap()),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_dominant_dimension_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_dominant_dimension.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_dominant_dimension",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_dominant_dimension_case(&Z2),
+            "quinary": modulehomalg_dominant_dimension_case(&Zp::new(5)),
+            "rational": modulehomalg_dominant_dimension_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn dominant_dimension_preserves_infinite_dimensional_try_next_method() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Z2,
+                Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![Z2.zero()]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            dominant_dimension_of_module(&module, &Integer::from(0)).unwrap(),
+            None
+        );
+        assert_eq!(
+            dominant_dimension_of_algebra(&algebra, &Integer::from(0)).unwrap(),
+            None
+        );
     }
 
     fn modulehomalg_dimensions_case<F: QpaCoefficientField>(field: &F) -> Value {
