@@ -14234,9 +14234,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 26
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "n_rigid_module"
+tests = ["tests/fixtures/modulehomalg_n_rigid.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14936,9 +14936,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 977
 source_end = 999
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "n_rigid_module"
+tests = ["tests/fixtures/modulehomalg_n_rigid.schema-v1.json"]
 deviations = []
 
 [[entries]]

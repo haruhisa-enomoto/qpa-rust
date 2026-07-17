@@ -853,6 +853,36 @@ where
     )))
 }
 
+/// Translate QPA's `N_RigidModule(M, n)` operation.
+///
+/// Starting with `N = M`, the source tests `ExtOverAlgebra(N, M)[2]` and then
+/// replaces `N` by `NthSyzygy(N, 1)`. Thus it tests the self-Ext groups in
+/// degrees one through `n`. Zero and negative bounds return `true` without
+/// computing Ext. On every vanishing Ext group QPA computes the next syzygy,
+/// including after the final requested degree; this translation preserves
+/// that evaluation order.
+///
+/// # Errors
+///
+/// Propagates every Ext, projective-resolution, and syzygy construction
+/// failure.
+pub fn n_rigid_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<bool, EnvelopingModuleError> {
+    let one = Integer::one();
+    let mut degree = one.clone();
+    let mut current = module.clone();
+    while &degree <= bound {
+        if ext_over_algebra(&current, module)?.dimension() > 0 {
+            return Ok(false);
+        }
+        degree += &one;
+        current = nth_syzygy(&current, &one)?;
+    }
+    Ok(true)
+}
+
 /// Translate QPA's Nakayama-socle test for `IsSelfinjectiveAlgebra(A)`.
 ///
 /// Infinite-dimensional input returns `Some(false)` before path-algebra
@@ -7107,8 +7137,8 @@ mod tests {
         is_semicommutative_algebra, is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module,
         is_weakly_symmetric_algebra, left_approximation_by_add_m, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, minimal_left_approximation,
-        minimal_right_approximation, nakayama_automorphism, nakayama_functor_of_module,
-        nakayama_functor_of_module_homomorphism, nakayama_permutation,
+        minimal_right_approximation, n_rigid_module, nakayama_automorphism,
+        nakayama_functor_of_module, nakayama_functor_of_module_homomorphism, nakayama_permutation,
         opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
         order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
         proj_dimension_of_module, projective_cover, random_module, right_approximation_by_add_m,
@@ -7221,6 +7251,28 @@ mod tests {
         let x = parent.element(arrows[0].path()).unwrap();
         let y = parent.element(arrows[1].path()).unwrap();
         QuiverAlgebra::Quotient(quotient_by_relations(parent, &[x.multiply(&y).unwrap()]).unwrap())
+    }
+
+    fn fresh_radical_square_zero_cycle<F: Field>(field: &F) -> QuiverAlgebra<F> {
+        let parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(
+                2,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "p"),
+                    ArrowSpec::named(vertex(2), vertex(1), "q"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let arrows = parent.quiver().arrows().collect::<Vec<_>>();
+        let p = parent.element(arrows[0].path()).unwrap();
+        let q = parent.element(arrows[1].path()).unwrap();
+        QuiverAlgebra::Quotient(
+            quotient_by_relations(parent, &[p.multiply(&q).unwrap(), q.multiply(&p).unwrap()])
+                .unwrap(),
+        )
     }
 
     fn isolated_path_algebra<F: Field>(field: F, vertex_count: usize) -> QuiverAlgebra<F> {
@@ -11597,6 +11649,60 @@ mod tests {
             "binary": modulehomalg_gorenstein_dimension_case(&Z2),
             "quinary": modulehomalg_gorenstein_dimension_case(&Zp::new(5)),
             "rational": modulehomalg_gorenstein_dimension_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    fn modulehomalg_n_rigid_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let a2_simple = simple_modules(&a2).unwrap()[0].clone();
+        let zero = zero_module(&a2).unwrap();
+        let dual = fresh_dual_numbers(field);
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+        let dual_projective = indec_projective_modules(&dual).unwrap()[0].clone();
+        let cycle = fresh_radical_square_zero_cycle(field);
+        let cycle_simple = simple_modules(&cycle).unwrap()[0].clone();
+
+        json!({
+            "a2_simple_negative": n_rigid_module(&a2_simple, &Integer::from(-1)).unwrap(),
+            "a2_simple_0": n_rigid_module(&a2_simple, &Integer::from(0)).unwrap(),
+            "a2_simple_3": n_rigid_module(&a2_simple, &Integer::from(3)).unwrap(),
+            "zero_3": n_rigid_module(&zero, &Integer::from(3)).unwrap(),
+            "dual_simple_0": n_rigid_module(&dual_simple, &Integer::from(0)).unwrap(),
+            "dual_simple_1": n_rigid_module(&dual_simple, &Integer::from(1)).unwrap(),
+            "dual_projective_3": n_rigid_module(&dual_projective, &Integer::from(3)).unwrap(),
+            "cycle_simple_1": n_rigid_module(&cycle_simple, &Integer::from(1)).unwrap(),
+            "cycle_simple_2": n_rigid_module(&cycle_simple, &Integer::from(2)).unwrap(),
+            "cycle_simple_3": n_rigid_module(&cycle_simple, &Integer::from(3)).unwrap(),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_n_rigid_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_n_rigid.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_n_rigid",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_n_rigid_case(&Z2),
+            "quinary": modulehomalg_n_rigid_case(&Zp::new(5)),
+            "rational": modulehomalg_n_rigid_case(&Q),
         });
         assert_eq!(actual, expected);
     }

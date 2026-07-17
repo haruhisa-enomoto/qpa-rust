@@ -76,7 +76,7 @@ pub use module::{
     is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_weakly_symmetric_algebra,
     left_approximation_by_add_m, lifting_morphism_from_projective, loewy_length_of_algebra,
     matrix_of_homomorphism_between_projectives, minimal_left_approximation,
-    minimal_right_approximation, nakayama_automorphism, nakayama_functor_of_module,
+    minimal_right_approximation, n_rigid_module, nakayama_automorphism, nakayama_functor_of_module,
     nakayama_functor_of_module_homomorphism, nakayama_permutation, nth_syzygy,
     opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
     order_of_nakayama_automorphism, predecessors_of_module, proj_dimension,
