@@ -14429,9 +14429,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 45
 source_end = 45
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "have_finite_resolution_in_add_m; FiniteAddMResolutionResult; AddMResolution"
+tests = ["tests/fixtures/modulehomalg_add_m_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15053,9 +15053,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1301
 source_end = 1345
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "have_finite_resolution_in_add_m; FiniteAddMResolutionResult; AddMResolution"
+tests = ["tests/fixtures/modulehomalg_add_m_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
