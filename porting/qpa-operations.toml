@@ -14494,9 +14494,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 50
 source_end = 50
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "faithful_dimension; FaithfulDimensionResult"
+tests = ["tests/fixtures/modulehomalg_faithful_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15092,9 +15092,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1492
 source_end = 1531
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "faithful_dimension; FaithfulDimensionResult"
+tests = ["tests/fixtures/modulehomalg_faithful_dimension.schema-v1.json"]
 deviations = []
 
 [[entries]]

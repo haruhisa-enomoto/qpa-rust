@@ -3858,6 +3858,76 @@ pub fn all_complements_of_almost_complete_cotilting_module<F: QpaCoefficientFiel
     all_complements_of_almost_complete_tilting_module(module, complement)
 }
 
+/// QPA's integer-or-infinity `FaithfulDimension(M)` value.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum FaithfulDimensionResult {
+    /// A finite faithful dimension.
+    Finite(usize),
+    /// QPA's `infinity` value.
+    Infinite,
+}
+
+impl FaithfulDimensionResult {
+    fn from_cache(value: Option<usize>) -> Self {
+        value.map_or(Self::Infinite, Self::Finite)
+    }
+}
+
+/// Translate QPA's cached `FaithfulDimension(M)` attribute.
+///
+/// For every indecomposable projective, the source follows successive
+/// injective minimal left add(M)-approximations. A failed initial injection
+/// returns zero immediately. Reaching a zero cokernel gives that projective
+/// infinite length; otherwise the first failed successor records the number
+/// of accepted injections. The result is the minimum of those values, with
+/// QPA's usual ordering in which every finite integer is below `infinity`.
+/// The attribute result is retained on the identical module object.
+///
+/// # Errors
+///
+/// Propagates indecomposable-projective, approximation, and cokernel failures.
+/// Reports QPA's `Minimum([])` failure explicitly for an algebra with no
+/// indecomposable projectives, and reports a non-addressable chain length.
+pub fn faithful_dimension<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+) -> Result<FaithfulDimensionResult, EnvelopingModuleError> {
+    if let Some(cached) = module.cached_faithful_dimension() {
+        return Ok(FaithfulDimensionResult::from_cache(cached));
+    }
+
+    let projectives = indec_projective_modules(module.right_acting_algebra())?;
+    if projectives.is_empty() {
+        return Err(EnvelopingModuleError::EmptyFaithfulDimensionProjectiveList);
+    }
+    let mut finite_minimum = None;
+    for projective in projectives {
+        let mut length = 0_usize;
+        let mut approximation = minimal_left_approximation(&projective, module)?;
+        if !approximation.is_injective() {
+            let cached = module.cache_faithful_dimension(Some(0));
+            return Ok(FaithfulDimensionResult::from_cache(cached));
+        }
+        loop {
+            length = length
+                .checked_add(1)
+                .ok_or(EnvelopingModuleError::FaithfulDimensionOverflow)?;
+            let cokernel = cokernel_projection(&approximation)?;
+            if cokernel.range().dimension() == 0 {
+                break;
+            }
+            approximation = minimal_left_approximation(cokernel.range(), module)?;
+            if !approximation.is_injective() {
+                finite_minimum =
+                    Some(finite_minimum.map_or(length, |value: usize| value.min(length)));
+                break;
+            }
+        }
+    }
+
+    let cached = module.cache_faithful_dimension(finite_minimum);
+    Ok(FaithfulDimensionResult::from_cache(cached))
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -7158,6 +7228,12 @@ pub enum EnvelopingModuleError {
     /// A successful bounded injective-dimension call must bind the attribute.
     #[error("CotiltingModule found no cached injective dimension after a successful bounded check")]
     MissingCotiltingInjectiveDimensionCache,
+    /// QPA applies `Minimum` to the complete indecomposable-projective list.
+    #[error("FaithfulDimension cannot take Minimum of an empty projective list")]
+    EmptyFaithfulDimensionProjectiveList,
+    /// A faithful-dimension approximation chain must remain addressable.
+    #[error("the FaithfulDimension approximation length overflows usize")]
+    FaithfulDimensionOverflow,
     /// A generated GAP resolution degree must fit Rust's addressable lazy
     /// cache in its direction from degree zero.
     #[error("resolution degree is not representable by usize: {degree}")]
@@ -7800,10 +7876,11 @@ mod tests {
     use super::{
         AddMCoresolution, AddMResolution, AllComplementsResult, AlmostSplitSide,
         CotiltingModuleResult, DominantDimensionResult, EnvelopingModuleError,
-        ExtOverAlgebraResult, FiniteAddMResolutionResult, GlobalDimensionOfAlgebraResult,
-        ModuleLengthError, NakayamaAutomorphismOrder, PredecessorMultiplicity,
-        PredecessorsOfModuleResult, TensorProductOfModulesResult, TiltingModuleResult,
-        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
+        ExtOverAlgebraResult, FaithfulDimensionResult, FiniteAddMResolutionResult,
+        GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
+        PredecessorMultiplicity, PredecessorsOfModuleResult, TensorProductOfModulesResult,
+        TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
+        algebra_as_module_over_enveloping_algebra,
         all_complements_of_almost_complete_cotilting_module,
         all_complements_of_almost_complete_tilting_module, all_indec_modules_of_length_at_most,
         all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
@@ -7814,8 +7891,8 @@ mod tests {
         dominant_dimension_of_module, dual_of_algebra_as_module_over_enveloping_algebra,
         dual_of_module, dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
-        finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
-        frobenius_linear_functional, from_identity_to_double_star_homomorphism,
+        faithful_dimension, finite_canonical_basis, finite_qpa_default_basis, first_syzygy,
+        frobenius_form, frobenius_linear_functional, from_identity_to_double_star_homomorphism,
         from_matrix_to_homomorphism_of_projectives, global_dimension_from_known_properties,
         global_dimension_of_algebra, gorenstein_dimension, gorenstein_dimension_of_algebra,
         have_finite_coresolution_in_add_m, have_finite_resolution_in_add_m,
@@ -9772,6 +9849,83 @@ mod tests {
             all_complements_of_almost_complete_tilting_module(&first, &second),
             Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
         ));
+    }
+
+    fn faithful_dimension_json(result: FaithfulDimensionResult) -> Value {
+        match result {
+            FaithfulDimensionResult::Finite(value) => value.into(),
+            FaithfulDimensionResult::Infinite => "infinity".into(),
+        }
+    }
+
+    fn modulehomalg_faithful_dimension_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let regular = direct_sum_of_qpa_modules(&projectives).unwrap().unwrap();
+        let simples = simple_modules(&a2).unwrap();
+        let pd_one = direct_sum_of_qpa_modules(&[projectives[0].clone(), simples[0].clone()])
+            .unwrap()
+            .unwrap();
+        let zero = zero_module(&a2).unwrap();
+
+        let dual = fresh_dual_numbers(field);
+        let dual_regular = indec_projective_modules(&dual).unwrap()[0].clone();
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+
+        let check = |module: &PathAlgebraModule<F>| {
+            let has_before = module.cached_faithful_dimension().is_some();
+            let first = faithful_dimension(module).unwrap();
+            let has_after_first = module.cached_faithful_dimension().is_some();
+            let second = faithful_dimension(module).unwrap();
+            let has_after_second = module.cached_faithful_dimension().is_some();
+            json!({
+                "has_before": has_before,
+                "first": faithful_dimension_json(first),
+                "has_after_first": has_after_first,
+                "second": faithful_dimension_json(second),
+                "has_after_second": has_after_second,
+            })
+        };
+        json!({
+            "regular": check(&regular),
+            "projective_1": check(&projectives[0]),
+            "simple_1": check(&simples[0]),
+            "simple_2": check(&simples[1]),
+            "pd_one": check(&pd_one),
+            "zero": check(&zero),
+            "dual_regular": check(&dual_regular),
+            "dual_simple": check(&dual_simple),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_faithful_dimension_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_faithful_dimension.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_faithful_dimension",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_faithful_dimension_case(&Z2),
+            "quinary": modulehomalg_faithful_dimension_case(&Zp::new(5)),
+            "rational": modulehomalg_faithful_dimension_case(&Q),
+        });
+        assert_eq!(actual, expected);
     }
 
     #[test]

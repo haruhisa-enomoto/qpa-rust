@@ -112,6 +112,7 @@ struct PathAlgebraModuleData<F: Field> {
     is_injective: OnceLock<bool>,
     projective_dimension: OnceLock<usize>,
     injective_dimension: OnceLock<usize>,
+    faithful_dimension: OnceLock<Option<usize>>,
     is_indecomposable: OnceLock<bool>,
     is_simple_qpa: OnceLock<bool>,
     is_semisimple: OnceLock<bool>,
@@ -164,6 +165,7 @@ impl<F: Field> PathAlgebraModuleData<F> {
             is_injective: OnceLock::new(),
             projective_dimension: OnceLock::new(),
             injective_dimension: OnceLock::new(),
+            faithful_dimension: OnceLock::new(),
             is_indecomposable: OnceLock::new(),
             is_simple_qpa: OnceLock::new(),
             is_semisimple: OnceLock::new(),
@@ -547,6 +549,24 @@ impl<F: Field> PathAlgebraModule<F> {
     #[must_use]
     pub fn cache_injective_dimension(&self, value: usize) -> usize {
         *self.0.injective_dimension.get_or_init(|| value)
+    }
+
+    /// Return QPA's installed `FaithfulDimension` attribute, if bound.
+    ///
+    /// The inner `None` is QPA's `infinity` value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_faithful_dimension(&self) -> Option<Option<usize>> {
+        self.0.faithful_dimension.get().copied()
+    }
+
+    /// Install QPA's `FaithfulDimension` attribute.
+    ///
+    /// `None` represents QPA's `infinity` value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_faithful_dimension(&self, value: Option<usize>) -> Option<usize> {
+        *self.0.faithful_dimension.get_or_init(|| value)
     }
 
     /// Return QPA's cached `IsIndecomposableModule` value, if installed.
