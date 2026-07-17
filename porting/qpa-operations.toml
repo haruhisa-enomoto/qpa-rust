@@ -12063,9 +12063,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 35
 source_end = 35
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "common_direct_summand; CommonDirectSummandResult; CommonDirectSummand"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12076,9 +12076,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "maximal_common_direct_summand; MaximalCommonDirectSummand"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12089,9 +12089,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 37
 source_end = 37
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "isomorphic_modules"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12102,9 +12102,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_direct_summand"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12115,9 +12115,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 39
 source_end = 39
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_in_additive_closure"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12271,9 +12271,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 51
 source_end = 51
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_right_minimal; PathAlgebraModuleHomomorphism::cached_is_right_minimal"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -12284,9 +12284,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 52
 source_end = 52
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_left_minimal; PathAlgebraModuleHomomorphism::cached_is_left_minimal"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13259,9 +13259,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1895
 source_end = 1952
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "common_direct_summand; CommonDirectSummandResult; CommonDirectSummand"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13272,9 +13272,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 1966
 source_end = 1994
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "maximal_common_direct_summand; MaximalCommonDirectSummand"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13285,9 +13285,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2004
 source_end = 2028
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "isomorphic_modules"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13298,9 +13298,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2038
 source_end = 2060
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_direct_summand"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13311,9 +13311,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2070
 source_end = 2113
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_in_additive_closure"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13493,9 +13493,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2869
 source_end = 2894
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_right_minimal; PathAlgebraModuleHomomorphism::cached_is_right_minimal"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13506,9 +13506,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 2903
 source_end = 2928
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_left_minimal; PathAlgebraModuleHomomorphism::cached_is_left_minimal"
+tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -299,6 +299,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_minimal.g" \
     "$repo_root/tests/fixtures/modulehom_minimal.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/modulehom_common_summand.g" \
+    "$repo_root/tests/fixtures/modulehom_common_summand.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehom_map_utils.g" \
     "$repo_root/tests/fixtures/modulehom_map_utils.schema-v1.json"
 compare_fixture \

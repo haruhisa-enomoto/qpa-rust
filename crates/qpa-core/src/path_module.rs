@@ -1122,6 +1122,83 @@ pub enum MoreMinimalVersionResult<F: Field> {
 pub type PathAlgebraModuleMinimalVersion<F> =
     (PathAlgebraModuleHomomorphism<F>, Vec<PathAlgebraModule<F>>);
 
+/// QPA's successful `CommonDirectSummand(M, N)` result.
+///
+/// The two common modules are isomorphic images in `M` and `N`; the other two
+/// fields are the corresponding Fitting kernels retained as complements.
+#[derive(Clone, Debug)]
+pub struct CommonDirectSummand<F: Field> {
+    source_common: PathAlgebraModule<F>,
+    source_complement: PathAlgebraModule<F>,
+    range_common: PathAlgebraModule<F>,
+    range_complement: PathAlgebraModule<F>,
+}
+
+impl<F: Field> CommonDirectSummand<F> {
+    /// Return the common summand found inside the first entered module.
+    #[must_use]
+    pub const fn source_common(&self) -> &PathAlgebraModule<F> {
+        &self.source_common
+    }
+
+    /// Return its Fitting complement inside the first entered module.
+    #[must_use]
+    pub const fn source_complement(&self) -> &PathAlgebraModule<F> {
+        &self.source_complement
+    }
+
+    /// Return the isomorphic common summand inside the second entered module.
+    #[must_use]
+    pub const fn range_common(&self) -> &PathAlgebraModule<F> {
+        &self.range_common
+    }
+
+    /// Return its Fitting complement inside the second entered module.
+    #[must_use]
+    pub const fn range_complement(&self) -> &PathAlgebraModule<F> {
+        &self.range_complement
+    }
+}
+
+/// QPA's heterogeneous `CommonDirectSummand` return contract.
+#[derive(Clone, Debug)]
+pub enum CommonDirectSummandResult<F: Field> {
+    /// QPA prints a diagnostic and returns `fail` for different acting algebras.
+    DifferentAlgebras,
+    /// QPA returns `false` after exhausting the ordered Hom-basis search.
+    NoCommonSummand,
+    /// QPA returns the images and kernels of the two Fitting endomorphisms.
+    Found(CommonDirectSummand<F>),
+}
+
+/// QPA's successful `MaximalCommonDirectSummand(M, N)` result.
+#[derive(Clone, Debug)]
+pub struct MaximalCommonDirectSummand<F: Field> {
+    common_summands: Vec<PathAlgebraModule<F>>,
+    source_remainder: PathAlgebraModule<F>,
+    range_remainder: PathAlgebraModule<F>,
+}
+
+impl<F: Field> MaximalCommonDirectSummand<F> {
+    /// Return the common summands in QPA discovery order.
+    #[must_use]
+    pub fn common_summands(&self) -> &[PathAlgebraModule<F>] {
+        &self.common_summands
+    }
+
+    /// Return the remainder of the first entered module.
+    #[must_use]
+    pub const fn source_remainder(&self) -> &PathAlgebraModule<F> {
+        &self.source_remainder
+    }
+
+    /// Return the remainder of the second entered module.
+    #[must_use]
+    pub const fn range_remainder(&self) -> &PathAlgebraModule<F> {
+        &self.range_remainder
+    }
+}
+
 #[derive(Debug)]
 struct MinimalVersionAttribute<F: Field> {
     // `None` denotes the identical owning map and avoids an `Arc` self-cycle.
@@ -2559,6 +2636,103 @@ pub fn is_split_epimorphism<F: Field>(
     }
     let value = left_inverse_of_homomorphism(homomorphism)?.is_some();
     Ok(homomorphism.cache_is_split_epimorphism(value))
+}
+
+/// Translate QPA's annihilator-radical `IsRightMinimal(f)` property method.
+///
+/// QPA takes the left nullspace of the ordered maps `x * f`, rewrites those
+/// relations in its ordered `End(Source(f))` basis, and checks that every
+/// resulting annihilator element lies in the Jacobson radical. The computed
+/// property is cached on the identical map object.
+///
+/// # Errors
+///
+/// Propagates Hom, composition, exact nullspace, endomorphism conversion, and
+/// radical computation failures.
+pub fn is_right_minimal<F: QpaCoefficientField>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<bool, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_is_right_minimal() {
+        return Ok(cached);
+    }
+    let source = homomorphism.source();
+    let endomorphisms = hom_over_algebra(source, source)?
+        .ok_or(PathAlgebraModuleError::InternalMinimalityHomRejected)?;
+    let composites = endomorphisms
+        .iter()
+        .map(|endomorphism| endomorphism.compose(homomorphism))
+        .collect::<Result<Vec<_>, _>>()?;
+    let result = annihilator_is_radical(source, &endomorphisms, &composites)?;
+    Ok(homomorphism.cache_is_right_minimal(result))
+}
+
+/// Translate QPA's annihilator-radical `IsLeftMinimal(f)` property method.
+///
+/// This is the source-dual ordered computation using `f * x` for the
+/// `End(Range(f))` basis. The computed property is cached on the map.
+///
+/// # Errors
+///
+/// Propagates Hom, composition, exact nullspace, endomorphism conversion, and
+/// radical computation failures.
+pub fn is_left_minimal<F: QpaCoefficientField>(
+    homomorphism: &PathAlgebraModuleHomomorphism<F>,
+) -> Result<bool, PathAlgebraModuleError> {
+    if let Some(cached) = homomorphism.cached_is_left_minimal() {
+        return Ok(cached);
+    }
+    let range = homomorphism.range();
+    let endomorphisms = hom_over_algebra(range, range)?
+        .ok_or(PathAlgebraModuleError::InternalMinimalityHomRejected)?;
+    let composites = endomorphisms
+        .iter()
+        .map(|endomorphism| homomorphism.compose(endomorphism))
+        .collect::<Result<Vec<_>, _>>()?;
+    let result = annihilator_is_radical(range, &endomorphisms, &composites)?;
+    Ok(homomorphism.cache_is_left_minimal(result))
+}
+
+fn annihilator_is_radical<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    endomorphisms: &[PathAlgebraModuleHomomorphism<F>],
+    composites: &[PathAlgebraModuleHomomorphism<F>],
+) -> Result<bool, PathAlgebraModuleError> {
+    let first = composites
+        .first()
+        .ok_or(PathAlgebraModuleError::EmptyMinimalityEndomorphismBasis)?;
+    let width = first.flat_vertex_matrix_entries().len();
+    let composite_rows = DenseMatrix::from_flat(
+        composites.len(),
+        width,
+        composites
+            .iter()
+            .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+            .collect(),
+        module.right_acting_algebra().field().clone(),
+    )?;
+    let annihilator = composite_rows.nullspace_rows();
+    let endomorphism_algebra = end_over_algebra(module)?;
+    let radical = endomorphism_algebra.radical_basis_matrices()?;
+    let matrix_width = module
+        .dimension()
+        .checked_mul(module.dimension())
+        .ok_or(PathAlgebraModuleError::HomEquationSizeOverflow)?;
+    let radical_rows = DenseMatrix::from_flat(
+        radical.len(),
+        matrix_width,
+        radical.iter().flat_map(flatten_matrix).collect(),
+        module.right_acting_algebra().field().clone(),
+    )?;
+
+    for row in 0..annihilator.nrows() {
+        let annihilating_map =
+            linear_combination_of_homomorphisms(endomorphisms, annihilator.row(row))?;
+        let matrix = from_hom_mm_to_end_m(&annihilating_map)?;
+        if radical_rows.solution_row(matrix.as_flat())?.is_none() {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
 
 /// Translate QPA's one-step `MoreRightMinimalVersion(f)` operation.
@@ -4927,6 +5101,204 @@ pub fn underlying_linear_map<F: Field>(
     Ok(result)
 }
 
+/// Translate QPA's Bongartz--Mroz `CommonDirectSummand(M, N)` search.
+///
+/// Hom bases, loop order, the source's floating-point `Ceil(Log2(l))`
+/// exponent, repeated squaring, and the returned image/kernel order are all
+/// retained. The result enum distinguishes QPA's printed-then-`fail` parent
+/// mismatch from its `false` exhausted-search result.
+///
+/// # Errors
+///
+/// Propagates exact Hom, composition, image, and kernel construction.
+pub fn common_direct_summand<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<CommonDirectSummandResult<F>, PathAlgebraModuleError> {
+    if source.right_acting_algebra() != range.right_acting_algebra() {
+        return Ok(CommonDirectSummandResult::DifferentAlgebras);
+    }
+    let source_to_range = hom_over_algebra(source, range)?
+        .ok_or(PathAlgebraModuleError::InternalCommonSummandHomRejected)?;
+    let range_to_source = hom_over_algebra(range, source)?
+        .ok_or(PathAlgebraModuleError::InternalCommonSummandHomRejected)?;
+    if source_to_range.is_empty() || range_to_source.is_empty() {
+        return Ok(CommonDirectSummandResult::NoCommonSummand);
+    }
+
+    let source_maximum = source.dimension_vector().iter().copied().max().unwrap_or(0);
+    let range_maximum = range.dimension_vector().iter().copied().max().unwrap_or(0);
+    let fitting_length = if source_maximum == range_maximum {
+        range_maximum
+    } else {
+        source_maximum.min(range_maximum) + 1
+    };
+    if fitting_length == 0 {
+        return Ok(CommonDirectSummandResult::NoCommonSummand);
+    }
+    let squarings = usize::BITS as usize - (fitting_length - 1).leading_zeros() as usize;
+
+    for range_map in &range_to_source {
+        for source_map in &source_to_range {
+            let fitting_map = if fitting_length > 1 {
+                let mut power = source_map.compose(range_map)?;
+                for _ in 0..squarings {
+                    power = power.compose(&power)?;
+                }
+                power.compose(source_map)?
+            } else {
+                source_map.clone()
+            };
+            let source_endomorphism = fitting_map.compose(range_map)?;
+            if source_endomorphism.is_zero() {
+                continue;
+            }
+            let range_endomorphism = range_map.compose(&fitting_map)?;
+            return Ok(CommonDirectSummandResult::Found(CommonDirectSummand {
+                source_common: image_of_module_homomorphism(&source_endomorphism)?,
+                source_complement: kernel_of_module_homomorphism(&source_endomorphism)?,
+                range_common: image_of_module_homomorphism(&range_endomorphism)?,
+                range_complement: kernel_of_module_homomorphism(&range_endomorphism)?,
+            }));
+        }
+    }
+    Ok(CommonDirectSummandResult::NoCommonSummand)
+}
+
+/// Translate QPA's repeated `MaximalCommonDirectSummand(M, N)` loop.
+///
+/// `None` is QPA's `false`; as in the source this also collapses the first
+/// operation's different-algebra `fail` after its diagnostic.
+///
+/// # Errors
+///
+/// Propagates [`common_direct_summand`] failures.
+pub fn maximal_common_direct_summand<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<Option<MaximalCommonDirectSummand<F>>, PathAlgebraModuleError> {
+    let mut source_remainder = source.clone();
+    let mut range_remainder = range.clone();
+    let mut common_summands = Vec::new();
+
+    loop {
+        let CommonDirectSummandResult::Found(common) =
+            common_direct_summand(&source_remainder, &range_remainder)?
+        else {
+            break;
+        };
+        common_summands.push(common.source_common);
+        source_remainder = common.source_complement;
+        range_remainder = common.range_complement;
+        if source_remainder.dimension() == 0 || range_remainder.dimension() == 0 {
+            break;
+        }
+    }
+
+    Ok(
+        (!common_summands.is_empty()).then_some(MaximalCommonDirectSummand {
+            common_summands,
+            source_remainder,
+            range_remainder,
+        }),
+    )
+}
+
+/// Translate QPA's Boolean `IsomorphicModules(M, N)` operation.
+///
+/// This is intentionally distinct from [`isomorphism_of_modules`]: it follows
+/// QPA's older maximal-common-summand decision algorithm and returns no map.
+///
+/// # Errors
+///
+/// Propagates [`maximal_common_direct_summand`] failures.
+pub fn isomorphic_modules<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<bool, PathAlgebraModuleError> {
+    if source.dimension_vector() != range.dimension_vector() {
+        return Ok(false);
+    }
+    if source.dimension() == 0 && range.dimension() == 0 {
+        return Ok(true);
+    }
+    let Some(common) = maximal_common_direct_summand(source, range)? else {
+        return Ok(false);
+    };
+    Ok(common.source_remainder.dimension() == 0 && common.range_remainder.dimension() == 0)
+}
+
+/// Translate QPA's `IsDirectSummand(M, N)` decision operation.
+///
+/// # Errors
+///
+/// Propagates [`maximal_common_direct_summand`] failures.
+pub fn is_direct_summand<F: Field>(
+    candidate: &PathAlgebraModule<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<bool, PathAlgebraModuleError> {
+    if !dimension_vector_partial_order(candidate, module) {
+        return Ok(false);
+    }
+    let Some(common) = maximal_common_direct_summand(candidate, module)? else {
+        return Ok(false);
+    };
+    Ok(common.source_remainder.dimension() == 0)
+}
+
+/// Translate QPA's product-span `IsInAdditiveClosure(M, N)` test.
+///
+/// `None` is QPA's `fail` for modules over different algebras. The source
+/// compares the span dimension of all `Hom(M,N) Hom(N,M)` products with the
+/// dimension of `End(M)`; Rust retains that test rather than substituting an
+/// isomorphism/decomposition criterion.
+///
+/// # Errors
+///
+/// Propagates Hom, composition, and exact row-space construction.
+pub fn is_in_additive_closure<F: Field>(
+    candidate: &PathAlgebraModule<F>,
+    generator: &PathAlgebraModule<F>,
+) -> Result<Option<bool>, PathAlgebraModuleError> {
+    if candidate.right_acting_algebra() != generator.right_acting_algebra() {
+        return Ok(None);
+    }
+    let candidate_to_generator = hom_over_algebra(candidate, generator)?
+        .ok_or(PathAlgebraModuleError::InternalAdditiveClosureHomRejected)?;
+    let generator_to_candidate = hom_over_algebra(generator, candidate)?
+        .ok_or(PathAlgebraModuleError::InternalAdditiveClosureHomRejected)?;
+    let endomorphisms = hom_over_algebra(candidate, candidate)?
+        .ok_or(PathAlgebraModuleError::InternalAdditiveClosureHomRejected)?;
+    let mut products = Vec::with_capacity(
+        candidate_to_generator
+            .len()
+            .saturating_mul(generator_to_candidate.len()),
+    );
+    for forward in &candidate_to_generator {
+        for backward in &generator_to_candidate {
+            products.push(forward.compose(backward)?);
+        }
+    }
+    let span_dimension = if products.is_empty() {
+        0
+    } else {
+        let width = products[0].flat_vertex_matrix_entries().len();
+        DenseMatrix::from_flat(
+            products.len(),
+            width,
+            products
+                .iter()
+                .flat_map(PathAlgebraModuleHomomorphism::flat_vertex_matrix_entries)
+                .collect(),
+            candidate.right_acting_algebra().field().clone(),
+        )?
+        .semi_echelon_transformation()
+        .vectors
+        .nrows()
+    };
+    Ok(Some(span_dimension == endomorphisms.len()))
+}
+
 /// Translate QPA's recursive `IsomorphismOfModules(M, N)` operation.
 ///
 /// `Ok(None)` is QPA's `false`. After the same algebra, dimension-vector,
@@ -5580,6 +5952,18 @@ pub enum PathAlgebraModuleError {
     /// acting algebra.
     #[error("HomOverAlgebra unexpectedly rejected a splitting pair")]
     InternalSplittingHomRejected,
+    /// Common-summand inputs already passed their common-algebra test.
+    #[error("HomOverAlgebra unexpectedly rejected a common-summand pair")]
+    InternalCommonSummandHomRejected,
+    /// Additive-closure inputs already passed their common-algebra test.
+    #[error("HomOverAlgebra unexpectedly rejected an additive-closure pair")]
+    InternalAdditiveClosureHomRejected,
+    /// A nonzero module has the identity in its endomorphism basis.
+    #[error("a minimality test unexpectedly received an empty endomorphism basis")]
+    EmptyMinimalityEndomorphismBasis,
+    /// Minimality endomorphism inputs necessarily share one acting algebra.
+    #[error("HomOverAlgebra unexpectedly rejected a minimality endomorphism pair")]
+    InternalMinimalityHomRejected,
     /// Kernel/cokernel-derived modules necessarily share the entered map's
     /// acting algebra during a minimal-version computation.
     #[error("HomOverAlgebra unexpectedly rejected a minimal-version pair")]
@@ -5941,28 +6325,30 @@ mod tests {
     use serde_json::{Value, json};
 
     use crate::{
-        ArrowSpec, DenseMatrix, PathAlgebra, Quiver, QuiverAlgebra, QuotientPathAlgebra,
-        VertexIndex,
+        ArrowSpec, DenseMatrix, PathAlgebra, QpaCoefficientField, Quiver, QuiverAlgebra,
+        QuotientPathAlgebra, VertexIndex,
     };
 
     use super::{
-        ModuleEndomorphismAlgebra, ModuleEndomorphismAlgebraData, MoreMinimalVersionResult,
-        NamedArrowMatrix, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
-        PathAlgebraModuleMatrix, cokernel_projection, direct_sum_inclusions,
-        direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, hom_over_algebra,
+        CommonDirectSummandResult, ModuleEndomorphismAlgebra, ModuleEndomorphismAlgebraData,
+        MoreMinimalVersionResult, NamedArrowMatrix, PathAlgebraModuleError,
+        PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, cokernel_projection,
+        common_direct_summand, direct_sum_inclusions, direct_sum_of_qpa_modules,
+        direct_sum_projections, end_over_algebra, hom_over_algebra,
         hom_over_algebra_with_basis_function, homomorphism_from_images, identity_module_mapping,
         image_projection_inclusion, intersection_of_submodules, intersection_of_submodules_list,
-        inverse_of_isomorphism, is_split_epimorphism, is_split_monomorphism,
+        inverse_of_isomorphism, is_direct_summand, is_in_additive_closure, is_left_minimal,
+        is_right_minimal, is_split_epimorphism, is_split_monomorphism, isomorphic_modules,
         isomorphism_of_modules, kernel_inclusion, left_inverse_of_homomorphism,
-        left_minimal_version, minimal_generating_set_of_module, more_left_minimal_version,
-        more_right_minimal_version, morphism_on_cokernel, morphism_on_image, morphism_on_kernel,
-        multiply_lists_of_maps, natural_endomorphism_quotient_by_ideal, pull_back, push_out,
-        radical_of_module_inclusion, reject_of_module, right_fac_approximation,
-        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
-        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
-        socle_of_module, socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list,
-        top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
-        zero_module_mapping,
+        left_minimal_version, maximal_common_direct_summand, minimal_generating_set_of_module,
+        more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
+        morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
+        natural_endomorphism_quotient_by_ideal, pull_back, push_out, radical_of_module_inclusion,
+        reject_of_module, right_fac_approximation, right_fac_approximation_via_all_basis_images,
+        right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
+        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
+        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
+        top_of_module_projection, trace_of_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -6604,6 +6990,134 @@ mod tests {
             "right_zero": minimal_version_json(&right_zero, &zero_map, true, coefficient),
             "a2_right": minimal_version_json(&a2_right, &projection, true, coefficient),
             "a2_left": minimal_version_json(&a2_left, &inclusion, false, coefficient),
+        })
+    }
+
+    fn common_summand_dimensions<F: Field>(result: CommonDirectSummandResult<F>) -> Value {
+        let CommonDirectSummandResult::Found(common) = result else {
+            panic!("the pinned QPA case has a common direct summand")
+        };
+        json!([
+            common.source_common().dimension_vector(),
+            common.source_complement().dimension_vector(),
+            common.range_common().dimension_vector(),
+            common.range_complement().dimension_vector(),
+        ])
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn modulehom_common_summand_case<F: QpaCoefficientField>(field: F) -> Value {
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let zero_module = right_module_over_path_algebra(algebra.clone(), vec![0], &[])
+            .unwrap()
+            .unwrap();
+        let one = right_module_over_path_algebra(algebra.clone(), vec![1], &[])
+            .unwrap()
+            .unwrap();
+        let two = right_module_over_path_algebra(algebra, vec![2], &[])
+            .unwrap()
+            .unwrap();
+        let two_copy = direct_sum_of_qpa_modules(&[one.clone(), one.clone()])
+            .unwrap()
+            .unwrap();
+        let common = common_summand_dimensions(common_direct_summand(&two, &one).unwrap());
+        let maximal = maximal_common_direct_summand(&two, &one).unwrap().unwrap();
+
+        let quiver_a2 =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra_a2 = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver_a2).unwrap());
+        let projective_one = right_module_over_path_algebra(
+            algebra_a2.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![field.one()]], field.clone()).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let simple_one = right_module_over_path_algebra(algebra_a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let simple_two = right_module_over_path_algebra(algebra_a2, vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            common_direct_summand(&simple_one, &simple_two).unwrap(),
+            CommonDirectSummandResult::NoCommonSummand
+        ));
+        let mixed = direct_sum_of_qpa_modules(&[simple_one.clone(), simple_two.clone()])
+            .unwrap()
+            .unwrap();
+        let mixed_common =
+            common_summand_dimensions(common_direct_summand(&mixed, &simple_one).unwrap());
+
+        let identity = identity_module_mapping(one.clone()).unwrap();
+        let projection = right_module_hom_over_algebra(
+            two.clone(),
+            one.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![field.one()], vec![field.zero()]], field.clone())
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        let inclusion = right_module_hom_over_algebra(
+            one.clone(),
+            two.clone(),
+            vec![
+                DenseMatrix::from_rows(vec![vec![field.one(), field.zero()]], field.clone())
+                    .unwrap(),
+            ],
+        )
+        .unwrap();
+        let zero = zero_module_mapping(one.clone(), one.clone()).unwrap();
+        let top_projection = top_of_module_projection(projective_one.clone()).unwrap();
+        let radical_inclusion = radical_of_module_inclusion(projective_one).unwrap();
+        let right_before = projection.cached_is_right_minimal().is_some();
+        let left_before = inclusion.cached_is_left_minimal().is_some();
+
+        json!({
+            "common": common,
+            "maximal": {
+                "common": maximal.common_summands().iter()
+                    .map(super::PathAlgebraModule::dimension_vector).collect::<Vec<_>>(),
+                "source_remainder": maximal.source_remainder().dimension_vector(),
+                "range_remainder": maximal.range_remainder().dimension_vector(),
+            },
+            "disjoint_is_false": true,
+            "zero_common_is_false": matches!(
+                common_direct_summand(&zero_module, &zero_module).unwrap(),
+                CommonDirectSummandResult::NoCommonSummand),
+            "mixed_common": mixed_common,
+            "decisions": {
+                "isomorphic": isomorphic_modules(&two, &two_copy).unwrap(),
+                "not_isomorphic": isomorphic_modules(&simple_one, &simple_two).unwrap(),
+                "direct_summand": is_direct_summand(&one, &two).unwrap(),
+                "not_direct_summand": is_direct_summand(&simple_one, &simple_two).unwrap(),
+                "additive_vector_space": is_in_additive_closure(&two, &one).unwrap().unwrap(),
+                "not_additive": is_in_additive_closure(&simple_one, &simple_two)
+                    .unwrap().unwrap(),
+            },
+            "minimality": {
+                "right_before": right_before,
+                "right_projection": is_right_minimal(&projection).unwrap(),
+                "right_after": projection.cached_is_right_minimal().is_some(),
+                "left_before": left_before,
+                "left_inclusion": is_left_minimal(&inclusion).unwrap(),
+                "left_after": inclusion.cached_is_left_minimal().is_some(),
+                "identity": [
+                    is_right_minimal(&identity).unwrap(),
+                    is_left_minimal(&identity).unwrap(),
+                ],
+                "zero": [
+                    is_right_minimal(&zero).unwrap(),
+                    is_left_minimal(&zero).unwrap(),
+                ],
+                "projective_cover_right": is_right_minimal(&top_projection).unwrap(),
+                "radical_inclusion_left": is_left_minimal(&radical_inclusion).unwrap(),
+            }
         })
     }
 
@@ -7273,6 +7787,29 @@ mod tests {
 
         assert_eq!(rational, expected["rational"]);
         assert_eq!(binary, expected["binary"]);
+    }
+
+    #[test]
+    fn pinned_qpa_modulehom_common_summand_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehom_common_summand.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehom_common_summand",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "rational": modulehom_common_summand_case(Q),
+            "binary": modulehom_common_summand_case(Z2),
+        });
+        assert_eq!(actual, expected);
     }
 
     #[test]
