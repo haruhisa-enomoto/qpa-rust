@@ -14442,9 +14442,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 46
 source_end = 46
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "cotilting_module; CotiltingModuleResult"
+tests = ["tests/fixtures/modulehomalg_cotilting.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14455,9 +14455,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 47
 source_end = 47
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_cotilting_module"
+tests = ["tests/fixtures/modulehomalg_cotilting.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15066,9 +15066,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 1355
 source_end = 1412
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "cotilting_module; CotiltingModuleResult; is_cotilting_module"
+tests = ["tests/fixtures/modulehomalg_cotilting.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -3658,6 +3658,101 @@ pub fn have_finite_resolution_in_add_m<F: QpaCoefficientField>(
     )))
 }
 
+/// Return QPA's installed `IsCotiltingModule(M)` attribute, if bound.
+///
+/// QPA installs `false` only on the self-orthogonality failure branch and
+/// installs `true` after every indecomposable injective has been resolved.
+#[must_use]
+pub fn is_cotilting_module<F: Field>(module: &PathAlgebraModule<F>) -> Option<bool> {
+    module.cached_is_cotilting_module()
+}
+
+/// QPA's successful `[m, resolution]` value from `CotiltingModule(M, n)`.
+#[derive(Clone, Debug)]
+pub struct CotiltingModuleResult<F: Field> {
+    injective_dimension: usize,
+    resolutions: Vec<FiniteAddMResolutionResult<F>>,
+}
+
+impl<F: Field> CotiltingModuleResult<F> {
+    /// Return QPA's first result component, the injective dimension of `M`.
+    #[must_use]
+    pub const fn injective_dimension(&self) -> usize {
+        self.injective_dimension
+    }
+
+    /// Return the injective-indexed add(M)-resolutions in QPA order.
+    #[must_use]
+    pub fn resolutions(&self) -> &[FiniteAddMResolutionResult<F>] {
+        &self.resolutions
+    }
+}
+
+/// Translate QPA's bounded `CotiltingModule(M, n)` operation.
+///
+/// `None` is QPA's `false`. The source first establishes injective dimension
+/// at most `n`, then performs the same literal syzygy-based self-orthogonality
+/// loop as `TiltingModule`: for dimension `m`, it makes `m + 1` Ext calls but
+/// advances the syzygy only while the one-based counter is strictly less than
+/// `m`. This intentionally repeats the final Ext degree. A nonzero Ext binds
+/// `IsCotiltingModule(M) := false`. Finally, every indecomposable injective
+/// must have a finite add(M)-resolution of bound `m`; success binds the
+/// attribute to `true`.
+///
+/// # Errors
+///
+/// Propagates bounded injective-dimension, Ext, syzygy, indecomposable
+/// injective, and finite-resolution failures. QPA also assumes that a
+/// successful bounded dimension call installed `InjDimension`; the source's
+/// unbound-attribute failure is represented explicitly.
+pub fn cotilting_module<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    bound: &Integer,
+) -> Result<Option<CotiltingModuleResult<F>>, EnvelopingModuleError> {
+    match inj_dimension(module) {
+        Some(dimension) => {
+            if &Integer::from(dimension) > bound {
+                return Ok(None);
+            }
+        }
+        None => {
+            if inj_dimension_of_module(module, bound)?.is_none() {
+                return Ok(None);
+            }
+        }
+    }
+    let dimension = inj_dimension(module)
+        .ok_or(EnvelopingModuleError::MissingCotiltingInjectiveDimensionCache)?;
+
+    let mut syzygy = module.clone();
+    let syzygy_cutoff = dimension.saturating_sub(1);
+    for iteration in 0..=dimension {
+        if ext_over_algebra(&syzygy, module)?.dimension() != 0 {
+            let _ = module.cache_is_cotilting_module(false);
+            return Ok(None);
+        }
+        if iteration < syzygy_cutoff {
+            syzygy = nth_syzygy(&syzygy, &Integer::one())?;
+        }
+    }
+
+    let resolution_bound = Integer::from(dimension);
+    let mut resolutions = Vec::new();
+    for injective in indec_injective_modules(module.right_acting_algebra())? {
+        let Some(resolution) =
+            have_finite_resolution_in_add_m(&injective, module, &resolution_bound)?
+        else {
+            return Ok(None);
+        };
+        resolutions.push(resolution);
+    }
+    let _ = module.cache_is_cotilting_module(true);
+    Ok(Some(CotiltingModuleResult {
+        injective_dimension: dimension,
+        resolutions,
+    }))
+}
+
 #[derive(Clone, Copy)]
 enum ApproximationSide {
     Right,
@@ -6955,6 +7050,9 @@ pub enum EnvelopingModuleError {
         /// Entered negative GAP integer.
         bound: Integer,
     },
+    /// A successful bounded injective-dimension call must bind the attribute.
+    #[error("CotiltingModule found no cached injective dimension after a successful bounded check")]
+    MissingCotiltingInjectiveDimensionCache,
     /// A generated GAP resolution degree must fit Rust's addressable lazy
     /// cache in its direction from degree zero.
     #[error("resolution degree is not representable by usize: {degree}")]
@@ -7595,19 +7693,19 @@ mod tests {
     use serde_json::{Value, json};
 
     use super::{
-        AddMCoresolution, AlmostSplitSide, DominantDimensionResult, EnvelopingModuleError,
-        ExtOverAlgebraResult, FiniteAddMResolutionResult, GlobalDimensionOfAlgebraResult,
-        ModuleLengthError, NakayamaAutomorphismOrder, PredecessorMultiplicity,
-        PredecessorsOfModuleResult, TensorProductOfModulesResult, TiltingModuleResult,
-        algebra_as_module_of_enveloping_algebra, algebra_as_module_over_enveloping_algebra,
-        all_indec_modules_of_length_at_most, all_modules_of_length_at_most,
-        all_modules_of_length_plus_one, almost_split_sequence, almost_split_sequence_from_side,
-        annihilator_of_module, basis_of_projectives, canonical_basis_coefficients, cartan_matrix,
-        complexity_of_algebra, complexity_of_module, coxeter_matrix, coxeter_polynomial, d_tr,
-        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
-        dominant_dimension_of_algebra, dominant_dimension_of_module,
-        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
-        dual_of_module_homomorphism, element_in_indec_projective,
+        AddMCoresolution, AlmostSplitSide, CotiltingModuleResult, DominantDimensionResult,
+        EnvelopingModuleError, ExtOverAlgebraResult, FiniteAddMResolutionResult,
+        GlobalDimensionOfAlgebraResult, ModuleLengthError, NakayamaAutomorphismOrder,
+        PredecessorMultiplicity, PredecessorsOfModuleResult, TensorProductOfModulesResult,
+        TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
+        algebra_as_module_over_enveloping_algebra, all_indec_modules_of_length_at_most,
+        all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
+        almost_split_sequence_from_side, annihilator_of_module, basis_of_projectives,
+        canonical_basis_coefficients, cartan_matrix, complexity_of_algebra, complexity_of_module,
+        cotilting_module, coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism,
+        d_tr_homomorphism_iterated, d_tr_iterated, dominant_dimension_of_algebra,
+        dominant_dimension_of_module, dual_of_algebra_as_module_over_enveloping_algebra,
+        dual_of_module, dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_over_algebra,
         finite_canonical_basis, finite_qpa_default_basis, first_syzygy, frobenius_form,
         frobenius_linear_functional, from_identity_to_double_star_homomorphism,
@@ -7616,13 +7714,14 @@ mod tests {
         have_finite_coresolution_in_add_m, have_finite_resolution_in_add_m,
         hom_factoring_through_projectives, hom_from_projective, indec_injective_modules,
         indec_projective_modules, inj_dimension, inj_dimension_of_module, injective_envelope,
-        irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_exceptional_module,
-        is_finite_global_dimension_from_known_properties, is_hereditary_algebra,
-        is_injective_module, is_omega_periodic, is_omega_periodic_with_progress,
-        is_projective_module, is_rigid_module, is_schurian_algebra, is_selfinjective_algebra,
-        is_semicommutative_algebra, is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module,
-        is_tilting_module, is_weakly_symmetric_algebra, left_approximation_by_add_m,
-        left_fac_m_approximation, left_sub_m_approximation, lifting_morphism_from_projective,
+        irreducible_morphisms_ending_in, irreducible_morphisms_starting_in, is_cotilting_module,
+        is_exceptional_module, is_finite_global_dimension_from_known_properties,
+        is_hereditary_algebra, is_injective_module, is_omega_periodic,
+        is_omega_periodic_with_progress, is_projective_module, is_rigid_module,
+        is_schurian_algebra, is_selfinjective_algebra, is_semicommutative_algebra,
+        is_symmetric_algebra, is_tau_periodic, is_tau_rigid_module, is_tilting_module,
+        is_weakly_symmetric_algebra, left_approximation_by_add_m, left_fac_m_approximation,
+        left_sub_m_approximation, lifting_morphism_from_projective,
         matrix_of_homomorphism_between_projectives, minimal_left_approximation,
         minimal_left_fac_m_approximation, minimal_left_sub_m_approximation,
         minimal_right_approximation, minimal_right_sub_m_approximation, n_rigid_module,
@@ -9316,6 +9415,125 @@ mod tests {
         assert!(matches!(
             have_finite_resolution_in_add_m(&first, &second, &Integer::from(0)),
             Err(EnvelopingModuleError::ApproximationModulesOverDifferentAlgebras)
+        ));
+    }
+
+    fn cotilting_resolution_shape<F: Field>(resolution: &FiniteAddMResolutionResult<F>) -> Value {
+        let FiniteAddMResolutionResult::Resolution(resolution) = resolution else {
+            return Value::Bool(true);
+        };
+        let shape = |degree| {
+            let differential = resolution.differential(&Integer::from(degree)).unwrap();
+            json!({
+                "source": differential.source().dimension_vector(),
+                "range": differential.range().dimension_vector(),
+            })
+        };
+        json!({
+            "0": shape(0),
+            "1": shape(1),
+            "2": shape(2),
+            "3": shape(3),
+        })
+    }
+
+    fn cotilting_value_json<F: Field>(result: Option<CotiltingModuleResult<F>>) -> Value {
+        let Some(result) = result else {
+            return Value::Bool(false);
+        };
+        json!({
+            "injective_dimension": result.injective_dimension(),
+            "resolution_count": result.resolutions().len(),
+            "resolutions": result
+                .resolutions()
+                .iter()
+                .map(cotilting_resolution_shape)
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    fn modulehomalg_cotilting_case<F: QpaCoefficientField>(field: &F) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let injectives = indec_injective_modules(&a2).unwrap();
+        let cogenerator = direct_sum_of_qpa_modules(&injectives).unwrap().unwrap();
+        let simples = simple_modules(&a2).unwrap();
+        let id_one = direct_sum_of_qpa_modules(&[injectives[1].clone(), simples[1].clone()])
+            .unwrap()
+            .unwrap();
+        let semisimple = direct_sum_of_qpa_modules(&simples).unwrap().unwrap();
+
+        let dual = fresh_dual_numbers(field);
+        let dual_regular = direct_sum_of_qpa_modules(&indec_injective_modules(&dual).unwrap())
+            .unwrap()
+            .unwrap();
+        let dual_simple = simple_modules(&dual).unwrap()[0].clone();
+
+        let check = |module: &PathAlgebraModule<F>, bound| {
+            let has_before = is_cotilting_module(module).is_some();
+            let cotilting = cotilting_module(module, &Integer::from(bound)).unwrap();
+            let has_after = is_cotilting_module(module).is_some();
+            let mut value = json!({
+                "has_before": has_before,
+                "value": cotilting_value_json(cotilting),
+                "has_after": has_after,
+            });
+            if let Some(cached) = is_cotilting_module(module) {
+                value
+                    .as_object_mut()
+                    .unwrap()
+                    .insert("cached_value".to_owned(), Value::Bool(cached));
+            }
+            value
+        };
+        json!({
+            "cogenerator_bound_0": check(&cogenerator, 0),
+            "cogenerator_cached_negative": check(&cogenerator, -1),
+            "id_one_bound_0": check(&id_one, 0),
+            "id_one_bound_1": check(&id_one, 1),
+            "semisimple_bound_1": check(&semisimple, 1),
+            "dual_regular_bound_0": check(&dual_regular, 0),
+            "dual_simple_bound_1": check(&dual_simple, 1),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_modulehomalg_cotilting_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/modulehomalg_cotilting.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "modulehomalg_cotilting",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": modulehomalg_cotilting_case(&Z2),
+            "quinary": modulehomalg_cotilting_case(&Zp::new(5)),
+            "rational": modulehomalg_cotilting_case(&Q),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn cotilting_preserves_qpa_unbound_injective_dimension_failure() {
+        let module = fresh_a2_module(&Z2, vec![1, 0]);
+        let dual = dual_of_module(&module).unwrap();
+        let _ = dual.cache_projective_dimension(0);
+        assert!(matches!(
+            cotilting_module(&module, &Integer::from(1)),
+            Err(EnvelopingModuleError::MissingCotiltingInjectiveDimensionCache)
         ));
     }
 
