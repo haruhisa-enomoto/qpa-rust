@@ -4,6 +4,7 @@
 //! algorithm is substituted here.
 
 pub mod algebra_conversion;
+pub mod complex;
 pub mod heap;
 pub mod higher_preprojective;
 pub mod invlenlex;
@@ -31,6 +32,7 @@ pub use algebra_conversion::{
     algebra_as_quiver_algebra, end_of_basic_module_as_quiver_algebra,
     end_of_basic_module_as_quiver_algebra_with_bound, end_of_module_as_quiver_algebra,
 };
+pub use complex::{ProjectiveResolution, projective_resolution};
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{
     ModulePreprojectiveError, ModulePreprojectiveStructure, module_preprojective_algebra,
@@ -71,7 +73,7 @@ pub use module::{
     left_approximation_by_add_m, lifting_morphism_from_projective, loewy_length_of_algebra,
     matrix_of_homomorphism_between_projectives, minimal_left_approximation,
     minimal_right_approximation, nakayama_automorphism, nakayama_functor_of_module,
-    nakayama_functor_of_module_homomorphism, nakayama_permutation,
+    nakayama_functor_of_module_homomorphism, nakayama_permutation, nth_syzygy,
     opposite_nakayama_functor_of_module, opposite_nakayama_functor_of_module_homomorphism,
     order_of_nakayama_automorphism, predecessors_of_module, projective_cover, random_module,
     right_approximation_by_add_m, simple_modules, socle_series, star_of_module,

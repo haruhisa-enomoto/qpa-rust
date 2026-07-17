@@ -37,6 +37,7 @@ use qpa_core::{
 use rand::Rng;
 use thiserror::Error;
 
+use crate::complex::projective_resolution;
 use crate::{
     PathalgGbnpError, TensorProductError, ensure_quotient_groebner_basis, enveloping_algebra,
     opposite_path_algebra, opposite_quotient_element, quotient_is_admissible,
@@ -2643,6 +2644,33 @@ pub fn first_syzygy<F: Field>(
     Ok(module.cache_first_syzygy(&syzygy))
 }
 
+/// Translate QPA's `NthSyzygy(M, n)` operation.
+///
+/// Negative degrees are rejected, degree zero returns the identical entered
+/// module, and a positive degree returns the kernel of differential `n - 1`
+/// in QPA's lazy [`crate::ProjectiveResolution`].
+///
+/// # Errors
+///
+/// Rejects a negative GAP integer and propagates projective-resolution and
+/// kernel construction failures.
+pub fn nth_syzygy<F: QpaCoefficientField>(
+    module: &PathAlgebraModule<F>,
+    degree: &Integer,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if degree < &Integer::from(0) {
+        return Err(EnvelopingModuleError::NegativeSyzygyDegree {
+            degree: degree.clone(),
+        });
+    }
+    if degree == &Integer::from(0) {
+        return Ok(module.clone());
+    }
+    let resolution = projective_resolution(module)?;
+    let differential = resolution.differential(&(degree - &Integer::one()))?;
+    Ok(kernel_of_module_homomorphism(&differential)?)
+}
+
 /// Translate QPA's `IsOmegaPeriodic(M, n)` search.
 ///
 /// Starting with the entered module, the source computes successive first
@@ -3309,23 +3337,22 @@ pub fn is_exceptional_module<F: QpaCoefficientField>(
 /// Translate QPA's estimate `ComplexityOfModule(M, n)`.
 ///
 /// If finite global dimension is already known, QPA returns zero without
-/// inspecting `n`. Otherwise it requires an admissible quotient, constructs
-/// the `n`-th projective by repeated minimal covers, and returns
+/// inspecting `n`. Otherwise it requires an admissible quotient, asks QPA's
+/// lazy [`crate::ProjectiveResolution`] for its object in degree `n`, and returns
 /// `Int(Round(log10(dim(P_n))/log10(n) + 1.0))`. Degrees below `-1` address
 /// the zero tail of QPA's complex and therefore also return zero.
 ///
 /// # Errors
 ///
-/// Rejects a nonadmissible or nonquotient domain, reports degrees that cannot
-/// be represented for iteration, and makes QPA's undefined nonzero estimates
-/// at degrees `-1`, `0`, and `1` explicit. Projective-cover and syzygy
-/// failures are propagated.
+/// Rejects a nonadmissible or nonquotient domain and makes QPA's undefined
+/// nonzero estimates at degrees `-1`, `0`, and `1` explicit. Lazy
+/// projective-resolution failures are propagated.
 #[allow(
     clippy::cast_possible_truncation,
     clippy::cast_precision_loss,
     clippy::cast_sign_loss
 )]
-pub fn complexity_of_module<F: Field>(
+pub fn complexity_of_module<F: QpaCoefficientField>(
     module: &PathAlgebraModule<F>,
     degree: &Integer,
 ) -> Result<usize, EnvelopingModuleError> {
@@ -3360,7 +3387,7 @@ pub fn complexity_of_module<F: Field>(
 /// Preserves the same cached-finite-global-dimension and admissibility order
 /// as [`complexity_of_module`], then propagates simple-module and individual
 /// complexity failures.
-pub fn complexity_of_algebra<F: Field>(
+pub fn complexity_of_algebra<F: QpaCoefficientField>(
     algebra: &QuiverAlgebra<F>,
     degree: &Integer,
 ) -> Result<usize, EnvelopingModuleError> {
@@ -3401,33 +3428,11 @@ fn require_complexity_admissible_quotient<F: Field>(
     }
 }
 
-fn projective_resolution_object_dimension<F: Field>(
+fn projective_resolution_object_dimension<F: QpaCoefficientField>(
     module: &PathAlgebraModule<F>,
     degree: &Integer,
 ) -> Result<usize, EnvelopingModuleError> {
-    let minus_one = Integer::from(-1);
-    if degree < &minus_one {
-        return Ok(0);
-    }
-    if degree == &minus_one {
-        return Ok(module.dimension());
-    }
-    let degree_index = usize::try_from(degree.clone()).map_err(|_| {
-        EnvelopingModuleError::ComplexityDegreeNotRepresentable {
-            degree: degree.clone(),
-        }
-    })?;
-    let mut syzygy = module.clone();
-    for _ in 0..degree_index {
-        if syzygy.dimension() == 0 {
-            return Ok(0);
-        }
-        syzygy = first_syzygy(&syzygy)?;
-    }
-    if syzygy.dimension() == 0 {
-        return Ok(0);
-    }
-    Ok(projective_cover(&syzygy)?.source().dimension())
+    Ok(projective_resolution(module)?.object(degree)?.dimension())
 }
 
 /// Failure while evaluating QPA's `IsExceptionalModule` property.
@@ -6116,12 +6121,6 @@ pub enum EnvelopingModuleError {
         /// Entered arbitrary-precision complex degree.
         degree: Integer,
     },
-    /// A nonnegative complex degree must fit addressable iteration.
-    #[error("complexity degree is not representable by usize: {degree}")]
-    ComplexityDegreeNotRepresentable {
-        /// Rejected arbitrary-precision complex degree.
-        degree: Integer,
-    },
     /// QPA's `Maximum` requires at least one vertex simple.
     #[error("ComplexityOfAlgebra found no simple modules")]
     ComplexityAlgebraHasNoSimpleModules,
@@ -6144,6 +6143,25 @@ pub enum EnvelopingModuleError {
     /// The source takes `Sum` only after a nonempty quotient-basis branch.
     #[error("an internal add(M)-approximation map sum was empty")]
     EmptyApproximationGeneratorList,
+    /// A nonnegative GAP degree must fit Rust's addressable lazy cache.
+    #[error("projective-resolution degree is not representable by usize: {degree}")]
+    ResolutionDegreeNotRepresentable {
+        /// Rejected arbitrary-precision degree.
+        degree: Integer,
+    },
+    /// A panic while generating a lazy differential poisons the shared cache.
+    #[error("the lazy projective-resolution cache was poisoned")]
+    ProjectiveResolutionCachePoisoned,
+    /// Every nonzero projective resolution starts with its degree-zero cover.
+    #[error("the nonzero projective-resolution differential cache is empty")]
+    EmptyProjectiveResolutionCache,
+    /// QPA rejects negative arguments to `NthSyzygy` before constructing the
+    /// resolution.
+    #[error("entered syzygy degree is negative: {degree}")]
+    NegativeSyzygyDegree {
+        /// Rejected arbitrary-precision degree.
+        degree: Integer,
+    },
     /// QPA's sum of indecomposable-projective socle dimension vectors must
     /// fit Rust's addressable module dimensions.
     #[error("the selfinjective socle multiplicity at vertex {vertex} overflows usize")]

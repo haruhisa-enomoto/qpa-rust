@@ -2326,9 +2326,9 @@ source_file = "upstream/qpa/lib/complex.gd"
 source_start = 73
 source_end = 73
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution; ProjectiveResolution"
+tests = ["tests/fixtures/complex_projective_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -3197,9 +3197,9 @@ source_file = "upstream/qpa/lib/complex.gi"
 source_start = 1273
 source_end = 1289
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution; ProjectiveResolution"
+tests = ["tests/fixtures/complex_projective_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -13974,9 +13974,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nth_syzygy"
+tests = ["tests/fixtures/complex_projective_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14728,9 +14728,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 160
 source_end = 178
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "nth_syzygy"
+tests = ["tests/fixtures/complex_projective_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
