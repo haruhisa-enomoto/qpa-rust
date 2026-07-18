@@ -141,12 +141,14 @@ pub use path_algebra::{
     PathAlgebraTerm, opposite_relations,
 };
 pub use path_module::{
-    CommonDirectSummand, CommonDirectSummandResult, MaximalCommonDirectSummand,
-    ModuleDimensionSeries, ModuleEndomorphismAlgebra, ModuleEndomorphismQuotientAlgebra,
-    ModuleEndomorphismQuotientElement, ModuleEndomorphismQuotientHomomorphism,
-    MoreMinimalVersionResult, NamedArrowMatrix, NonisomorphicDirectSummandData, PathAlgebraModule,
-    PathAlgebraModuleElement, PathAlgebraModuleElementBasis, PathAlgebraModuleElementSpace,
-    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraModuleHomomorphismBasis,
+    CommonDirectSummand, CommonDirectSummandResult, IndexedPathAlgebraModuleArrowAction,
+    MaximalCommonDirectSummand, ModuleDimensionSeries, ModuleEndomorphismAlgebra,
+    ModuleEndomorphismQuotientAlgebra, ModuleEndomorphismQuotientElement,
+    ModuleEndomorphismQuotientHomomorphism, MoreMinimalVersionResult, NamedArrowMatrix,
+    NamedPathAlgebraModuleArrowAction, NonisomorphicDirectSummandData, PathAlgebraModule,
+    PathAlgebraModuleArrowAction, PathAlgebraModuleArrowActions, PathAlgebraModuleElement,
+    PathAlgebraModuleElementBasis, PathAlgebraModuleElementSpace, PathAlgebraModuleError,
+    PathAlgebraModuleHomomorphism, PathAlgebraModuleHomomorphismBasis,
     PathAlgebraModuleHomomorphismPair, PathAlgebraModuleHomomorphismTriple,
     PathAlgebraModuleMatrix, PathAlgebraModuleMinimalVersion,
     RestrictionViaAlgebraHomomorphismError, cokernel_of_module_homomorphism, cokernel_projection,
@@ -169,10 +171,12 @@ pub use path_module::{
     restriction_via_algebra_homomorphism, restriction_via_algebra_homomorphism_map,
     right_fac_approximation, right_fac_m_approximation, right_inverse_of_homomorphism,
     right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
-    right_module_over_path_algebra_with_tensor, socle_of_module, socle_of_module_inclusion,
-    subrepresentation, subrepresentation_inclusion, sum_of_submodules, sum_of_submodules_list,
-    top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
-    underlying_linear_map, zero_module, zero_module_mapping,
+    right_module_over_path_algebra_infer_dimension,
+    right_module_over_path_algebra_infer_dimension_nc, right_module_over_path_algebra_with_tensor,
+    socle_of_module, socle_of_module_inclusion, subrepresentation, subrepresentation_inclusion,
+    sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
+    top_of_module_projection, trace_of_module, underlying_linear_map, zero_module,
+    zero_module_mapping,
 };
 pub use poset::{Poset, PosetError};
 pub use projective_path_module::{

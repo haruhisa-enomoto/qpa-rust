@@ -15,10 +15,10 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, DenseMatrix, Generator, MatrixError, Path, PathEndpoint, QpaCoefficientField,
-    QpaFieldCharacteristic, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError,
-    QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError, QuotientError,
-    StructureConstantsAlgebra, StructureConstantsError, TensorProductAlgebra,
+    ArrowIndex, CachedAttribute, DenseMatrix, Generator, MatrixError, Path, PathEndpoint,
+    QpaCoefficientField, QpaFieldCharacteristic, QuiverAlgebra, QuiverAlgebraElement,
+    QuiverAlgebraElementError, QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError,
+    QuotientError, StructureConstantsAlgebra, StructureConstantsError, TensorProductAlgebra,
 };
 
 /// One labeled arrow matrix in QPA's three-argument module constructor.
@@ -49,6 +49,107 @@ impl<F: Field> NamedArrowMatrix<F> {
     pub const fn matrix(&self) -> &DenseMatrix<F> {
         &self.matrix
     }
+}
+
+/// One arrow action accepted by QPA's dimension-inferring module constructor.
+///
+/// GAP matrices cannot retain a zero row or column count, so QPA uses the
+/// integer pair `[source_dimension, target_dimension]` when either endpoint
+/// is the zero space. The enum keeps that input distinction explicit.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PathAlgebraModuleArrowAction<F: Field> {
+    /// An ordinary positive-by-positive arrow matrix.
+    Matrix(DenseMatrix<F>),
+    /// QPA's special zero-space dimension pair.
+    ZeroSpaceDimensions {
+        /// Logical dimension at the arrow source.
+        source: usize,
+        /// Logical dimension at the arrow target.
+        target: usize,
+    },
+}
+
+impl<F: Field> PathAlgebraModuleArrowAction<F> {
+    /// Wrap an ordinary arrow matrix.
+    #[must_use]
+    pub const fn matrix(matrix: DenseMatrix<F>) -> Self {
+        Self::Matrix(matrix)
+    }
+
+    /// Construct QPA's `[source_dimension, target_dimension]` notation.
+    #[must_use]
+    pub const fn zero_space_dimensions(source: usize, target: usize) -> Self {
+        Self::ZeroSpaceDimensions { source, target }
+    }
+}
+
+/// A string-labeled entry in QPA's two-argument module constructor.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NamedPathAlgebraModuleArrowAction<F: Field> {
+    label: Box<str>,
+    action: PathAlgebraModuleArrowAction<F>,
+}
+
+impl<F: Field> NamedPathAlgebraModuleArrowAction<F> {
+    /// Pair an arrow label with its proposed action.
+    #[must_use]
+    pub fn new(label: impl Into<Box<str>>, action: PathAlgebraModuleArrowAction<F>) -> Self {
+        Self {
+            label: label.into(),
+            action,
+        }
+    }
+
+    /// Return the entered arrow label.
+    #[must_use]
+    pub fn label(&self) -> &str {
+        &self.label
+    }
+
+    /// Return the entered action.
+    #[must_use]
+    pub const fn action(&self) -> &PathAlgebraModuleArrowAction<F> {
+        &self.action
+    }
+}
+
+/// An arrow-object entry in QPA's two-argument module constructor.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IndexedPathAlgebraModuleArrowAction<F: Field> {
+    arrow: ArrowIndex,
+    action: PathAlgebraModuleArrowAction<F>,
+}
+
+impl<F: Field> IndexedPathAlgebraModuleArrowAction<F> {
+    /// Pair a one-based QPA arrow index with its proposed action.
+    #[must_use]
+    pub const fn new(arrow: ArrowIndex, action: PathAlgebraModuleArrowAction<F>) -> Self {
+        Self { arrow, action }
+    }
+
+    /// Return the entered one-based arrow index.
+    #[must_use]
+    pub const fn arrow(&self) -> ArrowIndex {
+        self.arrow
+    }
+
+    /// Return the entered action.
+    #[must_use]
+    pub const fn action(&self) -> &PathAlgebraModuleArrowAction<F> {
+        &self.action
+    }
+}
+
+/// The three homogeneous list formats dispatched by QPA's two-argument
+/// `RightModuleOverPathAlgebra` methods.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PathAlgebraModuleArrowActions<F: Field> {
+    /// Entries of the form `["arrow_name", action]`.
+    Named(Vec<NamedPathAlgebraModuleArrowAction<F>>),
+    /// Bare matrices in quiver-arrow order.
+    Positional(Vec<DenseMatrix<F>>),
+    /// Entries of the form `[arrow_object, action]`.
+    Indexed(Vec<IndexedPathAlgebraModuleArrowAction<F>>),
 }
 
 /// Translate QPA's `IsInFullMatrixRing(M, R)` for a typed Numerica matrix.
@@ -6937,6 +7038,252 @@ fn quiver_algebra_path_element<F: Field>(
     }
 }
 
+/// Translate QPA's checked two-argument
+/// `RightModuleOverPathAlgebra(A, arrow_actions)` method.
+///
+/// The dimension vector is inferred from every arrow matrix. Isolated
+/// vertices receive dimension zero, exactly as in the checked source method.
+/// `Ok(None)` is QPA's `fail` when quotient relations are not satisfied.
+///
+/// # Errors
+///
+/// Rejects incomplete or malformed action lists, incompatible inferred
+/// dimensions, matrices over another field, and invalid zero-space notation;
+/// propagates relation-matrix arithmetic failures.
+pub fn right_module_over_path_algebra_infer_dimension<F: Field>(
+    algebra: QuiverAlgebra<F>,
+    actions: &PathAlgebraModuleArrowActions<F>,
+) -> Result<Option<PathAlgebraModule<F>>, PathAlgebraModuleError> {
+    right_module_over_path_algebra_infer_dimension_impl(algebra, actions, true)
+}
+
+/// Translate QPA's unchecked two-argument
+/// `RightModuleOverPathAlgebraNC(A, arrow_actions)` method.
+///
+/// This skips the source method's coefficient-field membership test but keeps
+/// its dimension and quotient-relation checks. QPA accidentally leaves
+/// isolated-vertex dimensions at `-1`; Rust reports that source failure as a
+/// typed error rather than constructing an invalid module family.
+///
+/// # Errors
+///
+/// Rejects malformed input, dimension conflicts, and the source method's
+/// isolated-vertex bug; propagates relation-matrix arithmetic failures.
+pub fn right_module_over_path_algebra_infer_dimension_nc<F: Field>(
+    algebra: QuiverAlgebra<F>,
+    actions: &PathAlgebraModuleArrowActions<F>,
+) -> Result<Option<PathAlgebraModule<F>>, PathAlgebraModuleError> {
+    right_module_over_path_algebra_infer_dimension_impl(algebra, actions, false)
+}
+
+#[allow(clippy::too_many_lines)]
+fn right_module_over_path_algebra_infer_dimension_impl<F: Field>(
+    algebra: QuiverAlgebra<F>,
+    actions: &PathAlgebraModuleArrowActions<F>,
+    checked_field: bool,
+) -> Result<Option<PathAlgebraModule<F>>, PathAlgebraModuleError> {
+    let quiver = algebra.quiver();
+    let arrow_count = quiver.number_of_arrows();
+    let entered_count = match actions {
+        PathAlgebraModuleArrowActions::Named(entries) => entries.len(),
+        PathAlgebraModuleArrowActions::Positional(entries) => entries.len(),
+        PathAlgebraModuleArrowActions::Indexed(entries) => entries.len(),
+    };
+    if entered_count < arrow_count {
+        return Err(PathAlgebraModuleError::IncompleteInferredArrowActions {
+            actual: entered_count,
+            expected: arrow_count,
+        });
+    }
+    if entered_count == 0 {
+        return Err(PathAlgebraModuleError::EmptyInferredArrowActions);
+    }
+
+    let mut assigned = vec![None; arrow_count];
+    match actions {
+        PathAlgebraModuleArrowActions::Named(entries) => {
+            for entry in entries {
+                if checked_field {
+                    check_inferred_action_field(entry.label(), entry.action(), algebra.field())?;
+                }
+                let Some(Generator::Arrow(arrow)) = quiver.generator_by_name(entry.label()) else {
+                    return Err(PathAlgebraModuleError::UnknownArrowLabels {
+                        labels: vec![entry.label().into()],
+                    });
+                };
+                assigned[arrow.index().zero_based()] = Some(entry.action().clone());
+            }
+        }
+        PathAlgebraModuleArrowActions::Positional(entries) => {
+            if checked_field {
+                for (position, matrix) in entries.iter().enumerate() {
+                    if matrix.field() != algebra.field() {
+                        let label = quiver.arrows().nth(position).map_or_else(
+                            || format!("position {}", position + 1),
+                            |arrow| arrow.name().to_owned(),
+                        );
+                        return Err(PathAlgebraModuleError::DifferentCoefficientField {
+                            label: label.into(),
+                        });
+                    }
+                }
+            }
+            for (slot, matrix) in assigned.iter_mut().zip(entries) {
+                *slot = Some(PathAlgebraModuleArrowAction::Matrix(matrix.clone()));
+            }
+        }
+        PathAlgebraModuleArrowActions::Indexed(entries) => {
+            for entry in entries {
+                let Some(arrow) = quiver.arrow(entry.arrow()) else {
+                    return Err(PathAlgebraModuleError::UnknownArrowIndex {
+                        index: entry.arrow().get(),
+                    });
+                };
+                if checked_field {
+                    check_inferred_action_field(arrow.name(), entry.action(), algebra.field())?;
+                }
+                assigned[entry.arrow().zero_based()] = Some(entry.action().clone());
+            }
+        }
+    }
+
+    let missing = quiver
+        .arrows()
+        .zip(&assigned)
+        .filter_map(|(arrow, action)| action.is_none().then(|| Box::<str>::from(arrow.name())))
+        .collect::<Vec<_>>();
+    if !missing.is_empty() {
+        return Err(PathAlgebraModuleError::UnassignedInferredArrowActions { labels: missing });
+    }
+
+    let field = algebra.field().clone();
+    let mut dimensions = vec![None; quiver.number_of_vertices()];
+    let mut matrices = Vec::with_capacity(arrow_count);
+    for (arrow, action) in quiver.arrows().zip(assigned) {
+        let action = action.expect("missing inferred actions were rejected above");
+        let (source_dimension, target_dimension, matrix) =
+            normalize_inferred_arrow_action(&action, arrow.name(), field.clone())?;
+        assign_inferred_vertex_dimension(
+            &mut dimensions,
+            arrow.source().index().zero_based(),
+            source_dimension,
+            arrow.name(),
+        )?;
+        assign_inferred_vertex_dimension(
+            &mut dimensions,
+            arrow.target().index().zero_based(),
+            target_dimension,
+            arrow.name(),
+        )?;
+        matrices.push(matrix);
+    }
+
+    let isolated_vertices = dimensions
+        .iter()
+        .enumerate()
+        .filter_map(|(vertex, dimension)| dimension.is_none().then_some(vertex + 1))
+        .collect::<Vec<_>>();
+    if !checked_field && !isolated_vertices.is_empty() {
+        return Err(PathAlgebraModuleError::UncheckedInferredIsolatedVertices {
+            vertices: isolated_vertices,
+        });
+    }
+    let dimension_vector = dimensions
+        .into_iter()
+        .map(Option::unwrap_or_default)
+        .collect::<Vec<_>>();
+    let dimension = dimension_vector.iter().try_fold(0_usize, |sum, &entry| {
+        sum.checked_add(entry)
+            .ok_or(PathAlgebraModuleError::DimensionOverflow)
+    })?;
+
+    if dimension != 0
+        && algebra.as_quotient().is_some()
+        && !relations_are_satisfied(&algebra, &dimension_vector, &matrices, &field)?
+    {
+        return Ok(None);
+    }
+    Ok(Some(PathAlgebraModule(Arc::new(
+        PathAlgebraModuleData::new(algebra, dimension_vector, dimension, matrices, None),
+    ))))
+}
+
+fn check_inferred_action_field<F: Field>(
+    label: &str,
+    action: &PathAlgebraModuleArrowAction<F>,
+    field: &F,
+) -> Result<(), PathAlgebraModuleError> {
+    if let PathAlgebraModuleArrowAction::Matrix(matrix) = action
+        && matrix.field() != field
+    {
+        return Err(PathAlgebraModuleError::DifferentCoefficientField {
+            label: label.into(),
+        });
+    }
+    Ok(())
+}
+
+fn normalize_inferred_arrow_action<F: Field>(
+    action: &PathAlgebraModuleArrowAction<F>,
+    label: &str,
+    field: F,
+) -> Result<(usize, usize, DenseMatrix<F>), PathAlgebraModuleError> {
+    match action {
+        PathAlgebraModuleArrowAction::Matrix(matrix) => {
+            let dimensions = (matrix.nrows(), matrix.ncols());
+            if dimensions.0 == 0 || dimensions.1 == 0 {
+                return Err(
+                    PathAlgebraModuleError::ZeroDimensionMatrixInInferredConstructor {
+                        label: label.into(),
+                        dimensions,
+                    },
+                );
+            }
+            Ok((dimensions.0, dimensions.1, matrix.clone()))
+        }
+        PathAlgebraModuleArrowAction::ZeroSpaceDimensions { source, target } => {
+            if *source != 0 && *target != 0 {
+                return Err(PathAlgebraModuleError::InvalidZeroSpaceDimensions {
+                    label: label.into(),
+                    dimensions: (*source, *target),
+                });
+            }
+            Ok((
+                *source,
+                *target,
+                DenseMatrix::zero(
+                    physical_dimension(*source),
+                    physical_dimension(*target),
+                    field,
+                ),
+            ))
+        }
+    }
+}
+
+fn assign_inferred_vertex_dimension(
+    dimensions: &mut [Option<usize>],
+    vertex: usize,
+    entered: usize,
+    arrow: &str,
+) -> Result<(), PathAlgebraModuleError> {
+    match dimensions[vertex] {
+        None => dimensions[vertex] = Some(entered),
+        Some(expected) if expected != entered => {
+            return Err(
+                PathAlgebraModuleError::IncompatibleInferredVertexDimension {
+                    vertex: vertex + 1,
+                    arrow: arrow.into(),
+                    entered,
+                    expected,
+                },
+            );
+        }
+        Some(_) => {}
+    }
+    Ok(())
+}
+
 /// Translate QPA's checked three-argument
 /// `RightModuleOverPathAlgebra(A, dimension_vector, generators)`.
 ///
@@ -7176,6 +7523,71 @@ pub enum PathAlgebraModuleError {
         actual: usize,
         /// Required vertex count.
         expected: usize,
+    },
+    /// QPA requires at least one entered action for every quiver arrow.
+    #[error("entered {actual} arrow actions, but the quiver has {expected} arrows")]
+    IncompleteInferredArrowActions {
+        /// Number of entered list elements.
+        actual: usize,
+        /// Number of quiver arrows.
+        expected: usize,
+    },
+    /// The two-argument QPA method indexes its first list entry even for an
+    /// arrowless quiver.
+    #[error("QPA's dimension-inferring constructor cannot dispatch an empty action list")]
+    EmptyInferredArrowActions,
+    /// An arrow-object input used an index outside the acting quiver.
+    #[error("arrow index {index} does not exist in the acting quiver")]
+    UnknownArrowIndex {
+        /// One-based entered arrow index.
+        index: usize,
+    },
+    /// A labeled or arrow-object input repeated some arrows and omitted these.
+    #[error("no inferred action was assigned to arrows {labels:?}")]
+    UnassignedInferredArrowActions {
+        /// Missing labels in quiver-arrow order.
+        labels: Vec<Box<str>>,
+    },
+    /// A matrix with a zero row or column count cannot be a GAP matrix; QPA
+    /// requires its integer-pair notation instead.
+    #[error(
+        "matrix for arrow {label:?} has zero dimension {dimensions:?}; use QPA's zero-space pair"
+    )]
+    ZeroDimensionMatrixInInferredConstructor {
+        /// Rejected arrow label.
+        label: Box<str>,
+        /// Entered row and column counts.
+        dimensions: (usize, usize),
+    },
+    /// QPA's integer-pair notation is reserved for an arrow incident with a
+    /// zero-dimensional vertex.
+    #[error("zero-space dimensions {dimensions:?} for arrow {label:?} contain no zero")]
+    InvalidZeroSpaceDimensions {
+        /// Rejected arrow label.
+        label: Box<str>,
+        /// Entered logical source and target dimensions.
+        dimensions: (usize, usize),
+    },
+    /// Two incident arrow inputs inferred different dimensions at one vertex.
+    #[error("arrow {arrow:?} infers dimension {entered} at vertex {vertex}, previously {expected}")]
+    IncompatibleInferredVertexDimension {
+        /// One-based vertex position.
+        vertex: usize,
+        /// Arrow whose input exposed the conflict.
+        arrow: Box<str>,
+        /// Newly entered dimension.
+        entered: usize,
+        /// Previously inferred dimension.
+        expected: usize,
+    },
+    /// The NC source method forgets to replace isolated vertices' `-1`
+    /// sentinels before constructing its element family.
+    #[error(
+        "QPA's unchecked dimension-inferring constructor leaves isolated vertices {vertices:?} at dimension -1"
+    )]
+    UncheckedInferredIsolatedVertices {
+        /// One-based isolated vertex positions.
+        vertices: Vec<usize>,
     },
     /// Total module dimension exceeded Rust's addressable size.
     #[error("the total module dimension overflows usize")]
@@ -7584,17 +7996,18 @@ mod tests {
     use serde_json::{Value, json};
 
     use crate::{
-        ArrowSpec, DenseMatrix, PathAlgebra, QpaCoefficientField, Quiver, QuiverAlgebra,
-        QuiverAlgebraElement, QuiverAlgebraHomomorphism, QuotientPathAlgebra,
+        ArrowIndex, ArrowSpec, DenseMatrix, PathAlgebra, QpaCoefficientField, Quiver,
+        QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraHomomorphism, QuotientPathAlgebra,
         StructureConstantsError, VertexIndex,
     };
 
     use super::{
-        CommonDirectSummandResult, ModuleEndomorphismAlgebra, ModuleEndomorphismAlgebraData,
-        MoreMinimalVersionResult, NamedArrowMatrix, PathAlgebraModuleError,
-        PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, cokernel_projection,
-        common_direct_summand, direct_sum_inclusions, direct_sum_of_qpa_modules,
-        direct_sum_projections, end_over_algebra, hom_over_algebra,
+        CommonDirectSummandResult, IndexedPathAlgebraModuleArrowAction, ModuleEndomorphismAlgebra,
+        ModuleEndomorphismAlgebraData, MoreMinimalVersionResult, NamedArrowMatrix,
+        NamedPathAlgebraModuleArrowAction, PathAlgebraModule, PathAlgebraModuleArrowAction,
+        PathAlgebraModuleArrowActions, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
+        PathAlgebraModuleMatrix, cokernel_projection, common_direct_summand, direct_sum_inclusions,
+        direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, hom_over_algebra,
         hom_over_algebra_with_basis_function, homomorphism_from_images, identity_module_mapping,
         image_projection_inclusion, intersection_of_submodules, intersection_of_submodules_list,
         inverse_of_isomorphism, is_direct_summand, is_in_additive_closure, is_in_full_matrix_ring,
@@ -7608,9 +8021,11 @@ mod tests {
         restriction_via_algebra_homomorphism, restriction_via_algebra_homomorphism_map,
         right_fac_approximation, right_fac_approximation_via_all_basis_images,
         right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
-        right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
-        sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
-        top_of_module_projection, trace_of_module, zero_module, zero_module_mapping,
+        right_module_over_path_algebra, right_module_over_path_algebra_infer_dimension,
+        right_module_over_path_algebra_infer_dimension_nc, socle_of_module,
+        socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list, top_of_module,
+        top_of_module_homomorphism, top_of_module_projection, trace_of_module, zero_module,
+        zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -7619,6 +8034,32 @@ mod tests {
 
     fn q(value: i64) -> Rational {
         Q.nth(value.into())
+    }
+
+    fn qpa_matrix<F: Field>(
+        matrix: &DenseMatrix<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> String {
+        super::qpa_list(
+            (0..matrix.nrows()).map(|row| super::qpa_list(matrix.row(row).iter().map(coefficient))),
+        )
+    }
+
+    fn qpa_module_data<F: Field>(
+        name: &str,
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> String {
+        let matrices = super::qpa_list(module.matrices_of_path_algebra_module().iter().map(
+            |matrix| match matrix {
+                PathAlgebraModuleMatrix::ZeroScalar => "0".to_owned(),
+                PathAlgebraModuleMatrix::Matrix(matrix) => qpa_matrix(matrix, coefficient),
+            },
+        ));
+        format!(
+            "{name}={}|{matrices}\n",
+            super::qpa_usize_list(module.dimension_vector())
+        )
     }
 
     #[test]
@@ -9131,6 +9572,341 @@ mod tests {
                 PathAlgebraModuleMatrix::Matrix(module.arrow_matrices()[1].clone()),
             ]
         );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn dimension_inferring_constructors_match_qpa_oracle() {
+        let chain_quiver = Quiver::from_indexed(
+            3,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        )
+        .unwrap();
+        let chain = QuiverAlgebra::Path(PathAlgebra::new(Q, chain_quiver).unwrap());
+        let a_matrix = DenseMatrix::from_rows(vec![vec![q(1), q(2)]], Q).unwrap();
+        let b_matrix = DenseMatrix::from_rows(vec![vec![q(3)], vec![q(4)]], Q).unwrap();
+        let named = right_module_over_path_algebra_infer_dimension(
+            chain.clone(),
+            &PathAlgebraModuleArrowActions::Named(vec![
+                NamedPathAlgebraModuleArrowAction::new(
+                    "b",
+                    PathAlgebraModuleArrowAction::matrix(b_matrix.clone()),
+                ),
+                NamedPathAlgebraModuleArrowAction::new(
+                    "a",
+                    PathAlgebraModuleArrowAction::matrix(a_matrix.clone()),
+                ),
+            ]),
+        )
+        .unwrap()
+        .unwrap();
+        let positional = right_module_over_path_algebra_infer_dimension(
+            chain.clone(),
+            &PathAlgebraModuleArrowActions::Positional(vec![a_matrix.clone(), b_matrix.clone()]),
+        )
+        .unwrap()
+        .unwrap();
+        let indexed = right_module_over_path_algebra_infer_dimension(
+            chain.clone(),
+            &PathAlgebraModuleArrowActions::Indexed(vec![
+                IndexedPathAlgebraModuleArrowAction::new(
+                    ArrowIndex::new(2).unwrap(),
+                    PathAlgebraModuleArrowAction::matrix(b_matrix.clone()),
+                ),
+                IndexedPathAlgebraModuleArrowAction::new(
+                    ArrowIndex::new(1).unwrap(),
+                    PathAlgebraModuleArrowAction::matrix(a_matrix.clone()),
+                ),
+            ]),
+        )
+        .unwrap()
+        .unwrap();
+        let unchecked = right_module_over_path_algebra_infer_dimension_nc(
+            chain,
+            &PathAlgebraModuleArrowActions::Positional(vec![a_matrix, b_matrix]),
+        )
+        .unwrap()
+        .unwrap();
+
+        let zero_quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "z")]).unwrap();
+        let zero_algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, zero_quiver).unwrap());
+        let zero_action = |source, target| {
+            PathAlgebraModuleArrowActions::Named(vec![NamedPathAlgebraModuleArrowAction::new(
+                "z",
+                PathAlgebraModuleArrowAction::zero_space_dimensions(source, target),
+            )])
+        };
+        let zero_source = right_module_over_path_algebra_infer_dimension(
+            zero_algebra.clone(),
+            &zero_action(0, 2),
+        )
+        .unwrap()
+        .unwrap();
+        let zero_target = right_module_over_path_algebra_infer_dimension(
+            zero_algebra.clone(),
+            &zero_action(2, 0),
+        )
+        .unwrap()
+        .unwrap();
+        let zero = right_module_over_path_algebra_infer_dimension(zero_algebra, &zero_action(0, 0))
+            .unwrap()
+            .unwrap();
+
+        let isolated_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(3, vec![ArrowSpec::named(vertex(1), vertex(2), "c")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let isolated = right_module_over_path_algebra_infer_dimension(
+            isolated_algebra,
+            &PathAlgebraModuleArrowActions::Positional(vec![
+                DenseMatrix::from_rows(vec![vec![q(5)]], Q).unwrap(),
+            ]),
+        )
+        .unwrap()
+        .unwrap();
+
+        let prime_field = Z2;
+        let prime_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                prime_field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "d")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let prime = right_module_over_path_algebra_infer_dimension(
+            prime_algebra,
+            &PathAlgebraModuleArrowActions::Positional(vec![
+                DenseMatrix::from_rows(vec![vec![prime_field.one()]], prime_field.clone()).unwrap(),
+            ]),
+        )
+        .unwrap()
+        .unwrap();
+
+        let quotient_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(
+                3,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "x"),
+                    ArrowSpec::named(vertex(2), vertex(3), "y"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = quotient_parent.generators();
+        let relation = generators[3].multiply(&generators[4]).unwrap();
+        let quotient = QuiverAlgebra::Quotient(
+            QuotientPathAlgebra::by_relations_high_level(quotient_parent, &[relation]).unwrap(),
+        );
+        let relation_actions = |second| {
+            PathAlgebraModuleArrowActions::Positional(vec![
+                DenseMatrix::from_rows(vec![vec![q(1)]], Q).unwrap(),
+                DenseMatrix::from_rows(vec![vec![q(second)]], Q).unwrap(),
+            ])
+        };
+        let relation_ok =
+            right_module_over_path_algebra_infer_dimension(quotient.clone(), &relation_actions(0))
+                .unwrap()
+                .unwrap();
+        let relation_fail =
+            right_module_over_path_algebra_infer_dimension(quotient, &relation_actions(1))
+                .unwrap()
+                .is_none();
+
+        let rational = |entry: &Rational| entry.to_string();
+        let actual = format!(
+            "{}{}{}{}{}{}{}{}{}The entered matrices for the module do not satisfy the relation(s).\n{}RELATION_FAIL={}\n",
+            qpa_module_data("NAMED", &named, rational),
+            qpa_module_data("POSITIONAL", &positional, rational),
+            qpa_module_data("INDEXED", &indexed, rational),
+            qpa_module_data("UNCHECKED", &unchecked, rational),
+            qpa_module_data("ZERO_SOURCE", &zero_source, rational),
+            qpa_module_data("ZERO_TARGET", &zero_target, rational),
+            qpa_module_data("ZERO_MODULE", &zero, rational),
+            qpa_module_data("ISOLATED_CHECKED", &isolated, rational),
+            qpa_module_data("GF2", &prime, |entry| {
+                if prime_field.is_zero(entry) {
+                    "0*Z(2)".to_owned()
+                } else {
+                    "Z(2)^0".to_owned()
+                }
+            }),
+            qpa_module_data("RELATION_OK", &relation_ok, rational),
+            relation_fail,
+        );
+        assert_eq!(
+            actual,
+            include_str!("../../../tests/fixtures/module_inferred_constructors.txt")
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn dimension_inferring_constructors_preserve_qpa_failures() {
+        let chain = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(
+                    3,
+                    vec![
+                        ArrowSpec::named(vertex(1), vertex(2), "a"),
+                        ArrowSpec::named(vertex(2), vertex(3), "b"),
+                    ],
+                )
+                .unwrap(),
+            )
+            .unwrap(),
+        );
+        let one = DenseMatrix::from_rows(vec![vec![q(1)]], Q).unwrap();
+        assert_eq!(
+            right_module_over_path_algebra_infer_dimension(
+                chain.clone(),
+                &PathAlgebraModuleArrowActions::Positional(vec![one.clone()]),
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::IncompleteInferredArrowActions {
+                actual: 1,
+                expected: 2,
+            }
+        );
+        assert!(matches!(
+            right_module_over_path_algebra_infer_dimension(
+                chain.clone(),
+                &PathAlgebraModuleArrowActions::Positional(vec![
+                    DenseMatrix::zero(1, 2, Q),
+                    DenseMatrix::zero(3, 1, Q),
+                ]),
+            ),
+            Err(
+                PathAlgebraModuleError::IncompatibleInferredVertexDimension {
+                    vertex: 2,
+                    entered: 3,
+                    expected: 2,
+                    ..
+                }
+            )
+        ));
+        assert!(matches!(
+            right_module_over_path_algebra_infer_dimension(
+                chain.clone(),
+                &PathAlgebraModuleArrowActions::Named(vec![
+                    NamedPathAlgebraModuleArrowAction::new(
+                        "a",
+                        PathAlgebraModuleArrowAction::zero_space_dimensions(2, 2),
+                    ),
+                    NamedPathAlgebraModuleArrowAction::new(
+                        "b",
+                        PathAlgebraModuleArrowAction::matrix(DenseMatrix::zero(2, 1, Q)),
+                    ),
+                ]),
+            ),
+            Err(PathAlgebraModuleError::InvalidZeroSpaceDimensions { .. })
+        ));
+        assert!(matches!(
+            right_module_over_path_algebra_infer_dimension(
+                chain.clone(),
+                &PathAlgebraModuleArrowActions::Named(vec![
+                    NamedPathAlgebraModuleArrowAction::new(
+                        "a",
+                        PathAlgebraModuleArrowAction::matrix(one.clone()),
+                    ),
+                    NamedPathAlgebraModuleArrowAction::new(
+                        "a",
+                        PathAlgebraModuleArrowAction::matrix(one.clone()),
+                    ),
+                ]),
+            ),
+            Err(PathAlgebraModuleError::UnassignedInferredArrowActions { .. })
+        ));
+        assert!(matches!(
+            right_module_over_path_algebra_infer_dimension(
+                chain.clone(),
+                &PathAlgebraModuleArrowActions::Indexed(vec![
+                    IndexedPathAlgebraModuleArrowAction::new(
+                        ArrowIndex::new(3).unwrap(),
+                        PathAlgebraModuleArrowAction::matrix(one.clone()),
+                    ),
+                    IndexedPathAlgebraModuleArrowAction::new(
+                        ArrowIndex::new(1).unwrap(),
+                        PathAlgebraModuleArrowAction::matrix(one.clone()),
+                    ),
+                ]),
+            ),
+            Err(PathAlgebraModuleError::UnknownArrowIndex { index: 3 })
+        ));
+        assert!(matches!(
+            right_module_over_path_algebra_infer_dimension(
+                chain,
+                &PathAlgebraModuleArrowActions::Positional(vec![
+                    DenseMatrix::from_flat(0, 1, Vec::new(), Q).unwrap(),
+                    one,
+                ]),
+            ),
+            Err(PathAlgebraModuleError::ZeroDimensionMatrixInInferredConstructor { .. })
+        ));
+
+        let isolated = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(3, vec![ArrowSpec::named(vertex(1), vertex(2), "c")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            right_module_over_path_algebra_infer_dimension_nc(
+                isolated,
+                &PathAlgebraModuleArrowActions::Positional(vec![
+                    DenseMatrix::from_rows(vec![vec![q(1)]], Q).unwrap(),
+                ]),
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::UncheckedInferredIsolatedVertices { vertices: vec![3] }
+        );
+
+        let arrowless = QuiverAlgebra::Path(
+            PathAlgebra::new(Q, Quiver::from_indexed(1, Vec::new()).unwrap()).unwrap(),
+        );
+        assert_eq!(
+            right_module_over_path_algebra_infer_dimension(
+                arrowless,
+                &PathAlgebraModuleArrowActions::Positional(Vec::new()),
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::EmptyInferredArrowActions
+        );
+
+        let prime_three = Zp::new(3);
+        let prime_five = Zp::new(5);
+        let prime_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                prime_three,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "d")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let foreign = DenseMatrix::zero(1, 1, prime_five);
+        assert!(matches!(
+            right_module_over_path_algebra_infer_dimension(
+                prime_algebra.clone(),
+                &PathAlgebraModuleArrowActions::Positional(vec![foreign.clone()]),
+            ),
+            Err(PathAlgebraModuleError::DifferentCoefficientField { .. })
+        ));
+        let unchecked = right_module_over_path_algebra_infer_dimension_nc(
+            prime_algebra,
+            &PathAlgebraModuleArrowActions::Positional(vec![foreign.clone()]),
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(unchecked.arrow_matrices()[0], foreign);
     }
 
     #[test]

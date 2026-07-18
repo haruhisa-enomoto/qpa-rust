@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "kind": "module_inferred_constructor_errors",
+  "success": {
+    "too_few": false,
+    "mismatch": false,
+    "invalid_zero_pair": false,
+    "wrong_field": false,
+    "unchecked_wrong_field": true,
+    "duplicate": false,
+    "unchecked_isolated": false,
+    "empty_arrowless": false
+  }
+}

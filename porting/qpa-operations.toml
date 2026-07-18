@@ -9957,9 +9957,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_module_over_path_algebra_infer_dimension; PathAlgebraModuleArrowActions"
+tests = ["tests/fixtures/module_inferred_constructors.txt","tests/fixtures/module_inferred_constructor_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9970,10 +9970,10 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "right_module_over_path_algebra_infer_dimension_nc; PathAlgebraModuleArrowActions"
+tests = ["tests/fixtures/module_inferred_constructors.txt","tests/fixtures/module_inferred_constructor_errors.schema-v1.json"]
+deviations = ["MODULE-003"]
 
 [[entries]]
 id = "module:DeclareOperation:SubmoduleAsModule:1"
@@ -10659,9 +10659,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 404
 source_end = 585
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_module_over_path_algebra_infer_dimension"
+tests = ["tests/fixtures/module_inferred_constructors.txt","tests/fixtures/module_inferred_constructor_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10672,10 +10672,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 596
 source_end = 754
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "right_module_over_path_algebra_infer_dimension_nc"
+tests = ["tests/fixtures/module_inferred_constructors.txt","tests/fixtures/module_inferred_constructor_errors.schema-v1.json"]
+deviations = ["MODULE-003"]
 
 [[entries]]
 id = "module:InstallOtherMethod:RightModuleOverPathAlgebra:1"

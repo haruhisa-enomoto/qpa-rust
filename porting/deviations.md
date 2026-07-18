@@ -335,6 +335,30 @@ the computations remain translations of the cited source methods.
   bases and coefficients; `tests/gap-reference/module_basis_zero_error.g`
   pins the source failure at `module.gi:254`.
 
+## MODULE-003 — Unchecked isolated-vertex failure is typed
+
+- Source: QPA `lib/module.gi`, the two-argument
+  `RightModuleOverPathAlgebraNC` method at lines 596–754.
+- Affected Rust operation:
+  `right_module_over_path_algebra_infer_dimension_nc`.
+- Difference: the checked source method replaces every isolated vertex's
+  dimension sentinel `-1` by zero, but the NC copy omits that loop. Its
+  `CreateModuleBasis` path consequently aborts with "Dimensions of element are
+  incorrect" on an ordinary nonzero example. Rust detects isolated vertices
+  and returns `PathAlgebraModuleError::UncheckedInferredIsolatedVertices`.
+- Reason: Rust dimension vectors use `usize` and cannot construct the invalid
+  negative-dimensional element family that causes QPA's later interpreter
+  failure. The error is reported at the point where the sentinel remains.
+- Compatibility impact: NC inputs without isolated vertices retain QPA's
+  inferred dimensions, matrix order, relation test, and deliberate omission
+  of coefficient-field checking. Inputs with isolated vertices return the
+  typed error; callers can use the checked overload, which gives those
+  vertices QPA's intended dimension zero.
+- Evidence: `tests/fixtures/module_inferred_constructors.txt` pins all three
+  checked input forms and the nonisolated NC result over `QQ` and `GF(2)`;
+  `tests/fixtures/module_inferred_constructor_errors.schema-v1.json` pins the
+  source NC isolated-vertex failure and unchecked foreign-field acceptance.
+
 ## MODULEHOM-001 — Semisimple block counting uses the split-prime tier
 
 - Source: QPA `lib/modulehom.gi`, `NumberOfNonIsoDirSummands` at lines

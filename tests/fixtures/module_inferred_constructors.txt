@@ -1,0 +1,12 @@
+NAMED=[ 1, 2, 1 ]|[ [ [ 1, 2 ] ], [ [ 3 ], [ 4 ] ] ]
+POSITIONAL=[ 1, 2, 1 ]|[ [ [ 1, 2 ] ], [ [ 3 ], [ 4 ] ] ]
+INDEXED=[ 1, 2, 1 ]|[ [ [ 1, 2 ] ], [ [ 3 ], [ 4 ] ] ]
+UNCHECKED=[ 1, 2, 1 ]|[ [ [ 1, 2 ] ], [ [ 3 ], [ 4 ] ] ]
+ZERO_SOURCE=[ 0, 2 ]|[ [ [ 0, 0 ] ] ]
+ZERO_TARGET=[ 2, 0 ]|[ [ [ 0 ], [ 0 ] ] ]
+ZERO_MODULE=[ 0, 0 ]|[ 0 ]
+ISOLATED_CHECKED=[ 1, 1, 0 ]|[ [ [ 5 ] ] ]
+GF2=[ 1, 1 ]|[ [ [ Z(2)^0 ] ] ]
+The entered matrices for the module do not satisfy the relation(s).
+RELATION_OK=[ 1, 1, 1 ]|[ [ [ 1 ] ], [ [ 0 ] ] ]
+RELATION_FAIL=true
