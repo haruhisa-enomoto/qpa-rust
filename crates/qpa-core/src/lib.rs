@@ -172,6 +172,7 @@ pub use projective_presentation::{ProjectivePresentation, ProjectivePresentation
 pub use projective_resolution::{
     ProjectiveResolutionError, ProjectiveResolutionFpPathAlgebraModule,
     RightProjectiveQuotientPathAlgebraModule, projective_resolution_fp_path_algebra_module,
+    projective_resolution_of_path_algebra_module_from_presentation,
     right_projective_quotient_path_algebra_module,
 };
 pub use quiver::{

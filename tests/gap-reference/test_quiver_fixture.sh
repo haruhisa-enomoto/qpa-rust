@@ -1032,6 +1032,33 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/moduleprojres_resolution.g" \
     "$repo_root/tests/fixtures/moduleprojres_resolution.schema-v1.json"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/moduleprojres_module_resolution.g" >"$raw"
+test "$(grep -Fc "Computing f2's ..." "$raw")" -eq 3
+test "$(grep -Fc "Computing f3's ..." "$raw")" -eq 3
+test "$(grep -Fc "finite at projective: 3" "$raw")" -eq 3
+tail -n 1 "$raw" | jq --sort-keys . >"$actual"
+jq --sort-keys . \
+    "$repo_root/tests/fixtures/moduleprojres_module_resolution.schema-v1.json" >"$expected"
+diff --unified "$expected" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/moduleprojres_module_projective_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly constructed an empty degree-one path projective" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`RightProjectiveModule'" "$actual"
+grep -Fq "lib/moduleprojres.gi:381" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/moduleprojres_module_path_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly found a defining ideal on a path-algebra module" >&2
+    exit 1
+fi
+grep -Fq "Record Element: '<rec>.ideal' must have an assigned value" "$actual"
+grep -Fq "lib/moduleprojres.gi:319" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_groebner.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_groebner.schema-v1.json"

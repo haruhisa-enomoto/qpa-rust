@@ -128,6 +128,7 @@ pub fn right_projective_quotient_path_algebra_module<F: Field>(
 pub struct ProjectiveResolutionFpPathAlgebraModule<F: Field> {
     parent_algebra: QuotientPathAlgebra<F>,
     ring_ideal: PathAlgebraIdeal<F>,
+    projectives_attribute_is_bound: bool,
     projectives: Vec<RightProjectiveQuotientPathAlgebraModule<F>>,
     r_projectives: Vec<RightProjectivePathAlgebraModule<F>>,
     maps: Vec<Vec<Vec<PathAlgebraElement<F>>>>,
@@ -153,6 +154,16 @@ impl<F: Field> ProjectiveResolutionFpPathAlgebraModule<F> {
     #[must_use]
     pub fn projectives(&self) -> &[RightProjectiveQuotientPathAlgebraModule<F>] {
         &self.projectives
+    }
+
+    /// Return QPA's `HasProjectives` value.
+    ///
+    /// `ProjectiveResolutionOfPathAlgebraModule` deliberately leaves this
+    /// attribute unbound, whereas the explicit-presentation constructor binds
+    /// its parallel quotient-projective list.
+    #[must_use]
+    pub const fn projectives_attribute_is_bound(&self) -> bool {
+        self.projectives_attribute_is_bound
     }
 
     /// Return QPA's original-path-algebra `RProjectives` list.
@@ -412,7 +423,147 @@ pub fn projective_resolution_fp_path_algebra_module<F: Field>(
     Ok(ProjectiveResolutionFpPathAlgebraModule {
         parent_algebra: algebra.clone(),
         ring_ideal: ideal.clone(),
+        projectives_attribute_is_bound: true,
         projectives,
+        r_projectives,
+        maps,
+        f_lists,
+        f_prime_lists,
+        finite_at_projective,
+    })
+}
+
+/// Complete QPA's `ProjectiveResolutionOfPathAlgebraModule` after its
+/// GBNP-backed projective presentation has been constructed.
+///
+/// This cross-crate hook starts with QPA's `ProjPres[1]`, `ProjPres[3]`,
+/// `ProjPres[4]`, and `ProjPres[5]` values. It splits the first module
+/// Groebner basis into `f^1` and `f^1prime` against `P^0 I`, then applies the
+/// same GSZ X-set recurrence as the explicit-presentation constructor.
+/// Unlike that constructor, QPA leaves the quotient `Projectives` attribute
+/// unbound and begins its repeated loop at degree two.
+///
+/// # Errors
+///
+/// Enforces the positive term, identical parent algebra, attached defining
+/// basis, projective-vector family, nonempty relation-submodule, and GSZ
+/// uniformity boundaries of the installed source method.
+#[doc(hidden)]
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+pub fn projective_resolution_of_path_algebra_module_from_presentation<F: Field>(
+    algebra: &QuotientPathAlgebra<F>,
+    ideal: &PathAlgebraIdeal<F>,
+    first_projective: &RightProjectivePathAlgebraModule<F>,
+    f_zero: &[PathAlgebraVector<F>],
+    presentation_syzygies: &[PathAlgebraVector<F>],
+    presentation_map: &[Vec<PathAlgebraElement<F>>],
+    termint: usize,
+) -> Result<ProjectiveResolutionFpPathAlgebraModule<F>, ProjectiveResolutionError> {
+    if termint == 0 {
+        return Err(ProjectiveResolutionError::NonpositiveTerm);
+    }
+    if ideal.groebner_basis().is_none() {
+        return Err(ProjectiveResolutionError::MissingGroebnerBasis);
+    }
+    if !ideal
+        .algebra()
+        .is_identical(algebra.original_path_algebra())
+    {
+        return Err(ProjectiveResolutionError::ForeignResolutionIdeal);
+    }
+    if !first_projective.algebra().is_identical(ideal.algebra()) {
+        return Err(ProjectiveResolutionError::ForeignInitialPathProjective);
+    }
+    if f_zero
+        .iter()
+        .chain(presentation_syzygies)
+        .any(|vector| !vector.module().is_identical(first_projective))
+    {
+        return Err(ProjectiveResolutionError::ForeignInitialResolutionVector);
+    }
+    if presentation_map
+        .iter()
+        .flatten()
+        .any(|entry| !entry.algebra().is_identical(ideal.algebra()))
+    {
+        return Err(ProjectiveResolutionError::ForeignInitialResolutionMap);
+    }
+
+    let right_relations = ideal.right_groebner_basis()?.relations().to_vec();
+    let mut projective_ideal_generators = Vec::new();
+    for generator in f_zero {
+        for relation in &right_relations {
+            let product = generator.act(relation)?;
+            if !product.is_zero() {
+                projective_ideal_generators.push(product);
+            }
+        }
+    }
+    if presentation_syzygies.is_empty() {
+        return Err(ProjectiveResolutionError::EmptyPresentationSyzygies);
+    }
+    if projective_ideal_generators.is_empty() {
+        return Err(ProjectiveResolutionError::EmptyProjectiveIdealGenerators);
+    }
+
+    let presentation_submodule = first_projective.submodule(presentation_syzygies.to_vec())?;
+    let ideal_submodule = first_projective.submodule(projective_ideal_generators)?;
+    let presentation_basis = presentation_submodule.right_groebner_basis()?;
+    let ideal_basis = ideal_submodule.right_groebner_basis()?;
+
+    let mut f_one = Vec::new();
+    let mut f_prime_one = Vec::new();
+    for vector in presentation_basis.basis_vectors() {
+        if ideal_basis.completely_reduce(vector)?.is_zero() {
+            f_prime_one.push(vector.clone());
+        } else {
+            f_one.push(vector.clone());
+        }
+    }
+    sort_vectors_descending(&mut f_one)?;
+    sort_vectors_descending(&mut f_prime_one)?;
+
+    let f_one_vertices = right_uniform_target_vertices(&f_one, 1)?;
+    if f_one_vertices.is_empty() {
+        return Err(ProjectiveResolutionError::EmptyResolutionProjective { degree: 1 });
+    }
+    let second_r_projective = path_projective_from_indices(ideal.algebra(), &f_one_vertices)?;
+    let mut r_projectives = vec![first_projective.clone(), second_r_projective];
+    let mut maps = vec![presentation_map.to_vec()];
+    let mut f_lists = vec![f_zero.to_vec(), f_one];
+    let mut f_prime_lists = vec![Vec::new(), f_prime_one];
+    let mut finite_at_projective = None;
+
+    for degree in 2..=termint {
+        let step = next_resolution_step(
+            &f_lists[degree - 2],
+            &f_prime_lists[degree - 2],
+            &f_lists[degree - 1],
+            &f_prime_lists[degree - 1],
+            ideal,
+            first_projective,
+            true,
+        )?;
+        let map_is_empty = step.map.is_empty();
+        maps.push(step.map);
+        f_lists.push(step.f);
+        f_prime_lists.push(step.f_prime);
+        if map_is_empty {
+            finite_at_projective = Some(degree);
+            break;
+        }
+        let vertices = right_uniform_target_vertices(&f_lists[degree], degree)?;
+        if vertices.is_empty() {
+            return Err(ProjectiveResolutionError::EmptyResolutionProjective { degree });
+        }
+        r_projectives.push(path_projective_from_indices(ideal.algebra(), &vertices)?);
+    }
+
+    Ok(ProjectiveResolutionFpPathAlgebraModule {
+        parent_algebra: algebra.clone(),
+        ring_ideal: ideal.clone(),
+        projectives_attribute_is_bound: false,
+        projectives: Vec::new(),
         r_projectives,
         maps,
         f_lists,
@@ -631,6 +782,18 @@ pub enum ProjectiveResolutionError {
     /// The ideal contributes no generators to the initial projective.
     #[error("the initial projective times the right ideal basis is empty")]
     EmptyProjectiveIdealGenerators,
+    /// QPA's module-resolution wrapper cannot form `N` from an empty `ProjPres[4]`.
+    #[error("the projective path presentation exposes no first syzygy generators")]
+    EmptyPresentationSyzygies,
+    /// The presentation projective must use the quotient's original path algebra.
+    #[error("the initial path projective belongs to another path algebra")]
+    ForeignInitialPathProjective,
+    /// Every initial `f` vector must belong to the presentation projective.
+    #[error("an initial resolution vector belongs to another projective family")]
+    ForeignInitialResolutionVector,
+    /// Every first-map entry must lie in the quotient's original path algebra.
+    #[error("the initial resolution map contains an element from another path algebra")]
+    ForeignInitialResolutionMap,
     /// QPA's quotient-projective method does not dispatch on an empty list.
     #[error("a quotient vertex projective requires a nonempty vertex list")]
     EmptyQuotientProjectiveVertices,

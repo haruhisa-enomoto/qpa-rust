@@ -9,10 +9,12 @@
 use numerica::domains::Field;
 use qpa_core::{
     DenseMatrix, MatrixError, PathAlgebraElement, PathAlgebraIdeal, PathAlgebraModule,
-    PathAlgebraModuleError, PathAlgebraVector, ProjectivePathModuleError, QuiverAlgebra,
+    PathAlgebraModuleError, PathAlgebraVector, ProjectivePathModuleError,
+    ProjectiveResolutionError, ProjectiveResolutionFpPathAlgebraModule, QuiverAlgebra,
     QuiverAlgebraElement, QuiverAlgebraElementError, QuotientError,
     RightProjectivePathAlgebraModule, RightProjectivePathAlgebraSubmodule,
     completely_reduce_path_algebra_module_groebner_basis, minimal_generating_set_of_module,
+    projective_resolution_of_path_algebra_module_from_presentation,
     right_projective_path_algebra_module,
 };
 use thiserror::Error;
@@ -243,6 +245,46 @@ pub fn projective_path_algebra_presentation<F: Field>(
     })
 }
 
+/// Translate QPA's `ProjectiveResolutionOfPathAlgebraModule(M, n)` method.
+///
+/// QPA first computes the original defining ideal's right Groebner basis,
+/// calls [`projective_path_algebra_presentation`], splits its reduced first
+/// syzygies into `f^1` and `f^1prime`, and continues with the shared GSZ
+/// X-set recurrence in `qpa-core`.
+///
+/// # Errors
+///
+/// The term must be positive and the module must be over a quotient path
+/// algebra. The source method's path-algebra ideal-record failure is retained
+/// explicitly. All presentation, defining-ideal, projective-vector, and GSZ
+/// failures are propagated.
+pub fn projective_resolution_of_path_algebra_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+    termint: usize,
+) -> Result<ProjectiveResolutionFpPathAlgebraModule<F>, ProjectiveResolutionOfPathAlgebraModuleError>
+{
+    if termint == 0 {
+        return Err(ProjectiveResolutionError::NonpositiveTerm.into());
+    }
+    let QuiverAlgebra::Quotient(algebra) = module.right_acting_algebra() else {
+        return Err(ProjectiveResolutionOfPathAlgebraModuleError::PathAlgebraHasNoDefiningIdeal);
+    };
+    let ideal = algebra.ideal();
+    ideal.right_groebner_basis()?;
+    let presentation = projective_path_algebra_presentation(module)?;
+    Ok(
+        projective_resolution_of_path_algebra_module_from_presentation(
+            algebra,
+            ideal,
+            presentation.projective(),
+            presentation.projective_generators(),
+            presentation.syzygy_generators(),
+            presentation.matrix(),
+            termint,
+        )?,
+    )
+}
+
 fn linear_combination<F: Field>(
     algebra: &QuiverAlgebra<F>,
     basis: &[QuiverAlgebraElement<F>],
@@ -312,6 +354,25 @@ pub enum ProjectivePathAlgebraPresentationError {
     ProjectiveModule(#[from] ProjectivePathModuleError),
 }
 
+/// Failure in QPA's module-input GSZ resolution wrapper.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum ProjectiveResolutionOfPathAlgebraModuleError {
+    /// QPA reads `fam!.ideal` before it can use its nominal path-algebra branch.
+    #[error(
+        "QPA's ProjectiveResolutionOfPathAlgebraModule method cannot read a defining ideal from a path algebra"
+    )]
+    PathAlgebraHasNoDefiningIdeal,
+    /// The GBNP-backed projective path presentation failed.
+    #[error(transparent)]
+    Presentation(#[from] ProjectivePathAlgebraPresentationError),
+    /// The defining ideal or shared GSZ recurrence failed.
+    #[error(transparent)]
+    Resolution(#[from] ProjectiveResolutionError),
+    /// The original quotient ideal's right basis could not be prepared.
+    #[error(transparent)]
+    Quotient(#[from] QuotientError),
+}
+
 #[cfg(test)]
 mod tests {
     use numerica::domains::{
@@ -322,13 +383,16 @@ mod tests {
     };
     use qpa_core::{
         ArrowSpec, DenseMatrix, NamedArrowMatrix, PathAlgebra, PathAlgebraElement,
-        PathAlgebraVector, Quiver, QuiverAlgebra, VertexIndex, right_module_over_path_algebra,
+        PathAlgebraModule, PathAlgebraVector, ProjectiveResolutionError,
+        ProjectiveResolutionFpPathAlgebraModule, Quiver, QuiverAlgebra, VertexIndex,
+        right_module_over_path_algebra,
     };
     use serde_json::{Value, json};
 
     use super::{
         ProjectivePathAlgebraPresentation, ProjectivePathAlgebraPresentationError,
-        projective_path_algebra_presentation,
+        ProjectiveResolutionOfPathAlgebraModuleError, projective_path_algebra_presentation,
+        projective_resolution_of_path_algebra_module,
     };
     use crate::{indec_projective_modules, quotient_by_relations};
 
@@ -465,6 +529,77 @@ mod tests {
         })
     }
 
+    fn signed_module<F: Field>(field: &F) -> PathAlgebraModule<F> {
+        let parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(
+                3,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "a"),
+                    ArrowSpec::named(vertex(2), vertex(3), "b"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = parent.generators();
+        let relation = generators[3].multiply(&generators[4]).unwrap();
+        let algebra = QuiverAlgebra::Quotient(quotient_by_relations(parent, &[relation]).unwrap());
+        right_module_over_path_algebra(
+            algebra,
+            vec![2, 1, 0],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![field.one()], vec![field.one()]], field.clone())
+                    .unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap()
+    }
+
+    fn vector_lists_json<F: Field>(
+        lists: &[Vec<PathAlgebraVector<F>>],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!(
+            lists
+                .iter()
+                .map(|vectors| vector_list_json(vectors, coefficient))
+                .collect::<Vec<_>>()
+        )
+    }
+
+    fn resolution_json<F: Field>(
+        resolution: &ProjectiveResolutionFpPathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        json!({
+            "maps": resolution.maps().iter().map(|matrix| {
+                element_matrix_json(matrix, coefficient)
+            }).collect::<Vec<_>>(),
+            "f": vector_lists_json(resolution.f_lists(), coefficient),
+            "f_prime": vector_lists_json(resolution.f_prime_lists(), coefficient),
+            "r_projective_vertices": resolution.r_projectives().iter().map(|projective| {
+                projective.vertex_indices().iter().map(|vertex| vec![vertex.get()]).collect::<Vec<_>>()
+            }).collect::<Vec<_>>(),
+            "has_projectives": resolution.projectives_attribute_is_bound(),
+        })
+    }
+
+    fn module_resolution_case<F: Field>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let module = signed_module(field);
+        let term_one = projective_resolution_of_path_algebra_module(&module, 1).unwrap();
+        let term_three = projective_resolution_of_path_algebra_module(&module, 3).unwrap();
+        json!({
+            "signed_term_one": resolution_json(&term_one, coefficient),
+            "signed_term_three": resolution_json(&term_three, coefficient),
+        })
+    }
+
     #[test]
     fn pinned_qpa_projective_path_presentation_fixture_matches() {
         let expected: Value = serde_json::from_str(include_str!(
@@ -500,6 +635,40 @@ mod tests {
     }
 
     #[test]
+    fn pinned_qpa_module_input_projective_resolution_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/moduleprojres_module_resolution.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "moduleprojres_module_resolution",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654",
+            },
+            "binary": module_resolution_case(&Z2, |entry| {
+                small_integer(&Z2.to_integer(entry)).into()
+            }),
+            "quinary": module_resolution_case(&field5, |entry| {
+                small_integer(&field5.to_integer(entry)).into()
+            }),
+            "rational": module_resolution_case(&Q, |entry: &Rational| {
+                json!([
+                    small_integer(entry.numerator_ref()),
+                    small_integer(entry.denominator_ref()),
+                ])
+            }),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
     fn path_algebra_input_preserves_qpa_source_failure() {
         let algebra = QuiverAlgebra::Path(
             PathAlgebra::new(
@@ -515,5 +684,29 @@ mod tests {
             projective_path_algebra_presentation(&module).unwrap_err(),
             ProjectivePathAlgebraPresentationError::PathAlgebraHasNoDefiningIdeal,
         );
+        assert_eq!(
+            projective_resolution_of_path_algebra_module(&module, 1).unwrap_err(),
+            ProjectiveResolutionOfPathAlgebraModuleError::PathAlgebraHasNoDefiningIdeal,
+        );
+    }
+
+    #[test]
+    fn module_resolution_preserves_projective_and_term_boundaries() {
+        let module = signed_module(&Z2);
+        assert!(matches!(
+            projective_resolution_of_path_algebra_module(&module, 0),
+            Err(ProjectiveResolutionOfPathAlgebraModuleError::Resolution(
+                ProjectiveResolutionError::NonpositiveTerm
+            ))
+        ));
+
+        let algebra = module.right_acting_algebra();
+        let projectives = indec_projective_modules(algebra).unwrap();
+        assert!(matches!(
+            projective_resolution_of_path_algebra_module(&projectives[0], 2),
+            Err(ProjectiveResolutionOfPathAlgebraModuleError::Resolution(
+                ProjectiveResolutionError::EmptyResolutionProjective { degree: 1 }
+            ))
+        ));
     }
 }

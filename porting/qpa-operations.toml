@@ -15417,9 +15417,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 44
 source_end = 46
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::projective_resolution_of_path_algebra_module"
+tests = ["tests/fixtures/moduleprojres_module_resolution.schema-v1.json","tests/gap-reference/moduleprojres_module_projective_error.g","tests/gap-reference/moduleprojres_module_path_error.g"]
 deviations = []
 
 [[entries]]
@@ -15534,9 +15534,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gi"
 source_start = 293
 source_end = 447
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::projective_resolution_of_path_algebra_module"
+tests = ["tests/fixtures/moduleprojres_module_resolution.schema-v1.json","tests/gap-reference/moduleprojres_module_projective_error.g","tests/gap-reference/moduleprojres_module_path_error.g"]
 deviations = []
 
 [[entries]]

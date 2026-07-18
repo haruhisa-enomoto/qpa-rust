@@ -150,7 +150,8 @@ pub use preprocessing::{
 };
 pub use projective_path_presentation::{
     ProjectivePathAlgebraPresentation, ProjectivePathAlgebraPresentationError,
-    projective_path_algebra_presentation,
+    ProjectiveResolutionOfPathAlgebraModuleError, projective_path_algebra_presentation,
+    projective_resolution_of_path_algebra_module,
 };
 pub use qpa_conversion::{
     CohenPolynomial, CohenRepresentation, QpaGbnpError, cohen_to_path, gbnp_groebner_basis,
