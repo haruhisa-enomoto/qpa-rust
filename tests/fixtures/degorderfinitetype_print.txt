@@ -1,0 +1,6 @@
+2*(2) + 1*(4)
+0
+1*(1) + 3*(3)
+4*(2)
+<ARQuiverNumerical with 5 indecomposables and 3 projectives>
+<ARQuiverNumerical with 5 indecomposables and 3 projectives>

@@ -23,6 +23,17 @@ compare_last_json_fixture() {
     jq --sort-keys . "$fixture" >"$expected"
     diff --unified "$expected" "$actual"
 }
+
+compare_trailing_json_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" "$source_script" >"$raw"
+    sed -n '/^{"schema_version":/,$p' "$raw" |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
 trap cleanup EXIT HUP INT TERM
 
 compare_fixture() {
@@ -691,6 +702,12 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/stringalgebra.g" \
     "$repo_root/tests/fixtures/stringalgebra.schema-v1.json"
+compare_trailing_json_fixture \
+    "$repo_root/tests/gap-reference/degorderfinitetype.g" \
+    "$repo_root/tests/fixtures/degorderfinitetype.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/degorderfinitetype_print.g" \
+    "$repo_root/tests/fixtures/degorderfinitetype_print.txt"
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_predefined.g" \
     "$repo_root/tests/fixtures/pathalg_predefined.schema-v1.json"

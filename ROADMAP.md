@@ -765,6 +765,10 @@ Primary QPA files: `stringalgebra`, `validity`, `combinatorialrep`,
 - [ ] Port combinatorial maps, genus/faces/boundaries, cutting/joining, homology,
   and gentle-derived-equivalence computations.
 - [ ] Port finite-type AR-quiver data and degeneration-order algorithms.
+  The raw mesh/orbit constructor and every downstream numerical operation are
+  now source-faithful and oracle-pinned, using Numerica's exact rational matrix
+  inverse and arbitrary-precision integers. The predefined Bongartz--Gabriel
+  and named AR-quiver data catalog remains to be translated.
 - [ ] Port all remaining utility functions required by these files.
 
 Exit gate: the five specialized source families have no incomplete ledger

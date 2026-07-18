@@ -7,6 +7,7 @@ pub mod algebra_conversion;
 pub mod combinatorial_map;
 pub mod combinatorial_rep;
 pub mod complex;
+pub mod degeneration;
 pub mod derived_category;
 pub mod heap;
 pub mod higher_preprojective;
@@ -55,6 +56,11 @@ pub use complex::{
     finite_complex, injective_resolution, injective_resolution_complex, mapping_cone,
     projective_resolution, projective_resolution_complex, short_exact_sequence, stalk_complex,
     yoneda_product, zero_chain_map, zero_complex,
+};
+pub use degeneration::{
+    ArMesh, ArOrbit, ArOrbitPosition, ArQuiverDescription, ArQuiverNumerical,
+    CodimensionConjectureReport, DegenerationError, DimensionVectorInput, NumericalMatrix,
+    NumericalModule, NumericalVector, format_multiplicity_vector, format_multiplicity_vectors,
 };
 pub use derived_category::{
     DerivedCategoryError, ProjectiveIsomorphismComponent, check_for_isomorphism,

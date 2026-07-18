@@ -3379,10 +3379,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareAttribute:NumberOfIndecomposables:1"
@@ -3392,10 +3392,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::number_of_indecomposables"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareAttribute:NumberOfProjectives:1"
@@ -3405,10 +3405,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::number_of_projectives"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareGlobalFunction:PredefARQuivers:1"
@@ -3431,10 +3431,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::new"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:ModulesOfDimVect:1"
@@ -3444,10 +3444,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::modules_of_dimension_vector"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderPredecessors:1"
@@ -3457,10 +3457,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_predecessors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderDirectPredecessors:1"
@@ -3470,10 +3470,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::direct_degeneration_predecessors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderPredecessorsWithDirect:1"
@@ -3483,10 +3483,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_predecessors_with_direct"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderSuccessors:1"
@@ -3496,10 +3496,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_successors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderDirectSuccessors:1"
@@ -3509,10 +3509,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::direct_degeneration_successors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderSuccessorsWithDirect:1"
@@ -3522,10 +3522,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_successors_with_direct"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DimensionVector:1"
@@ -3535,10 +3535,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::dimension_vector"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DimHom:1"
@@ -3548,10 +3548,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::dim_hom"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DimEnd:1"
@@ -3561,10 +3561,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::dim_end"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:OrbitDim:1"
@@ -3574,10 +3574,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::orbit_dimension"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:OrbitCodim:1"
@@ -3587,10 +3587,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 25
 source_end = 25
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::orbit_codimension"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderLEQ:1"
@@ -3600,10 +3600,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 26
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_order_leq"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:DegOrderLEQNC:1"
@@ -3613,10 +3613,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 27
 source_end = 27
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_order_leq_unchecked"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:PrintMultiplicityVector:1"
@@ -3626,10 +3626,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 29
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "format_multiplicity_vector"
+tests = ["tests/fixtures/degorderfinitetype_print.txt"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:PrintMultiplicityVectors:1"
@@ -3639,10 +3639,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 30
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "format_multiplicity_vectors"
+tests = ["tests/fixtures/degorderfinitetype_print.txt"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareOperation:TestCodimConjecture:1"
@@ -3652,10 +3652,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 33
 source_end = 33
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::test_codimension_conjecture"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:InstallGlobalFunction:ARQuiverNumerical:1"
@@ -3665,10 +3665,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 61
 source_end = 232
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::new"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:ModulesOfDimVect:1"
@@ -3678,10 +3678,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 304
 source_end = 382
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::modules_of_dimension_vector"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderPredecessors:1"
@@ -3691,10 +3691,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 396
 source_end = 502
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_predecessors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderDirectPredecessors:1"
@@ -3704,10 +3704,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 519
 source_end = 549
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::direct_degeneration_predecessors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderPredecessorsWithDirect:1"
@@ -3717,10 +3717,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 568
 source_end = 598
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_predecessors_with_direct"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderSuccessors:1"
@@ -3730,10 +3730,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 619
 source_end = 725
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_successors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderDirectSuccessors:1"
@@ -3743,10 +3743,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 742
 source_end = 772
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::direct_degeneration_successors"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderSuccessorsWithDirect:1"
@@ -3756,10 +3756,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 789
 source_end = 819
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_successors_with_direct"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DimensionVector:1"
@@ -3769,10 +3769,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 836
 source_end = 858
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::dimension_vector"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DimHom:1"
@@ -3782,10 +3782,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 871
 source_end = 910
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::dim_hom"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DimEnd:1"
@@ -3795,10 +3795,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 922
 source_end = 928
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::dim_end"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:OrbitDim:1"
@@ -3808,10 +3808,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 943
 source_end = 957
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::orbit_dimension"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:OrbitCodim:1"
@@ -3821,10 +3821,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 973
 source_end = 979
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::orbit_codimension"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderLEQ:1"
@@ -3834,10 +3834,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 997
 source_end = 1044
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_order_leq"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:DegOrderLEQNC:1"
@@ -3847,10 +3847,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 1060
 source_end = 1104
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::degeneration_order_leq_unchecked"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:PrintMultiplicityVector:1"
@@ -3860,10 +3860,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 1119
 source_end = 1143
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "format_multiplicity_vector"
+tests = ["tests/fixtures/degorderfinitetype_print.txt"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:PrintMultiplicityVectors:1"
@@ -3873,10 +3873,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 1154
 source_end = 1165
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "format_multiplicity_vectors"
+tests = ["tests/fixtures/degorderfinitetype_print.txt"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:PrintObj:1"
@@ -3886,10 +3886,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 1170
 source_end = 1183
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "Display for ArQuiverNumerical"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:ViewObj:1"
@@ -3899,10 +3899,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 1185
 source_end = 1197
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "Display for ArQuiverNumerical"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:InstallMethod:TestCodimConjecture:1"
@@ -3912,10 +3912,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 1218
 source_end = 1275
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "ArQuiverNumerical::test_codimension_conjecture"
+tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
+deviations = ["DEGORDER-001","DEGORDER-002"]
 
 [[entries]]
 id = "degorderfinitetype:InstallGlobalFunction:PredefARQuivers:1"

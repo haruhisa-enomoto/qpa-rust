@@ -358,3 +358,46 @@ the computations remain translations of the cited source methods.
 - Evidence: `tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json` pins
   ordinary and prime-generator reductions over `GF(2)`, `GF(5)`, and the
   rationals; the projective-path boundary test pins the stalled Rust result.
+
+## DEGORDER-001 — Numerical AR positions are typed and zero-based
+
+- Source: QPA `lib/degorderfinitetype.gd` and `lib/degorderfinitetype.gi`
+  lines 61–1104.
+- Affected Rust operations: `ArQuiverNumerical`, `ArMesh`, `ArOrbit`,
+  `ArOrbitPosition`, `NumericalModule`, and `DimensionVectorInput`.
+- Difference: GAP encodes meshes, translate orbits, indecomposable selectors,
+  and dimension/multiplicity vectors in nested untyped lists with one-based
+  positions. Rust gives each form its own type and uses zero-based positions;
+  results that are vectors retain QPA's original coordinate order.
+- Reason: typed inputs prevent an orbit position, dimension vector, and module
+  multiplicity vector from being silently interchanged, while zero-based
+  indices are the native Rust boundary convention.
+- Compatibility impact: converting every GAP position by subtracting one gives
+  the identical AR matrix, inverse-transpose Hom matrix, simple positions,
+  enumeration order, and degeneration comparisons. Numerica's exact rational
+  matrix inverse and arbitrary-precision integers preserve QPA's exact integer
+  calculation without a field-dependent replacement.
+- Evidence: `tests/fixtures/degorderfinitetype.schema-v1.json` pins explicit
+  mesh and compact orbit constructors, all numerical operations, and nontrivial
+  direct-order filtering against QPA.
+
+## DEGORDER-002 — Printing operations return deterministic Rust data
+
+- Source: QPA `lib/degorderfinitetype.gi` lines 997–1275.
+- Affected Rust operations: `degeneration_order_leq`,
+  `format_multiplicity_vector`, `format_multiplicity_vectors`, `Display for
+  ArQuiverNumerical`, and `test_codimension_conjecture`.
+- Difference: QPA writes a dimension-mismatch warning, multiplicity displays,
+  conjecture progress, and runtime summaries to the current GAP output stream.
+  Rust returns the checked comparison, formatted strings, and a structured
+  `CodimensionConjectureReport`; the accepted `print_progress` flag does not
+  write to global process output, and elapsed runtime is not part of the result.
+- Reason: a library operation should not mutate global output state, and wall
+  time is nondeterministic. The mathematical branch decisions, enumeration,
+  early-break flag, counterexamples, and counters remain QPA's.
+- Compatibility impact: callers print the returned formatting/report when
+  interactive output is desired. The exact stable Print/View and multiplicity
+  text is unchanged; only warnings, progress, and timing require caller policy.
+- Evidence: `tests/fixtures/degorderfinitetype_print.txt` pins QPA's exact
+  stable text, while `tests/fixtures/degorderfinitetype.schema-v1.json` pins the
+  comparisons and conjecture result/counters.
