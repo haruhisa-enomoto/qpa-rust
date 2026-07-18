@@ -55,13 +55,15 @@ pub use complex::{
     yoneda_product, zero_chain_map, zero_complex,
 };
 pub use derived_category::{
-    DerivedCategoryError, compare_with_indec_injective, compare_with_indec_projective,
-    description_of_finite_inj_complex, description_of_finite_proj_complex,
-    description_of_finite_proj_or_inj_complex, description_of_inj_complex_in_degree,
-    description_of_proj_complex_in_degree, description_of_proj_or_inj_complex_in_degree,
-    description_of_projective_module, direct_sum_minus_summands, find_all_map_components,
-    is_injective_complex, is_projective_complex, matrices_of_dual_map,
-    qpa_injective_complex_string, qpa_projective_complex_string,
+    DerivedCategoryError, ProjectiveIsomorphismComponent, check_for_isomorphism,
+    compare_with_indec_injective, compare_with_indec_projective, description_of_finite_inj_complex,
+    description_of_finite_proj_complex, description_of_finite_proj_or_inj_complex,
+    description_of_inj_complex_in_degree, description_of_proj_complex_in_degree,
+    description_of_proj_or_inj_complex_in_degree, description_of_projective_module,
+    direct_sum_minus_summands, find_all_map_components, is_injective_complex,
+    is_projective_complex, matrices_of_dual_map, projective_resolution_of_complex,
+    qpa_injective_complex_string, qpa_projective_complex_string, reduce_differential,
+    reduce_previous_differential, reduce_previous_t_map, reduce_t_map,
 };
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{

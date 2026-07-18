@@ -3964,9 +3964,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution_of_complex"
+tests = ["tests/fixtures/derivedcat_projective_resolution.schema-v1.json","tests/fixtures/derivedcat_resolution_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -3977,9 +3977,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "check_for_isomorphism"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -3990,9 +3990,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_differential"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4003,9 +4003,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 9
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_previous_differential"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4016,9 +4016,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 11
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_t_map"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json","tests/fixtures/derivedcat_resolution_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4029,9 +4029,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 14
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_previous_t_map"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4328,9 +4328,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 223
 source_end = 350
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution_of_complex"
+tests = ["tests/fixtures/derivedcat_projective_resolution.schema-v1.json","tests/fixtures/derivedcat_resolution_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4341,9 +4341,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 371
 source_end = 408
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "check_for_isomorphism"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4354,9 +4354,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 423
 source_end = 460
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_differential"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4367,9 +4367,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 474
 source_end = 480
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_previous_differential"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4380,9 +4380,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 494
 source_end = 515
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_t_map"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json","tests/fixtures/derivedcat_resolution_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4393,9 +4393,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 524
 source_end = 530
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "reduce_previous_t_map"
+tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
 
 [[entries]]

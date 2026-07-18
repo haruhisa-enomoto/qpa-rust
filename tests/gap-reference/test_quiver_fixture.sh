@@ -1173,6 +1173,15 @@ compare_catching_fixture \
 compare_text_fixture \
     "$repo_root/tests/gap-reference/derivedcat_foundation_print.g" \
     "$repo_root/tests/fixtures/derivedcat_foundation_print.txt"
+compare_fixture \
+    "$repo_root/tests/gap-reference/derivedcat_reduction.g" \
+    "$repo_root/tests/fixtures/derivedcat_reduction.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/derivedcat_projective_resolution.g" \
+    "$repo_root/tests/fixtures/derivedcat_projective_resolution.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/derivedcat_resolution_errors.g" \
+    "$repo_root/tests/fixtures/derivedcat_resolution_errors.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_derived_error.g" \
     >"$actual" 2>&1

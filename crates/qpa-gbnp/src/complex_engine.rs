@@ -483,6 +483,10 @@ struct QpaComplexData<C: QpaCategory> {
     zero_complex: bool,
     projective_complex: OnceLock<bool>,
     injective_complex: OnceLock<bool>,
+    // Cuts, shifts, and splices can share lazy half-list generators with
+    // source complexes. Keep those sources alive while this complex can ask
+    // a shared generator for another differential.
+    _dependencies: Vec<Arc<QpaComplexData<C>>>,
 }
 
 /// QPA's `IsQPAComplex` object.
@@ -824,17 +828,19 @@ impl<C: QpaCategory> QpaComplex<C> {
             let category = self.category().clone();
             differentials = differentials.map(move |map| category.negate(map))?;
         }
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             self.category().clone(),
             differentials,
+            &[self],
         ))
     }
 
     /// Translate `ShiftUnsigned(C,n)`.
     pub fn shift_unsigned(&self, amount: &Integer) -> Result<Self, ComplexError> {
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             self.category().clone(),
             self.differentials().shift(amount)?,
+            &[self],
         ))
     }
 
@@ -844,17 +850,37 @@ impl<C: QpaCategory> QpaComplex<C> {
         category: C,
         differentials: InfiniteList<C::Morphism, ComplexError>,
     ) -> Self {
+        Self::by_differential_list_with_dependencies(category, differentials, &[])
+    }
+
+    fn by_differential_list_with_dependencies(
+        category: C,
+        differentials: InfiniteList<C::Morphism, ComplexError>,
+        dependencies: &[&Self],
+    ) -> Self {
         let data = Arc::new(QpaComplexData {
             category,
             differentials: OnceLock::new(),
             zero_complex: false,
             projective_complex: OnceLock::new(),
             injective_complex: OnceLock::new(),
+            _dependencies: dependencies
+                .iter()
+                .map(|complex| Arc::clone(&complex.0))
+                .collect(),
         });
         data.differentials
             .set(differentials)
             .expect("new QPA complex has an empty differential slot");
         Self(data)
+    }
+
+    pub(crate) fn with_differential_list(
+        &self,
+        category: C,
+        differentials: InfiniteList<C::Morphism, ComplexError>,
+    ) -> Self {
+        Self::by_differential_list_with_dependencies(category, differentials, &[self])
     }
 
     /// Return QPA's printed complex representation.
@@ -979,9 +1005,10 @@ impl<C: QpaAbelianCategory> QpaComplex<C> {
         let zero_part = zero_complex(category.clone())?
             .differentials()
             .negative_part_from(&(degree - Integer::from(1)))?;
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             category,
             InfiniteList::concatenate(&[truncation, new_part, zero_part])?,
+            &[self],
         ))
     }
 
@@ -1003,9 +1030,10 @@ impl<C: QpaAbelianCategory> QpaComplex<C> {
         let zero_part = zero_complex(category.clone())?
             .differentials()
             .positive_part_from(&(degree + Integer::from(2)))?;
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             category,
             InfiniteList::concatenate(&[zero_part, new_part, truncation])?,
+            &[self],
         ))
     }
 
@@ -1031,9 +1059,10 @@ impl<C: QpaAbelianCategory> QpaComplex<C> {
         let zero_part = zero_complex(category.clone())?
             .differentials()
             .negative_part_from(&(degree - Integer::from(1)))?;
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             category,
             InfiniteList::concatenate(&[truncation, new_part, zero_part])?,
+            &[self],
         ))
     }
 
@@ -1048,9 +1077,10 @@ impl<C: QpaAbelianCategory> QpaComplex<C> {
         let zero_part = zero_complex(category.clone())?
             .differentials()
             .positive_part_from(&(degree + Integer::from(2)))?;
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             category,
             InfiniteList::concatenate(&[zero_part, new_part, truncation])?,
+            &[self],
         ))
     }
 
@@ -1083,9 +1113,10 @@ impl<C: QpaAbelianCategory> QpaComplex<C> {
         let zero_part = zero_complex(category.clone())?
             .differentials()
             .positive_part_from(&(degree + Integer::from(3)))?;
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             category,
             InfiniteList::concatenate(&[zero_part, new_part, truncation])?,
+            &[self],
         ))
     }
 
@@ -1105,9 +1136,10 @@ impl<C: QpaAbelianCategory> QpaComplex<C> {
         let zero_part = zero_complex(category.clone())?
             .differentials()
             .negative_part_from(&(degree - Integer::from(3)))?;
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             category,
             InfiniteList::concatenate(&[truncation, new_part, zero_part])?,
+            &[self],
         ))
     }
 
@@ -1151,9 +1183,10 @@ impl<C: QpaAbelianCategory> QpaComplex<C> {
             .differentials()
             .negative_part_from(&(lower - Integer::from(3)))?;
 
-        Ok(Self::by_differential_list(
+        Ok(Self::by_differential_list_with_dependencies(
             category,
             InfiniteList::concatenate(&[upper_zero, upper_new, truncation, lower_new, lower_zero])?,
+            &[self],
         ))
     }
 
@@ -1459,6 +1492,7 @@ pub fn complex<C: QpaCategory>(
         zero_complex: false,
         projective_complex: OnceLock::new(),
         injective_complex: OnceLock::new(),
+        _dependencies: Vec::new(),
     });
     let result = QpaComplex(data);
     let zero_map = category.zero_map(&category.zero_object(), &category.zero_object())?;
@@ -1525,6 +1559,7 @@ pub fn zero_complex<C: QpaCategory>(category: C) -> Result<QpaComplex<C>, Comple
         zero_complex: true,
         projective_complex: OnceLock::new(),
         injective_complex: OnceLock::new(),
+        _dependencies: Vec::new(),
     });
     data.differentials
         .set(InfiniteList::constant(zero_map))
@@ -1593,9 +1628,10 @@ pub fn yoneda_product<C: QpaCategory>(
             .differentials()
             .negative_part_from(&(&upper_second - Integer::from(1)))?,
     ];
-    Ok(QpaComplex::by_differential_list(
+    Ok(QpaComplex::by_differential_list_with_dependencies(
         first.category().clone(),
         InfiniteList::concatenate(&lists)?,
+        &[first, second],
     ))
 }
 

@@ -739,7 +739,7 @@ Primary QPA files: `inflist`, `complex`, and `derivedcat`.
 - [x] Port chain maps, comparison liftings, mapping cones, and Yoneda products.
 - [x] Port projective/injective complex predicates, descriptions, specialized
   printers, and direct-sum helper maps.
-- [ ] Port projective resolutions of complexes and differential reduction.
+- [x] Port projective resolutions of complexes and differential reduction.
 - [ ] Port derived-category tau and projective/injective complex conversions.
 - [x] Verify all degree/sign conventions with explicit low-degree fixtures.
 
