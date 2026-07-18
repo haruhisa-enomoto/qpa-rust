@@ -602,7 +602,10 @@ Primary QPA files: `module` and `modulespecial`.
   source-translated; the remaining `module.gi` element surface keeps this open.
 - [ ] Port matrix-module construction with and without relation checking. The
   checked three-argument constructor is complete; unchecked and remaining
-  constructor overloads are pending.
+  constructor overloads are pending. Module `ViewObj`, reconstructive
+  `PrintObj`, and multiline `Display` are separately source-translated,
+  including path/quotient algebras over `QQ` and prime fields and QPA's
+  scalar-zero arrow-entry failure.
 - [ ] Validate dimensions, fields, relation satisfaction, and zero spaces as QPA
   does.
 - [ ] Port bases, canonical bases, coordinates, dimension vectors, and support.
@@ -631,7 +634,9 @@ Primary QPA files: `modulehom` and `moduledecomp`.
   images/preimages, zero/identity maps, and matrix accessor are pinned against
   the module/trivial-extension oracle. `DualOfModuleHomomorphism` now composes
   QPA's cached module duals with vertexwise transposition and one-way attribute
-  caching.
+  caching. Map `ViewObj`, reconstructive `PrintObj`, and multiline `Display`
+  are also exact-text pinned independently of the module representations they
+  contain.
 - [x] Port map equality, addition, scalar multiplication, and composition.
   QPA's structural hom-set checks, row-order composition, left/right scalar
   multiplication, additive inverse, zero map, and map equality are pinned over

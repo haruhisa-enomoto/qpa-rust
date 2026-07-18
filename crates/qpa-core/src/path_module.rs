@@ -7,7 +7,7 @@
 //! relation of a quotient is evaluated before a module is returned.
 
 use std::{
-    fmt,
+    fmt::{self, Write as _},
     sync::{Arc, OnceLock, RwLock, Weak},
 };
 
@@ -16,9 +16,9 @@ use thiserror::Error;
 
 use crate::{
     CachedAttribute, DenseMatrix, Generator, MatrixError, Path, PathEndpoint, QpaCoefficientField,
-    QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, QuiverAlgebraHomomorphism,
-    QuiverAlgebraHomomorphismError, QuotientError, StructureConstantsAlgebra,
-    StructureConstantsError, TensorProductAlgebra,
+    QpaFieldCharacteristic, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError,
+    QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError, QuotientError,
+    StructureConstantsAlgebra, StructureConstantsError, TensorProductAlgebra,
 };
 
 /// One labeled arrow matrix in QPA's three-argument module constructor.
@@ -1222,7 +1222,50 @@ impl<F: Field> fmt::Debug for PathAlgebraModule<F> {
 
 impl<F: Field> fmt::Display for PathAlgebraModule<F> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "<{:?}>", self.dimension_vector())
+        write!(formatter, "<{}>", qpa_usize_list(self.dimension_vector()))
+    }
+}
+
+impl<F: QpaCoefficientField> PathAlgebraModule<F> {
+    /// Return QPA's reconstructive `PrintObj(M)` text.
+    #[must_use]
+    pub fn qpa_print_string(&self) -> String {
+        format!(
+            "<Module over {} with dimension vector {}>",
+            qpa_quiver_algebra_view(self.right_acting_algebra()),
+            qpa_usize_list(self.dimension_vector())
+        )
+    }
+
+    /// Return QPA's multiline `Display(M)` text.
+    ///
+    /// The coefficient callback supplies GAP's scalar `String` representation;
+    /// Rust performs the exact default (non-compact) `PrintArray` alignment.
+    ///
+    /// # Errors
+    ///
+    /// QPA itself errors when `Display` reaches the scalar-zero arrow entry of
+    /// a zero module, rather than a dense matrix. Rust reports that branch as
+    /// a typed error.
+    pub fn qpa_display_string_with(
+        &self,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> Result<String, PathAlgebraModuleError> {
+        let mut output = format!("{} and linear maps given by\n", self.qpa_print_string());
+        for (arrow, matrix) in self
+            .right_acting_algebra()
+            .quiver()
+            .arrows()
+            .zip(self.matrices_of_path_algebra_module())
+        {
+            writeln!(&mut output, "for arrow {}:", arrow.name())
+                .expect("writing to a String cannot fail");
+            let PathAlgebraModuleMatrix::Matrix(matrix) = matrix else {
+                return Err(PathAlgebraModuleError::DisplayScalarZeroArrowMatrix);
+            };
+            output.push_str(&qpa_print_array_with(&matrix, coefficient));
+        }
+        Ok(output)
     }
 }
 
@@ -1340,6 +1383,130 @@ struct PathAlgebraModuleHomomorphismData<F: Field> {
 /// attributes can return the identical map object.
 #[derive(Clone, Debug)]
 pub struct PathAlgebraModuleHomomorphism<F: Field>(Arc<PathAlgebraModuleHomomorphismData<F>>);
+
+impl<F: Field> fmt::Display for PathAlgebraModuleHomomorphism<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "<{} ---> {}>", self.source(), self.range())
+    }
+}
+
+impl<F: QpaCoefficientField> PathAlgebraModuleHomomorphism<F> {
+    /// Return QPA's reconstructive `PrintObj(f)` text.
+    #[must_use]
+    pub fn qpa_print_string(&self) -> String {
+        format!(
+            "<{} ---> {}>",
+            self.source().qpa_print_string(),
+            self.range().qpa_print_string()
+        )
+    }
+
+    /// Return QPA's multiline `Display(f)` text.
+    ///
+    /// The coefficient callback supplies GAP's scalar `String`
+    /// representation used by the same `PrintArray` translation as module
+    /// display.
+    #[must_use]
+    pub fn qpa_display_string_with(
+        &self,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> String {
+        let mut output = format!("{}\nwith ", self.qpa_print_string());
+        for (position, matrix) in self.vertex_matrices().iter().enumerate() {
+            writeln!(
+                &mut output,
+                "linear map for vertex number {}:",
+                position + 1
+            )
+            .expect("writing to a String cannot fail");
+            output.push_str(&qpa_print_array_with(matrix, coefficient));
+        }
+        output
+    }
+}
+
+fn qpa_usize_list(values: &[usize]) -> String {
+    format!(
+        "[ {} ]",
+        values
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(", ")
+    )
+}
+
+fn qpa_quiver_algebra_view<F: QpaCoefficientField>(algebra: &QuiverAlgebra<F>) -> String {
+    let field = match algebra.field().qpa_characteristic() {
+        QpaFieldCharacteristic::Zero => "Rationals".to_owned(),
+        QpaFieldCharacteristic::Prime(prime) => format!("GF({prime})"),
+    };
+    let quiver = algebra.quiver();
+    let parent = format!(
+        "<{field}[<quiver with {} vertices and {} arrows>]>",
+        quiver.number_of_vertices(),
+        quiver.number_of_arrows()
+    );
+    match algebra {
+        QuiverAlgebra::Path(_) => parent,
+        QuiverAlgebra::Quotient(quotient) => {
+            let count = quotient.ideal().generators().len();
+            let suffix = if count == 1 { "" } else { "s" };
+            format!(
+                "<{field}[<quiver with {} vertices and {} arrows>]/<two-sided ideal in {parent}, ({count} generator{suffix})>>",
+                quiver.number_of_vertices(),
+                quiver.number_of_arrows()
+            )
+        }
+    }
+}
+
+fn qpa_print_array_with<F: Field>(
+    matrix: &DenseMatrix<F>,
+    coefficient: impl Fn(&F::Element) -> String + Copy,
+) -> String {
+    if matrix.nrows() == 0 {
+        return "[ ]\n".to_owned();
+    }
+    if matrix.nrows() == 1 && matrix.ncols() == 0 {
+        return "[ [ ] ]\n".to_owned();
+    }
+    let rows = (0..matrix.nrows())
+        .map(|row| matrix.row(row).iter().map(coefficient).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    let maximum = rows
+        .iter()
+        .flat_map(|row| row.iter())
+        .map(String::len)
+        .max()
+        .unwrap_or(1);
+    let width = maximum + 1;
+    let mut output = "[ ".to_owned();
+    for (row_index, row) in rows.iter().enumerate() {
+        if row_index != 0 {
+            output.push_str("  ");
+        }
+        output.push_str("[ ");
+        if row.is_empty() {
+            output.push_str("  ]");
+        } else {
+            for (column, entry) in row.iter().enumerate() {
+                write!(&mut output, "{entry:>width$}").expect("writing to a String cannot fail");
+                if column + 1 == row.len() {
+                    output.push_str(" ]");
+                } else {
+                    output.push_str(", ");
+                }
+            }
+        }
+        if row_index + 1 == rows.len() {
+            output.push_str(" ]\n");
+        } else {
+            output.push_str(",\n");
+        }
+    }
+    output
+}
 
 /// An ordered pair of QPA module homomorphisms returned by categorical constructions.
 pub type PathAlgebraModuleHomomorphismPair<F> = (
@@ -6570,6 +6737,10 @@ pub enum RestrictionViaAlgebraHomomorphismError {
 /// Failure in QPA's checked right-module constructor.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum PathAlgebraModuleError {
+    /// QPA's `Display(M)` passes the integer zero to `PrintArray` for a zero
+    /// module over an arrowful quiver and therefore aborts.
+    #[error("module Display encountered QPA's scalar-zero arrow matrix")]
+    DisplayScalarZeroArrowMatrix,
     /// The dimension vector must have one entry per quiver vertex.
     #[error("dimension vector has length {actual}, expected {expected}")]
     DimensionVectorLength {
@@ -6995,7 +7166,7 @@ mod tests {
         right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
         right_module_over_path_algebra, socle_of_module, socle_of_module_inclusion,
         sum_of_submodules, sum_of_submodules_list, top_of_module, top_of_module_homomorphism,
-        top_of_module_projection, trace_of_module, zero_module_mapping,
+        top_of_module_projection, trace_of_module, zero_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -7004,6 +7175,83 @@ mod tests {
 
     fn q(value: i64) -> Rational {
         Q.nth(value.into())
+    }
+
+    #[test]
+    fn pinned_qpa_module_and_homomorphism_presentation_matches() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let a2 = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
+        let source = right_module_over_path_algebra(a2.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let range = right_module_over_path_algebra(a2.clone(), vec![0, 1], &[])
+            .unwrap()
+            .unwrap();
+        let zero = zero_module(&a2).unwrap();
+        let map = zero_module_mapping(source.clone(), range.clone()).unwrap();
+        let wide = right_module_over_path_algebra(
+            a2.clone(),
+            vec![2, 2],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1), q(-2)], vec![q(0), q(3)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            QuotientPathAlgebra::by_relations_high_level(loop_parent, &[x.pow(2).unwrap()])
+                .unwrap(),
+        );
+        let dual_simple = right_module_over_path_algebra(
+            dual,
+            vec![1],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![Q.zero()]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+
+        let prime_field = Zp::new(5);
+        let prime_a1 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                prime_field.clone(),
+                Quiver::from_indexed(1, Vec::new()).unwrap(),
+            )
+            .unwrap(),
+        );
+        let prime_module = right_module_over_path_algebra(prime_a1, vec![1], &[])
+            .unwrap()
+            .unwrap();
+
+        let actual = format!(
+            "MODULE_VIEW={source}\nZERO_VIEW={zero}\nMODULE_PRINT={}\nQUOTIENT_MODULE_PRINT={}\nPRIME_MODULE_PRINT={}\nMAP_VIEW={map}\nMAP_PRINT={}\nMODULE_DISPLAY_BEGIN\n{}MODULE_DISPLAY_END\nMAP_DISPLAY_BEGIN\n{}MAP_DISPLAY_END\nWIDE_MODULE_DISPLAY_BEGIN\n{}WIDE_MODULE_DISPLAY_END\n",
+            source.qpa_print_string(),
+            dual_simple.qpa_print_string(),
+            prime_module.qpa_print_string(),
+            map.qpa_print_string(),
+            source.qpa_display_string_with(ToString::to_string).unwrap(),
+            map.qpa_display_string_with(ToString::to_string),
+            wide.qpa_display_string_with(ToString::to_string).unwrap(),
+        );
+        assert_eq!(
+            actual,
+            include_str!("../../../tests/fixtures/module_presentation.txt")
+        );
+        assert!(matches!(
+            zero.qpa_display_string_with(ToString::to_string),
+            Err(PathAlgebraModuleError::DisplayScalarZeroArrowMatrix)
+        ));
     }
 
     #[test]

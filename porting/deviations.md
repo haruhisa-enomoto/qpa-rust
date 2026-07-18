@@ -293,6 +293,26 @@ the computations remain translations of the cited source methods.
   Rust tests check unbound/bound transitions, stable repeated values, and
   shared algebra-parent identity.
 
+## MODULE-001 — Scalar-zero module display failure is typed
+
+- Source: QPA `lib/module.gi`, `Display` at lines 967–984, delegating the
+  stored arrow entries to GAP's `PrintArray`.
+- Affected Rust operation: `PathAlgebraModule::qpa_display_string_with`.
+- Difference: for the zero module over a quiver with an arrow, QPA stores the
+  integer zero as that arrow entry and aborts when `PrintArray` requires a
+  dense list. Rust returns
+  `PathAlgebraModuleError::DisplayScalarZeroArrowMatrix` at the same branch.
+- Reason: Rust represents the QPA scalar-zero sentinel explicitly and cannot
+  pass it to a matrix-only formatter. The typed result preserves the source
+  branch without silently rendering a different zero matrix.
+- Compatibility impact: all dense arrow matrices retain QPA's exact labels,
+  alignment, spacing, and line breaks. Only QPA's interpreter error becomes a
+  typed Rust error.
+- Evidence: `tests/fixtures/module_presentation.txt` pins successful path-,
+  quotient-, rational-, and prime-field presentation text;
+  `tests/gap-reference/module_presentation_zero_display_error.g` pins the
+  source error at `module.gi:981`.
+
 ## MODULEHOM-001 — Semisimple block counting uses the split-prime tier
 
 - Source: QPA `lib/modulehom.gi`, `NumberOfNonIsoDirSummands` at lines

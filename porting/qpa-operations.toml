@@ -10711,9 +10711,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 942
 source_end = 950
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Display for PathAlgebraModule"
+tests = ["tests/fixtures/module_presentation.txt"]
 deviations = []
 
 [[entries]]
@@ -10724,9 +10724,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 952
 source_end = 965
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::qpa_print_string"
+tests = ["tests/fixtures/module_presentation.txt"]
 deviations = []
 
 [[entries]]
@@ -10737,10 +10737,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 967
 source_end = 984
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::qpa_display_string_with"
+tests = ["tests/fixtures/module_presentation.txt","tests/gap-reference/module_presentation_zero_display_error.g"]
+deviations = ["MODULE-001"]
 
 [[entries]]
 id = "module:InstallMethod:\\in:1"
@@ -11673,9 +11673,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism"
+tests = ["tests/fixtures/module_presentation.txt"]
 deviations = []
 
 [[entries]]
@@ -11686,9 +11686,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vec<PathAlgebraModuleHomomorphism>"
+tests = ["tests/fixtures/module_presentation.txt"]
 deviations = []
 
 [[entries]]
@@ -12752,9 +12752,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 203
 source_end = 215
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Display for PathAlgebraModuleHomomorphism"
+tests = ["tests/fixtures/module_presentation.txt"]
 deviations = []
 
 [[entries]]
@@ -12765,9 +12765,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 224
 source_end = 232
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::qpa_print_string"
+tests = ["tests/fixtures/module_presentation.txt"]
 deviations = []
 
 [[entries]]
@@ -12778,9 +12778,9 @@ source_file = "upstream/qpa/lib/modulehom.gi"
 source_start = 241
 source_end = 256
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism::qpa_display_string_with"
+tests = ["tests/fixtures/module_presentation.txt"]
 deviations = []
 
 [[entries]]

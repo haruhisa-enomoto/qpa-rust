@@ -1,0 +1,25 @@
+MODULE_VIEW=<[ 1, 0 ]>
+ZERO_VIEW=<[ 0, 0 ]>
+MODULE_PRINT=<Module over <Rationals[<quiver with 2 vertices and 1 arrows>]> with dimension vector [ 1, 0 ]>
+QUOTIENT_MODULE_PRINT=<Module over <Rationals[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <Rationals[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]>
+PRIME_MODULE_PRINT=<Module over <GF(5)[<quiver with 1 vertices and 0 arrows>]> with dimension vector [ 1 ]>
+MAP_VIEW=<<[ 1, 0 ]> ---> <[ 0, 1 ]>>
+MAP_PRINT=<<Module over <Rationals[<quiver with 2 vertices and 1 arrows>]> with dimension vector [ 1, 0 ]> ---> <Module over <Rationals[<quiver with 2 vertices and 1 arrows>]> with dimension vector [ 0, 1 ]>>
+MODULE_DISPLAY_BEGIN
+<Module over <Rationals[<quiver with 2 vertices and 1 arrows>]> with dimension vector [ 1, 0 ]> and linear maps given by
+for arrow a:
+[ [  0 ] ]
+MODULE_DISPLAY_END
+MAP_DISPLAY_BEGIN
+<<Module over <Rationals[<quiver with 2 vertices and 1 arrows>]> with dimension vector [ 1, 0 ]> ---> <Module over <Rationals[<quiver with 2 vertices and 1 arrows>]> with dimension vector [ 0, 1 ]>>
+with linear map for vertex number 1:
+[ [  0 ] ]
+linear map for vertex number 2:
+[ [  0 ] ]
+MAP_DISPLAY_END
+WIDE_MODULE_DISPLAY_BEGIN
+<Module over <Rationals[<quiver with 2 vertices and 1 arrows>]> with dimension vector [ 2, 2 ]> and linear maps given by
+for arrow a:
+[ [   1,  -2 ],
+  [   0,   3 ] ]
+WIDE_MODULE_DISPLAY_END

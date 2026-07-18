@@ -1055,6 +1055,18 @@ then
 fi
 grep -Fq "The first argument should be a cotilting module" "$actual"
 grep -Fq "moduleARtheory.gi:367" "$actual"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/module_presentation.g" \
+    "$repo_root/tests/fixtures/module_presentation.txt"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/module_presentation_zero_display_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly displayed a scalar-zero arrow matrix" >&2
+    exit 1
+fi
+grep -Fq "<array> must be a dense list" "$actual"
+grep -Fq "lib/module.gi:981" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehomalg_is_nth_syzygy.g" \
     "$repo_root/tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"
