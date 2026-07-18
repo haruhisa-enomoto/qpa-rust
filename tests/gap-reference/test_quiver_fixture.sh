@@ -1186,6 +1186,9 @@ compare_fixture \
 compare_catching_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_vertex_projective_error.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_vertex_projective_error.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/projpathalgmodule_uniform_projective.g" \
+    "$repo_root/tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_lift.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_lift.schema-v1.json"
