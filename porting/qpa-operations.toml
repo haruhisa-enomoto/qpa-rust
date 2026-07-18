@@ -20410,8 +20410,8 @@ source_start = 12
 source_end = 12
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector; QuotientPathAlgebraVector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20423,8 +20423,8 @@ source_start = 13
 source_end = 13
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector; QuotientPathAlgebraVector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20436,8 +20436,8 @@ source_start = 14
 source_end = 14
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule; PathAlgebraVector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule; PathAlgebraVector; RightProjectiveQuotientPathAlgebraModule; QuotientPathAlgebraVector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20449,8 +20449,8 @@ source_start = 15
 source_end = 16
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector; QuotientPathAlgebraVector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20462,8 +20462,8 @@ source_start = 18
 source_end = 19
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::vector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20475,8 +20475,8 @@ source_start = 20
 source_end = 21
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::vector_nc"
-tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::vector_nc; RightProjectiveQuotientPathAlgebraModule::vector_nc"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20488,8 +20488,8 @@ source_start = 22
 source_end = 22
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::vector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20501,8 +20501,8 @@ source_start = 24
 source_end = 24
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector::target_vertex"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::target_vertex; QuotientPathAlgebraVector::target_vertex"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20514,8 +20514,8 @@ source_start = 25
 source_end = 25
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector::source_vertex"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::source_vertex; QuotientPathAlgebraVector::source_vertex"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20527,8 +20527,8 @@ source_start = 27
 source_end = 27
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector::leading_component"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::leading_component; QuotientPathAlgebraVector::leading_component"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20540,8 +20540,8 @@ source_start = 28
 source_end = 28
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector::leading_position"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::leading_position; QuotientPathAlgebraVector::leading_position"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20553,8 +20553,8 @@ source_start = 30
 source_end = 31
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "PathAlgebraVector::is_left_divisible"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::is_left_divisible; QuotientPathAlgebraVector::is_left_divisible"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20579,8 +20579,8 @@ source_start = 34
 source_end = 34
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "right_projective_path_algebra_module"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "right_projective_path_algebra_module; right_projective_quotient_path_algebra_module"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20878,8 +20878,8 @@ source_start = 4
 source_end = 9
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::is_normal_form"
-tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::is_normal_form; QuotientPathAlgebraVector::is_normal_form"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20891,8 +20891,8 @@ source_start = 27
 source_end = 71
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::vector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20917,8 +20917,8 @@ source_start = 121
 source_end = 128
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::vector_nc"
-tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::vector_nc; RightProjectiveQuotientPathAlgebraModule::vector_nc"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20943,8 +20943,8 @@ source_start = 152
 source_end = 164
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::vector"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20956,8 +20956,8 @@ source_start = 172
 source_end = 198
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::add"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::add; QuotientPathAlgebraVector::add"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20969,8 +20969,8 @@ source_start = 206
 source_end = 232
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::sub"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::sub; QuotientPathAlgebraVector::sub"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20982,8 +20982,8 @@ source_start = 240
 source_end = 248
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::neg"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::neg; QuotientPathAlgebraVector::neg"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20995,8 +20995,8 @@ source_start = 257
 source_end = 264
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::zero"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::zero; RightProjectiveQuotientPathAlgebraModule::zero"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21008,8 +21008,8 @@ source_start = 272
 source_end = 287
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::scale_left"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::scale_left; QuotientPathAlgebraVector::scale_left"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21021,8 +21021,8 @@ source_start = 295
 source_end = 309
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::scale_left"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::scale_left; QuotientPathAlgebraVector::scale_right"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21047,8 +21047,8 @@ source_start = 332
 source_end = 355
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::leading_term"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::leading_term; QuotientPathAlgebraVector::leading_term"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21060,8 +21060,8 @@ source_start = 364
 source_end = 379
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::leading_coefficient"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::leading_coefficient; QuotientPathAlgebraVector::leading_coefficient"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21073,8 +21073,8 @@ source_start = 390
 source_end = 404
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::target_vertex"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::target_vertex; QuotientPathAlgebraVector::target_vertex"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21086,8 +21086,8 @@ source_start = 417
 source_end = 432
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::source_vertex"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::source_vertex; QuotientPathAlgebraVector::source_vertex"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21099,8 +21099,8 @@ source_start = 442
 source_end = 452
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::leading_component"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::leading_component; QuotientPathAlgebraVector::leading_component"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21112,8 +21112,8 @@ source_start = 461
 source_end = 468
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::leading_position"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::leading_position; QuotientPathAlgebraVector::leading_position"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21125,8 +21125,8 @@ source_start = 482
 source_end = 504
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::compare"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::compare; QuotientPathAlgebraVector::compare"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21138,8 +21138,8 @@ source_start = 513
 source_end = 525
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::eq"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::eq; QuotientPathAlgebraVector::eq"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21151,8 +21151,8 @@ source_start = 536
 source_end = 557
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::is_left_divisible"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::is_left_divisible; QuotientPathAlgebraVector::is_left_divisible"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21164,8 +21164,8 @@ source_start = 566
 source_end = 593
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::is_left_uniform"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::is_left_uniform; QuotientPathAlgebraVector::is_left_uniform"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21177,8 +21177,8 @@ source_start = 602
 source_end = 630
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::is_right_uniform"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::is_right_uniform; QuotientPathAlgebraVector::is_right_uniform"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21190,8 +21190,8 @@ source_start = 640
 source_end = 653
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::is_uniform"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::is_uniform; QuotientPathAlgebraVector::is_uniform"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21332,9 +21332,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1031
 source_end = 1081
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_projective_quotient_path_algebra_module; RightProjectiveQuotientPathAlgebraModule; QuotientPathAlgebraVector"
+tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21385,8 +21385,8 @@ source_start = 1175
 source_end = 1198
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "PathAlgebraVector::act"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "PathAlgebraVector::act; QuotientPathAlgebraVector::act"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21398,8 +21398,8 @@ source_start = 1201
 source_end = 1234
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::canonical_basis"
-tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::canonical_basis; RightProjectiveQuotientPathAlgebraModule::canonical_basis; RightProjectiveQuotientPathAlgebraModule::dimension"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21411,8 +21411,8 @@ source_start = 1237
 source_end = 1245
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::canonical_basis"
-tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::canonical_basis; RightProjectiveQuotientPathAlgebraModule::canonical_basis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -11,7 +11,7 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    PathAlgebraElement, PathAlgebraIdeal, PathAlgebraVector, PathEndpoint,
+    Path, PathAlgebraElement, PathAlgebraIdeal, PathAlgebraVector, PathEndpoint,
     ProjectivePathModuleError, QuotientError, QuotientPathAlgebra, QuotientPathAlgebraElement,
     RightProjectivePathAlgebraModule, RightProjectivePathAlgebraSubmodule, VertexIndex, first_part,
     right_projective_path_algebra_module, x_set_of_path_algebra_vector,
@@ -57,6 +57,154 @@ impl<F: Field> RightProjectiveQuotientPathAlgebraModule<F> {
     #[must_use]
     pub fn is_identical(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Return QPA's canonical module zero.
+    #[must_use]
+    pub fn zero(&self) -> QuotientPathAlgebraVector<F> {
+        QuotientPathAlgebraVector::new_unchecked(
+            self.clone(),
+            vec![self.algebra().zero(); self.vertex_indices().len()],
+            self.vertex_indices().len() + 1,
+        )
+    }
+
+    /// Return QPA's coordinate embedded-vertex generators.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient vertex embedding failures.
+    pub fn generators(
+        &self,
+    ) -> Result<Vec<QuotientPathAlgebraVector<F>>, ProjectiveResolutionError> {
+        self.vertex_indices()
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(position, vertex)| {
+                let path = self
+                    .algebra()
+                    .original_path_algebra()
+                    .quiver()
+                    .vertex(vertex)
+                    .ok_or(ProjectiveResolutionError::VertexOutOfRange { vertex })?
+                    .path();
+                let mut components = vec![self.algebra().zero(); self.vertex_indices().len()];
+                components[position] = self.algebra().path(path)?;
+                Ok(QuotientPathAlgebraVector::new_unchecked(
+                    self.clone(),
+                    components,
+                    position + 1,
+                ))
+            })
+            .collect()
+    }
+
+    /// Translate QPA's checked `PathAlgebraVector`/`Vectorize` constructor for
+    /// quotient-projective modules.
+    ///
+    /// # Errors
+    ///
+    /// Requires the fixed component count, identical quotient family, and
+    /// QPA's left-uniform source-vertex conditions.
+    pub fn vector(
+        &self,
+        components: Vec<QuotientPathAlgebraElement<F>>,
+    ) -> Result<QuotientPathAlgebraVector<F>, ProjectiveResolutionError> {
+        if components.len() != self.vertex_indices().len() {
+            return Err(ProjectiveResolutionError::QuotientVectorComponentCount {
+                actual: components.len(),
+                expected: self.vertex_indices().len(),
+            });
+        }
+        if components
+            .iter()
+            .any(|component| !component.algebra().is_identical(self.algebra()))
+        {
+            return Err(ProjectiveResolutionError::ForeignQuotientVectorComponent);
+        }
+        for (position, component) in components.iter().enumerate().rev() {
+            if !component.is_left_uniform() {
+                return Err(
+                    ProjectiveResolutionError::QuotientVectorComponentNotLeftUniform {
+                        position: position + 1,
+                    },
+                );
+            }
+            if component.is_zero() {
+                continue;
+            }
+            let PathEndpoint::Vertex(source) = component.leading_monomial().source() else {
+                return Err(
+                    ProjectiveResolutionError::QuotientVectorComponentSourceMismatch {
+                        position: position + 1,
+                    },
+                );
+            };
+            if source.index() != self.vertex_indices()[position] {
+                return Err(
+                    ProjectiveResolutionError::QuotientVectorComponentSourceMismatch {
+                        position: position + 1,
+                    },
+                );
+            }
+        }
+        let leading_position = quotient_vector_leading_position(self, &components)?;
+        Ok(QuotientPathAlgebraVector::new_unchecked(
+            self.clone(),
+            components,
+            leading_position,
+        ))
+    }
+
+    /// Translate QPA's unchecked positional constructor for this vector family.
+    #[must_use]
+    pub fn vector_nc(
+        &self,
+        components: Vec<QuotientPathAlgebraElement<F>>,
+        leading_position: usize,
+        _normal: bool,
+    ) -> QuotientPathAlgebraVector<F> {
+        QuotientPathAlgebraVector::new_unchecked(self.clone(), components, leading_position)
+    }
+
+    /// Translate the canonical basis of a quotient vertex-projective module.
+    ///
+    /// `None` is QPA's canonical-basis object without basis vectors.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient basis, multiplication, vector, and ordering errors.
+    pub fn canonical_basis(
+        &self,
+    ) -> Result<Option<Vec<QuotientPathAlgebraVector<F>>>, ProjectiveResolutionError> {
+        let Some(algebra_basis) = self.algebra().canonical_basis()? else {
+            return Ok(None);
+        };
+        let generators = self.generators()?;
+        let mut basis = Vec::new();
+        for (position, generator) in generators.iter().enumerate() {
+            let vertex = &generator.components()[position];
+            for element in &algebra_basis {
+                if vertex.multiply(element)?.is_zero() {
+                    continue;
+                }
+                let mut components = vec![self.algebra().zero(); self.vertex_indices().len()];
+                components[position] = element.clone();
+                basis.push(self.vector(components)?);
+            }
+        }
+        sort_quotient_path_algebra_vectors(&mut basis)?;
+        Ok(Some(basis))
+    }
+
+    /// Return the finite QPA module dimension when its canonical basis exists.
+    ///
+    /// # Errors
+    ///
+    /// Propagates [`Self::canonical_basis`] failures.
+    pub fn dimension(&self) -> Result<Option<usize>, ProjectiveResolutionError> {
+        Ok(self.canonical_basis()?.map(|basis| basis.len()))
     }
 
     /// Translate QPA's `LiftPathAlgebraModule` for a quotient vertex projective.
@@ -128,6 +276,433 @@ impl<F: Field> PartialEq for RightProjectiveQuotientPathAlgebraModule<F> {
 }
 
 impl<F: Field> Eq for RightProjectiveQuotientPathAlgebraModule<F> {}
+
+/// QPA's positional vector for a quotient vertex-projective module.
+#[derive(Clone, Debug)]
+pub struct QuotientPathAlgebraVector<F: Field> {
+    module: RightProjectiveQuotientPathAlgebraModule<F>,
+    components: Vec<QuotientPathAlgebraElement<F>>,
+    leading_position: usize,
+}
+
+impl<F: Field> QuotientPathAlgebraVector<F> {
+    fn new_unchecked(
+        module: RightProjectiveQuotientPathAlgebraModule<F>,
+        components: Vec<QuotientPathAlgebraElement<F>>,
+        leading_position: usize,
+    ) -> Self {
+        Self {
+            module,
+            components,
+            leading_position,
+        }
+    }
+
+    /// Return the identical quotient-projective vector family.
+    #[must_use]
+    pub const fn module(&self) -> &RightProjectiveQuotientPathAlgebraModule<F> {
+        &self.module
+    }
+
+    /// Return the quotient-algebra coordinates.
+    #[must_use]
+    pub fn components(&self) -> &[QuotientPathAlgebraElement<F>] {
+        &self.components
+    }
+
+    /// Return QPA's cached one-based leading position.
+    #[must_use]
+    pub const fn leading_position(&self) -> usize {
+        self.leading_position
+    }
+
+    /// Return the vector family's stored `IsNormalForm` filter.
+    #[must_use]
+    pub fn is_normal_form(&self) -> bool {
+        self.module.algebra().has_normal_form_function()
+    }
+
+    /// Return whether all quotient coordinates vanish.
+    #[must_use]
+    pub fn is_zero(&self) -> bool {
+        self.components
+            .iter()
+            .all(QuotientPathAlgebraElement::is_zero)
+    }
+
+    /// Add vectors from an identical QPA family and recompute the tip.
+    ///
+    /// # Errors
+    ///
+    /// Rejects distinct module families and propagates quotient arithmetic.
+    pub fn add(&self, right: &Self) -> Result<Self, ProjectiveResolutionError> {
+        self.ensure_same_family(right)?;
+        self.module.vector(
+            self.components
+                .iter()
+                .zip(&right.components)
+                .map(|(left, right)| left.add(right))
+                .collect::<Result<Vec<_>, _>>()?,
+        )
+    }
+
+    /// Return the additive inverse while preserving QPA's cached position.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient negation.
+    pub fn neg(&self) -> Result<Self, ProjectiveResolutionError> {
+        Ok(Self::new_unchecked(
+            self.module.clone(),
+            self.components
+                .iter()
+                .map(QuotientPathAlgebraElement::neg)
+                .collect::<Result<Vec<_>, _>>()?,
+            self.leading_position,
+        ))
+    }
+
+    /// Subtract vectors from an identical family and recompute the tip.
+    ///
+    /// # Errors
+    ///
+    /// Rejects distinct families and propagates quotient arithmetic.
+    pub fn sub(&self, right: &Self) -> Result<Self, ProjectiveResolutionError> {
+        self.ensure_same_family(right)?;
+        self.module.vector(
+            self.components
+                .iter()
+                .zip(&right.components)
+                .map(|(left, right)| left.sub(right))
+                .collect::<Result<Vec<_>, _>>()?,
+        )
+    }
+
+    /// Scale every coordinate on the left.
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient scaling and normalization.
+    pub fn scale_left(&self, scalar: &F::Element) -> Result<Self, ProjectiveResolutionError> {
+        if self
+            .module
+            .algebra()
+            .original_path_algebra()
+            .field()
+            .is_zero(scalar)
+        {
+            return Ok(self.module.zero());
+        }
+        Ok(Self::new_unchecked(
+            self.module.clone(),
+            self.components
+                .iter()
+                .map(|component| component.scale_left(scalar))
+                .collect::<Result<Vec<_>, _>>()?,
+            self.leading_position,
+        ))
+    }
+
+    /// Scale every coordinate on the right.
+    ///
+    /// QPA implements both scalar actions by the same componentwise field
+    /// multiplication, so this delegates to [`Self::scale_left`].
+    ///
+    /// # Errors
+    ///
+    /// Propagates quotient scaling and normalization.
+    pub fn scale_right(&self, scalar: &F::Element) -> Result<Self, ProjectiveResolutionError> {
+        self.scale_left(scalar)
+    }
+
+    /// Apply QPA's coordinatewise right quotient-algebra action.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a foreign quotient and propagates multiplication and checked
+    /// vector construction.
+    pub fn act(
+        &self,
+        element: &QuotientPathAlgebraElement<F>,
+    ) -> Result<Self, ProjectiveResolutionError> {
+        if !element.algebra().is_identical(self.module.algebra()) {
+            return Err(ProjectiveResolutionError::ForeignQuotientVectorAction);
+        }
+        self.module.vector(
+            self.components
+                .iter()
+                .map(|component| component.multiply(element))
+                .collect::<Result<Vec<_>, _>>()?,
+        )
+    }
+
+    /// Return QPA's sparse quotient-vector leading term.
+    #[must_use]
+    pub fn leading_term(&self) -> Self {
+        let Some(position) = self.leading_position.checked_sub(1) else {
+            return self.clone();
+        };
+        let Some(component) = self.components.get(position) else {
+            return self.clone();
+        };
+        let mut components = vec![self.module.algebra().zero(); self.components.len()];
+        components[position] = component.leading_term();
+        Self::new_unchecked(self.module.clone(), components, self.leading_position)
+    }
+
+    /// Return QPA's vector-tip coefficient.
+    ///
+    /// # Errors
+    ///
+    /// QPA indexes coordinate one for zero and fails on an empty vector.
+    pub fn leading_coefficient(&self) -> Result<F::Element, ProjectiveResolutionError> {
+        let position = if self.leading_position <= self.components.len() {
+            self.leading_position - 1
+        } else {
+            0
+        };
+        self.components
+            .get(position)
+            .map(QuotientPathAlgebraElement::leading_coefficient)
+            .ok_or(ProjectiveResolutionError::EmptyQuotientVectorLeadingComponent)
+    }
+
+    /// Return the coordinate containing QPA's vector tip.
+    ///
+    /// # Errors
+    ///
+    /// QPA indexes coordinate one for zero and fails on an empty vector.
+    pub fn leading_component(
+        &self,
+    ) -> Result<&QuotientPathAlgebraElement<F>, ProjectiveResolutionError> {
+        let position = if self.is_zero() {
+            0
+        } else {
+            self.leading_position - 1
+        };
+        self.components
+            .get(position)
+            .ok_or(ProjectiveResolutionError::EmptyQuotientVectorLeadingComponent)
+    }
+
+    /// Translate QPA's vector `TargetVertex`; `None` is GAP's `fail`.
+    #[must_use]
+    pub fn target_vertex(&self) -> Option<Path> {
+        if !self.is_right_uniform() {
+            return None;
+        }
+        if self.is_zero() {
+            return Some(
+                self.module
+                    .algebra()
+                    .original_path_algebra()
+                    .quiver()
+                    .zero(),
+            );
+        }
+        match self.leading_path().ok()?.target() {
+            PathEndpoint::Vertex(vertex) => Some(vertex.path()),
+            PathEndpoint::Zero(path) => Some(path),
+        }
+    }
+
+    /// Translate QPA's vector `SourceVertex`; `None` is GAP's `fail`.
+    ///
+    /// The source method surprisingly checks right uniformity, and that
+    /// condition is retained.
+    #[must_use]
+    pub fn source_vertex(&self) -> Option<Path> {
+        if !self.is_right_uniform() {
+            return None;
+        }
+        if self.is_zero() {
+            return Some(
+                self.module
+                    .algebra()
+                    .original_path_algebra()
+                    .quiver()
+                    .zero(),
+            );
+        }
+        match self.leading_path().ok()?.source() {
+            PathEndpoint::Vertex(vertex) => Some(vertex.path()),
+            PathEndpoint::Zero(path) => Some(path),
+        }
+    }
+
+    /// Return whether all components vanish from one common source vertex.
+    #[must_use]
+    pub fn is_left_uniform(&self) -> bool {
+        self.is_uniform_at(Path::source, QuotientPathAlgebraElement::is_left_uniform)
+    }
+
+    /// Return whether all components vanish at one common target vertex.
+    #[must_use]
+    pub fn is_right_uniform(&self) -> bool {
+        self.is_uniform_at(Path::target, QuotientPathAlgebraElement::is_right_uniform)
+    }
+
+    /// Return whether the vector is both left and right uniform.
+    #[must_use]
+    pub fn is_uniform(&self) -> bool {
+        self.is_left_uniform() && self.is_right_uniform()
+    }
+
+    /// Compare vectors by tip monomial and descending component position.
+    ///
+    /// # Errors
+    ///
+    /// Rejects distinct vector families and propagates path ordering.
+    pub fn compare(&self, right: &Self) -> Result<Ordering, ProjectiveResolutionError> {
+        self.ensure_same_family(right)?;
+        if !self.is_normal_form() || !right.is_normal_form() {
+            return Err(ProjectiveResolutionError::QuotientVectorsNotInNormalForm);
+        }
+        let path_order = self
+            .module
+            .algebra()
+            .original_path_algebra()
+            .ordering()
+            .compare(&self.leading_path()?, &right.leading_path()?)?;
+        if path_order.is_eq() {
+            Ok(right.leading_position.cmp(&self.leading_position))
+        } else {
+            Ok(path_order)
+        }
+    }
+
+    /// Translate QPA's `IsLeftDivisible(x, y)` predicate.
+    ///
+    /// The source additionally requires the dividend tip walk to be nonempty,
+    /// so a vertex tip is never left-divisible here.
+    ///
+    /// # Errors
+    ///
+    /// Rejects distinct vector families and explicit zero inputs.
+    pub fn is_left_divisible(&self, divisor: &Self) -> Result<bool, ProjectiveResolutionError> {
+        self.ensure_same_family(divisor)?;
+        if self.is_zero() || divisor.is_zero() {
+            return Err(ProjectiveResolutionError::ZeroQuotientVectorDivision);
+        }
+        let dividend_path = self.leading_path()?;
+        let divisor_path = divisor.leading_path()?;
+        let dividend_walk = dividend_path
+            .walk()
+            .ok_or(ProjectivePathModuleError::PathHasNoArrowWalk)?;
+        let divisor_walk = divisor_path
+            .walk()
+            .ok_or(ProjectivePathModuleError::PathHasNoArrowWalk)?;
+        Ok(self.leading_position == divisor.leading_position
+            && !dividend_walk.is_empty()
+            && dividend_walk.starts_with(divisor_walk))
+    }
+
+    fn ensure_same_family(&self, right: &Self) -> Result<(), ProjectiveResolutionError> {
+        if self.module.is_identical(&right.module) {
+            Ok(())
+        } else {
+            Err(ProjectiveResolutionError::DifferentQuotientVectorFamilies)
+        }
+    }
+
+    fn leading_path(&self) -> Result<crate::Path, ProjectiveResolutionError> {
+        if self.is_zero() {
+            return Err(
+                ProjectiveResolutionError::InvalidQuotientVectorLeadingPosition {
+                    position: self.leading_position,
+                    length: self.components.len(),
+                },
+            );
+        }
+        self.components
+            .get(self.leading_position - 1)
+            .map(QuotientPathAlgebraElement::leading_monomial)
+            .ok_or(
+                ProjectiveResolutionError::InvalidQuotientVectorLeadingPosition {
+                    position: self.leading_position,
+                    length: self.components.len(),
+                },
+            )
+    }
+
+    fn is_uniform_at(
+        &self,
+        endpoint: impl Fn(&crate::Path) -> PathEndpoint,
+        component_is_uniform: impl Fn(&QuotientPathAlgebraElement<F>) -> bool,
+    ) -> bool {
+        if self.is_zero() {
+            return true;
+        }
+        if self
+            .components
+            .iter()
+            .any(|component| !component_is_uniform(component))
+        {
+            return false;
+        }
+        let mut endpoints = self
+            .components
+            .iter()
+            .filter(|component| !component.is_zero())
+            .filter_map(|component| {
+                component.representative().terms().first().and_then(|term| {
+                    match endpoint(term.path()) {
+                        PathEndpoint::Vertex(vertex) => Some(vertex),
+                        PathEndpoint::Zero(_) => None,
+                    }
+                })
+            });
+        let Some(first) = endpoints.next() else {
+            return true;
+        };
+        endpoints.all(|candidate| candidate == first)
+    }
+}
+
+impl<F: Field> PartialEq for QuotientPathAlgebraVector<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.module.is_identical(&other.module) && self.components == other.components
+    }
+}
+
+impl<F: Field> Eq for QuotientPathAlgebraVector<F> {}
+
+fn quotient_vector_leading_position<F: Field>(
+    module: &RightProjectiveQuotientPathAlgebraModule<F>,
+    components: &[QuotientPathAlgebraElement<F>],
+) -> Result<usize, ProjectiveResolutionError> {
+    let Some(first) = components.first() else {
+        return Ok(1);
+    };
+    let ordering = module.algebra().original_path_algebra().ordering();
+    let mut position = 1;
+    let mut greatest = first.leading_monomial();
+    for (index, component) in components.iter().enumerate().skip(1) {
+        let candidate = component.leading_monomial();
+        if ordering.compare(&candidate, &greatest)?.is_gt() {
+            greatest = candidate;
+            position = index + 1;
+        }
+    }
+    Ok(position)
+}
+
+fn sort_quotient_path_algebra_vectors<F: Field>(
+    vectors: &mut Vec<QuotientPathAlgebraVector<F>>,
+) -> Result<(), ProjectiveResolutionError> {
+    let entered = std::mem::take(vectors);
+    for vector in entered {
+        let mut insertion = vectors.len();
+        for (position, existing) in vectors.iter().enumerate() {
+            if vector.compare(existing)?.is_lt() {
+                insertion = position;
+                break;
+            }
+        }
+        vectors.insert(insertion, vector);
+    }
+    Ok(())
+}
 
 /// QPA's path-algebra lift of a quotient vertex projective.
 #[derive(Clone, Debug)]
@@ -932,6 +1507,52 @@ pub enum ProjectiveResolutionError {
         /// One-based list position.
         position: usize,
     },
+    /// Checked quotient vectors use the project's fixed coordinate count.
+    #[error("quotient path vector has {actual} components, expected {expected}")]
+    QuotientVectorComponentCount {
+        /// Entered coordinate count.
+        actual: usize,
+        /// Required coordinate count.
+        expected: usize,
+    },
+    /// Every coordinate must belong to the module's quotient algebra.
+    #[error("a quotient path-vector component belongs to another quotient algebra")]
+    ForeignQuotientVectorComponent,
+    /// QPA checks left uniformity from the last coordinate backwards.
+    #[error("quotient path-vector component {position} is not left uniform")]
+    QuotientVectorComponentNotLeftUniform {
+        /// One-based coordinate.
+        position: usize,
+    },
+    /// A nonzero coordinate must start at its projective summand vertex.
+    #[error("quotient path-vector component {position} starts at the wrong vertex")]
+    QuotientVectorComponentSourceMismatch {
+        /// One-based coordinate.
+        position: usize,
+    },
+    /// Vector arithmetic requires an identical quotient-projective family.
+    #[error("the quotient path vectors belong to different module families")]
+    DifferentQuotientVectorFamilies,
+    /// QPA only installs quotient-vector ordering for normal-form vectors.
+    #[error("quotient path-vector ordering requires normal forms")]
+    QuotientVectorsNotInNormalForm,
+    /// Right action requires the identical quotient algebra.
+    #[error("the quotient vector action belongs to another quotient algebra")]
+    ForeignQuotientVectorAction,
+    /// QPA's divisibility method has no tip for a zero vector.
+    #[error("zero quotient path vectors have no divisibility tip")]
+    ZeroQuotientVectorDivision,
+    /// QPA indexes coordinate one for zero and fails on a zero-rank vector.
+    #[error("an empty quotient path vector has no leading component")]
+    EmptyQuotientVectorLeadingComponent,
+    /// An unchecked positional vector stored an invalid one-based tip index.
+    #[error("leading position {position} is outside a quotient vector of length {length}")]
+    InvalidQuotientVectorLeadingPosition {
+        /// Stored one-based position.
+        position: usize,
+        /// Coordinate count.
+        length: usize,
+    },
     /// Original path-algebra arithmetic failed.
     #[error(transparent)]
     PathAlgebra(#[from] crate::PathAlgebraError),
@@ -941,6 +1562,9 @@ pub enum ProjectiveResolutionError {
     /// Projective path-vector arithmetic failed.
     #[error(transparent)]
     Projective(#[from] ProjectivePathModuleError),
+    /// QPA path ordering failed.
+    #[error(transparent)]
+    Ordering(#[from] crate::OrderingError),
 }
 
 #[cfg(test)]
@@ -1002,6 +1626,31 @@ mod tests {
         coefficient: impl Fn(&F::Element) -> Value + Copy,
     ) -> Value {
         element_list_json(vector.components(), coefficient)
+    }
+
+    fn quotient_vector_json<F: Field>(
+        vector: &super::QuotientPathAlgebraVector<F>,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        Value::Array(
+            vector
+                .components()
+                .iter()
+                .map(|component| element_json(component.representative(), coefficient))
+                .collect(),
+        )
+    }
+
+    fn quotient_vector_list_json<F: Field>(
+        vectors: &[super::QuotientPathAlgebraVector<F>],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        Value::Array(
+            vectors
+                .iter()
+                .map(|vector| quotient_vector_json(vector, coefficient))
+                .collect(),
+        )
     }
 
     fn vector_lists_json<F: Field>(
@@ -1228,6 +1877,104 @@ mod tests {
         })
     }
 
+    fn quotient_vector_case<F: Field>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(
+                3,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "a"),
+                    ArrowSpec::named(vertex(2), vertex(3), "b"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = parent.generators();
+        let relation = generators[3].multiply(&generators[4]).unwrap();
+        let ideal = PathAlgebraIdeal::new(parent, vec![relation.clone()])
+            .unwrap()
+            .with_complete_groebner_basis(std::slice::from_ref(&relation))
+            .unwrap();
+        let algebra = QuotientPathAlgebra::by_ideal(&ideal).unwrap();
+        let quotient_generators = algebra.generators().unwrap();
+        let projective = right_projective_quotient_path_algebra_module(
+            &algebra,
+            &[
+                quotient_generators[0].clone(),
+                quotient_generators[1].clone(),
+            ],
+        )
+        .unwrap();
+        let vector = projective
+            .vector(vec![
+                quotient_generators[3].clone(),
+                quotient_generators[1].clone(),
+            ])
+            .unwrap();
+        let other = projective
+            .vector(vec![quotient_generators[0].clone(), algebra.zero()])
+            .unwrap();
+        let checked_zero = projective
+            .vector(vec![algebra.zero(), algebra.zero()])
+            .unwrap();
+        let nc = projective.vector_nc(vector.components().to_vec(), 2, false);
+        let canonical_basis = projective.canonical_basis().unwrap().unwrap();
+        let scalar = field.add(&field.one(), &field.one());
+        json!({
+            "dimension": projective.dimension().unwrap().unwrap(),
+            "generators": quotient_vector_list_json(&projective.generators().unwrap(), coefficient),
+            "canonical_basis": quotient_vector_list_json(&canonical_basis, coefficient),
+            "vector": quotient_vector_json(&vector, coefficient),
+            "other": quotient_vector_json(&other, coefficient),
+            "sum": quotient_vector_json(&vector.add(&other).unwrap(), coefficient),
+            "difference": quotient_vector_json(&vector.sub(&other).unwrap(), coefficient),
+            "negated": quotient_vector_json(&vector.neg().unwrap(), coefficient),
+            "scaled_left": quotient_vector_json(
+                &vector.scale_left(&scalar).unwrap(),
+                coefficient,
+            ),
+            "scaled_right": quotient_vector_json(
+                &vector.scale_right(&scalar).unwrap(),
+                coefficient,
+            ),
+            "action_b": quotient_vector_json(
+                &vector.act(&quotient_generators[4]).unwrap(),
+                coefficient,
+            ),
+            "leading_term": quotient_vector_json(&vector.leading_term(), coefficient),
+            "leading_component": element_json(
+                vector.leading_component().unwrap().representative(),
+                coefficient,
+            ),
+            "leading_position": vector.leading_position(),
+            "leading_coefficient": coefficient(&vector.leading_coefficient().unwrap()),
+            "target_vertex": vector.target_vertex().unwrap().external_representation(),
+            "source_vertex": vector.source_vertex().unwrap().external_representation(),
+            "left_divisibility": [
+                vector.is_left_divisible(&other).unwrap(),
+                other.is_left_divisible(&vector).unwrap(),
+            ],
+            "uniformity": [
+                vector.is_left_uniform(),
+                vector.is_right_uniform(),
+                vector.is_uniform(),
+            ],
+            "normal_form": vector.is_normal_form(),
+            "zero_positions": [
+                projective.zero().leading_position(),
+                checked_zero.leading_position(),
+            ],
+            "nc": {
+                "vector": quotient_vector_json(&nc, coefficient),
+                "leading_position": nc.leading_position(),
+            },
+        })
+    }
+
     #[test]
     fn pinned_qpa_moduleprojres_resolution_fixture_matches() {
         let expected: Value = serde_json::from_str(include_str!(
@@ -1300,6 +2047,132 @@ mod tests {
             ])),
         });
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn pinned_qpa_projective_quotient_vector_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "projpathalgmodule_quotient_vectors",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": quotient_vector_case(&Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": quotient_vector_case(&field5, |entry| json!(
+                field5_coefficients
+                    .to_integer(entry)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+            )),
+            "rational": quotient_vector_case(&Q, |entry: &Rational| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn quotient_projective_vector_boundaries_are_typed() {
+        let parent = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+        )
+        .unwrap();
+        let generators = parent.generators();
+        let relation = generators[2].clone();
+        let unattached = PathAlgebraIdeal::new(parent, vec![relation.clone()]).unwrap();
+        let ideal = unattached
+            .with_complete_groebner_basis(std::slice::from_ref(&relation))
+            .unwrap();
+        let algebra = QuotientPathAlgebra::by_ideal(&ideal).unwrap();
+        let quotient_generators = algebra.generators().unwrap();
+        let projective = right_projective_quotient_path_algebra_module(
+            &algebra,
+            &[
+                quotient_generators[0].clone(),
+                quotient_generators[1].clone(),
+            ],
+        )
+        .unwrap();
+
+        assert!(matches!(
+            projective.vector(vec![quotient_generators[0].clone()]),
+            Err(ProjectiveResolutionError::QuotientVectorComponentCount {
+                actual: 1,
+                expected: 2,
+            })
+        ));
+        assert!(matches!(
+            projective.vector(vec![quotient_generators[1].clone(), algebra.zero()]),
+            Err(ProjectiveResolutionError::QuotientVectorComponentSourceMismatch { position: 1 })
+        ));
+        assert!(matches!(
+            projective.vector(vec![
+                quotient_generators[0].add(&quotient_generators[1]).unwrap(),
+                algebra.zero(),
+            ]),
+            Err(ProjectiveResolutionError::QuotientVectorComponentNotLeftUniform { position: 1 })
+        ));
+
+        let other_projective = right_projective_quotient_path_algebra_module(
+            &algebra,
+            &[
+                quotient_generators[0].clone(),
+                quotient_generators[1].clone(),
+            ],
+        )
+        .unwrap();
+        let vector = projective.generators().unwrap()[0].clone();
+        let other_vector = other_projective.generators().unwrap()[0].clone();
+        assert!(matches!(
+            vector.add(&other_vector),
+            Err(ProjectiveResolutionError::DifferentQuotientVectorFamilies)
+        ));
+        assert!(matches!(
+            vector.is_left_divisible(&projective.zero()),
+            Err(ProjectiveResolutionError::ZeroQuotientVectorDivision)
+        ));
+
+        let foreign_algebra = QuotientPathAlgebra::by_ideal(&ideal).unwrap();
+        let foreign_vertex = foreign_algebra.generators().unwrap()[0].clone();
+        assert!(matches!(
+            projective.vector(vec![foreign_vertex.clone(), foreign_algebra.zero()]),
+            Err(ProjectiveResolutionError::ForeignQuotientVectorComponent)
+        ));
+        assert!(matches!(
+            vector.act(&foreign_vertex),
+            Err(ProjectiveResolutionError::ForeignQuotientVectorAction)
+        ));
+
+        let incomplete_ideal =
+            PathAlgebraIdeal::new(ideal.algebra().clone(), vec![relation]).unwrap();
+        let incomplete_algebra = QuotientPathAlgebra::by_ideal(&incomplete_ideal).unwrap();
+        let incomplete_generators = incomplete_algebra.generators().unwrap();
+        let incomplete_projective = right_projective_quotient_path_algebra_module(
+            &incomplete_algebra,
+            std::slice::from_ref(&incomplete_generators[0]),
+        )
+        .unwrap();
+        let incomplete_vector = incomplete_projective.generators().unwrap()[0].clone();
+        assert!(matches!(
+            incomplete_vector.compare(&incomplete_vector),
+            Err(ProjectiveResolutionError::QuotientVectorsNotInNormalForm)
+        ));
     }
 
     #[test]

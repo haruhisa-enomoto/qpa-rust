@@ -1,0 +1,896 @@
+{
+  "schema_version": 1,
+  "kind": "projpathalgmodule_quotient_vectors",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "binary": {
+    "dimension": 4,
+    "generators": [
+      [
+        [
+          {
+            "path": [
+              1
+            ],
+            "coefficient": 1
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": 1
+          }
+        ]
+      ]
+    ],
+    "canonical_basis": [
+      [
+        [
+          {
+            "path": [
+              1
+            ],
+            "coefficient": 1
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": 1
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "path": [
+              4
+            ],
+            "coefficient": 1
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              5
+            ],
+            "coefficient": 1
+          }
+        ]
+      ]
+    ],
+    "vector": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "other": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": 1
+        }
+      ],
+      []
+    ],
+    "sum": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "difference": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "negated": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "scaled_left": [
+      [],
+      []
+    ],
+    "scaled_right": [
+      [],
+      []
+    ],
+    "action_b": [
+      [],
+      [
+        {
+          "path": [
+            5
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "leading_term": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      []
+    ],
+    "leading_component": [
+      {
+        "path": [
+          4
+        ],
+        "coefficient": 1
+      }
+    ],
+    "leading_position": 1,
+    "leading_coefficient": 1,
+    "target_vertex": [
+      2
+    ],
+    "source_vertex": [
+      1
+    ],
+    "left_divisibility": [
+      true,
+      false
+    ],
+    "uniformity": [
+      false,
+      true,
+      false
+    ],
+    "normal_form": true,
+    "zero_positions": [
+      3,
+      1
+    ],
+    "nc": {
+      "vector": [
+        [
+          {
+            "path": [
+              4
+            ],
+            "coefficient": 1
+          }
+        ],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": 1
+          }
+        ]
+      ],
+      "leading_position": 2
+    }
+  },
+  "quinary": {
+    "dimension": 4,
+    "generators": [
+      [
+        [
+          {
+            "path": [
+              1
+            ],
+            "coefficient": 1
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": 1
+          }
+        ]
+      ]
+    ],
+    "canonical_basis": [
+      [
+        [
+          {
+            "path": [
+              1
+            ],
+            "coefficient": 1
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": 1
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "path": [
+              4
+            ],
+            "coefficient": 1
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              5
+            ],
+            "coefficient": 1
+          }
+        ]
+      ]
+    ],
+    "vector": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "other": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": 1
+        }
+      ],
+      []
+    ],
+    "sum": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": 1
+        },
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "difference": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": 4
+        },
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "negated": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 4
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 4
+        }
+      ]
+    ],
+    "scaled_left": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 2
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 2
+        }
+      ]
+    ],
+    "scaled_right": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 2
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": 2
+        }
+      ]
+    ],
+    "action_b": [
+      [],
+      [
+        {
+          "path": [
+            5
+          ],
+          "coefficient": 1
+        }
+      ]
+    ],
+    "leading_term": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": 1
+        }
+      ],
+      []
+    ],
+    "leading_component": [
+      {
+        "path": [
+          4
+        ],
+        "coefficient": 1
+      }
+    ],
+    "leading_position": 1,
+    "leading_coefficient": 1,
+    "target_vertex": [
+      2
+    ],
+    "source_vertex": [
+      1
+    ],
+    "left_divisibility": [
+      true,
+      false
+    ],
+    "uniformity": [
+      false,
+      true,
+      false
+    ],
+    "normal_form": true,
+    "zero_positions": [
+      3,
+      1
+    ],
+    "nc": {
+      "vector": [
+        [
+          {
+            "path": [
+              4
+            ],
+            "coefficient": 1
+          }
+        ],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": 1
+          }
+        ]
+      ],
+      "leading_position": 2
+    }
+  },
+  "rational": {
+    "dimension": 4,
+    "generators": [
+      [
+        [
+          {
+            "path": [
+              1
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ]
+      ]
+    ],
+    "canonical_basis": [
+      [
+        [
+          {
+            "path": [
+              1
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ]
+      ],
+      [
+        [
+          {
+            "path": [
+              4
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ],
+        []
+      ],
+      [
+        [],
+        [
+          {
+            "path": [
+              5
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ]
+      ]
+    ],
+    "vector": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ]
+    ],
+    "other": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ],
+      []
+    ],
+    "sum": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        },
+        {
+          "path": [
+            4
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ]
+    ],
+    "difference": [
+      [
+        {
+          "path": [
+            1
+          ],
+          "coefficient": [
+            -1,
+            1
+          ]
+        },
+        {
+          "path": [
+            4
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ]
+    ],
+    "negated": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": [
+            -1,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": [
+            -1,
+            1
+          ]
+        }
+      ]
+    ],
+    "scaled_left": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": [
+            2,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": [
+            2,
+            1
+          ]
+        }
+      ]
+    ],
+    "scaled_right": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": [
+            2,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "path": [
+            2
+          ],
+          "coefficient": [
+            2,
+            1
+          ]
+        }
+      ]
+    ],
+    "action_b": [
+      [],
+      [
+        {
+          "path": [
+            5
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ]
+    ],
+    "leading_term": [
+      [
+        {
+          "path": [
+            4
+          ],
+          "coefficient": [
+            1,
+            1
+          ]
+        }
+      ],
+      []
+    ],
+    "leading_component": [
+      {
+        "path": [
+          4
+        ],
+        "coefficient": [
+          1,
+          1
+        ]
+      }
+    ],
+    "leading_position": 1,
+    "leading_coefficient": [
+      1,
+      1
+    ],
+    "target_vertex": [
+      2
+    ],
+    "source_vertex": [
+      1
+    ],
+    "left_divisibility": [
+      true,
+      false
+    ],
+    "uniformity": [
+      false,
+      true,
+      false
+    ],
+    "normal_form": true,
+    "zero_positions": [
+      3,
+      1
+    ],
+    "nc": {
+      "vector": [
+        [
+          {
+            "path": [
+              4
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ],
+        [
+          {
+            "path": [
+              2
+            ],
+            "coefficient": [
+              1,
+              1
+            ]
+          }
+        ]
+      ],
+      "leading_position": 2
+    }
+  }
+}
