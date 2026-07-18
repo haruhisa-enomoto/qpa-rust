@@ -5,6 +5,7 @@
 
 pub mod algebra_conversion;
 pub mod combinatorial_map;
+pub mod combinatorial_rep;
 pub mod complex;
 pub mod heap;
 pub mod higher_preprojective;
@@ -37,6 +38,10 @@ pub use algebra_conversion::{
 pub use combinatorial_map::{
     GentleCombinatorialMapError, are_derived_equivalent, combinatorial_map_of_gentle_algebra,
     maximal_paths_of_gentle_algebra,
+};
+pub use combinatorial_rep::{
+    CombinatorialRepresentationError, EulerBilinearForm, euler_bilinear_form_of_algebra,
+    tits_unit_form_of_algebra, tits_unit_form_of_quotient,
 };
 pub use complex::{
     InjectiveResolution, ProjectiveResolution, injective_resolution, projective_resolution,

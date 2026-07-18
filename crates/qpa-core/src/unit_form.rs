@@ -8,12 +8,49 @@ use std::sync::OnceLock;
 
 use numerica::{
     domains::{
-        Ring,
+        Field, Ring,
         integer::{Integer, IntegerRing, Z},
     },
     tensors::matrix::Matrix,
 };
 use thiserror::Error;
+
+use crate::path_algebra::PathAlgebra;
+
+/// Translate QPA's path-algebra method for `TitsUnitFormOfAlgebra`.
+///
+/// QPA forms `I - adjacency(Q)` and adds its transpose before passing the
+/// result through [`UnitForm::new`].  In particular, a loop reaches the same
+/// diagonal validation failure rather than being prefiltered here.
+///
+/// # Errors
+///
+/// Propagates QPA's unit-form validation of the resulting symmetric matrix.
+pub fn tits_unit_form_of_path_algebra<F: Field>(
+    algebra: &PathAlgebra<F>,
+) -> Result<UnitForm, UnitFormError> {
+    let adjacency = algebra.quiver().adjacency_matrix();
+    let dimension = algebra.quiver().number_of_vertices();
+    let temporary = (0..dimension)
+        .map(|row| {
+            (0..dimension)
+                .map(|column| {
+                    Integer::from(usize::from(row == column))
+                        - Integer::from(adjacency[row][column])
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    UnitForm::new(
+        (0..dimension)
+            .map(|row| {
+                (0..dimension)
+                    .map(|column| &temporary[row][column] + &temporary[column][row])
+                    .collect()
+            })
+            .collect(),
+    )
+}
 
 /// An integral symmetric matrix with every diagonal entry equal to two.
 ///
@@ -470,7 +507,9 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use super::{UnitForm, UnitFormError};
+    use crate::{ArrowSpec, PathAlgebra, Quiver, VertexIndex};
+
+    use super::{UnitForm, UnitFormError, tits_unit_form_of_path_algebra};
 
     fn form(rows: &[&[i64]]) -> UnitForm {
         UnitForm::new(
@@ -491,6 +530,17 @@ mod tests {
 
     fn integer_vector(values: &[i64]) -> Vec<Integer> {
         values.iter().copied().map(Integer::from).collect()
+    }
+
+    fn vertex(index: usize) -> VertexIndex {
+        VertexIndex::new(index).unwrap()
+    }
+
+    fn path_algebra<F: numerica::domains::Field>(
+        field: F,
+        arrows: Vec<ArrowSpec>,
+    ) -> PathAlgebra<F> {
+        PathAlgebra::new(field, Quiver::from_indexed(3, arrows).unwrap()).unwrap()
     }
 
     #[test]
@@ -582,6 +632,55 @@ mod tests {
             a2.quadratic_form(&Z2, &binary),
             Err(UnitFormError::QuadraticDivisionUnavailable)
         );
+    }
+
+    #[test]
+    fn pinned_qpa_path_algebra_tits_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/combinatorialrep_tits_path.schema-v1.json"
+        ))
+        .unwrap();
+        let a3 = path_algebra(
+            Q,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "a"),
+                ArrowSpec::named(vertex(2), vertex(3), "b"),
+            ],
+        );
+        let kronecker = path_algebra(
+            Z2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(2), "x"),
+                ArrowSpec::named(vertex(1), vertex(2), "y"),
+            ],
+        );
+        let opposite_orientation = path_algebra(
+            Q,
+            vec![
+                ArrowSpec::named(vertex(2), vertex(1), "c"),
+                ArrowSpec::named(vertex(3), vertex(2), "d"),
+            ],
+        );
+
+        assert_eq!(
+            json!({
+                "a3": rows(&tits_unit_form_of_path_algebra(&a3).unwrap()),
+                "kronecker_f2": rows(&tits_unit_form_of_path_algebra(&kronecker).unwrap()),
+                "opposite_orientation": rows(
+                    &tits_unit_form_of_path_algebra(&opposite_orientation).unwrap()
+                ),
+            }),
+            expected["matrices"]
+        );
+
+        let loop_algebra = path_algebra(
+            Q,
+            vec![ArrowSpec::named(vertex(1), vertex(1), "loop_arrow")],
+        );
+        assert!(matches!(
+            tits_unit_form_of_path_algebra(&loop_algebra),
+            Err(UnitFormError::DiagonalNotTwo { index: 0 })
+        ));
     }
 
     #[test]

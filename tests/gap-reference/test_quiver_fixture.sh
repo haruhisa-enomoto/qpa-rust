@@ -1109,6 +1109,46 @@ then
     exit 1
 fi
 grep -Fq "no 1st choice method found for \`UnitForm' on 1 arguments" "$actual"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialrep_tits_path.g" \
+    "$repo_root/tests/fixtures/combinatorialrep_tits_path.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialrep_tits_path_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a loop in the path-algebra Tits form" >&2
+    exit 1
+fi
+grep -Fq "the matrix doesn't have 2's along the diagonal" "$actual"
+grep -Fq "lib/combinatorialrep.gi:185" "$actual"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialrep_tits_quotient.g" \
+    "$repo_root/tests/fixtures/combinatorialrep_tits_quotient.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialrep_tits_quotient_loop_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a loop in the quotient Tits form" >&2
+    exit 1
+fi
+grep -Fq "the quiver of the algebra has at least one loop" "$actual"
+grep -Fq "lib/combinatorialrep.gi:131" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialrep_tits_quotient_relation_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a cyclic minimal relation in the Tits form" >&2
+    exit 1
+fi
+grep -Fq "minimal relation starting and ending in the same vertex" "$actual"
+grep -Fq "lib/combinatorialrep.gi:168" "$actual"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialrep_euler.g" \
+    "$repo_root/tests/fixtures/combinatorialrep_euler.schema-v1.json"
+"$repo_root/scripts/gap-reference" \
+    "$repo_root/tests/gap-reference/combinatorialrep_euler_fail.g" \
+    >"$actual" 2>&1
+grep -Fq "The Cartan matrix is not invertible over Z!" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_derived_error.g" \
     >"$actual" 2>&1

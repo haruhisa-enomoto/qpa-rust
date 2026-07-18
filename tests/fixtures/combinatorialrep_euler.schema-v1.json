@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "kind": "combinatorialrep_euler",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "forms": {
+    "path_a3": {
+      "inverse_cartan": [[1, -1, 0], [0, 1, -1], [0, 0, 1]],
+      "value": -3
+    },
+    "radical_square_zero_a3": {
+      "inverse_cartan": [[1, -1, 1], [0, 1, -1], [0, 0, 1]],
+      "value": -1
+    },
+    "path_a3_f2": {
+      "inverse_cartan": [[1, -1, 0], [0, 1, -1], [0, 0, 1]],
+      "value": -3
+    }
+  }
+}

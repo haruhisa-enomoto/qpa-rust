@@ -1507,9 +1507,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::tits_unit_form_of_algebra"
+tests = ["tests/fixtures/combinatorialrep_tits_path.schema-v1.json","tests/fixtures/combinatorialrep_tits_quotient.schema-v1.json","tests/gap-reference/combinatorialrep_tits_path_error.g","tests/gap-reference/combinatorialrep_tits_quotient_loop_error.g","tests/gap-reference/combinatorialrep_tits_quotient_relation_error.g"]
 deviations = []
 
 [[entries]]
@@ -1520,9 +1520,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::euler_bilinear_form_of_algebra"
+tests = ["tests/fixtures/combinatorialrep_euler.schema-v1.json","tests/gap-reference/combinatorialrep_euler_fail.g"]
 deviations = []
 
 [[entries]]
@@ -1598,9 +1598,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 113
 source_end = 174
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::tits_unit_form_of_quotient"
+tests = ["tests/fixtures/combinatorialrep_tits_quotient.schema-v1.json","tests/gap-reference/combinatorialrep_tits_quotient_loop_error.g","tests/gap-reference/combinatorialrep_tits_quotient_relation_error.g"]
 deviations = []
 
 [[entries]]
@@ -1611,9 +1611,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 176
 source_end = 187
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tits_unit_form_of_path_algebra"
+tests = ["tests/fixtures/combinatorialrep_tits_path.schema-v1.json","tests/gap-reference/combinatorialrep_tits_path_error.g"]
 deviations = []
 
 [[entries]]
@@ -1663,9 +1663,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 371
 source_end = 409
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::euler_bilinear_form_of_algebra; EulerBilinearForm::evaluate"
+tests = ["tests/fixtures/combinatorialrep_euler.schema-v1.json","tests/gap-reference/combinatorialrep_euler_fail.g"]
 deviations = []
 
 [[entries]]
