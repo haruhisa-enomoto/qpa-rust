@@ -20851,9 +20851,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 69
 source_end = 69
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_core::completely_reduce_path_algebra_module_groebner_basis"
+tests = ["tests/fixtures/projpathalgmodule_presentation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20864,9 +20864,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 70
 source_end = 70
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::projective_path_algebra_presentation"
+tests = ["tests/fixtures/projpathalgmodule_presentation.schema-v1.json","tests/gap-reference/projpathalgmodule_presentation_path_error.g"]
 deviations = []
 
 [[entries]]
@@ -21644,9 +21644,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 2196
 source_end = 2215
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_core::completely_reduce_path_algebra_module_groebner_basis"
+tests = ["tests/fixtures/projpathalgmodule_presentation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21657,9 +21657,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 2233
 source_end = 2352
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::projective_path_algebra_presentation"
+tests = ["tests/fixtures/projpathalgmodule_presentation.schema-v1.json","tests/gap-reference/projpathalgmodule_presentation_path_error.g"]
 deviations = []
 
 [[entries]]

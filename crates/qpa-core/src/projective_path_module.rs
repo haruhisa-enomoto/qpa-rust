@@ -1270,6 +1270,28 @@ pub fn tip_reduce_path_algebra_vector<F: Field>(
     Ok(reduced)
 }
 
+/// Translate QPA's `CompletelyReduceGroebnerBasisForModule(GB)`.
+///
+/// QPA first tip-reduces the flattened basis. It then preserves each leading
+/// term and completely reduces only that relation's tail against the original
+/// entered Gröbner-basis object.
+///
+/// # Errors
+///
+/// Propagates exact tip reduction, vector arithmetic, and complete-reduction
+/// failures.
+pub fn completely_reduce_path_algebra_module_groebner_basis<F: Field>(
+    basis: &RightPathAlgebraModuleGroebnerBasis<F>,
+) -> Result<Vec<PathAlgebraVector<F>>, ProjectivePathModuleError> {
+    let mut reduced = tip_reduce_path_algebra_vectors(basis.basis_vectors())?;
+    for relation in &mut reduced {
+        let leading_term = relation.leading_term();
+        let tail = relation.sub(&leading_term)?;
+        *relation = leading_term.add(&basis.completely_reduce(&tail)?)?;
+    }
+    Ok(reduced)
+}
+
 fn reduce_right_module_element<F: Field>(
     dividend: &PathAlgebraVector<F>,
     divisor: &PathAlgebraVector<F>,

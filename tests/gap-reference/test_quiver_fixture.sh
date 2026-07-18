@@ -1036,6 +1036,18 @@ compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_groebner.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_groebner.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/projpathalgmodule_presentation.g" \
+    "$repo_root/tests/fixtures/projpathalgmodule_presentation.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/projpathalgmodule_presentation_path_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly found a defining ideal on a path algebra presentation" >&2
+    exit 1
+fi
+grep -Fq "Record Element: '<rec>.ideal' must have an assigned value" "$actual"
+grep -Fq "lib/projpathalgmodule.gi:2251" "$actual"
+compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_vectors.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_vectors.schema-v1.json"
 

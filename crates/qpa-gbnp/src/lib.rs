@@ -17,6 +17,7 @@ pub mod pathalg;
 pub mod persistence;
 pub mod predefined;
 pub mod preprocessing;
+pub mod projective_path_presentation;
 pub mod qpa_conversion;
 pub mod reduction;
 pub mod reptype;
@@ -146,6 +147,10 @@ pub use predefined::{
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,
     reduce_polynomials_in_place, reduce_polynomials_with_options, strong_normal_form_except,
+};
+pub use projective_path_presentation::{
+    ProjectivePathAlgebraPresentation, ProjectivePathAlgebraPresentationError,
+    projective_path_algebra_presentation,
 };
 pub use qpa_conversion::{
     CohenPolynomial, CohenRepresentation, QpaGbnpError, cohen_to_path, gbnp_groebner_basis,
