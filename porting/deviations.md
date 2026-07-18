@@ -313,6 +313,28 @@ the computations remain translations of the cited source methods.
   `tests/gap-reference/module_presentation_zero_display_error.g` pins the
   source error at `module.gi:981`.
 
+## MODULE-002 — Zero-module canonical-basis failure is typed
+
+- Source: QPA `lib/module.gi`, `BasisNC` at lines 244–261, the default
+  `Basis` method at lines 298–306, and `CanonicalBasis` at lines 320–369.
+- Affected Rust operation:
+  `PathAlgebraModuleElementBasis::canonical_for_module`.
+- Difference: `CanonicalBasis` contains an explicit empty-generator branch,
+  but for `ZeroModule(A)` its preceding `Basis(V)` call reaches `BasisNC`,
+  whose empty shallow-copy argument does not satisfy the installed
+  `NewBasis` method and aborts. Rust returns
+  `PathAlgebraModuleError::ZeroModuleCanonicalBasisFailure` before the same
+  unreachable branch.
+- Reason: Rust has no GAP method dispatcher whose empty-list family can fail
+  dynamically. A typed error preserves the actual pinned QPA outcome without
+  repairing the source method.
+- Compatibility impact: every nonzero module retains QPA's vertex-major
+  canonicalization and stored canonical property. Only the generic GAP
+  `NewBasis` dispatch error becomes a typed Rust error.
+- Evidence: `tests/fixtures/module_basis.txt` pins nonzero `QQ` and `GF(2)`
+  bases and coefficients; `tests/gap-reference/module_basis_zero_error.g`
+  pins the source failure at `module.gi:254`.
+
 ## MODULEHOM-001 — Semisimple block counting uses the split-prime tier
 
 - Source: QPA `lib/modulehom.gi`, `NumberOfNonIsoDirSummands` at lines

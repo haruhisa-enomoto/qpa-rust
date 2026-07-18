@@ -1,0 +1,9 @@
+NEW_VECTORS=[ [ [ 0, 0 ], [ 0 ] ], [ [ 0, 1 ], [ 0 ] ], [ [ 1, 0 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
+UNCHECKED_VECTORS=[ [ [ 0, 1 ], [ 0 ] ], [ [ 1, 0 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
+CHECKED_VECTORS=[ [ [ 0, 1 ], [ 0 ] ], [ [ 1, 0 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
+CHECKED_COEFFICIENTS=[ -3, 2, 5 ]
+DOMAIN_VECTORS=[ [ [ 0, 1 ], [ 0 ] ], [ [ 1, 0 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
+DEFAULT_VECTORS=[ [ [ 0, 1 ], [ 0 ] ], [ [ 1, 0 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
+CANONICAL_VECTORS=[ [ [ 1, 0 ], [ 0 ] ], [ [ 0, 1 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
+CANONICAL_PROPERTY=true
+GF2_COEFFICIENTS=[ Z(2)^0, Z(2)^0, 0*Z(2) ]

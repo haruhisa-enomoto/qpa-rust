@@ -1084,6 +1084,18 @@ compare_text_fixture \
 compare_noisy_catching_fixture \
     "$repo_root/tests/gap-reference/module_element_errors.g" \
     "$repo_root/tests/fixtures/module_element_errors.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/module_basis.g" \
+    "$repo_root/tests/fixtures/module_basis.txt"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/module_basis_zero_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly constructed the zero module's canonical basis" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`NewBasis'" "$actual"
+grep -Fq "lib/module.gi:254" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehomalg_is_nth_syzygy.g" \
     "$repo_root/tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"

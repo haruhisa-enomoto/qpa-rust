@@ -601,8 +601,10 @@ Primary QPA files: `module` and `modulespecial`.
   raw `PathModuleElem` reconstruction, arithmetic, exact printing, additive
   zero/inverse, and right actions by parent and quotient elements are now
   source-translated over `QQ` and prime fields. QPA's permissive physical row
-  at a zero-dimensional vertex is retained; the remaining basis-space methods
-  keep this open.
+  at a zero-dimensional vertex is retained. Raw element spaces now distinguish
+  `NewBasis`, zero-filtering `BasisNC`, checked `Basis`, `BasisOfDomain`,
+  delegate coefficients, and vertex-major `CanonicalBasis`; remaining module
+  conversions and submodule methods keep this open.
 - [ ] Port matrix-module construction with and without relation checking. The
   checked three-argument constructor is complete; unchecked and remaining
   constructor overloads are pending. Module `ViewObj`, reconstructive

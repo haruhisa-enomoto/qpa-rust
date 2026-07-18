@@ -1319,6 +1319,296 @@ impl<F: Field> PathAlgebraModuleElement<F> {
     }
 }
 
+/// A QPA free left-module space whose elements are raw path-module elements.
+///
+/// This models the `LeftModuleByGenerators` objects consumed by QPA's
+/// `NewBasis`, `BasisNC`, `Basis`, and `BasisOfDomain` methods while retaining
+/// the identical ambient path-module element family.
+#[derive(Clone, Debug)]
+pub struct PathAlgebraModuleElementSpace<F: Field> {
+    module: PathAlgebraModule<F>,
+    generators: Vec<PathAlgebraModuleElement<F>>,
+}
+
+impl<F: Field> PathAlgebraModuleElementSpace<F> {
+    /// Construct QPA's raw element space from entered generators.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a generator from another path-module element family.
+    pub fn by_generators(
+        module: PathAlgebraModule<F>,
+        generators: Vec<PathAlgebraModuleElement<F>>,
+    ) -> Result<Self, PathAlgebraModuleError> {
+        if generators
+            .iter()
+            .any(|generator| !module.is_identical(generator.module()))
+        {
+            return Err(PathAlgebraModuleError::ForeignElementSpaceGenerator);
+        }
+        Ok(Self { module, generators })
+    }
+
+    /// Return the identical ambient path module.
+    #[must_use]
+    pub const fn module(&self) -> &PathAlgebraModule<F> {
+        &self.module
+    }
+
+    /// Return `GeneratorsOfLeftModule(V)` in entered order.
+    #[must_use]
+    pub fn generators(&self) -> &[PathAlgebraModuleElement<F>] {
+        &self.generators
+    }
+
+    /// Translate QPA's structural `NewBasis(V, vectors)` operation.
+    ///
+    /// This intentionally does not attach the delegate flattened-vector
+    /// basis used by `Coefficients`.
+    ///
+    /// # Errors
+    ///
+    /// Rejects vectors outside the ambient element family.
+    pub fn new_basis(
+        &self,
+        vectors: Vec<PathAlgebraModuleElement<F>>,
+    ) -> Result<PathAlgebraModuleElementBasis<F>, PathAlgebraModuleError> {
+        self.ensure_ambient_family(&vectors)?;
+        Ok(PathAlgebraModuleElementBasis {
+            space: self.clone(),
+            vectors,
+            delegate_basis: None,
+            canonical: false,
+            empty: false,
+        })
+    }
+
+    /// Translate QPA's unchecked `BasisNC(V, vectors)` method.
+    ///
+    /// Zero vectors are removed in entered order before the flattened
+    /// delegate basis is attached.
+    ///
+    /// # Errors
+    ///
+    /// Rejects foreign vectors or ragged physical external representations.
+    pub fn basis_nc(
+        &self,
+        vectors: Vec<PathAlgebraModuleElement<F>>,
+    ) -> Result<PathAlgebraModuleElementBasis<F>, PathAlgebraModuleError> {
+        self.ensure_ambient_family(&vectors)?;
+        let vectors = vectors
+            .into_iter()
+            .filter(|vector| !vector.is_zero())
+            .collect::<Vec<_>>();
+        let delegate_basis = element_basis_matrix(&self.module, &vectors)?;
+        Ok(PathAlgebraModuleElementBasis {
+            space: self.clone(),
+            vectors,
+            delegate_basis: Some(delegate_basis),
+            canonical: false,
+            empty: false,
+        })
+    }
+
+    /// Translate QPA's checked `Basis(V, vectors)` overload.
+    ///
+    /// `Ok(None)` is QPA's `fail` when an entered vector lies outside `V` or
+    /// the nonzero entered vectors are linearly dependent.
+    ///
+    /// # Errors
+    ///
+    /// Rejects foreign families and propagates exact flattened-row solving.
+    pub fn basis_from_vectors(
+        &self,
+        vectors: Vec<PathAlgebraModuleElement<F>>,
+    ) -> Result<Option<PathAlgebraModuleElementBasis<F>>, PathAlgebraModuleError> {
+        self.ensure_ambient_family(&vectors)?;
+        for vector in &vectors {
+            if !self.contains(vector)? {
+                return Ok(None);
+            }
+        }
+        let basis = self.basis_nc(vectors)?;
+        let Some(delegate) = basis.delegate_basis.as_ref() else {
+            return Err(PathAlgebraModuleError::MissingElementBasisDelegate);
+        };
+        if delegate.canonical_row_space_basis().nrows() != basis.vectors.len() {
+            return Ok(None);
+        }
+        Ok(Some(basis))
+    }
+
+    /// Translate QPA's `BasisOfDomain(V)` method.
+    ///
+    /// # Errors
+    ///
+    /// Propagates unchecked-basis construction from the stored generators.
+    pub fn basis_of_domain(
+        &self,
+    ) -> Result<PathAlgebraModuleElementBasis<F>, PathAlgebraModuleError> {
+        self.basis_nc(self.generators.clone())
+    }
+
+    /// Translate QPA's default `Basis(V)` method.
+    ///
+    /// # Errors
+    ///
+    /// Propagates unchecked-basis construction from the stored generators.
+    pub fn basis(&self) -> Result<PathAlgebraModuleElementBasis<F>, PathAlgebraModuleError> {
+        self.basis_of_domain()
+    }
+
+    fn contains(
+        &self,
+        element: &PathAlgebraModuleElement<F>,
+    ) -> Result<bool, PathAlgebraModuleError> {
+        if !self.module.is_identical(element.module()) {
+            return Ok(false);
+        }
+        if self.generators.is_empty() {
+            return Ok(element.is_zero());
+        }
+        let rows = element_basis_matrix(&self.module, &self.generators)?;
+        Ok(rows
+            .solution_row(&element.flat_external_representation())?
+            .is_some())
+    }
+
+    fn ensure_ambient_family(
+        &self,
+        vectors: &[PathAlgebraModuleElement<F>],
+    ) -> Result<(), PathAlgebraModuleError> {
+        if vectors
+            .iter()
+            .any(|vector| !self.module.is_identical(vector.module()))
+        {
+            Err(PathAlgebraModuleError::ForeignElementBasisVector)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+/// A QPA basis of a raw path-module element space.
+#[derive(Clone, Debug)]
+pub struct PathAlgebraModuleElementBasis<F: Field> {
+    space: PathAlgebraModuleElementSpace<F>,
+    vectors: Vec<PathAlgebraModuleElement<F>>,
+    delegate_basis: Option<DenseMatrix<F>>,
+    canonical: bool,
+    empty: bool,
+}
+
+impl<F: Field> PathAlgebraModuleElementBasis<F> {
+    /// Return QPA's `UnderlyingLeftModule` value.
+    #[must_use]
+    pub const fn underlying_space(&self) -> &PathAlgebraModuleElementSpace<F> {
+        &self.space
+    }
+
+    /// Return QPA's ordered `BasisVectors` value.
+    #[must_use]
+    pub fn basis_vectors(&self) -> &[PathAlgebraModuleElement<F>] {
+        &self.vectors
+    }
+
+    /// Return QPA's installed `IsCanonicalBasis` property.
+    #[must_use]
+    pub const fn is_canonical_basis(&self) -> bool {
+        self.canonical
+    }
+
+    /// Return QPA's explicitly stored `IsEmpty` property.
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
+        self.empty
+    }
+
+    /// Translate QPA's `Coefficients(B, v)` delegate-basis call.
+    ///
+    /// `Ok(None)` is GAP's `fail` for a vector outside the basis span.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a foreign element family, a structural `NewBasis` without a
+    /// delegate, or malformed physical coordinates.
+    pub fn coefficients(
+        &self,
+        element: &PathAlgebraModuleElement<F>,
+    ) -> Result<Option<Vec<F::Element>>, PathAlgebraModuleError> {
+        if !self.space.module.is_identical(element.module()) {
+            return Err(PathAlgebraModuleError::ForeignElementBasisVector);
+        }
+        let delegate = self
+            .delegate_basis
+            .as_ref()
+            .ok_or(PathAlgebraModuleError::MissingElementBasisDelegate)?;
+        Ok(delegate.solution_row(&element.flat_external_representation())?)
+    }
+
+    /// Translate QPA's `CanonicalBasis` method for a path-algebra matrix
+    /// module.
+    ///
+    /// # Errors
+    ///
+    /// Preserves QPA's zero-module failure as a typed error and propagates raw
+    /// element and delegate-basis construction.
+    pub fn canonical_for_module(
+        module: &PathAlgebraModule<F>,
+    ) -> Result<Self, PathAlgebraModuleError> {
+        if module.dimension() == 0 {
+            return Err(PathAlgebraModuleError::ZeroModuleCanonicalBasisFailure);
+        }
+        let field = module.right_acting_algebra().field();
+        let generators = module.basis_elements();
+        let mut vertex_rows = vec![Vec::new(); module.dimension_vector().len()];
+        for generator in &generators {
+            for (vertex, row) in generator.external_representation().iter().enumerate() {
+                if row.iter().any(|entry| !field.is_zero(entry)) {
+                    vertex_rows[vertex].push(row.clone());
+                }
+            }
+        }
+        let mut vectors = Vec::new();
+        for (vertex, rows) in vertex_rows.into_iter().enumerate() {
+            for row in rows {
+                let mut coordinates = module.zero_element().external_representation().to_vec();
+                coordinates[vertex] = row;
+                vectors.push(module.element_from_external_representation(coordinates)?);
+            }
+        }
+        let space = PathAlgebraModuleElementSpace::by_generators(module.clone(), generators)?;
+        let mut basis = space.basis_nc(vectors)?;
+        basis.canonical = true;
+        Ok(basis)
+    }
+}
+
+fn element_basis_matrix<F: Field>(
+    module: &PathAlgebraModule<F>,
+    vectors: &[PathAlgebraModuleElement<F>],
+) -> Result<DenseMatrix<F>, MatrixError> {
+    if vectors.is_empty() {
+        let physical_dimension = module
+            .dimension_vector()
+            .iter()
+            .map(|&dimension| dimension.max(1))
+            .sum();
+        return Ok(DenseMatrix::zero(
+            0,
+            physical_dimension,
+            module.right_acting_algebra().field().clone(),
+        ));
+    }
+    DenseMatrix::from_rows(
+        vectors
+            .iter()
+            .map(PathAlgebraModuleElement::flat_external_representation)
+            .collect(),
+        module.right_acting_algebra().field().clone(),
+    )
+}
+
 impl<F: Field> PartialEq for PathAlgebraModuleElement<F> {
     fn eq(&self, other: &Self) -> bool {
         self.module.is_identical(&other.module) && self.coordinates == other.coordinates
@@ -7111,6 +7401,21 @@ pub enum PathAlgebraModuleError {
         /// Required total dimension.
         expected: usize,
     },
+    /// A raw element-space generator must belong to its ambient module family.
+    #[error("an element-space generator belongs to a different module family")]
+    ForeignElementSpaceGenerator,
+    /// Basis vectors and coefficient queries require the ambient element
+    /// family.
+    #[error("an element basis received an element from a different module family")]
+    ForeignElementBasisVector,
+    /// `NewBasis` stores only structural basis data in QPA; `BasisNC` or
+    /// `Basis` attaches the flattened delegate used for coefficients.
+    #[error("the path-module element basis has no delegate coefficient basis")]
+    MissingElementBasisDelegate,
+    /// QPA's zero-module `CanonicalBasis` reaches an inapplicable `NewBasis`
+    /// call before its explicit empty-basis branch.
+    #[error("CanonicalBasis of QPA's zero path module fails while constructing NewBasis")]
+    ZeroModuleCanonicalBasisFailure,
     /// GAP module-element arithmetic requires an identical element family.
     #[error("module elements belong to different element families")]
     DifferentElementFamilies,
@@ -7572,6 +7877,142 @@ mod tests {
 
         assert!(is_in_full_matrix_ring(&matrix5, &field5));
         assert!(!full_matrix_foreign);
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_module_element_basis_surface_matches() {
+        let parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+        )
+        .unwrap();
+        let module = right_module_over_path_algebra(
+            QuiverAlgebra::Path(parent),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)], vec![q(2)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let standard = module.basis_elements();
+        let entered = vec![
+            module.zero_element(),
+            standard[1].clone(),
+            standard[0].clone(),
+            standard[2].clone(),
+        ];
+        let space =
+            super::PathAlgebraModuleElementSpace::by_generators(module.clone(), entered.clone())
+                .unwrap();
+        let new_basis = space.new_basis(entered.clone()).unwrap();
+        let unchecked = space.basis_nc(entered.clone()).unwrap();
+        let checked = space.basis_from_vectors(entered.clone()).unwrap().unwrap();
+        let domain_basis = space.basis_of_domain().unwrap();
+        let default_basis = space.basis().unwrap();
+        let canonical =
+            super::PathAlgebraModuleElementBasis::canonical_for_module(&module).unwrap();
+        let v = standard[0]
+            .scale_left(&q(2))
+            .subtract(&standard[1].scale_left(&q(3)))
+            .unwrap()
+            .add(&standard[2].scale_left(&q(5)))
+            .unwrap();
+        let coefficients = checked.coefficients(&v).unwrap().unwrap();
+        let qpa_elements = |elements: &[super::PathAlgebraModuleElement<Q>]| {
+            super::qpa_list(
+                elements
+                    .iter()
+                    .map(|element| element.qpa_print_string_with(ToString::to_string)),
+            )
+        };
+
+        let prime_parent = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "b")]).unwrap(),
+        )
+        .unwrap();
+        let prime_module = right_module_over_path_algebra(
+            QuiverAlgebra::Path(prime_parent),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "b",
+                DenseMatrix::from_rows(vec![vec![Z2.one()], vec![Z2.one()]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let prime_standard = prime_module.basis_elements();
+        let prime_entered = vec![
+            prime_standard[2].clone(),
+            prime_standard[0].clone(),
+            prime_standard[1].clone(),
+        ];
+        let prime_space = super::PathAlgebraModuleElementSpace::by_generators(
+            prime_module,
+            prime_entered.clone(),
+        )
+        .unwrap();
+        let prime_basis = prime_space
+            .basis_from_vectors(prime_entered)
+            .unwrap()
+            .unwrap();
+        let prime_coefficients = prime_basis
+            .coefficients(&prime_standard[0].add(&prime_standard[2]).unwrap())
+            .unwrap()
+            .unwrap();
+        let gap_z2 = |entry: &u8| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        };
+
+        let actual = format!(
+            "NEW_VECTORS={}\nUNCHECKED_VECTORS={}\nCHECKED_VECTORS={}\nCHECKED_COEFFICIENTS={}\nDOMAIN_VECTORS={}\nDEFAULT_VECTORS={}\nCANONICAL_VECTORS={}\nCANONICAL_PROPERTY={}\nGF2_COEFFICIENTS={}\n",
+            qpa_elements(new_basis.basis_vectors()),
+            qpa_elements(unchecked.basis_vectors()),
+            qpa_elements(checked.basis_vectors()),
+            super::qpa_list(coefficients.iter().map(ToString::to_string)),
+            qpa_elements(domain_basis.basis_vectors()),
+            qpa_elements(default_basis.basis_vectors()),
+            qpa_elements(canonical.basis_vectors()),
+            canonical.is_canonical_basis(),
+            super::qpa_list(prime_coefficients.iter().map(gap_z2)),
+        );
+        assert_eq!(
+            actual,
+            include_str!("../../../tests/fixtures/module_basis.txt")
+        );
+        assert!(!canonical.is_empty());
+        assert_eq!(
+            new_basis.coefficients(&v).unwrap_err(),
+            PathAlgebraModuleError::MissingElementBasisDelegate
+        );
+        assert!(
+            space
+                .basis_from_vectors(vec![standard[0].clone(), standard[0].clone()])
+                .unwrap()
+                .is_none()
+        );
+        let line = super::PathAlgebraModuleElementSpace::by_generators(
+            module.clone(),
+            vec![standard[0].clone()],
+        )
+        .unwrap();
+        assert!(
+            line.basis_from_vectors(vec![standard[1].clone()])
+                .unwrap()
+                .is_none()
+        );
+        let zero = zero_module(module.right_acting_algebra()).unwrap();
+        assert_eq!(
+            super::PathAlgebraModuleElementBasis::canonical_for_module(&zero).unwrap_err(),
+            PathAlgebraModuleError::ZeroModuleCanonicalBasisFailure
+        );
     }
 
     #[test]
