@@ -44,7 +44,14 @@ pub use combinatorial_rep::{
     tits_unit_form_of_algebra, tits_unit_form_of_quotient,
 };
 pub use complex::{
-    InjectiveResolution, ProjectiveResolution, injective_resolution, projective_resolution,
+    CallbackCategory, CallbackCategoryProperties, ChainMapHalf, ComplexAndChainMaps,
+    ComplexAndChainMapsHalf, ComplexError, ComplexHalf, InjectiveResolution, ModuleChainMap,
+    ModuleComplex, ProjectiveResolution, QpaAbelianCategory, QpaCategory, QpaChainMap, QpaComplex,
+    RightModuleCategory, cat_of_right_algebra_modules, chain_map, comparison_lifting,
+    comparison_lifting_to_projective_resolution, complex, complex_and_chain_maps, finite_chain_map,
+    finite_complex, injective_resolution, injective_resolution_complex, mapping_cone,
+    projective_resolution, projective_resolution_complex, short_exact_sequence, stalk_complex,
+    yoneda_product, zero_chain_map, zero_complex,
 };
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{

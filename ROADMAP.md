@@ -733,13 +733,13 @@ complete over the supported coefficient tiers.
 
 Primary QPA files: `inflist`, `complex`, and `derivedcat`.
 
-- [ ] Port lazy bi-infinite/half-infinite/repeating list semantics and caching.
-- [ ] Port finite, bounded, repeating, projective, and injective complexes.
-- [ ] Port cycles, boundaries, homology, exactness, shifts, and truncations.
-- [ ] Port chain maps, comparison liftings, mapping cones, and Yoneda products.
+- [x] Port lazy bi-infinite/half-infinite/repeating list semantics and caching.
+- [x] Port finite, bounded, repeating, projective, and injective complexes.
+- [x] Port cycles, boundaries, homology, exactness, shifts, and truncations.
+- [x] Port chain maps, comparison liftings, mapping cones, and Yoneda products.
 - [ ] Port projective resolutions of complexes and differential reduction.
 - [ ] Port derived-category tau and projective/injective complex conversions.
-- [ ] Verify all degree/sign conventions with explicit low-degree fixtures.
+- [x] Verify all degree/sign conventions with explicit low-degree fixtures.
 
 Exit gate: all complex and derived-category declarations are complete, including
 lazy behavior and every documented sign convention.

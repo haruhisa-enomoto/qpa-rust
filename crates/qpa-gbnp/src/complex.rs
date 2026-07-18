@@ -4,6 +4,11 @@
 //! `modulehomalg.gi`. Its generated differentials follow `complex.gi`'s
 //! `"next/repeat"` closure exactly.
 
+#[path = "complex_engine.rs"]
+mod complex_engine;
+
+pub use complex_engine::*;
+
 use std::sync::{Arc, Mutex};
 
 use numerica::domains::{Field, integer::Integer};

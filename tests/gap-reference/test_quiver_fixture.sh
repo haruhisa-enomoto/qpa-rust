@@ -1155,6 +1155,15 @@ compare_fixture \
 compare_catching_fixture \
     "$repo_root/tests/gap-reference/inflist_errors.g" \
     "$repo_root/tests/fixtures/inflist_errors.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/complex.g" \
+    "$repo_root/tests/fixtures/complex.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/complex_errors.g" \
+    "$repo_root/tests/fixtures/complex_errors.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/complex_print.g" \
+    "$repo_root/tests/fixtures/complex_print.txt"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_derived_error.g" \
     >"$actual" 2>&1
