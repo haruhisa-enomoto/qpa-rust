@@ -598,8 +598,11 @@ Primary QPA files: `module` and `modulespecial`.
 
 - [ ] Port module elements and the right action of paths/algebra elements. The
   external representation, vertex support, vertex-major basis coordinates,
-  arithmetic, and right action used by QPA's tensor/module pipeline are now
-  source-translated; the remaining `module.gi` element surface keeps this open.
+  raw `PathModuleElem` reconstruction, arithmetic, exact printing, additive
+  zero/inverse, and right actions by parent and quotient elements are now
+  source-translated over `QQ` and prime fields. QPA's permissive physical row
+  at a zero-dimensional vertex is retained; the remaining basis-space methods
+  keep this open.
 - [ ] Port matrix-module construction with and without relation checking. The
   checked three-argument constructor is complete; unchecked and remaining
   constructor overloads are pending. Module `ViewObj`, reconstructive

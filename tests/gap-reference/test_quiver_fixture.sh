@@ -118,6 +118,17 @@ compare_text_fixture() {
     diff --unified "$fixture" "$actual"
 }
 
+compare_noisy_catching_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw" 2>&1
+    grep -E '^\{"schema_version":' "$raw" | tail -n 1 |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_fixture \
     "$repo_root/tests/gap-reference/quiver_paths.g" \
     "$repo_root/tests/fixtures/quiver_paths.schema-v1.json"
@@ -1067,6 +1078,12 @@ then
 fi
 grep -Fq "<array> must be a dense list" "$actual"
 grep -Fq "lib/module.gi:981" "$actual"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/module_elements.g" \
+    "$repo_root/tests/fixtures/module_elements.txt"
+compare_noisy_catching_fixture \
+    "$repo_root/tests/gap-reference/module_element_errors.g" \
+    "$repo_root/tests/fixtures/module_element_errors.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/modulehomalg_is_nth_syzygy.g" \
     "$repo_root/tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"

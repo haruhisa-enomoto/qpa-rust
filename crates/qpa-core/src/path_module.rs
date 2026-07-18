@@ -51,6 +51,16 @@ impl<F: Field> NamedArrowMatrix<F> {
     }
 }
 
+/// Translate QPA's `IsInFullMatrixRing(M, R)` for a typed Numerica matrix.
+///
+/// QPA flattens the matrix and checks every entry for membership in `R`.
+/// [`DenseMatrix`] already stores entries of one coefficient type, so the
+/// remaining runtime check is equality of its retained field and `ring`.
+#[must_use]
+pub fn is_in_full_matrix_ring<F: Field>(matrix: &DenseMatrix<F>, ring: &F) -> bool {
+    matrix.field() == ring
+}
+
 /// One entry returned by QPA's `MatricesOfPathAlgebraModule` operation.
 ///
 /// GAP returns the integer zero, rather than a physical matrix, for every
@@ -282,6 +292,45 @@ impl<F: Field> PathAlgebraModule<F> {
         Ok(PathAlgebraModuleElement {
             module: self.clone(),
             coordinates: physical,
+        })
+    }
+
+    /// Translate QPA's raw `PathModuleElem(family, external_representation)`
+    /// constructor.
+    ///
+    /// Unlike [`Self::element_from_vertex_coordinates`], this accepts the
+    /// physical external representation. QPA deliberately permits any row
+    /// length at a zero-dimensional vertex; retaining that behavior is useful
+    /// for exact `ExtRepOfObj` round trips, including an empty row.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a wrong vertex count or a nonzero-dimensional row with the
+    /// wrong length.
+    pub fn element_from_external_representation(
+        &self,
+        coordinates: Vec<Vec<F::Element>>,
+    ) -> Result<PathAlgebraModuleElement<F>, PathAlgebraModuleError> {
+        if coordinates.len() != self.dimension_vector().len() {
+            return Err(PathAlgebraModuleError::ElementVertexCount {
+                actual: coordinates.len(),
+                expected: self.dimension_vector().len(),
+            });
+        }
+        for (vertex, (row, &dimension)) in
+            coordinates.iter().zip(self.dimension_vector()).enumerate()
+        {
+            if dimension != 0 && row.len() != dimension {
+                return Err(PathAlgebraModuleError::ElementCoordinateCount {
+                    vertex: vertex + 1,
+                    actual: row.len(),
+                    expected: dimension,
+                });
+            }
+        }
+        Ok(PathAlgebraModuleElement {
+            module: self.clone(),
+            coordinates,
         })
     }
 
@@ -1107,7 +1156,27 @@ impl<F: Field> PathAlgebraModuleElement<F> {
         self.support_vertices().is_empty()
     }
 
+    /// Return QPA's `PrintObj` text for the raw path-module element.
+    ///
+    /// The callback supplies GAP's scalar `String` representation.
+    #[must_use]
+    pub fn qpa_print_string_with(
+        &self,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> String {
+        qpa_list(
+            self.coordinates
+                .iter()
+                .map(|row| qpa_list(row.iter().map(coefficient)))
+                .collect::<Vec<_>>(),
+        )
+    }
+
     /// Add elements from the identical QPA element family.
+    ///
+    /// GAP vector addition retains unmatched trailing entries. This matters
+    /// only for the arbitrary physical rows accepted at zero-dimensional
+    /// vertices, and is preserved in both operand orders.
     ///
     /// # Errors
     ///
@@ -1120,9 +1189,13 @@ impl<F: Field> PathAlgebraModuleElement<F> {
             .iter()
             .zip(&right.coordinates)
             .map(|(left, right)| {
-                left.iter()
-                    .zip(right)
-                    .map(|(left, right)| field.add(left, right))
+                (0..left.len().max(right.len()))
+                    .map(|position| match (left.get(position), right.get(position)) {
+                        (Some(left), Some(right)) => field.add(left, right),
+                        (Some(left), None) => left.clone(),
+                        (None, Some(right)) => right.clone(),
+                        (None, None) => unreachable!("position is below the maximum row length"),
+                    })
                     .collect()
             })
             .collect();
@@ -1130,6 +1203,29 @@ impl<F: Field> PathAlgebraModuleElement<F> {
             module: self.module.clone(),
             coordinates,
         })
+    }
+
+    /// Subtract elements from the identical QPA element family.
+    ///
+    /// # Errors
+    ///
+    /// Rejects different module families.
+    pub fn subtract(&self, right: &Self) -> Result<Self, PathAlgebraModuleError> {
+        self.add(&right.additive_inverse())
+    }
+
+    /// Return QPA's `AdditiveInverseOp` result.
+    #[must_use]
+    pub fn additive_inverse(&self) -> Self {
+        let field = self.module.right_acting_algebra().field();
+        Self {
+            module: self.module.clone(),
+            coordinates: self
+                .coordinates
+                .iter()
+                .map(|row| row.iter().map(|entry| field.neg(entry)).collect())
+                .collect(),
+        }
     }
 
     /// Multiply this element by a field scalar.
@@ -1144,6 +1240,26 @@ impl<F: Field> PathAlgebraModuleElement<F> {
                 .map(|row| row.iter().map(|entry| field.mul(entry, scalar)).collect())
                 .collect(),
         }
+    }
+
+    /// Translate QPA's scalar-times-module-element method.
+    #[must_use]
+    pub fn scale_left(&self, scalar: &F::Element) -> Self {
+        let field = self.module.right_acting_algebra().field();
+        Self {
+            module: self.module.clone(),
+            coordinates: self
+                .coordinates
+                .iter()
+                .map(|row| row.iter().map(|entry| field.mul(scalar, entry)).collect())
+                .collect(),
+        }
+    }
+
+    /// Translate QPA's module-element-times-scalar method.
+    #[must_use]
+    pub fn scale_right(&self, scalar: &F::Element) -> Self {
+        self.scale(scalar)
     }
 
     /// Apply QPA's right action by a path-algebra or quotient element.
@@ -1210,6 +1326,16 @@ impl<F: Field> PartialEq for PathAlgebraModuleElement<F> {
 }
 
 impl<F: Field> Eq for PathAlgebraModuleElement<F> {}
+
+impl<F> fmt::Display for PathAlgebraModuleElement<F>
+where
+    F: Field,
+    F::Element: fmt::Display,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(&self.qpa_print_string_with(ToString::to_string))
+    }
+}
 
 impl<F: Field> fmt::Debug for PathAlgebraModule<F> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -1426,14 +1552,11 @@ impl<F: QpaCoefficientField> PathAlgebraModuleHomomorphism<F> {
 }
 
 fn qpa_usize_list(values: &[usize]) -> String {
-    format!(
-        "[ {} ]",
-        values
-            .iter()
-            .map(ToString::to_string)
-            .collect::<Vec<_>>()
-            .join(", ")
-    )
+    qpa_list(values.iter().map(ToString::to_string))
+}
+
+fn qpa_list(values: impl IntoIterator<Item = String>) -> String {
+    format!("[ {} ]", values.into_iter().collect::<Vec<_>>().join(", "))
 }
 
 fn qpa_quiver_algebra_view<F: QpaCoefficientField>(algebra: &QuiverAlgebra<F>) -> String {
@@ -7142,7 +7265,8 @@ mod tests {
 
     use crate::{
         ArrowSpec, DenseMatrix, PathAlgebra, QpaCoefficientField, Quiver, QuiverAlgebra,
-        QuiverAlgebraHomomorphism, QuotientPathAlgebra, StructureConstantsError, VertexIndex,
+        QuiverAlgebraElement, QuiverAlgebraHomomorphism, QuotientPathAlgebra,
+        StructureConstantsError, VertexIndex,
     };
 
     use super::{
@@ -7153,9 +7277,9 @@ mod tests {
         direct_sum_projections, end_over_algebra, hom_over_algebra,
         hom_over_algebra_with_basis_function, homomorphism_from_images, identity_module_mapping,
         image_projection_inclusion, intersection_of_submodules, intersection_of_submodules_list,
-        inverse_of_isomorphism, is_direct_summand, is_in_additive_closure, is_left_minimal,
-        is_right_minimal, is_split_epimorphism, is_split_monomorphism, isomorphic_modules,
-        isomorphism_of_modules, kernel_inclusion, left_inverse_of_homomorphism,
+        inverse_of_isomorphism, is_direct_summand, is_in_additive_closure, is_in_full_matrix_ring,
+        is_left_minimal, is_right_minimal, is_split_epimorphism, is_split_monomorphism,
+        isomorphic_modules, isomorphism_of_modules, kernel_inclusion, left_inverse_of_homomorphism,
         left_minimal_version, maximal_common_direct_summand, minimal_generating_set_of_module,
         more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
         morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
@@ -7252,6 +7376,202 @@ mod tests {
             zero.qpa_display_string_with(ToString::to_string),
             Err(PathAlgebraModuleError::DisplayScalarZeroArrowMatrix)
         ));
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_module_element_surface_matches() {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let parent = PathAlgebra::new(Q, quiver).unwrap();
+        let generators = parent.generators();
+        let algebra = QuiverAlgebra::Path(parent);
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)], vec![q(2)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let basis = module.basis_elements();
+        let v = basis[0]
+            .scale_left(&q(2))
+            .subtract(&basis[1].scale_left(&q(3)))
+            .unwrap()
+            .add(&basis[2].scale_left(&q(5)))
+            .unwrap();
+        let w = basis[0]
+            .add(&basis[1])
+            .unwrap()
+            .subtract(&basis[2])
+            .unwrap();
+        let rebuilt = module
+            .element_from_external_representation(vec![vec![q(2), q(-3)], vec![q(5)]])
+            .unwrap();
+        let loop_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuotientPathAlgebra::by_relations_high_level(loop_parent, &[x.pow(2).unwrap()])
+            .unwrap();
+        let dual_generators = dual.generators().unwrap();
+        let dual_module = right_module_over_path_algebra(
+            QuiverAlgebra::Quotient(dual),
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![q(0), q(1)], vec![q(0), q(0)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let quotient_action = dual_module.basis_elements()[0]
+            .act(&QuiverAlgebraElement::Quotient(dual_generators[1].clone()))
+            .unwrap();
+        let qpa_basis = format!(
+            "[ {} ]",
+            basis
+                .iter()
+                .map(|element| element.qpa_print_string_with(ToString::to_string))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        let qpa = |element: &super::PathAlgebraModuleElement<Q>| {
+            element.qpa_print_string_with(ToString::to_string)
+        };
+        let vertex_one = QuiverAlgebraElement::Path(generators[0].clone());
+        let vertex_two = QuiverAlgebraElement::Path(generators[1].clone());
+        let arrow = QuiverAlgebraElement::Path(generators[2].clone());
+        let action_sum = QuiverAlgebraElement::Path(
+            generators[0]
+                .add(&generators[2].scale_left(&q(2)).unwrap())
+                .unwrap(),
+        );
+
+        let zero_vertex_module = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        let pathological = zero_vertex_module
+            .element_from_external_representation(vec![vec![q(0)], Vec::new()])
+            .unwrap();
+        let zero_vertex_raw = zero_vertex_module.basis_elements()[0].clone();
+
+        let prime_parent = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "b")]).unwrap(),
+        )
+        .unwrap();
+        let prime_generators = prime_parent.generators();
+        let prime_module = right_module_over_path_algebra(
+            QuiverAlgebra::Path(prime_parent),
+            vec![2, 1],
+            &[NamedArrowMatrix::new(
+                "b",
+                DenseMatrix::from_rows(vec![vec![Z2.one()], vec![Z2.one()]], Z2).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let prime_basis = prime_module.basis_elements();
+        let prime_v = prime_basis[0].add(&prime_basis[2]).unwrap();
+        let prime_action = prime_v
+            .act(&QuiverAlgebraElement::Path(prime_generators[2].clone()))
+            .unwrap();
+        let gap_z2 = |entry: &u8| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        };
+        let rational_matrix = DenseMatrix::from_rows(vec![vec![q(1), q(-2)]], Q).unwrap();
+        let field5 = Zp::new(5);
+        let field7 = Zp::new(7);
+        let matrix5 = DenseMatrix::from_rows(vec![vec![field5.one()]], field5.clone()).unwrap();
+        let full_matrix_qq = is_in_full_matrix_ring(&rational_matrix, &Q);
+        let full_matrix_foreign = is_in_full_matrix_ring(&matrix5, &field7);
+
+        let actual = format!(
+            "FULL_MATRIX_QQ={full_matrix_qq}\nFULL_MATRIX_FOREIGN={full_matrix_foreign}\nBASIS={qpa_basis}\nV={}\nEXTREP={}\nSUM={}\nDIFFERENCE={}\nLEFT_SCALE={}\nRIGHT_SCALE={}\nNEGATIVE={}\nZERO={}\nEQUAL_SELF={}\nEQUAL_OTHER={}\nACTION_VERTEX_1={}\nACTION_VERTEX_2={}\nACTION_ARROW={}\nACTION_SUM={}\nREBUILT={}\nQUOTIENT_ACTION={}\nZERO_DIMENSION_EXTERNAL={}\nZERO_ROW_SUM_LEFT={}\nZERO_ROW_SUM_RIGHT={}\nZERO_ROW_DIFFERENCE_LEFT={}\nZERO_ROW_DIFFERENCE_RIGHT={}\nGF2_ACTION={}\n",
+            qpa(&v),
+            qpa(&v),
+            qpa(&v.add(&w).unwrap()),
+            qpa(&v.subtract(&w).unwrap()),
+            qpa(&w.scale_left(&q(2))),
+            qpa(&w.scale_right(&q(2))),
+            qpa(&v.additive_inverse()),
+            qpa(&module.zero_element()),
+            v == v.clone(),
+            v == w,
+            qpa(&v.act(&vertex_one).unwrap()),
+            qpa(&v.act(&vertex_two).unwrap()),
+            qpa(&v.act(&arrow).unwrap()),
+            qpa(&v.act(&action_sum).unwrap()),
+            qpa(&rebuilt),
+            qpa(&quotient_action),
+            qpa(&pathological),
+            qpa(&pathological.add(&zero_vertex_raw).unwrap()),
+            qpa(&zero_vertex_raw.add(&pathological).unwrap()),
+            qpa(&pathological.subtract(&zero_vertex_raw).unwrap()),
+            qpa(&zero_vertex_raw.subtract(&pathological).unwrap()),
+            prime_action.qpa_print_string_with(gap_z2),
+        );
+        assert_eq!(
+            actual,
+            include_str!("../../../tests/fixtures/module_elements.txt")
+        );
+        assert_eq!(v, rebuilt);
+
+        assert!(matches!(
+            module.element_from_external_representation(vec![vec![q(1), q(0)]]),
+            Err(PathAlgebraModuleError::ElementVertexCount { .. })
+        ));
+        assert!(matches!(
+            module.element_from_external_representation(vec![vec![q(1)], vec![q(0)]]),
+            Err(PathAlgebraModuleError::ElementCoordinateCount { vertex: 1, .. })
+        ));
+        assert_eq!(
+            qpa(&pathological.add(&zero_vertex_raw).unwrap()),
+            "[ [ 1 ], [ 0 ] ]"
+        );
+        assert_eq!(
+            qpa(&zero_vertex_raw.add(&pathological).unwrap()),
+            "[ [ 1 ], [ 0 ] ]"
+        );
+        assert_eq!(
+            qpa(&pathological.subtract(&zero_vertex_raw).unwrap()),
+            "[ [ -1 ], [ 0 ] ]"
+        );
+        assert_eq!(
+            qpa(&zero_vertex_raw.subtract(&pathological).unwrap()),
+            "[ [ 1 ], [ 0 ] ]"
+        );
+        let reconstructed = right_module_over_path_algebra(algebra, vec![2, 1], &[])
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            v.add(&reconstructed.basis_elements()[0]).unwrap_err(),
+            PathAlgebraModuleError::DifferentElementFamilies
+        );
+        let foreign_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "foreign")])
+                .unwrap(),
+        )
+        .unwrap();
+        let foreign_arrow = QuiverAlgebraElement::Path(foreign_parent.generators()[2].clone());
+        assert_eq!(
+            v.act(&foreign_arrow).unwrap_err(),
+            PathAlgebraModuleError::ForeignActingElement
+        );
+
+        assert!(is_in_full_matrix_ring(&matrix5, &field5));
+        assert!(!full_matrix_foreign);
     }
 
     #[test]

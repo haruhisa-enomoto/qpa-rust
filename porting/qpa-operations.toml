@@ -9853,9 +9853,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_in_full_matrix_ring"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -9866,9 +9866,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -9879,9 +9879,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -9892,9 +9892,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vec<PathAlgebraModuleElement>"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -9905,9 +9905,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::element_from_external_representation"
+tests = ["tests/fixtures/module_elements.txt","tests/fixtures/module_element_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9931,9 +9931,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -9944,9 +9944,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 11
 source_end = 11
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10399,9 +10399,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 12
 source_end = 28
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_in_full_matrix_ring"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10412,9 +10412,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 42
 source_end = 73
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::element_from_external_representation"
+tests = ["tests/fixtures/module_elements.txt","tests/fixtures/module_element_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10425,9 +10425,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 76
 source_end = 86
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::add"
+tests = ["tests/fixtures/module_elements.txt","tests/fixtures/module_element_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10438,9 +10438,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 89
 source_end = 100
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::subtract"
+tests = ["tests/fixtures/module_elements.txt","tests/fixtures/module_element_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10451,9 +10451,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 103
 source_end = 112
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::scale_left"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10464,9 +10464,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 115
 source_end = 124
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::scale_right"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10477,9 +10477,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 127
 source_end = 164
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::act"
+tests = ["tests/fixtures/module_elements.txt","tests/fixtures/module_element_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -10490,9 +10490,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 166
 source_end = 174
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::act"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10503,9 +10503,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 176
 source_end = 183
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::zero_element"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10516,9 +10516,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 186
 source_end = 193
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::additive_inverse"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10529,9 +10529,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 196
 source_end = 203
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PartialEq for PathAlgebraModuleElement"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10542,9 +10542,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 206
 source_end = 213
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::qpa_print_string_with; Display for PathAlgebraModuleElement"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]
@@ -10555,9 +10555,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 215
 source_end = 222
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElement::external_representation"
+tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
 
 [[entries]]

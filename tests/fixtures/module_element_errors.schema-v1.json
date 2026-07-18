@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "kind": "module_element_errors",
+  "success": {
+    "wrong_vertices": false,
+    "wrong_dimension": false,
+    "different_families": false,
+    "foreign_action": false
+  }
+}
