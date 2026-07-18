@@ -11,6 +11,7 @@ use std::{cmp::Ordering, fmt, marker::PhantomData, sync::Arc};
 use numerica::domains::Field;
 use thiserror::Error;
 
+use crate::projective_path_module::qpa_path_algebra_components_string;
 use crate::{
     DenseMatrix, MatrixError, Path, PathAlgebra, PathAlgebraElement, PathEndpoint,
     ProjectivePathModuleError, RightPathAlgebraModuleGroebnerBasis,
@@ -362,6 +363,14 @@ impl<F: Field> FpPathAlgebraVector<F> {
     #[must_use]
     pub fn components(&self) -> &[PathAlgebraElement<F>] {
         &self.components
+    }
+
+    /// Translate QPA's bracketed f.p. vector `PrintObj` method.
+    pub fn print_obj_with(&self, coefficient: impl Fn(&F::Element) -> String + Copy) -> String {
+        format!(
+            "[ {} ]",
+            qpa_path_algebra_components_string(self.components(), coefficient)
+        )
     }
 
     /// Return QPA's cached one-based leading position.
@@ -1295,7 +1304,12 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use crate::{ArrowSpec, DenseMatrix, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
+    use crate::{
+        ArrowSpec, DenseMatrix, INFO_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL, NamedArrowSpec,
+        PathAlgebra, PathAlgebraElement, PathAlgebraModuleGroebnerBasisSide,
+        ProjectivePathModuleError, Quiver, VertexIndex,
+        right_groebner_basis_of_module_from_generators, right_projective_path_algebra_module,
+    };
 
     use super::{
         FpPathAlgebraByImagesHomomorphism, FpPathAlgebraMatrixHomomorphism, FpPathAlgebraVector,
@@ -1676,6 +1690,79 @@ mod tests {
         assert!(matches!(
             by_images.images_source(),
             Err(FpPathModuleError::MissingFpByImagesGenImages)
+        ));
+    }
+
+    #[test]
+    fn pinned_qpa_projective_display_surface_matches() {
+        #[allow(clippy::trivially_copy_pass_by_ref)]
+        fn coefficient(_: &u8) -> String {
+            "Z(2)^0".to_owned()
+        }
+
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/projpathalgmodule_display.schema-v1.json"
+        ))
+        .unwrap();
+        let algebra = PathAlgebra::new(
+            Z2,
+            Quiver::from_named(
+                vec!["v".into(), "w".into()],
+                vec![NamedArrowSpec {
+                    source: "v".into(),
+                    target: "w".into(),
+                    name: Some("a".into()),
+                }],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = algebra.generators();
+        let projective =
+            right_projective_path_algebra_module(&algebra, &[generators[0].clone()]).unwrap();
+        let vector = projective
+            .vector(vec![generators[0].add(&generators[2]).unwrap()])
+            .unwrap();
+        let relation = projective.vector(vec![generators[2].clone()]).unwrap();
+        let groebner_basis = projective
+            .submodule(vec![relation])
+            .unwrap()
+            .right_groebner_basis()
+            .unwrap();
+        let fp_module =
+            vertex_projective_presentation(&algebra, &[vec![generators[2].clone()]]).unwrap();
+        let fp_vector = fp_module.generators().unwrap().remove(0);
+        let left = PathAlgebraModuleGroebnerBasisSide::Left;
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "projpathalgmodule_display",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654",
+            },
+            "info_level": INFO_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL,
+            "two_argument_success": right_groebner_basis_of_module_from_generators(
+                &algebra,
+                &[generators[2].clone()],
+            ).is_ok(),
+            "left_properties": [left.is_left(), left.is_path_algebra_module_groebner_basis()],
+            "vector_print": vector.print_obj_with(coefficient),
+            "fp_vector_print": fp_vector.print_obj_with(coefficient),
+            "gb_view": groebner_basis.view_obj_with_basis("GF(2)", coefficient),
+            "bare_gb_view": groebner_basis.view_obj_without_basis("GF(2)"),
+        });
+        assert_eq!(actual, expected);
+        assert_eq!(
+            groebner_basis.side(),
+            PathAlgebraModuleGroebnerBasisSide::Right
+        );
+        assert!(matches!(
+            right_groebner_basis_of_module_from_generators(&algebra, &[generators[2].clone()],),
+            Err(ProjectivePathModuleError::UninstalledTwoArgumentRightGroebnerBasis)
         ));
     }
 }

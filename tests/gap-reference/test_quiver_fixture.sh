@@ -1198,6 +1198,9 @@ compare_catching_fixture \
 compare_catching_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_fp_hom.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/projpathalgmodule_display.g" \
+    "$repo_root/tests/fixtures/projpathalgmodule_display.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_lift.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_lift.schema-v1.json"

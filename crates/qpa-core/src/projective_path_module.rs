@@ -15,6 +15,41 @@ use crate::{
     PathError, QuiverStaticDictionary, StaticDictionaryError, VertexIndex,
 };
 
+/// QPA's declared information class for projective path-module computations.
+pub const INFO_PATH_ALGEBRA_MODULE: &str = "InfoPathAlgebraModule";
+
+/// GAP info classes start at level zero until the caller changes them.
+pub const INFO_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL: usize = 0;
+
+/// Side filter installed on a path-algebra module Groebner-basis object.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum PathAlgebraModuleGroebnerBasisSide {
+    /// QPA's constructed module bases set the right-side property.
+    Right,
+    /// The source declares the left-side property but installs no constructor.
+    Left,
+}
+
+impl PathAlgebraModuleGroebnerBasisSide {
+    /// Return the implied parent category filter.
+    #[must_use]
+    pub const fn is_path_algebra_module_groebner_basis(self) -> bool {
+        true
+    }
+
+    /// Return QPA's left-side property.
+    #[must_use]
+    pub const fn is_left(self) -> bool {
+        matches!(self, Self::Left)
+    }
+
+    /// Return QPA's right-side property.
+    #[must_use]
+    pub const fn is_right(self) -> bool {
+        matches!(self, Self::Right)
+    }
+}
+
 struct RightProjectivePathAlgebraModuleData<F: Field> {
     algebra: PathAlgebra<F>,
     vertices: Box<[VertexIndex]>,
@@ -622,6 +657,33 @@ impl<F: Field> RightPathAlgebraModuleGroebnerBasis<F> {
         &self.basis_vectors
     }
 
+    /// Return the property side installed by QPA's constructor.
+    #[must_use]
+    pub const fn side(&self) -> PathAlgebraModuleGroebnerBasisSide {
+        PathAlgebraModuleGroebnerBasisSide::Right
+    }
+
+    /// Translate the `ViewObj` method selected when `BasisVectors` is bound.
+    ///
+    /// The coefficient and field formatters keep GAP presentation concerns
+    /// separate from Numerica's exact arithmetic backend.
+    pub fn view_obj_with_basis(
+        &self,
+        field_display: &str,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> String {
+        let module = qpa_right_module_view(self.parent_module(), field_display);
+        let vectors = qpa_vector_list_string(self.basis_vectors(), coefficient);
+        format!("<Groebner basis of {module}, {vectors} >")
+    }
+
+    /// Translate QPA's fallback `ViewObj` method before `BasisVectors` is bound.
+    #[must_use]
+    pub fn view_obj_without_basis(&self, field_display: &str) -> String {
+        let module = qpa_right_module_view(self.parent_module(), field_display);
+        format!("<Groebner basis of {module}, ...>")
+    }
+
     /// Translate `CompletelyReduce(gb, vector)`.
     ///
     /// QPA selects the first shortest prefix match in the static dictionary;
@@ -711,6 +773,20 @@ pub fn right_projective_path_algebra_module<F: Field>(
     )))
 }
 
+/// Represent QPA's declared but uninstalled two-argument
+/// `RightGroebnerBasisOfModule(A, generators)` operation.
+///
+/// # Errors
+///
+/// Pinned QPA has no installed method for this declaration, for any ordinary
+/// path algebra and homogeneous element list.
+pub fn right_groebner_basis_of_module_from_generators<F: Field>(
+    _algebra: &PathAlgebra<F>,
+    _generators: &[PathAlgebraElement<F>],
+) -> Result<RightPathAlgebraModuleGroebnerBasis<F>, ProjectivePathModuleError> {
+    Err(ProjectivePathModuleError::UninstalledTwoArgumentRightGroebnerBasis)
+}
+
 /// QPA's positional `PathAlgebraVector` external representation.
 #[derive(Clone, Debug)]
 pub struct PathAlgebraVector<F: Field> {
@@ -742,6 +818,14 @@ impl<F: Field> PathAlgebraVector<F> {
     #[must_use]
     pub fn components(&self) -> &[PathAlgebraElement<F>] {
         &self.components
+    }
+
+    /// Translate QPA's generic path-vector `PrintObj` method.
+    ///
+    /// The caller supplies the GAP-facing coefficient spelling because the
+    /// Numerica backend deliberately owns arithmetic rather than GAP syntax.
+    pub fn print_obj_with(&self, coefficient: impl Fn(&F::Element) -> String + Copy) -> String {
+        qpa_path_algebra_components_string(self.components(), coefficient)
     }
 
     /// Return the cached one-based QPA leading position.
@@ -1043,6 +1127,61 @@ impl<F: Field> PartialEq for PathAlgebraVector<F> {
 }
 
 impl<F: Field> Eq for PathAlgebraVector<F> {}
+
+pub(crate) fn qpa_path_algebra_components_string<F: Field>(
+    components: &[PathAlgebraElement<F>],
+    coefficient: impl Fn(&F::Element) -> String + Copy,
+) -> String {
+    let entries = components
+        .iter()
+        .map(|component| qpa_path_algebra_element_string(component, coefficient))
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!("[ {entries} ]")
+}
+
+fn qpa_path_algebra_element_string<F: Field>(
+    element: &PathAlgebraElement<F>,
+    coefficient: impl Fn(&F::Element) -> String + Copy,
+) -> String {
+    if element.is_zero() {
+        return "0".into();
+    }
+    element
+        .terms()
+        .iter()
+        .map(|term| format!("({})*{}", coefficient(term.coefficient()), term.path()))
+        .collect::<Vec<_>>()
+        .join("+")
+}
+
+fn qpa_vector_list_string<F: Field>(
+    vectors: &[PathAlgebraVector<F>],
+    coefficient: impl Fn(&F::Element) -> String + Copy,
+) -> String {
+    if vectors.is_empty() {
+        return "[]".into();
+    }
+    format!(
+        "[ {} ]",
+        vectors
+            .iter()
+            .map(|vector| vector.print_obj_with(coefficient))
+            .collect::<Vec<_>>()
+            .join(", ")
+    )
+}
+
+fn qpa_right_module_view<F: Field>(
+    module: &RightProjectivePathAlgebraModule<F>,
+    field_display: &str,
+) -> String {
+    format!(
+        "<right-module over <{field_display}[<quiver with {} vertices and {} arrows>]>>",
+        module.algebra().quiver().number_of_vertices(),
+        module.algebra().quiver().number_of_arrows(),
+    )
+}
 
 /// A free left field-module whose elements are QPA path-algebra vectors.
 ///
@@ -2041,6 +2180,9 @@ fn right_path_factor<F: Field>(
 /// Failure in QPA's projective path-algebra vector machinery.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum ProjectivePathModuleError {
+    /// The source declares this arity but installs no method for it.
+    #[error("QPA has no two-argument RightGroebnerBasisOfModule method")]
+    UninstalledTwoArgumentRightGroebnerBasis,
     /// The vertex element belongs to another path algebra.
     #[error("projective vertex {position} belongs to another path algebra")]
     ForeignVertexAlgebra {

@@ -20344,9 +20344,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "INFO_PATH_ALGEBRA_MODULE; INFO_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20617,9 +20617,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 37
 source_end = 37
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "right_groebner_basis_of_module_from_generators"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20669,9 +20669,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 43
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleGroebnerBasisSide::Left; PathAlgebraModuleGroebnerBasisSide::is_left"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20682,9 +20682,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 45
 source_end = 46
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleGroebnerBasisSide::is_path_algebra_module_groebner_basis"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21033,9 +21033,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 312
 source_end = 319
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVector::print_obj_with"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21462,9 +21462,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1462
 source_end = 1474
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis::view_obj_with_basis"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21475,9 +21475,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1477
 source_end = 1487
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis::view_obj_without_basis"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21514,9 +21514,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1565
 source_end = 1573
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "FpPathAlgebraVector::print_obj_with"
+tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
 
 [[entries]]

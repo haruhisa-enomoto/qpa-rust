@@ -194,13 +194,14 @@ pub use path_module::{
 };
 pub use poset::{Poset, PosetError};
 pub use projective_path_module::{
-    PathAlgebraVector, PathAlgebraVectorBasis, PathAlgebraVectorNSetEntry,
-    PathAlgebraVectorOSetEntry, PathAlgebraVectorSpace, PathAlgebraVectorXSet,
-    ProjectivePathModuleError, RightPathAlgebraModuleGroebnerBasis,
+    INFO_PATH_ALGEBRA_MODULE, INFO_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL,
+    PathAlgebraModuleGroebnerBasisSide, PathAlgebraVector, PathAlgebraVectorBasis,
+    PathAlgebraVectorNSetEntry, PathAlgebraVectorOSetEntry, PathAlgebraVectorSpace,
+    PathAlgebraVectorXSet, ProjectivePathModuleError, RightPathAlgebraModuleGroebnerBasis,
     RightProjectivePathAlgebraModule, RightProjectivePathAlgebraSubmodule,
     completely_reduce_path_algebra_module_groebner_basis, first_part, left_division,
-    right_projective_path_algebra_module, tip_reduce_path_algebra_vector,
-    tip_reduce_path_algebra_vectors, x_set_of_path_algebra_vector,
+    right_groebner_basis_of_module_from_generators, right_projective_path_algebra_module,
+    tip_reduce_path_algebra_vector, tip_reduce_path_algebra_vectors, x_set_of_path_algebra_vector,
 };
 pub use projective_presentation::{ProjectivePresentation, ProjectivePresentationError};
 pub use projective_resolution::{
