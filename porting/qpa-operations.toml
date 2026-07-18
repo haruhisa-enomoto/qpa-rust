@@ -21346,8 +21346,8 @@ source_start = 1084
 source_end = 1118
 classification = "installed_implementation"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule::submodule"
-tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::submodule; RightFpPathAlgebraModule::submodule; RightFpPathAlgebraSubmodule"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21542,7 +21542,7 @@ source_end = 1769
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "natural_homomorphism_by_projective_submodule; NaturalSubmoduleHomomorphism; RightFpPathAlgebraModule; FpPathAlgebraVector"
-tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
+tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21555,7 +21555,7 @@ source_end = 1856
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "vertex_projective_presentation"
-tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation_errors.schema-v1.json"]
+tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation_errors.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21568,7 +21568,7 @@ source_end = 1926
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "vertex_projective_presentation_with_vertices"
-tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation_errors.schema-v1.json"]
+tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation_errors.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21592,9 +21592,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 2110
 source_end = 2126
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "hom_of_fp_path_algebra_modules; FpPathAlgebraHomSpace"
+tests = ["tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21605,9 +21605,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 2131
 source_end = 2147
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "end_of_fp_path_algebra_module; FpPathAlgebraEndomorphismAlgebra"
+tests = ["tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21618,9 +21618,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 2152
 source_end = 2164
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "FpPathAlgebraByImagesHomomorphism::images_source"
+tests = ["tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21631,9 +21631,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 2169
 source_end = 2186
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "FpPathAlgebraMatrixHomomorphism::images_source"
+tests = ["tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
 
 [[entries]]

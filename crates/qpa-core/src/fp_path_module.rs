@@ -6,15 +6,16 @@
 //! representation and are normalized by the right module Groebner basis of
 //! the entered submodule.
 
-use std::{cmp::Ordering, fmt, sync::Arc};
+use std::{cmp::Ordering, fmt, marker::PhantomData, sync::Arc};
 
 use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    Path, PathAlgebra, PathAlgebraElement, PathEndpoint, ProjectivePathModuleError,
-    RightPathAlgebraModuleGroebnerBasis, RightProjectivePathAlgebraModule,
-    RightProjectivePathAlgebraSubmodule, VertexIndex, right_projective_path_algebra_module,
+    DenseMatrix, MatrixError, Path, PathAlgebra, PathAlgebraElement, PathEndpoint,
+    ProjectivePathModuleError, RightPathAlgebraModuleGroebnerBasis,
+    RightProjectivePathAlgebraModule, RightProjectivePathAlgebraSubmodule, VertexIndex,
+    right_projective_path_algebra_module,
 };
 
 #[derive(Clone, Debug)]
@@ -28,6 +29,11 @@ struct RightFpPathAlgebraModuleData<F: Field> {
     bottom: RightProjectivePathAlgebraSubmodule<F>,
     groebner_basis: RightPathAlgebraModuleGroebnerBasis<F>,
     basis: Box<[RawFpPathAlgebraVector<F>]>,
+}
+
+struct RightFpPathAlgebraSubmoduleData<F: Field> {
+    parent: RightFpPathAlgebraModule<F>,
+    generators: Box<[FpPathAlgebraVector<F>]>,
 }
 
 /// QPA's quotient `P/N` represented as an `IsFpPathAlgebraModule`.
@@ -176,6 +182,69 @@ impl<F: Field> RightFpPathAlgebraModule<F> {
         )
     }
 
+    /// Construct QPA's two-argument `SubAlgebraModule` object in this family.
+    ///
+    /// # Errors
+    ///
+    /// GAP's homogeneous collection filter excludes an empty list, and every
+    /// generator must belong to this identical finitely presented family.
+    pub fn submodule(
+        &self,
+        generators: Vec<FpPathAlgebraVector<F>>,
+    ) -> Result<RightFpPathAlgebraSubmodule<F>, FpPathModuleError> {
+        if generators.is_empty() {
+            return Err(FpPathModuleError::EmptyFpSubmoduleGenerators);
+        }
+        if generators
+            .iter()
+            .any(|generator| !generator.module().is_identical(self))
+        {
+            return Err(FpPathModuleError::ForeignFpSubmoduleGenerator);
+        }
+        Ok(RightFpPathAlgebraSubmodule(Arc::new(
+            RightFpPathAlgebraSubmoduleData {
+                parent: self.clone(),
+                generators: generators.into_boxed_slice(),
+            },
+        )))
+    }
+
+    fn coordinates(
+        &self,
+        vector: &FpPathAlgebraVector<F>,
+    ) -> Result<Vec<F::Element>, FpPathModuleError> {
+        if !vector.module().is_identical(self) {
+            return Err(FpPathModuleError::DifferentVectorFamilies);
+        }
+        let basis = self.basis();
+        let mut coordinates = vec![self.algebra().field().zero(); basis.len()];
+        for (position, component) in vector.components().iter().enumerate() {
+            for term in component.terms() {
+                let basis_position = basis.iter().position(|basis_vector| {
+                    basis_vector.leading_position() == position + 1
+                        && basis_vector
+                            .components()
+                            .get(position)
+                            .is_some_and(|basis_component| {
+                                basis_component.terms().len() == 1
+                                    && basis_component.terms()[0].path() == term.path()
+                            })
+                });
+                let Some(basis_position) = basis_position else {
+                    return Err(FpPathModuleError::MissingNormalBasisMonomial {
+                        position: position + 1,
+                        path: term.path().external_representation(),
+                    });
+                };
+                coordinates[basis_position] = self
+                    .algebra()
+                    .field()
+                    .add(&coordinates[basis_position], term.coefficient());
+            }
+        }
+        Ok(coordinates)
+    }
+
     fn normal_form(
         &self,
         preimage: &crate::PathAlgebraVector<F>,
@@ -214,6 +283,65 @@ impl<F: Field> PartialEq for RightFpPathAlgebraModule<F> {
 }
 
 impl<F: Field> Eq for RightFpPathAlgebraModule<F> {}
+
+/// QPA's attribute-storing submodule of a finitely presented path module.
+#[derive(Clone)]
+pub struct RightFpPathAlgebraSubmodule<F: Field>(Arc<RightFpPathAlgebraSubmoduleData<F>>);
+
+impl<F: Field> RightFpPathAlgebraSubmodule<F> {
+    /// Return the identical parent module.
+    #[must_use]
+    pub fn parent(&self) -> &RightFpPathAlgebraModule<F> {
+        &self.0.parent
+    }
+
+    /// Return QPA's entered algebra-module generators verbatim.
+    #[must_use]
+    pub fn generators(&self) -> &[FpPathAlgebraVector<F>] {
+        &self.0.generators
+    }
+
+    /// Return whether two handles denote the identical QPA submodule object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Return the field dimension of the entered image span.
+    ///
+    /// `ImagesSource` supplies images of a full source basis, so their field
+    /// span is already the algebra-module image that QPA stores.
+    ///
+    /// # Errors
+    ///
+    /// Propagates normal-basis coordinate and exact matrix failures.
+    pub fn dimension(&self) -> Result<usize, FpPathModuleError> {
+        let rows = self
+            .generators()
+            .iter()
+            .map(|generator| self.parent().coordinates(generator))
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(DenseMatrix::from_rows(rows, self.parent().algebra().field().clone())?.rank())
+    }
+}
+
+impl<F: Field> fmt::Debug for RightFpPathAlgebraSubmodule<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RightFpPathAlgebraSubmodule")
+            .field("parent", self.parent())
+            .field("generators", &self.generators())
+            .finish()
+    }
+}
+
+impl<F: Field> PartialEq for RightFpPathAlgebraSubmodule<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.is_identical(other)
+    }
+}
+
+impl<F: Field> Eq for RightFpPathAlgebraSubmodule<F> {}
 
 /// A normal-form vector in QPA's finitely presented module family.
 #[derive(Clone, Debug)]
@@ -610,6 +738,221 @@ impl<F: Field> NaturalSubmoduleHomomorphism<F> {
     }
 }
 
+/// QPA's intended `Hom(A, M, N)` vector space.
+///
+/// The pinned implementation never constructs this value for a reachable
+/// finitely presented module: it passes packed module elements to the raw
+/// path-vector `Coefficients` method and GAP reports no applicable method.
+#[derive(Clone, Debug)]
+pub struct FpPathAlgebraHomSpace<F: Field> {
+    _field: PhantomData<F>,
+}
+
+/// QPA's intended `End(A, M)` algebra with one.
+///
+/// As with [`FpPathAlgebraHomSpace`], construction stops at the pinned
+/// `Coefficients` dispatch failure.
+#[derive(Clone, Debug)]
+pub struct FpPathAlgebraEndomorphismAlgebra<F: Field> {
+    _field: PhantomData<F>,
+}
+
+/// Translate QPA's installed `Hom(A, M, N)` method.
+///
+/// # Errors
+///
+/// The method first rejects an algebra not identical to `M`'s acting algebra.
+/// For ordinary reachable inputs, `HOPF_FpPathAlgebraModuleHom` then calls
+/// `Coefficients` with a packed module element although only a raw
+/// `PathAlgebraVector` method exists; Rust preserves that failure explicitly.
+pub fn hom_of_fp_path_algebra_modules<F: Field>(
+    algebra: &PathAlgebra<F>,
+    source: &RightFpPathAlgebraModule<F>,
+    range: &RightFpPathAlgebraModule<F>,
+) -> Result<FpPathAlgebraHomSpace<F>, FpPathModuleError> {
+    if !algebra.is_identical(source.algebra()) {
+        return Err(FpPathModuleError::IncompatibleFpHomActingAlgebra);
+    }
+    if !algebra.is_identical(range.algebra()) {
+        return Err(FpPathModuleError::ForeignFpHomRangeAction);
+    }
+    Err(FpPathModuleError::FpHomCoefficientsDispatch)
+}
+
+/// Translate QPA's installed `End(A, M)` method.
+///
+/// # Errors
+///
+/// Preserves the same compatibility check and packed-element coefficient
+/// dispatch failure as [`hom_of_fp_path_algebra_modules`].
+pub fn end_of_fp_path_algebra_module<F: Field>(
+    algebra: &PathAlgebra<F>,
+    module: &RightFpPathAlgebraModule<F>,
+) -> Result<FpPathAlgebraEndomorphismAlgebra<F>, FpPathModuleError> {
+    if !algebra.is_identical(module.algebra()) {
+        return Err(FpPathModuleError::IncompatibleFpHomActingAlgebra);
+    }
+    Err(FpPathModuleError::FpHomCoefficientsDispatch)
+}
+
+/// A QPA by-images algebra-module homomorphism representation.
+#[derive(Clone, Debug)]
+pub struct FpPathAlgebraByImagesHomomorphism<F: Field> {
+    range: RightFpPathAlgebraModule<F>,
+    images: Box<[FpPathAlgebraVector<F>]>,
+    basis_image: Option<RightFpPathAlgebraSubmodule<F>>,
+}
+
+impl<F: Field> FpPathAlgebraByImagesHomomorphism<F> {
+    /// Mirror `LeftModuleHomomorphismByImagesNC` followed by QPA's algebra-map
+    /// filter installation.
+    ///
+    /// # Errors
+    ///
+    /// Every entered image must belong to the identical range family.
+    pub fn new(
+        range: &RightFpPathAlgebraModule<F>,
+        images: Vec<FpPathAlgebraVector<F>>,
+    ) -> Result<Self, FpPathModuleError> {
+        if images
+            .iter()
+            .any(|image| !image.module().is_identical(range))
+        {
+            return Err(FpPathModuleError::ForeignFpHomomorphismImage);
+        }
+        Ok(Self {
+            range: range.clone(),
+            images: images.into_boxed_slice(),
+            basis_image: None,
+        })
+    }
+
+    /// Return the identical range module.
+    #[must_use]
+    pub const fn range(&self) -> &RightFpPathAlgebraModule<F> {
+        &self.range
+    }
+
+    /// Return the representation's actual image list.
+    #[must_use]
+    pub fn images(&self) -> &[FpPathAlgebraVector<F>] {
+        &self.images
+    }
+
+    /// Return whether QPA's optional `basisimage` record component is bound.
+    #[must_use]
+    pub const fn has_basis_image(&self) -> bool {
+        self.basis_image.is_some()
+    }
+
+    /// Translate the by-images `ImagesSource` method.
+    ///
+    /// # Errors
+    ///
+    /// The standard NC constructor leaves both `basisimage` and the exact
+    /// `genimages` record component read by QPA unbound, producing the pinned
+    /// record-element failure.
+    pub fn images_source(&self) -> Result<RightFpPathAlgebraSubmodule<F>, FpPathModuleError> {
+        self.basis_image
+            .clone()
+            .ok_or(FpPathModuleError::MissingFpByImagesGenImages)
+    }
+}
+
+/// A QPA matrix-representation algebra-module homomorphism.
+#[derive(Clone, Debug)]
+pub struct FpPathAlgebraMatrixHomomorphism<F: Field> {
+    range: RightFpPathAlgebraModule<F>,
+    matrix: DenseMatrix<F>,
+    basis_range: Box<[FpPathAlgebraVector<F>]>,
+    basis_image: Option<RightFpPathAlgebraSubmodule<F>>,
+}
+
+impl<F: Field> FpPathAlgebraMatrixHomomorphism<F> {
+    /// Mirror `LeftModuleHomomorphismByMatrix` for a chosen range basis.
+    ///
+    /// # Errors
+    ///
+    /// The matrix must have one column per range-basis vector, use the exact
+    /// coefficient field, and every basis vector must lie in the range family.
+    pub fn new(
+        range: &RightFpPathAlgebraModule<F>,
+        matrix: DenseMatrix<F>,
+        basis_range: Vec<FpPathAlgebraVector<F>>,
+    ) -> Result<Self, FpPathModuleError> {
+        if matrix.field() != range.algebra().field() {
+            return Err(FpPathModuleError::ForeignFpMatrixField);
+        }
+        if matrix.ncols() != basis_range.len() {
+            return Err(FpPathModuleError::FpMatrixRangeBasisLength {
+                columns: matrix.ncols(),
+                basis_length: basis_range.len(),
+            });
+        }
+        if basis_range
+            .iter()
+            .any(|vector| !vector.module().is_identical(range))
+        {
+            return Err(FpPathModuleError::ForeignFpMatrixBasisVector);
+        }
+        Ok(Self {
+            range: range.clone(),
+            matrix,
+            basis_range: basis_range.into_boxed_slice(),
+            basis_image: None,
+        })
+    }
+
+    /// Return the identical range module.
+    #[must_use]
+    pub const fn range(&self) -> &RightFpPathAlgebraModule<F> {
+        &self.range
+    }
+
+    /// Return QPA's stored matrix.
+    #[must_use]
+    pub const fn matrix(&self) -> &DenseMatrix<F> {
+        &self.matrix
+    }
+
+    /// Return QPA's stored range basis.
+    #[must_use]
+    pub fn basis_range(&self) -> &[FpPathAlgebraVector<F>] {
+        &self.basis_range
+    }
+
+    /// Return whether QPA's optional `basisimage` component is bound.
+    #[must_use]
+    pub const fn has_basis_image(&self) -> bool {
+        self.basis_image.is_some()
+    }
+
+    /// Translate the matrix-representation `ImagesSource` method.
+    ///
+    /// QPA forms one range-basis linear combination per matrix row and passes
+    /// that exact list to `SubAlgebraModule`.
+    ///
+    /// # Errors
+    ///
+    /// Propagates scalar/vector arithmetic and submodule construction.
+    pub fn images_source(&self) -> Result<RightFpPathAlgebraSubmodule<F>, FpPathModuleError> {
+        if let Some(image) = &self.basis_image {
+            return Ok(image.clone());
+        }
+        let mut images = Vec::with_capacity(self.matrix.nrows());
+        for row in 0..self.matrix.nrows() {
+            let mut image = self.range.zero();
+            for (coefficient, basis_vector) in
+                self.matrix.row(row).iter().zip(self.basis_range.iter())
+            {
+                image = image.add(&basis_vector.scale_left(coefficient)?)?;
+            }
+            images.push(image);
+        }
+        self.range.submodule(images)
+    }
+}
+
 /// Translate QPA's `NaturalHomomorphismBySubAlgebraModule(P, N)`.
 ///
 /// # Errors
@@ -636,6 +979,9 @@ pub fn natural_homomorphism_by_projective_submodule<F: Field>(
                 leading_position: vector.leading_position(),
             });
         }
+    }
+    if basis.is_empty() {
+        return Err(FpPathModuleError::EmptyFpBasisNewBasisDispatch);
     }
     let range = RightFpPathAlgebraModule(Arc::new(RightFpPathAlgebraModuleData {
         parent: parent.clone(),
@@ -807,6 +1153,10 @@ pub enum FpPathModuleError {
     /// A cyclic path algebra has no canonical module basis to quotient.
     #[error("the projective module has no available canonical basis")]
     CanonicalBasisUnavailable,
+    /// QPA passes an empty normal-vector list to a `NewBasis` method whose
+    /// collection filter excludes empty lists.
+    #[error("QPA has no NewBasis method for an empty finitely presented basis list")]
+    EmptyFpBasisNewBasisDispatch,
     /// Arithmetic requires one identical finitely presented vector family.
     #[error("the finitely presented vectors belong to different module families")]
     DifferentVectorFamilies,
@@ -816,6 +1166,58 @@ pub enum FpPathModuleError {
     /// Natural-map images require a vector in the map's exact source family.
     #[error("the vector does not belong to the natural homomorphism source")]
     ForeignHomomorphismSourceVector,
+    /// `Hom` and `End` explicitly require the entered algebra to be the
+    /// source module's identical acting algebra.
+    #[error("the path algebra is not compatible with the finitely presented module")]
+    IncompatibleFpHomActingAlgebra,
+    /// QPA does not precheck the range algebra; its first range-basis action
+    /// fails when that algebra is foreign.
+    #[error("the Hom range module cannot act by the entered path algebra")]
+    ForeignFpHomRangeAction,
+    /// The experimental Hom implementation applies raw-vector coefficients
+    /// to a packed algebra-module element.
+    #[error("QPA has no Coefficients method for its packed finitely presented module element")]
+    FpHomCoefficientsDispatch,
+    /// Standard by-images mappings do not bind the record component read by
+    /// QPA's `ImagesSource` method.
+    #[error("QPA's by-images mapping has no genimages record component")]
+    MissingFpByImagesGenImages,
+    /// A by-images map requires images in one identical range family.
+    #[error("an entered homomorphism image belongs to another finitely presented module")]
+    ForeignFpHomomorphismImage,
+    /// The matrix map and range module must use the same exact field.
+    #[error("the homomorphism matrix uses another coefficient field")]
+    ForeignFpMatrixField,
+    /// QPA matrix rows have one coordinate per range-basis vector.
+    #[error(
+        "the homomorphism matrix has {columns} columns for a range basis of length {basis_length}"
+    )]
+    FpMatrixRangeBasisLength {
+        /// Matrix column count.
+        columns: usize,
+        /// Range-basis length.
+        basis_length: usize,
+    },
+    /// Every stored range-basis vector must use the map's range family.
+    #[error("a matrix homomorphism range-basis vector belongs to another module")]
+    ForeignFpMatrixBasisVector,
+    /// QPA's two-argument submodule method does not dispatch on an empty list.
+    #[error("no finitely presented SubAlgebraModule method applies to an empty generator list")]
+    EmptyFpSubmoduleGenerators,
+    /// Finitely presented submodule generators use one identical family.
+    #[error("a finitely presented submodule generator belongs to another module")]
+    ForeignFpSubmoduleGenerator,
+    /// A purported normal form contains a monomial outside QPA's installed
+    /// normal-monomial basis.
+    #[error(
+        "component {position} path {path:?} is absent from the finitely presented normal basis"
+    )]
+    MissingNormalBasisMonomial {
+        /// One-based vector coordinate.
+        position: usize,
+        /// QPA path external representation.
+        path: Vec<usize>,
+    },
     /// QPA indexes coordinate one for zero and fails for rank zero.
     #[error("an empty finitely presented vector has no leading component")]
     EmptyLeadingComponent,
@@ -879,6 +1281,9 @@ pub enum FpPathModuleError {
     /// QPA path ordering failed.
     #[error(transparent)]
     Ordering(#[from] crate::OrderingError),
+    /// Exact matrix construction or row reduction failed.
+    #[error(transparent)]
+    Matrix(#[from] MatrixError),
 }
 
 #[cfg(test)]
@@ -890,11 +1295,13 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use crate::{ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
+    use crate::{ArrowSpec, DenseMatrix, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
 
     use super::{
-        FpPathAlgebraVector, FpPathModuleError, natural_homomorphism_by_projective_submodule,
-        vertex_projective_presentation, vertex_projective_presentation_with_vertices,
+        FpPathAlgebraByImagesHomomorphism, FpPathAlgebraMatrixHomomorphism, FpPathAlgebraVector,
+        FpPathModuleError, end_of_fp_path_algebra_module, hom_of_fp_path_algebra_modules,
+        natural_homomorphism_by_projective_submodule, vertex_projective_presentation,
+        vertex_projective_presentation_with_vertices,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1199,5 +1606,76 @@ mod tests {
         let actual = presentation_error_success(&algebra, &generators, &map);
         assert_eq!(actual["success"], expected["success"]);
         assert_eq!(actual["failure_success"], expected["failure_success"]);
+    }
+
+    #[test]
+    fn pinned_qpa_fp_hom_failures_and_matrix_image_match() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"
+        ))
+        .unwrap();
+        let (algebra, generators, map) = presentation_data(Z2);
+        let module = vertex_projective_presentation(&algebra, &map).unwrap();
+        let zero_module = vertex_projective_presentation(
+            &algebra,
+            &[
+                vec![generators[0].clone(), algebra.zero()],
+                vec![algebra.zero(), generators[1].clone()],
+            ],
+        );
+        let other_algebra = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap(),
+        )
+        .unwrap();
+        let by_images =
+            FpPathAlgebraByImagesHomomorphism::new(&module, module.generators().unwrap()).unwrap();
+        let by_matrix = FpPathAlgebraMatrixHomomorphism::new(
+            &module,
+            DenseMatrix::identity(module.dimension(), Z2),
+            module.basis(),
+        )
+        .unwrap();
+        let matrix_image = by_matrix.images_source().unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "projpathalgmodule_fp_hom",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654",
+            },
+            "dimension": module.dimension(),
+            "success": [
+                hom_of_fp_path_algebra_modules(&algebra, &module, &module).is_ok(),
+                end_of_fp_path_algebra_module(&algebra, &module).is_ok(),
+                zero_module.is_ok(),
+                hom_of_fp_path_algebra_modules(&other_algebra, &module, &module).is_ok(),
+                end_of_fp_path_algebra_module(&other_algebra, &module).is_ok(),
+                by_images.images_source().is_ok(),
+                true,
+            ],
+            "basisimage_bound": [
+                by_images.has_basis_image(),
+                by_matrix.has_basis_image(),
+            ],
+            "images_by_matrix_dimension": matrix_image.dimension().unwrap(),
+        });
+        assert_eq!(actual, expected);
+        assert!(matches!(
+            zero_module,
+            Err(FpPathModuleError::EmptyFpBasisNewBasisDispatch)
+        ));
+        assert!(matches!(
+            hom_of_fp_path_algebra_modules(&algebra, &module, &module),
+            Err(FpPathModuleError::FpHomCoefficientsDispatch)
+        ));
+        assert!(matches!(
+            by_images.images_source(),
+            Err(FpPathModuleError::MissingFpByImagesGenImages)
+        ));
     }
 }

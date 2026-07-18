@@ -103,7 +103,10 @@ pub use element_utilities::{
     QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, VertexQuotientPresentation,
 };
 pub use fp_path_module::{
-    FpPathAlgebraVector, FpPathModuleError, NaturalSubmoduleHomomorphism, RightFpPathAlgebraModule,
+    FpPathAlgebraByImagesHomomorphism, FpPathAlgebraEndomorphismAlgebra, FpPathAlgebraHomSpace,
+    FpPathAlgebraMatrixHomomorphism, FpPathAlgebraVector, FpPathModuleError,
+    NaturalSubmoduleHomomorphism, RightFpPathAlgebraModule, RightFpPathAlgebraSubmodule,
+    end_of_fp_path_algebra_module, hom_of_fp_path_algebra_modules,
     natural_homomorphism_by_projective_submodule, vertex_projective_presentation,
     vertex_projective_presentation_with_vertices,
 };
