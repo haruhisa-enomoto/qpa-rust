@@ -689,6 +689,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/validity.g" \
     "$repo_root/tests/fixtures/validity.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/stringalgebra.g" \
+    "$repo_root/tests/fixtures/stringalgebra.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_predefined.g" \
     "$repo_root/tests/fixtures/pathalg_predefined.schema-v1.json"
 compare_fixture \

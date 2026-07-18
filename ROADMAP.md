@@ -755,8 +755,10 @@ Primary QPA files: `stringalgebra`, `validity`, `combinatorialrep`,
   local AR operations.
   `validity.gd`/`.gi` is now complete: relation-word reconstruction, QPA's
   concrete sigma/epsilon choice, lazy-string validation, all four hook/cohook
-  moves, and local AR descriptions are pinned over `GF(2)` and `QQ`; the
-  `stringalgebra` enumeration/module surface remains pending.
+  moves, and local AR descriptions are pinned over `GF(2)` and `QQ`.
+  `stringalgebra` word primitives, bounded string/band enumeration, and band
+  representatives are likewise pinned; domestic recognition and the bridge
+  quiver remain.
 - [ ] Port special-biserial, string, gentle, and domestic recognition methods
   that are part of QPA itself.
 - [ ] Port unit forms, roots, Euler/Tits forms, and reflections.

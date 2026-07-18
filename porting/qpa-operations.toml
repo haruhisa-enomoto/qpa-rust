@@ -23347,9 +23347,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "compute_lps_array"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23360,9 +23360,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "source_of_string_arrow"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23373,9 +23373,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "target_of_string_arrow"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23386,9 +23386,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "cyclic_permutations_of_band"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23399,9 +23399,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "maximum_length_of_direct_string"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23412,9 +23412,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "number_of_joints"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23425,9 +23425,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_a_band"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23438,9 +23438,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "strings_less_than"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23451,9 +23451,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "bands_less_than"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23464,9 +23464,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "band_representatives_less_than"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23503,9 +23503,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 1
 source_end = 30
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "compute_lps_array"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23516,9 +23516,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 32
 source_end = 54
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "source_of_string_arrow"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23529,9 +23529,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 56
 source_end = 78
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "target_of_string_arrow"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23542,9 +23542,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 80
 source_end = 97
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "cyclic_permutations_of_band"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23555,9 +23555,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 99
 source_end = 125
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "maximum_length_of_direct_string"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23568,9 +23568,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 127
 source_end = 143
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "number_of_joints"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23581,9 +23581,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 145
 source_end = 230
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_a_band"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23594,9 +23594,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 232
 source_end = 346
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "strings_less_than"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23607,9 +23607,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 348
 source_end = 399
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "bands_less_than"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23620,9 +23620,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 401
 source_end = 455
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "band_representatives_less_than"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
