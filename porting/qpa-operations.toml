@@ -4042,9 +4042,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tau_of_complex"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4055,9 +4055,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 19
 source_end = 19
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_to_injective_complex"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4068,9 +4068,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_to_injective_finite_complex"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4081,9 +4081,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 21
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_map_between_projectives"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4094,9 +4094,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 23
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_map_between_indec_projectives"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4107,9 +4107,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 25
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_map_between_decomp_projectives"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4406,9 +4406,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 544
 source_end = 558
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "tau_of_complex"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4419,9 +4419,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 571
 source_end = 648
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_to_injective_complex"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4432,9 +4432,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 661
 source_end = 711
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_to_injective_finite_complex"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4445,9 +4445,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 728
 source_end = 744
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_map_between_projectives"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4458,9 +4458,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 762
 source_end = 824
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_map_between_indec_projectives"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4471,9 +4471,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 841
 source_end = 871
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "star_of_map_between_decomp_projectives"
+tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
 
 [[entries]]

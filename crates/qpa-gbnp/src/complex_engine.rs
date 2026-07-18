@@ -2611,6 +2611,9 @@ pub enum ComplexError {
     /// A runtime `Cat` callback reported a failure.
     #[error("category callback failed: {0}")]
     CategoryCallback(String),
+    /// A lazy differential installed by the derived-category layer failed.
+    #[error("derived-category lazy differential failed: {0}")]
+    DerivedCategoryLazyDifferential(String),
     /// Consecutive differentials have incompatible intermediate objects.
     #[error("range/source mismatch between {higher} and {lower} at degree {top_degree}")]
     DifferentialObjectMismatch {

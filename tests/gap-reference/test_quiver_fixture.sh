@@ -1182,6 +1182,12 @@ compare_fixture \
 compare_catching_fixture \
     "$repo_root/tests/gap-reference/derivedcat_resolution_errors.g" \
     "$repo_root/tests/fixtures/derivedcat_resolution_errors.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/derivedcat_tau.g" \
+    "$repo_root/tests/fixtures/derivedcat_tau.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/derivedcat_tau_errors.g" \
+    "$repo_root/tests/fixtures/derivedcat_tau_errors.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_derived_error.g" \
     >"$actual" 2>&1

@@ -1,22 +1,32 @@
 //! Projective/injective complex descriptions and helper maps translated from
 //! QPA's `derivedcat.gd` and `derivedcat.gi`.
 
-use std::fmt::Write as _;
+use std::{fmt::Write as _, sync::Arc};
 
 use numerica::domains::{Field, integer::Integer};
 use qpa_core::{
-    DenseMatrix, ExtendedInteger, InfiniteList, PathAlgebraModule, PathAlgebraModuleError,
-    PathAlgebraModuleHomomorphism, QpaCoefficientField, direct_sum_inclusions,
-    direct_sum_of_qpa_modules, direct_sum_projections, inverse_of_isomorphism, kernel_inclusion,
-    pull_back, socle_of_module, top_of_module, zero_module, zero_module_mapping,
+    DenseMatrix, ExtendedInteger, InfiniteList, PathAlgebraError, PathAlgebraModule,
+    PathAlgebraModuleError, PathAlgebraModuleHomomorphism, PathAlgebraTensorError,
+    QpaCoefficientField, QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError,
+    direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections,
+    include_in_path_algebra, inverse_of_isomorphism, kernel_inclusion,
+    minimal_generating_set_of_module, pull_back, right_module_hom_over_algebra, socle_of_module,
+    top_of_module, zero_module, zero_module_mapping,
 };
 use thiserror::Error;
 
 use crate::{
     complex::{
-        ComplexError, ModuleComplex, finite_complex, projective_resolution_complex, yoneda_product,
+        ComplexError, ComplexHalf, ModuleComplex, complex, finite_complex,
+        projective_resolution_complex, stalk_complex, yoneda_product,
     },
-    module::{EnvelopingModuleError, is_injective_module, is_projective_module, projective_cover},
+    module::{
+        EnvelopingModuleError, basis_of_projectives, hom_from_projective, indec_injective_modules,
+        indec_projective_modules, is_injective_module, is_projective_module,
+        opposite_module_algebra, projective_cover,
+    },
+    opposite_quotient_element,
+    pathalg::PathalgGbnpError,
 };
 
 /// Failures exposed by QPA's projective/injective complex helper layer.
@@ -28,6 +38,18 @@ pub enum DerivedCategoryError {
     /// A module or module-map operation failed.
     #[error(transparent)]
     Module(#[from] PathAlgebraModuleError),
+    /// Parent path-algebra arithmetic failed.
+    #[error(transparent)]
+    PathAlgebra(#[from] PathAlgebraError),
+    /// Arithmetic in the path-algebra/quotient union failed.
+    #[error(transparent)]
+    AlgebraElement(#[from] QuiverAlgebraElementError),
+    /// Inclusion of a path into a quotient/path-algebra union failed.
+    #[error(transparent)]
+    Tensor(#[from] PathAlgebraTensorError),
+    /// A GBNP-backed opposite quotient construction failed.
+    #[error(transparent)]
+    Pathalg(#[from] PathalgGbnpError),
     /// A projective/injective module construction failed.
     #[error(transparent)]
     Enveloping(#[from] EnvelopingModuleError),
@@ -111,6 +133,56 @@ pub enum DerivedCategoryError {
     /// ranges inside the resolution construction.
     #[error("PullBack returned fail inside ProjectiveResolutionOfComplex")]
     ProjectiveResolutionPullBackReturnedFail,
+    /// The conversion method performs integer arithmetic on the lower bound.
+    #[error("ProjectiveToInjectiveComplex requires a finite lower bound")]
+    ProjectiveToInjectiveNeedsFiniteLowerBound,
+    /// The explicitly finite conversion method requires a finite upper bound.
+    #[error("ProjectiveToInjectiveFiniteComplex requires a finite upper bound")]
+    ProjectiveToInjectiveFiniteNeedsFiniteUpperBound,
+    /// QPA's range loop cannot use a nonfinite highest-known degree.
+    #[error("ProjectiveToInjectiveComplex requires a finite highest known degree")]
+    ProjectiveToInjectiveNeedsFiniteHighestKnownDegree,
+    /// QPA indexed the first entry of an empty projective description.
+    #[error("{operation} indexed an empty projective description")]
+    EmptyProjectiveDescription {
+        /// Source operation that indexed the empty list.
+        operation: &'static str,
+    },
+    /// A dimension-vector entry was reused as an invalid one-based vertex.
+    #[error("projective description entry {vertex} lies outside 1..={vertex_count}")]
+    ProjectiveDescriptionVertexOutOfRange {
+        /// Entry interpreted by QPA as a vertex number.
+        vertex: usize,
+        /// Number of available indecomposable modules.
+        vertex_count: usize,
+    },
+    /// A star-helper description did not match its component map list.
+    #[error("star component position {position} lies outside 1..={component_count}")]
+    StarComponentPositionOutOfRange {
+        /// One-based requested component.
+        position: usize,
+        /// Available component maps.
+        component_count: usize,
+    },
+    /// The selected projective basis and module coordinates did not agree.
+    #[error(
+        "star projective basis has {basis} elements but the module component has {coordinates} coordinates"
+    )]
+    StarProjectiveBasisCoordinateMismatch {
+        /// Number of basis elements.
+        basis: usize,
+        /// Number of coordinates supplied by the module element.
+        coordinates: usize,
+    },
+    /// QPA's filtered opposite-projective generator list was empty.
+    #[error("StarOfMapBetweenIndecProjectives found no opposite generator at vertex {vertex}")]
+    StarOppositeGeneratorMissing {
+        /// Expected one-based supporting vertex.
+        vertex: usize,
+    },
+    /// QPA's internal `HomFromProjective` unexpectedly returned `fail`.
+    #[error("HomFromProjective returned fail inside StarOfMapBetweenIndecProjectives")]
+    StarHomFromProjectiveReturnedFail,
 }
 
 /// QPA's four-element result from `CheckForIsomorphism`.
@@ -782,6 +854,15 @@ where
     complex
 }
 
+fn cache_injective_complex<F>(complex: ModuleComplex<F>) -> ModuleComplex<F>
+where
+    F: QpaCoefficientField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+{
+    let _ = complex.cache_is_injective_complex(true);
+    complex
+}
+
 /// Translate QPA's `ProjectiveResolutionOfComplex`.
 ///
 /// This is the source pullback/projective-cover construction, including its
@@ -968,6 +1049,563 @@ pub fn matrices_of_dual_map<F: Field>(
         .iter()
         .map(DenseMatrix::transpose)
         .collect()
+}
+
+fn modules_from_projective_description<F: Field>(
+    modules: &[PathAlgebraModule<F>],
+    description: &[usize],
+    operation: &'static str,
+) -> Result<PathAlgebraModule<F>, DerivedCategoryError> {
+    if description.is_empty() {
+        return Err(DerivedCategoryError::EmptyProjectiveDescription { operation });
+    }
+    let summands = description
+        .iter()
+        .map(|&vertex| {
+            modules
+                .get(vertex.checked_sub(1).ok_or(
+                    DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                        vertex,
+                        vertex_count: modules.len(),
+                    },
+                )?)
+                .cloned()
+                .ok_or(
+                    DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                        vertex,
+                        vertex_count: modules.len(),
+                    },
+                )
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    direct_sum_of_qpa_modules(&summands)?
+        .ok_or(DerivedCategoryError::EmptyProjectiveDescription { operation })
+}
+
+fn sum_nonempty_maps<F: Field>(
+    maps: impl IntoIterator<Item = Result<PathAlgebraModuleHomomorphism<F>, DerivedCategoryError>>,
+) -> Result<PathAlgebraModuleHomomorphism<F>, DerivedCategoryError> {
+    let mut maps = maps.into_iter();
+    let Some(first) = maps.next() else {
+        return Err(DerivedCategoryError::EmptyMapComponentList);
+    };
+    let mut sum = first?;
+    for map in maps {
+        sum = sum.add(&map?)?;
+    }
+    Ok(sum)
+}
+
+fn opposite_quiver_algebra_element<F: Field>(
+    element: &QuiverAlgebraElement<F>,
+) -> Result<QuiverAlgebraElement<F>, DerivedCategoryError> {
+    match element {
+        QuiverAlgebraElement::Path(element) => Ok(QuiverAlgebraElement::Path(element.opposite()?)),
+        QuiverAlgebraElement::Quotient(element) => Ok(QuiverAlgebraElement::Quotient(
+            opposite_quotient_element(element)?,
+        )),
+    }
+}
+
+fn linear_combination_of_projective_basis<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    basis: &[QuiverAlgebraElement<F>],
+    coefficients: &[F::Element],
+) -> Result<QuiverAlgebraElement<F>, DerivedCategoryError> {
+    if basis.len() != coefficients.len() {
+        return Err(
+            DerivedCategoryError::StarProjectiveBasisCoordinateMismatch {
+                basis: basis.len(),
+                coordinates: coefficients.len(),
+            },
+        );
+    }
+    let mut result = algebra.zero();
+    for (element, coefficient) in basis.iter().zip(coefficients) {
+        result = result.add(&element.scale_left(coefficient)?)?;
+    }
+    Ok(result)
+}
+
+/// Translate `StarOfMapBetweenIndecProjectives`.
+///
+/// The method reconstructs the image of the distinguished generator inside
+/// `BasisOfProjectives`, reverses that algebra element, acts on the matching
+/// opposite-projective generator, and combines the resulting component maps
+/// in QPA's entered summand order.
+///
+/// # Errors
+///
+/// Propagates projective bases, opposite-algebra arithmetic, module actions,
+/// direct sums, component maps, and the source method's unchecked indexing.
+#[allow(clippy::too_many_lines)]
+pub fn star_of_map_between_indec_projectives<F: Field>(
+    map: &PathAlgebraModuleHomomorphism<F>,
+    source_vertex: usize,
+    range_description: &[usize],
+) -> Result<PathAlgebraModuleHomomorphism<F>, DerivedCategoryError> {
+    let algebra = map.source().right_acting_algebra();
+    let projective_bases =
+        basis_of_projectives(algebra)?.ok_or(EnvelopingModuleError::ProjectiveBasisUnavailable)?;
+    let opposite = opposite_module_algebra(algebra)?;
+    let opposite_projectives = indec_projective_modules(&opposite)?;
+    let opposite_range = opposite_projectives
+        .get(source_vertex.checked_sub(1).ok_or(
+            DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                vertex: source_vertex,
+                vertex_count: opposite_projectives.len(),
+            },
+        )?)
+        .ok_or(
+            DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                vertex: source_vertex,
+                vertex_count: opposite_projectives.len(),
+            },
+        )?;
+
+    let summands = if map.range().is_direct_sum_of_modules() {
+        direct_sum_projections(map.range())?
+            .iter()
+            .map(|projection| Ok(map.compose(projection)?))
+            .collect::<Result<Vec<_>, DerivedCategoryError>>()?
+    } else {
+        vec![map.clone()]
+    };
+    let mut opposite_maps = Vec::with_capacity(range_description.len());
+    for (position, &range_vertex) in range_description.iter().enumerate() {
+        let summand = summands.get(position).ok_or(
+            DerivedCategoryError::StarComponentPositionOutOfRange {
+                position: position + 1,
+                component_count: summands.len(),
+            },
+        )?;
+        let opposite_source = opposite_projectives
+            .get(range_vertex.checked_sub(1).ok_or(
+                DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                    vertex: range_vertex,
+                    vertex_count: opposite_projectives.len(),
+                },
+            )?)
+            .ok_or(
+                DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                    vertex: range_vertex,
+                    vertex_count: opposite_projectives.len(),
+                },
+            )?;
+        if summand.is_zero() {
+            opposite_maps.push(zero_module_mapping(
+                opposite_source.clone(),
+                opposite_range.clone(),
+            )?);
+            continue;
+        }
+
+        let generator = minimal_generating_set_of_module(summand.source().clone())?
+            .into_iter()
+            .next()
+            .ok_or(DerivedCategoryError::StarOppositeGeneratorMissing {
+                vertex: source_vertex,
+            })?;
+        let image = summand.image(&generator)?;
+        let basis = projective_bases
+            .get(range_vertex.checked_sub(1).ok_or(
+                DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                    vertex: range_vertex,
+                    vertex_count: projective_bases.len(),
+                },
+            )?)
+            .and_then(|components| components.get(source_vertex.wrapping_sub(1)))
+            .ok_or(
+                DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                    vertex: source_vertex,
+                    vertex_count: projective_bases.len(),
+                },
+            )?;
+        let coordinates = image
+            .external_representation()
+            .get(source_vertex.wrapping_sub(1))
+            .ok_or(
+                DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                    vertex: source_vertex,
+                    vertex_count: image.external_representation().len(),
+                },
+            )?;
+        let algebra_element = linear_combination_of_projective_basis(algebra, basis, coordinates)?;
+        let opposite_element = opposite_quiver_algebra_element(&algebra_element)?;
+        let opposite_generator = minimal_generating_set_of_module(opposite_range.clone())?
+            .into_iter()
+            .find(|element| {
+                let vertex = source_vertex.wrapping_sub(1);
+                let dimension = opposite_range
+                    .dimension_vector()
+                    .get(vertex)
+                    .copied()
+                    .unwrap_or(0);
+                element
+                    .external_representation()
+                    .get(vertex)
+                    .is_some_and(|row| {
+                        row.iter()
+                            .take(dimension)
+                            .any(|entry| !opposite.field().is_zero(entry))
+                    })
+            })
+            .ok_or(DerivedCategoryError::StarOppositeGeneratorMissing {
+                vertex: source_vertex,
+            })?;
+        let acted = opposite_generator.act(&opposite_element)?;
+        let support_vertex = opposite
+            .quiver()
+            .vertices()
+            .nth(range_vertex.wrapping_sub(1))
+            .ok_or(
+                DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                    vertex: range_vertex,
+                    vertex_count: opposite.quiver().number_of_vertices(),
+                },
+            )?;
+        let idempotent = include_in_path_algebra(&support_vertex.path(), &opposite)?;
+        let support = acted.act(&idempotent)?;
+        let component = if support.is_zero() {
+            zero_module_mapping(opposite_source.clone(), opposite_range.clone())?
+        } else {
+            hom_from_projective(&support, opposite_range)?
+                .ok_or(DerivedCategoryError::StarHomFromProjectiveReturnedFail)?
+        };
+        opposite_maps.push(component);
+    }
+
+    let sources = opposite_maps
+        .iter()
+        .map(|component| component.source().clone())
+        .collect::<Vec<_>>();
+    let source = direct_sum_of_qpa_modules(&sources)?.ok_or(
+        DerivedCategoryError::EmptyProjectiveDescription {
+            operation: "StarOfMapBetweenIndecProjectives",
+        },
+    )?;
+    let projections = direct_sum_projections(&source)?;
+    sum_nonempty_maps(
+        projections
+            .iter()
+            .zip(&opposite_maps)
+            .map(|(projection, component)| Ok(projection.compose(component)?)),
+    )
+}
+
+/// Translate `StarOfMapBetweenDecompProjectives`.
+///
+/// # Errors
+///
+/// Propagates summand extraction, each indecomposable star construction,
+/// QPA's source-identification bridge, and direct-sum map assembly.
+pub fn star_of_map_between_decomp_projectives<F: Field>(
+    map: &PathAlgebraModuleHomomorphism<F>,
+    source_description: &[usize],
+    range_description: &[usize],
+) -> Result<PathAlgebraModuleHomomorphism<F>, DerivedCategoryError> {
+    let source_inclusions = direct_sum_inclusions(map.source())?;
+    let mut maps = Vec::with_capacity(source_description.len());
+    for (position, &vertex) in source_description.iter().enumerate() {
+        let inclusion = source_inclusions.get(position).ok_or(
+            DerivedCategoryError::StarComponentPositionOutOfRange {
+                position: position + 1,
+                component_count: source_inclusions.len(),
+            },
+        )?;
+        maps.push(star_of_map_between_indec_projectives(
+            &inclusion.compose(map)?,
+            vertex,
+            range_description,
+        )?);
+    }
+    if let Some(first) = maps.first().cloned() {
+        for map in maps.iter_mut().skip(1) {
+            let projections = direct_sum_projections(first.source())?;
+            let inclusions = direct_sum_inclusions(map.source())?;
+            let bridge = sum_nonempty_maps(
+                projections
+                    .iter()
+                    .zip(&inclusions)
+                    .map(|(projection, inclusion)| Ok(projection.compose(inclusion)?)),
+            )?;
+            *map = bridge.compose(map)?;
+        }
+    }
+    let ranges = maps
+        .iter()
+        .map(|component| component.range().clone())
+        .collect::<Vec<_>>();
+    let range = direct_sum_of_qpa_modules(&ranges)?.ok_or(
+        DerivedCategoryError::EmptyProjectiveDescription {
+            operation: "StarOfMapBetweenDecompProjectives",
+        },
+    )?;
+    let inclusions = direct_sum_inclusions(&range)?;
+    sum_nonempty_maps(
+        maps.iter()
+            .zip(&inclusions)
+            .map(|(component, inclusion)| Ok(component.compose(inclusion)?)),
+    )
+}
+
+/// Translate `StarOfMapBetweenProjectives` and its length-based dispatch.
+///
+/// # Errors
+///
+/// Propagates the selected indecomposable/decomposable source method. An empty
+/// source description retains QPA's unchecked first-entry failure.
+pub fn star_of_map_between_projectives<F: Field>(
+    map: &PathAlgebraModuleHomomorphism<F>,
+    source_description: &[usize],
+    range_description: &[usize],
+) -> Result<PathAlgebraModuleHomomorphism<F>, DerivedCategoryError> {
+    if source_description.len() <= 1 {
+        let &vertex =
+            source_description
+                .first()
+                .ok_or(DerivedCategoryError::EmptyProjectiveDescription {
+                    operation: "StarOfMapBetweenProjectives",
+                })?;
+        star_of_map_between_indec_projectives(map, vertex, range_description)
+    } else {
+        star_of_map_between_decomp_projectives(map, source_description, range_description)
+    }
+}
+
+/// Translate `ProjectiveToInjectiveFiniteComplex`.
+///
+/// QPA's dimension-vector-as-vertex-list behavior is retained literally.
+///
+/// # Errors
+///
+/// Requires finite bounds and propagates projective descriptions, star maps,
+/// transposition, direct sums, and checked finite-complex construction.
+pub fn projective_to_injective_finite_complex<F>(
+    projective_complex: &ModuleComplex<F>,
+) -> Result<ModuleComplex<F>, DerivedCategoryError>
+where
+    F: QpaCoefficientField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+{
+    let start = finite_bound(projective_complex.lower_bound()?)
+        .ok_or(DerivedCategoryError::ProjectiveToInjectiveNeedsFiniteLowerBound)?;
+    let stop = finite_bound(projective_complex.upper_bound()?)
+        .ok_or(DerivedCategoryError::ProjectiveToInjectiveFiniteNeedsFiniteUpperBound)?;
+    let injectives =
+        indec_injective_modules(projective_complex.object(&start)?.right_acting_algebra())?;
+    let descriptions = description_of_finite_proj_complex(projective_complex)?;
+    if matches!(
+        projective_complex.length()?,
+        Some(ExtendedInteger::Finite(ref length)) if *length == 1
+    ) {
+        let description =
+            descriptions
+                .first()
+                .ok_or(DerivedCategoryError::EmptyProjectiveDescription {
+                    operation: "ProjectiveToInjectiveFiniteComplex",
+                })?;
+        let &vertex =
+            description
+                .first()
+                .ok_or(DerivedCategoryError::EmptyProjectiveDescription {
+                    operation: "ProjectiveToInjectiveFiniteComplex",
+                })?;
+        let injective = injectives.get(vertex.wrapping_sub(1)).ok_or(
+            DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange {
+                vertex,
+                vertex_count: injectives.len(),
+            },
+        )?;
+        let result = stalk_complex(projective_complex.category().clone(), injective, start)?;
+        return Ok(cache_injective_complex(result));
+    }
+
+    let first_description =
+        descriptions
+            .first()
+            .ok_or(DerivedCategoryError::EmptyProjectiveDescription {
+                operation: "ProjectiveToInjectiveFiniteComplex",
+            })?;
+    let mut previous_injective = modules_from_projective_description(
+        &injectives,
+        first_description,
+        "ProjectiveToInjectiveFiniteComplex",
+    )?;
+    let mut maps = Vec::new();
+    for (position, degree) in integer_interval(&(&start + Integer::from(1)), &stop)
+        .into_iter()
+        .enumerate()
+    {
+        let range_description = descriptions.get(position).ok_or(
+            DerivedCategoryError::StarComponentPositionOutOfRange {
+                position: position + 1,
+                component_count: descriptions.len(),
+            },
+        )?;
+        let source_description = descriptions.get(position + 1).ok_or(
+            DerivedCategoryError::StarComponentPositionOutOfRange {
+                position: position + 2,
+                component_count: descriptions.len(),
+            },
+        )?;
+        let differential = projective_complex.differential(&degree)?;
+        let star =
+            star_of_map_between_projectives(&differential, source_description, range_description)?;
+        let source_injective = modules_from_projective_description(
+            &injectives,
+            source_description,
+            "ProjectiveToInjectiveFiniteComplex",
+        )?;
+        maps.push(right_module_hom_over_algebra(
+            source_injective.clone(),
+            previous_injective,
+            matrices_of_dual_map(&star),
+        )?);
+        previous_injective = source_injective;
+    }
+    let result = finite_complex(
+        projective_complex.category().clone(),
+        &start + Integer::from(1),
+        maps,
+    )?;
+    Ok(cache_injective_complex(result))
+}
+
+fn derived_lazy_error(error: &DerivedCategoryError) -> ComplexError {
+    ComplexError::DerivedCategoryLazyDifferential(error.to_string())
+}
+
+/// Translate `ProjectiveToInjectiveComplex`.
+///
+/// Finite input dispatches to
+/// [`projective_to_injective_finite_complex`]. Otherwise the known prefix and
+/// QPA's stored degree-function tail are constructed literally.
+///
+/// # Errors
+///
+/// Requires finite lower/highest-known degrees and propagates all finite
+/// prefix construction errors. Failures during later lazy generation are
+/// retained as [`ComplexError::DerivedCategoryLazyDifferential`].
+pub fn projective_to_injective_complex<F>(
+    projective_complex: &ModuleComplex<F>,
+) -> Result<ModuleComplex<F>, DerivedCategoryError>
+where
+    F: QpaCoefficientField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+{
+    if finite_bound(projective_complex.upper_bound()?).is_some() {
+        return projective_to_injective_finite_complex(projective_complex);
+    }
+    let start = finite_bound(projective_complex.lower_bound()?)
+        .ok_or(DerivedCategoryError::ProjectiveToInjectiveNeedsFiniteLowerBound)?;
+    let mut stop = finite_bound(projective_complex.highest_known_degree()?)
+        .ok_or(DerivedCategoryError::ProjectiveToInjectiveNeedsFiniteHighestKnownDegree)?;
+    if start == stop {
+        stop += Integer::from(1);
+    }
+    let algebra = projective_complex
+        .object(&start)?
+        .right_acting_algebra()
+        .clone();
+    let injectives = indec_injective_modules(&algebra)?;
+    let mut range_description = description_of_proj_complex_in_degree(projective_complex, &start)?;
+    let mut range_injective = modules_from_projective_description(
+        &injectives,
+        &range_description,
+        "ProjectiveToInjectiveComplex",
+    )?;
+    let mut middle = Vec::new();
+    for degree in integer_interval(&(&start + Integer::from(1)), &stop) {
+        let source_description =
+            description_of_proj_complex_in_degree(projective_complex, &degree)?;
+        if source_description.is_empty() {
+            break;
+        }
+        let differential = projective_complex.differential(&degree)?;
+        let star = star_of_map_between_projectives(
+            &differential,
+            &source_description,
+            &range_description,
+        )?;
+        let source_injective = modules_from_projective_description(
+            &injectives,
+            &source_description,
+            "ProjectiveToInjectiveComplex",
+        )?;
+        middle.push(right_module_hom_over_algebra(
+            source_injective.clone(),
+            range_injective,
+            matrices_of_dual_map(&star),
+        )?);
+        range_injective = source_injective;
+        range_description = source_description;
+    }
+
+    let input = projective_complex.clone();
+    let lazy_injectives = Arc::new(injectives);
+    let lazy_algebra = algebra;
+    let positive = ComplexHalf::Position {
+        function: Arc::new(move |output, degree| {
+            (|| -> Result<PathAlgebraModuleHomomorphism<F>, DerivedCategoryError> {
+                let range_object = output.object(&(degree - Integer::from(1)))?;
+                let source_description = description_of_proj_complex_in_degree(&input, degree)?;
+                let range_description =
+                    description_of_proj_complex_in_degree(&input, &(degree - Integer::from(1)))?;
+                let differential = input.differential(degree)?;
+                if differential.is_zero() {
+                    return Ok(zero_module_mapping(
+                        zero_module(&lazy_algebra)?,
+                        range_object,
+                    )?);
+                }
+                let star = star_of_map_between_projectives(
+                    &differential,
+                    &source_description,
+                    &range_description,
+                )?;
+                let source = modules_from_projective_description(
+                    &lazy_injectives,
+                    &source_description,
+                    "ProjectiveToInjectiveComplex",
+                )?;
+                Ok(right_module_hom_over_algebra(
+                    source,
+                    range_object,
+                    matrices_of_dual_map(&star),
+                )?)
+            })()
+            .map_err(|error| derived_lazy_error(&error))
+        }),
+        store_values: true,
+    };
+    let result = complex(
+        projective_complex.category().clone(),
+        &start + Integer::from(1),
+        middle,
+        positive,
+        ComplexHalf::Zero,
+    )?;
+    Ok(cache_injective_complex(result))
+}
+
+/// Translate `TauOfComplex`.
+///
+/// # Errors
+///
+/// Propagates projective resolution, signed shift, projective-to-injective
+/// conversion, and both `CutComplexAbove` scans.
+pub fn tau_of_complex<F>(
+    complex: &ModuleComplex<F>,
+) -> Result<ModuleComplex<F>, DerivedCategoryError>
+where
+    F: QpaCoefficientField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+{
+    let projective = projective_resolution_of_complex(complex)?.shift(&Integer::from(1))?;
+    let injective = projective_to_injective_complex(&projective)?.cut_complex_above()?;
+    let tau = projective_resolution_of_complex(&injective)?.cut_complex_above()?;
+    Ok(cache_projective_complex(tau))
 }
 
 fn sum_component_composites<F: Field>(
@@ -1341,6 +1979,134 @@ mod tests {
         })
     }
 
+    fn derivedcat_property_complex_json<F>(
+        complex: &ModuleComplex<F>,
+        degrees: &[i64],
+        property: bool,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value
+    where
+        F: QpaCoefficientField + Send + Sync + 'static,
+        F::Element: Send + Sync,
+    {
+        json!({
+            "upper": optional_extended_string(complex.upper_bound().unwrap()),
+            "lower": optional_extended_string(complex.lower_bound().unwrap()),
+            "length": optional_extended_string(complex.length().unwrap()),
+            "property": property,
+            "objects": degrees.iter().map(|degree| complex
+                .object(&Integer::from(*degree)).unwrap().dimension_vector().to_vec())
+                .collect::<Vec<_>>(),
+            "differentials": degrees.iter().map(|degree| map_json(
+                &complex.differential(&Integer::from(*degree)).unwrap(), coefficient))
+                .collect::<Vec<_>>(),
+        })
+    }
+
+    #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
+    fn derivedcat_tau_case<F>(field: F, coefficient: impl Fn(&F::Element) -> Value + Copy) -> Value
+    where
+        F: QpaCoefficientField + Send + Sync + 'static,
+        F::Element: Send + Sync,
+    {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let category = cat_of_right_algebra_modules(&a2).unwrap();
+        let projectives = indec_projective_modules(&a2).unwrap();
+        let sum = direct_sum_of_qpa_modules(&projectives).unwrap().unwrap();
+        let identity = identity_module_mapping(sum).unwrap();
+        let star_decomposable =
+            star_of_map_between_projectives(&identity, &[1, 2], &[1, 2]).unwrap();
+        let finite = finite_complex(category.clone(), Integer::from(1), vec![identity]).unwrap();
+        let finite_injective = projective_to_injective_complex(&finite).unwrap();
+        let stalk = stalk_complex(category, &projectives[0], Integer::from(2)).unwrap();
+        let stalk_injective = projective_to_injective_finite_complex(&stalk).unwrap();
+
+        let loop_parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_category = cat_of_right_algebra_modules(&dual).unwrap();
+        let dual_projective = indec_projective_modules(&dual).unwrap()[0].clone();
+        let generator =
+            minimal_generating_set_of_module(dual_projective.clone()).unwrap()[0].clone();
+        let quotient_x =
+            include_in_path_algebra(&dual.quiver().arrows().next().unwrap().path(), &dual).unwrap();
+        let x_image = generator.act(&quotient_x).unwrap();
+        let x_map = hom_from_projective(&x_image, &dual_projective)
+            .unwrap()
+            .unwrap();
+        let star_indecomposable = star_of_map_between_projectives(&x_map, &[1], &[1]).unwrap();
+        let lazy_x = x_map.clone();
+        let infinite = complex(
+            dual_category,
+            Integer::from(0),
+            vec![x_map],
+            ComplexHalf::Position {
+                function: Arc::new(move |_, _| Ok(lazy_x.clone())),
+                store_values: true,
+            },
+            ComplexHalf::Zero,
+        )
+        .unwrap();
+        let infinite_injective = projective_to_injective_complex(&infinite).unwrap();
+
+        let semisimple = QuiverAlgebra::Path(
+            PathAlgebra::new(field, Quiver::from_indexed(1, Vec::new()).unwrap()).unwrap(),
+        );
+        let semisimple_category = cat_of_right_algebra_modules(&semisimple).unwrap();
+        let semisimple_projective = indec_projective_modules(&semisimple).unwrap()[0].clone();
+        let tau = tau_of_complex(
+            &stalk_complex(
+                semisimple_category,
+                &semisimple_projective,
+                Integer::from(0),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let degrees = [-2, -1, 0, 1, 2, 3, 4, 5];
+
+        json!({
+            "star_decomposable": map_json(&star_decomposable, coefficient),
+            "star_indecomposable": map_json(&star_indecomposable, coefficient),
+            "finite": derivedcat_property_complex_json(
+                &finite_injective,
+                &degrees,
+                is_injective_complex(&finite_injective).unwrap(),
+                coefficient,
+            ),
+            "stalk": derivedcat_property_complex_json(
+                &stalk_injective,
+                &degrees,
+                is_injective_complex(&stalk_injective).unwrap(),
+                coefficient,
+            ),
+            "infinite": derivedcat_property_complex_json(
+                &infinite_injective,
+                &degrees,
+                is_injective_complex(&infinite_injective).unwrap(),
+                coefficient,
+            ),
+            "tau": derivedcat_property_complex_json(
+                &tau,
+                &degrees,
+                is_projective_complex(&tau).unwrap(),
+                coefficient,
+            ),
+        })
+    }
+
     #[allow(clippy::needless_pass_by_value, clippy::too_many_lines)]
     fn derivedcat_case<F>(field: F, coefficient: impl Fn(&F::Element) -> Value + Copy) -> Value
     where
@@ -1542,6 +2308,100 @@ mod tests {
             ])),
         });
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn pinned_qpa_derivedcat_tau_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/derivedcat_tau.schema-v1.json"
+        ))
+        .unwrap();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "derivedcat_tau",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": derivedcat_tau_case(Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "rational": derivedcat_tau_case(Q, |entry: &Rational| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn derivedcat_tau_source_failures_are_typed() {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let category = cat_of_right_algebra_modules(&a2).unwrap();
+        let projective = indec_projective_modules(&a2).unwrap()[0].clone();
+        let identity = identity_module_mapping(projective.clone()).unwrap();
+        let finite = finite_complex(category, Integer::from(1), vec![identity.clone()]).unwrap();
+        assert!(matches!(
+            projective_to_injective_finite_complex(&finite),
+            Err(DerivedCategoryError::ProjectiveDescriptionVertexOutOfRange { vertex: 0, .. })
+        ));
+        assert!(matches!(
+            star_of_map_between_projectives(&identity, &[], &[1]),
+            Err(DerivedCategoryError::EmptyProjectiveDescription { .. })
+        ));
+
+        let loop_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let dual = QuiverAlgebra::Quotient(
+            quotient_by_relations(loop_parent, &[x.pow(2).unwrap()]).unwrap(),
+        );
+        let dual_category = cat_of_right_algebra_modules(&dual).unwrap();
+        let dual_projective = indec_projective_modules(&dual).unwrap()[0].clone();
+        let generator =
+            minimal_generating_set_of_module(dual_projective.clone()).unwrap()[0].clone();
+        let quotient_x =
+            include_in_path_algebra(&dual.quiver().arrows().next().unwrap().path(), &dual).unwrap();
+        let x_map = hom_from_projective(&generator.act(&quotient_x).unwrap(), &dual_projective)
+            .unwrap()
+            .unwrap();
+        let repeating = complex(
+            dual_category,
+            Integer::from(0),
+            vec![x_map.clone()],
+            ComplexHalf::Repeat(vec![x_map]),
+            ComplexHalf::Zero,
+        )
+        .unwrap();
+        assert!(matches!(
+            projective_to_injective_complex(&repeating),
+            Err(DerivedCategoryError::ProjectiveToInjectiveNeedsFiniteHighestKnownDegree)
+        ));
+
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/derivedcat_tau_errors.schema-v1.json"
+        ))
+        .unwrap();
+        assert!(
+            fixture["success"]
+                .as_object()
+                .unwrap()
+                .values()
+                .all(|value| value == &json!(false))
+        );
     }
 
     #[test]

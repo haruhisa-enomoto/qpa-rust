@@ -62,8 +62,11 @@ pub use derived_category::{
     description_of_proj_or_inj_complex_in_degree, description_of_projective_module,
     direct_sum_minus_summands, find_all_map_components, is_injective_complex,
     is_projective_complex, matrices_of_dual_map, projective_resolution_of_complex,
+    projective_to_injective_complex, projective_to_injective_finite_complex,
     qpa_injective_complex_string, qpa_projective_complex_string, reduce_differential,
     reduce_previous_differential, reduce_previous_t_map, reduce_t_map,
+    star_of_map_between_decomp_projectives, star_of_map_between_indec_projectives,
+    star_of_map_between_projectives, tau_of_complex,
 };
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{

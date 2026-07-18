@@ -740,7 +740,7 @@ Primary QPA files: `inflist`, `complex`, and `derivedcat`.
 - [x] Port projective/injective complex predicates, descriptions, specialized
   printers, and direct-sum helper maps.
 - [x] Port projective resolutions of complexes and differential reduction.
-- [ ] Port derived-category tau and projective/injective complex conversions.
+- [x] Port derived-category tau and projective/injective complex conversions.
 - [x] Verify all degree/sign conventions with explicit low-degree fixtures.
 
 Exit gate: all complex and derived-category declarations are complete, including

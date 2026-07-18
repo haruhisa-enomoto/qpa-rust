@@ -7343,7 +7343,7 @@ fn tensor_dimension_pairing(
     })
 }
 
-fn opposite_module_algebra<F: Field>(
+pub(crate) fn opposite_module_algebra<F: Field>(
     algebra: &QuiverAlgebra<F>,
 ) -> Result<QuiverAlgebra<F>, EnvelopingModuleError> {
     match algebra {
