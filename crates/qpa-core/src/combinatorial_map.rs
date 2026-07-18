@@ -176,6 +176,18 @@ impl Permutation {
         result
     }
 
+    /// Return the orbit of one point under this permutation.
+    #[must_use]
+    pub fn orbit(&self, start: usize) -> Vec<usize> {
+        let mut orbit = Vec::new();
+        let mut point = start;
+        while !orbit.contains(&point) {
+            orbit.push(point);
+            point = self.image(point);
+        }
+        orbit
+    }
+
     fn transposition(left: usize, right: usize) -> Self {
         if left == right {
             return Self::identity();
@@ -247,6 +259,8 @@ struct CombinatorialMapData {
     dual: OnceLock<CombinatorialMap>,
     marked_boundaries: OnceLock<Vec<(Vec<usize>, usize)>>,
     boundary_curves: OnceLock<Vec<(Vec<usize>, usize)>>,
+    non_separating_curve: OnceLock<Vec<usize>>,
+    homology_basis: OnceLock<Vec<HomologyCurvePair>>,
 }
 
 /// A QPA combinatorial map on the half-edges `1, ..., size`.
@@ -255,6 +269,82 @@ struct CombinatorialMapData {
 /// distinct object even when all four constructor arguments are equal.
 #[derive(Clone)]
 pub struct CombinatorialMap(Arc<CombinatorialMapData>);
+
+/// One `[a_i, b_i]` pair in QPA's symplectic homology basis.
+pub type HomologyCurvePair = (Vec<usize>, Vec<usize>);
+
+/// QPA's result of cutting a combinatorial map along a non-separating curve.
+#[derive(Clone, Debug)]
+pub struct CutNonSeparatingResult {
+    map: CombinatorialMap,
+    first_boundary: Vec<usize>,
+    second_boundary: Vec<usize>,
+    index: Vec<usize>,
+}
+
+impl CutNonSeparatingResult {
+    /// Return the cut combinatorial map.
+    #[must_use]
+    pub const fn map(&self) -> &CombinatorialMap {
+        &self.map
+    }
+
+    /// Return the rotated source curve forming the first new boundary.
+    #[must_use]
+    pub fn first_boundary(&self) -> &[usize] {
+        &self.first_boundary
+    }
+
+    /// Return the newly created half-edges forming the second boundary.
+    #[must_use]
+    pub fn second_boundary(&self) -> &[usize] {
+        &self.second_boundary
+    }
+
+    /// Return QPA's updated half-edge-to-original-half-edge index.
+    #[must_use]
+    pub fn index(&self) -> &[usize] {
+        &self.index
+    }
+
+    /// Consume the result into its four components.
+    #[must_use]
+    pub fn into_parts(self) -> (CombinatorialMap, Vec<usize>, Vec<usize>, Vec<usize>) {
+        (
+            self.map,
+            self.first_boundary,
+            self.second_boundary,
+            self.index,
+        )
+    }
+}
+
+/// QPA's result of cutting along a curve joining two boundaries.
+#[derive(Clone, Debug)]
+pub struct CutJoinCurveResult {
+    map: CombinatorialMap,
+    index: Vec<usize>,
+}
+
+impl CutJoinCurveResult {
+    /// Return the cut combinatorial map.
+    #[must_use]
+    pub const fn map(&self) -> &CombinatorialMap {
+        &self.map
+    }
+
+    /// Return QPA's updated half-edge-to-original-half-edge index.
+    #[must_use]
+    pub fn index(&self) -> &[usize] {
+        &self.index
+    }
+
+    /// Consume the result into its map and index components.
+    #[must_use]
+    pub fn into_parts(self) -> (CombinatorialMap, Vec<usize>) {
+        (self.map, self.index)
+    }
+}
 
 impl CombinatorialMap {
     /// Translate QPA's four-argument `CombinatorialMap` constructor.
@@ -309,6 +399,8 @@ impl CombinatorialMap {
             dual: OnceLock::new(),
             marked_boundaries: OnceLock::new(),
             boundary_curves: OnceLock::new(),
+            non_separating_curve: OnceLock::new(),
+            homology_basis: OnceLock::new(),
         }))
     }
 
@@ -524,6 +616,323 @@ impl CombinatorialMap {
         self.cover_tree_search(half_edge, SearchKind::Width)
     }
 
+    /// Return QPA's cached non-separating curve.
+    ///
+    /// The source method assumes the canonical edge labels
+    /// `[1,2], [3,4], ...` used by `CombinatorialMapOfGentleAlgebra`.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed error when the positive-genus/canonical-pairing
+    /// preconditions needed by QPA's searches are not satisfied.
+    pub fn non_separating_curve(&self) -> Result<&[usize], CombinatorialMapError> {
+        if let Some(curve) = self.0.non_separating_curve.get() {
+            return Ok(curve);
+        }
+        if self.genus() <= &Rational::from(0) {
+            return Err(CombinatorialMapError::NonPositiveGenus);
+        }
+
+        let cover_tree = self.width_search(1)?;
+        let mut dual = self.dual().clone();
+        for edge in &cover_tree {
+            dual = dual.remove_edge(edge)?;
+        }
+
+        let mut start_edge = 1_usize;
+        while dual.pairing().image(start_edge) == start_edge {
+            if start_edge >= dual.size() {
+                return Err(CombinatorialMapError::NoNonFixedDualEdge);
+            }
+            start_edge += 1;
+        }
+        let dual_tree = dual.depth_search(start_edge)?;
+        let mut selected_edge = None;
+        for edge_index in 1..=dual.size() / 2 {
+            let edge = [2 * edge_index - 1, 2 * edge_index];
+            let reverse = [edge[1], edge[0]];
+            if !dual_tree
+                .iter()
+                .any(|candidate| candidate.as_slice() == edge)
+                && !dual_tree
+                    .iter()
+                    .any(|candidate| candidate.as_slice() == reverse)
+                && dual.pairing().image(edge[1]) != edge[1]
+            {
+                selected_edge = Some(edge);
+            }
+        }
+        let edge = selected_edge.ok_or(CombinatorialMapError::NoNonSeparatingEdge)?;
+        let first_path = self.tree_path_to_root(1, edge[0], &cover_tree)?;
+        let second_path = self.tree_path_to_root(1, edge[1], &cover_tree)?;
+
+        let mut curve = Vec::new();
+        for path_edge in first_path.iter().rev() {
+            curve.extend([path_edge[1], path_edge[0]]);
+        }
+        curve.extend(edge);
+        for path_edge in second_path {
+            curve.extend(path_edge);
+        }
+        while curve.len() >= 2 && curve.first() == curve.last() {
+            curve.remove(0);
+            curve.pop();
+        }
+        if curve.is_empty() {
+            return Err(CombinatorialMapError::TrivialCurve);
+        }
+        Ok(self.0.non_separating_curve.get_or_init(|| curve))
+    }
+
+    /// Cut the map along a non-separating curve using QPA's permutation
+    /// mutation formulas.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for an empty, odd, or out-of-range curve, an index
+    /// shorter than the original half-edge set, arithmetic overflow, or a
+    /// generated permutation/map rejected by QPA's constructor conditions.
+    pub fn cut_non_separating(
+        &self,
+        curve: &[usize],
+        index: &[usize],
+    ) -> Result<CutNonSeparatingResult, CombinatorialMapError> {
+        self.validate_topological_curve(curve)?;
+        self.validate_index(index)?;
+
+        let mut ordering = self.ordering().clone();
+        let mut pairing = self.pairing().clone();
+        let mut curve = curve.to_vec();
+        if curve[0] != pairing.image(curve[1]) {
+            curve.rotate_left(1);
+        }
+        let length = curve.len() / 2;
+        let original_new_point = self
+            .size()
+            .checked_add(1)
+            .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+        let mut next_point = original_new_point;
+        let mut second_boundary = Vec::with_capacity(curve.len());
+
+        for step in 1..length {
+            let next_one = next_point
+                .checked_add(1)
+                .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+            let next_two = next_point
+                .checked_add(2)
+                .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+            let sigma_cycle = [curve[2 * step - 1], next_one, next_two];
+            let tau_cycle = [curve[2 * step], next_two];
+            let pair_cycle = [next_point, next_one];
+            let sigma = Self::cycle_permutation(next_two, &sigma_cycle)?;
+            let tau = Self::cycle_permutation(next_two, &tau_cycle)?;
+            let new_pair = Self::cycle_permutation(next_two, &pair_cycle)?;
+            pairing = pairing.gap_product(&new_pair);
+            second_boundary.extend(pair_cycle);
+            next_point = next_two;
+            ordering = tau.gap_product(&ordering).gap_product(&sigma);
+        }
+
+        let next_one = next_point
+            .checked_add(1)
+            .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+        let sigma_cycle = [curve[curve.len() - 1], next_one, original_new_point];
+        let tau_cycle = [curve[0], original_new_point];
+        let pair_cycle = [next_point, next_one];
+        let sigma = Self::cycle_permutation(next_one, &sigma_cycle)?;
+        let tau = Self::cycle_permutation(next_one, &tau_cycle)?;
+        let new_pair = Self::cycle_permutation(next_one, &pair_cycle)?;
+        pairing = pairing.gap_product(&new_pair);
+        second_boundary.extend(pair_cycle);
+        let new_size = next_one;
+        ordering = tau.gap_product(&ordering).gap_product(&sigma);
+
+        let mut new_index = index.to_vec();
+        for &half_edge in &curve {
+            new_index.push(Self::index_value(index, half_edge)?);
+        }
+        let map = Self::new(new_size, ordering, pairing, self.marked_edges().to_vec())?;
+        Ok(CutNonSeparatingResult {
+            map,
+            first_boundary: curve,
+            second_boundary,
+            index: new_index,
+        })
+    }
+
+    /// Return QPA's cover-tree curve joining two cut boundaries.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for empty/out-of-range boundaries, an invalid index,
+    /// no matching original endpoint, or a cover tree that does not reach the
+    /// first boundary.
+    pub fn join_curve(
+        &self,
+        first_boundary: &[usize],
+        second_boundary: &[usize],
+        index: &[usize],
+    ) -> Result<Vec<usize>, CombinatorialMapError> {
+        self.validate_boundary(first_boundary)?;
+        self.validate_boundary(second_boundary)?;
+        self.validate_index(index)?;
+        let root = first_boundary[0];
+        let root_index = Self::index_value(index, root)?;
+        let mut second_endpoint = None;
+        for &candidate in second_boundary {
+            if Self::index_value(index, candidate)? == root_index {
+                second_endpoint = Some(candidate);
+            }
+        }
+        let second_endpoint =
+            second_endpoint.ok_or(CombinatorialMapError::NoMatchingBoundaryEndpoint)?;
+        let cover_tree = self.depth_search(root)?;
+        let path = self.tree_path_to_root(root, second_endpoint, &cover_tree)?;
+        Ok(path.into_iter().flatten().collect())
+    }
+
+    /// Cut the map along a curve joining two boundary components.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when trimming the boundary portions leaves no valid
+    /// even curve, when an ordering orbit misses both boundaries, for an
+    /// invalid index, overflow, or a generated permutation/map failure.
+    pub fn cut_join_curve(
+        &self,
+        first_boundary: &[usize],
+        second_boundary: &[usize],
+        curve: &[usize],
+        index: &[usize],
+    ) -> Result<CutJoinCurveResult, CombinatorialMapError> {
+        self.validate_boundary(first_boundary)?;
+        self.validate_boundary(second_boundary)?;
+        self.validate_index(index)?;
+        let mut curve = curve.to_vec();
+        while curve
+            .first()
+            .is_some_and(|point| first_boundary.contains(point) || second_boundary.contains(point))
+        {
+            curve.remove(0);
+        }
+        while curve
+            .last()
+            .is_some_and(|point| first_boundary.contains(point) || second_boundary.contains(point))
+        {
+            curve.pop();
+        }
+        self.validate_topological_curve(&curve)?;
+
+        let mut ordering = self.ordering().clone();
+        let mut pairing = self.pairing().clone();
+        let mut next_point = self
+            .size()
+            .checked_add(1)
+            .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+        let start_edge = curve[0];
+        let start_boundary_edge =
+            self.follow_ordering_to_boundary(start_edge, first_boundary, second_boundary)?;
+        let first_cycle = [start_edge, start_boundary_edge];
+        let second_cycle = [start_edge, next_point];
+        ordering = Self::cycle_permutation(next_point, &first_cycle)?
+            .gap_product(&Self::cycle_permutation(next_point, &second_cycle)?)
+            .gap_product(&ordering);
+
+        let length = curve.len() / 2;
+        for step in 1..length {
+            let next_one = next_point
+                .checked_add(1)
+                .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+            let sigma_cycle = [curve[2 * step - 1], next_point, next_one];
+            let tau_cycle = [curve[2 * step], next_one];
+            let pair_cycle = [next_point, next_one];
+            let sigma = Self::cycle_permutation(next_one, &sigma_cycle)?;
+            let tau = Self::cycle_permutation(next_one, &tau_cycle)?;
+            pairing = pairing.gap_product(&Self::cycle_permutation(next_one, &pair_cycle)?);
+            next_point = next_one
+                .checked_add(1)
+                .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+            ordering = tau.gap_product(&ordering).gap_product(&sigma);
+        }
+
+        let mut new_index = index.to_vec();
+        for &half_edge in &curve {
+            new_index.push(Self::index_value(index, half_edge)?);
+        }
+        let end_edge = curve[curve.len() - 1];
+        let end_boundary_edge = Self::follow_permutation_to_boundary(
+            &ordering,
+            end_edge,
+            first_boundary,
+            second_boundary,
+        )?;
+        let final_point = next_point
+            .checked_add(1)
+            .ok_or(CombinatorialMapError::TopologySizeOverflow)?;
+        let left_cycle = [final_point, end_boundary_edge];
+        let right_cycle = [end_edge, final_point];
+        ordering = Self::cycle_permutation(final_point, &left_cycle)?
+            .gap_product(&ordering)
+            .gap_product(&Self::cycle_permutation(final_point, &right_cycle)?);
+        let pair_cycle = [next_point, final_point];
+        pairing = pairing.gap_product(&Self::cycle_permutation(final_point, &pair_cycle)?);
+        let map = Self::new(final_point, ordering, pairing, self.marked_edges().to_vec())?;
+        Ok(CutJoinCurveResult {
+            map,
+            index: new_index,
+        })
+    }
+
+    /// Return QPA's cached symplectic homology basis.
+    ///
+    /// # Errors
+    ///
+    /// Propagates every source-translated curve/cut failure and reports a
+    /// nondecreasing genus rather than reproducing QPA's nonterminating loop.
+    pub fn homology_basis(&self) -> Result<&[HomologyCurvePair], CombinatorialMapError> {
+        if let Some(basis) = self.0.homology_basis.get() {
+            return Ok(basis);
+        }
+        let mut genus = self.genus().clone();
+        let mut map = self.clone();
+        let mut index = (1..=self.size()).collect::<Vec<_>>();
+        let mut basis = Vec::new();
+
+        while genus > 0 {
+            let alpha = map.non_separating_curve()?.to_vec();
+            let cut = map.cut_non_separating(&alpha, &index)?;
+            let (cut_map, first_boundary, second_boundary, cut_index) = cut.into_parts();
+            let beta = cut_map.join_curve(&first_boundary, &second_boundary, &cut_index)?;
+            let joined =
+                cut_map.cut_join_curve(&first_boundary, &second_boundary, &beta, &cut_index)?;
+            let (new_map, new_index) = joined.into_parts();
+            basis.push((alpha, beta));
+            let new_genus = new_map.genus().clone();
+            if new_genus >= genus {
+                return Err(CombinatorialMapError::GenusDidNotDecrease);
+            }
+            map = new_map;
+            index = new_index;
+            genus = new_genus;
+        }
+
+        let remapped = basis
+            .into_iter()
+            .map(|(alpha, beta)| {
+                let alpha = alpha
+                    .into_iter()
+                    .map(|point| Self::index_value(&index, point))
+                    .collect::<Result<Vec<_>, _>>()?;
+                let beta = beta
+                    .into_iter()
+                    .map(|point| Self::index_value(&index, point))
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok((alpha, beta))
+            })
+            .collect::<Result<Vec<_>, CombinatorialMapError>>()?;
+        Ok(self.0.homology_basis.get_or_init(|| remapped))
+    }
+
     fn compute_boundary_curves(&self) -> Result<Vec<(Vec<usize>, usize)>, CombinatorialMapError> {
         let mut curves = self
             .marked_boundaries()
@@ -575,6 +984,116 @@ impl CombinatorialMap {
         Ok(curves)
     }
 
+    fn validate_topological_curve(&self, curve: &[usize]) -> Result<(), CombinatorialMapError> {
+        if curve.is_empty() {
+            return Err(CombinatorialMapError::TrivialCurve);
+        }
+        if !curve.len().is_multiple_of(2) {
+            return Err(CombinatorialMapError::OddCurveLength);
+        }
+        if curve.iter().any(|&point| point == 0 || point > self.size()) {
+            return Err(CombinatorialMapError::InvalidCurveHalfEdge);
+        }
+        Ok(())
+    }
+
+    fn validate_boundary(&self, boundary: &[usize]) -> Result<(), CombinatorialMapError> {
+        if boundary.is_empty() {
+            return Err(CombinatorialMapError::EmptyBoundary);
+        }
+        if boundary
+            .iter()
+            .any(|&point| point == 0 || point > self.size())
+        {
+            return Err(CombinatorialMapError::InvalidBoundaryHalfEdge);
+        }
+        Ok(())
+    }
+
+    fn validate_index(&self, index: &[usize]) -> Result<(), CombinatorialMapError> {
+        if index.len() < self.size() {
+            Err(CombinatorialMapError::IndexTooShort)
+        } else {
+            Ok(())
+        }
+    }
+
+    fn index_value(index: &[usize], point: usize) -> Result<usize, CombinatorialMapError> {
+        point
+            .checked_sub(1)
+            .and_then(|position| index.get(position).copied())
+            .ok_or(CombinatorialMapError::IndexTooShort)
+    }
+
+    fn cycle_permutation(
+        size: usize,
+        cycle: &[usize],
+    ) -> Result<Permutation, CombinatorialMapError> {
+        Ok(Permutation::from_cycles(size, &[cycle])?)
+    }
+
+    fn tree_path_to_root(
+        &self,
+        root: usize,
+        start: usize,
+        cover_tree: &[Vec<usize>],
+    ) -> Result<Vec<[usize; 2]>, CombinatorialMapError> {
+        let mut vertex = self.ordering().orbit(start);
+        let mut visited = Vec::new();
+        let mut path = Vec::new();
+        while !vertex.contains(&root) {
+            if visited.contains(&vertex) {
+                return Err(CombinatorialMapError::CoverTreeDoesNotReachRoot);
+            }
+            visited.push(vertex.clone());
+            let candidates = vertex
+                .iter()
+                .map(|&alpha| [alpha, self.pairing().image(alpha)])
+                .filter(|edge| cover_tree.iter().any(|candidate| candidate == edge))
+                .collect::<Vec<_>>();
+            if candidates.is_empty() {
+                return Err(CombinatorialMapError::CoverTreeDoesNotReachRoot);
+            }
+            for edge in candidates {
+                path.push(edge);
+                vertex = self.ordering().orbit(edge[1]);
+            }
+        }
+        Ok(path)
+    }
+
+    fn follow_ordering_to_boundary(
+        &self,
+        start: usize,
+        first_boundary: &[usize],
+        second_boundary: &[usize],
+    ) -> Result<usize, CombinatorialMapError> {
+        Self::follow_permutation_to_boundary(
+            self.ordering(),
+            start,
+            first_boundary,
+            second_boundary,
+        )
+    }
+
+    fn follow_permutation_to_boundary(
+        ordering: &Permutation,
+        start: usize,
+        first_boundary: &[usize],
+        second_boundary: &[usize],
+    ) -> Result<usize, CombinatorialMapError> {
+        let mut point = start;
+        loop {
+            if first_boundary.contains(&point) || second_boundary.contains(&point) {
+                return Ok(point);
+            }
+            point = ordering.image(point);
+            if point == start {
+                return Err(CombinatorialMapError::OrderingMissesBoundaries);
+            }
+        }
+    }
+
     fn cover_tree_search(
         &self,
         root: usize,
@@ -583,7 +1102,7 @@ impl CombinatorialMap {
         if root == 0 {
             return Err(CombinatorialMapError::RootMustBePositive);
         }
-        let mut root_vertex = self.ordering().orbits_on(&[root]).remove(0);
+        let mut root_vertex = self.ordering().orbit(root);
         root_vertex.sort_unstable();
         let mut visited = Vec::new();
         let mut result = Vec::new();
@@ -600,7 +1119,7 @@ impl CombinatorialMap {
             result.push(current_edge);
             for half_edge in current_vertex {
                 let paired = self.pairing().image(half_edge);
-                let mut vertex = self.ordering().orbits_on(&[paired]).remove(0);
+                let mut vertex = self.ordering().orbit(paired);
                 vertex.sort_unstable();
                 if !visited.contains(&vertex) {
                     pending.push_back((vertex, paired));
@@ -667,6 +1186,45 @@ pub enum CombinatorialMapError {
     /// Search dispatch requires a positive half-edge integer.
     #[error("the search root must be positive")]
     RootMustBePositive,
+    /// A topological curve contains no half-edges of this map.
+    #[error("the curve contains a half-edge outside the combinatorial map")]
+    InvalidCurveHalfEdge,
+    /// A boundary list is empty where QPA indexes its first entry.
+    #[error("the boundary must be nonempty")]
+    EmptyBoundary,
+    /// A boundary contains no half-edge of this map.
+    #[error("the boundary contains a half-edge outside the combinatorial map")]
+    InvalidBoundaryHalfEdge,
+    /// QPA's half-edge index cannot address every current map point.
+    #[error("the half-edge index is shorter than the combinatorial map")]
+    IndexTooShort,
+    /// The non-separating-curve method requires positive genus.
+    #[error("the combinatorial map does not have positive genus")]
+    NonPositiveGenus,
+    /// Removing the primal cover tree left no dual edge to root a search.
+    #[error("the reduced dual map has no non-fixed edge")]
+    NoNonFixedDualEdge,
+    /// QPA's canonical-pair scan found no edge outside both cover trees.
+    #[error("no canonical non-separating edge was found")]
+    NoNonSeparatingEdge,
+    /// An oriented cover-tree path failed to reach its requested root.
+    #[error("the oriented cover tree does not reach its root")]
+    CoverTreeDoesNotReachRoot,
+    /// Two boundaries contain no points with the same original index.
+    #[error("the boundaries have no matching original endpoint")]
+    NoMatchingBoundaryEndpoint,
+    /// An ordering orbit reaches neither supplied boundary.
+    #[error("the ordering orbit does not meet either boundary")]
+    OrderingMissesBoundaries,
+    /// A cut would exceed Rust's addressable half-edge index space.
+    #[error("the cut combinatorial-map size overflows usize")]
+    TopologySizeOverflow,
+    /// QPA's homology loop failed to reduce genus.
+    #[error("the homology cut did not decrease genus")]
+    GenusDidNotDecrease,
+    /// A source-generated cycle is not a GAP permutation.
+    #[error(transparent)]
+    Permutation(#[from] PermutationError),
 }
 
 #[cfg(test)]
@@ -696,6 +1254,69 @@ mod tests {
             "faces": map.faces(),
             "genus": rational_json(map.genus()),
             "marked_boundaries": map.marked_boundaries(),
+        })
+    }
+
+    fn topology_map_json(map: &CombinatorialMap) -> Value {
+        json!({
+            "size": map.size(),
+            "ordering": map.ordering().images_on(map.size()).unwrap(),
+            "pairing": map.pairing().images_on(map.size()).unwrap(),
+            "marked": map.marked_edges(),
+            "faces": map.faces(),
+            "genus": rational_json(map.genus()),
+        })
+    }
+
+    fn topology_json(map: &CombinatorialMap) -> Value {
+        let nonseparating = map.non_separating_curve().unwrap().to_vec();
+        assert!(std::ptr::eq(
+            map.non_separating_curve().unwrap(),
+            map.non_separating_curve().unwrap()
+        ));
+        let index = (1..=map.size()).collect::<Vec<_>>();
+        let cut = map.cut_non_separating(&nonseparating, &index).unwrap();
+        let join_curve = cut
+            .map()
+            .join_curve(cut.first_boundary(), cut.second_boundary(), cut.index())
+            .unwrap();
+        let cut_join = cut
+            .map()
+            .cut_join_curve(
+                cut.first_boundary(),
+                cut.second_boundary(),
+                &join_curve,
+                cut.index(),
+            )
+            .unwrap();
+        let homology_basis = map.homology_basis().unwrap();
+        assert!(std::ptr::eq(homology_basis, map.homology_basis().unwrap()));
+        let winding = homology_basis
+            .iter()
+            .map(|(alpha, beta)| {
+                [
+                    map.winding_number(alpha).unwrap(),
+                    map.winding_number(beta).unwrap(),
+                ]
+            })
+            .collect::<Vec<_>>();
+        json!({
+            "map": topology_map_json(map),
+            "nonseparating": nonseparating,
+            "nonseparating_identity": true,
+            "cut": {
+                "map": topology_map_json(cut.map()),
+                "boundaries": [cut.first_boundary(), cut.second_boundary()],
+                "index": cut.index(),
+            },
+            "join_curve": join_curve,
+            "cut_join": {
+                "map": topology_map_json(cut_join.map()),
+                "index": cut_join.index(),
+            },
+            "homology_basis": homology_basis,
+            "homology_identity": true,
+            "basis_winding": winding,
         })
     }
 
@@ -830,5 +1451,53 @@ mod tests {
             degenerate.boundary_curves(),
             Err(CombinatorialMapError::BoundaryCancellationUndefined)
         ));
+    }
+
+    #[test]
+    fn pinned_qpa_combinatorial_map_homology_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/combinatorialmap_homology.schema-v1.json"
+        ))
+        .unwrap();
+        let torus = CombinatorialMap::new(
+            4,
+            permutation(4, &[&[1, 3, 2, 4]]),
+            permutation(4, &[&[1, 2], &[3, 4]]),
+            vec![1],
+        )
+        .unwrap();
+        let genus_two = CombinatorialMap::new(
+            8,
+            permutation(8, &[&[1, 3, 5, 7, 2, 4, 6, 8]]),
+            permutation(8, &[&[1, 2], &[3, 4], &[5, 6], &[7, 8]]),
+            vec![1, 5],
+        )
+        .unwrap();
+        assert_eq!(topology_json(&torus), expected["torus"]);
+        assert_eq!(topology_json(&genus_two), expected["genus_two"]);
+    }
+
+    #[test]
+    fn topological_curve_preconditions_are_finite_and_typed() {
+        let disk = CombinatorialMap::new(
+            2,
+            Permutation::identity(),
+            permutation(2, &[&[1, 2]]),
+            vec![],
+        )
+        .unwrap();
+        assert!(matches!(
+            disk.non_separating_curve(),
+            Err(CombinatorialMapError::NonPositiveGenus)
+        ));
+        assert!(matches!(
+            disk.cut_non_separating(&[], &[1, 2]),
+            Err(CombinatorialMapError::TrivialCurve)
+        ));
+        assert!(matches!(
+            disk.join_curve(&[1], &[2], &[1, 2]),
+            Err(CombinatorialMapError::NoMatchingBoundaryEndpoint)
+        ));
+        assert!(disk.homology_basis().unwrap().is_empty());
     }
 }

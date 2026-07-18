@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "kind": "combinatorialmap_homology",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "torus": {
+    "map": {
+      "size": 4,
+      "ordering": [3, 4, 2, 1],
+      "pairing": [2, 1, 4, 3],
+      "marked": [1],
+      "faces": [[1, 4, 2, 3]],
+      "genus": [1, 1]
+    },
+    "nonseparating": [3, 4],
+    "nonseparating_identity": true,
+    "cut": {
+      "map": {
+        "size": 6,
+        "ordering": [3, 6, 4, 1, 2, 5],
+        "pairing": [2, 1, 4, 3, 6, 5],
+        "marked": [1],
+        "faces": [[1, 6, 2, 3], [4], [5]],
+        "genus": [0, 1]
+      },
+      "boundaries": [[3, 4], [5, 6]],
+      "index": [1, 2, 3, 4, 3, 4]
+    },
+    "join_curve": [2, 1],
+    "cut_join": {
+      "map": {
+        "size": 8,
+        "ordering": [3, 5, 1, 8, 2, 7, 6, 4],
+        "pairing": [2, 1, 4, 3, 6, 5, 8, 7],
+        "marked": [1],
+        "faces": [[1, 5, 7, 4], [2, 3, 8, 6]],
+        "genus": [0, 1]
+      },
+      "index": [1, 2, 3, 4, 3, 4, 2, 1]
+    },
+    "homology_basis": [[[3, 4], [2, 1]]],
+    "homology_identity": true,
+    "basis_winding": [[-1, -1]]
+  },
+  "genus_two": {
+    "map": {
+      "size": 8,
+      "ordering": [3, 4, 5, 6, 7, 8, 2, 1],
+      "pairing": [2, 1, 4, 3, 6, 5, 8, 7],
+      "marked": [1, 5],
+      "faces": [[1, 4, 5, 8, 2, 3, 6, 7]],
+      "genus": [2, 1]
+    },
+    "nonseparating": [7, 8],
+    "nonseparating_identity": true,
+    "cut": {
+      "map": {
+        "size": 10,
+        "ordering": [3, 4, 5, 6, 7, 10, 8, 1, 2, 9],
+        "pairing": [2, 1, 4, 3, 6, 5, 8, 7, 10, 9],
+        "marked": [1, 5],
+        "faces": [[1, 4, 5, 10, 2, 3, 6, 7], [8], [9]],
+        "genus": [1, 1]
+      },
+      "boundaries": [[7, 8], [9, 10]],
+      "index": [1, 2, 3, 4, 5, 6, 7, 8, 7, 8]
+    },
+    "join_curve": [6, 5],
+    "cut_join": {
+      "map": {
+        "size": 12,
+        "ordering": [3, 4, 12, 6, 7, 9, 5, 1, 2, 11, 10, 8],
+        "pairing": [2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11],
+        "marked": [1, 5],
+        "faces": [[1, 4, 12, 10, 2, 3, 6, 7], [5, 9, 11, 8]],
+        "genus": [1, 1]
+      },
+      "index": [1, 2, 3, 4, 5, 6, 7, 8, 7, 8, 6, 5]
+    },
+    "homology_basis": [
+      [[7, 8], [6, 5]],
+      [[8, 7, 5, 6, 2, 1], [1, 2, 4, 3]]
+    ],
+    "homology_identity": true,
+    "basis_winding": [[-1, -1], [-3, 0]]
+  }
+}

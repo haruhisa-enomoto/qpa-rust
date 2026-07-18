@@ -1083,6 +1083,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/combinatorialmap_gentle.g" \
     "$repo_root/tests/fixtures/combinatorialmap_gentle.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialmap_homology.g" \
+    "$repo_root/tests/fixtures/combinatorialmap_homology.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_gentle_error.g" \
     >"$actual" 2>&1

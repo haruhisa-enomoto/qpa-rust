@@ -21,6 +21,29 @@ the computations remain translations of the cited source methods.
 - Evidence: `tests/fixtures/combinatorialmap_foundation.schema-v1.json` pins
   the valid source results, and the Rust boundary test covers the finite error.
 
+## COMBMAP-002 — Topological searches report violated preconditions
+
+- Source: QPA `lib/combinatorialmap.gi`, `NonSeperatingCurve` at lines
+  585–672 and `HomologyBasisOfCombinatorialMap` at lines 880–930.
+- Affected Rust operations: `CombinatorialMap::non_separating_curve` and
+  `CombinatorialMap::homology_basis`, including their cut/join helpers.
+- Difference: QPA assumes a positive-genus map with canonical edge pairs and
+  well-formed non-separating and boundary-joining curves. Outside that domain,
+  its unbounded searches can run forever or later access an unbound local or
+  list position. Rust validates the finite curve, boundary, and index inputs,
+  detects a repeated search state or nondecreasing genus, and returns a typed
+  `CombinatorialMapError`.
+- Reason: these are the source algorithms' documented preconditions. Making a
+  violated precondition finite prevents an uninterruptible library call while
+  preserving the precise searches and permutation mutations on valid maps.
+- Compatibility impact: positive-genus canonical maps and valid cut/join
+  curves have QPA's exact permutations, boundary order, index remapping,
+  homology basis order, winding numbers, and attribute caching. Malformed
+  inputs return instead of hanging or raising a late GAP interpreter error.
+- Evidence: `tests/fixtures/combinatorialmap_homology.schema-v1.json` pins the
+  complete genus-one and genus-two source computations; the Rust topology
+  boundary test covers the finite typed errors.
+
 ## ALG-001 — Finite opposite-algebra display repairs recursive QPA method
 
 - Source: QPA `lib/algebra.gi`, `PrintObj` at lines 109–115.

@@ -1065,10 +1065,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::non_separating_curve"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:DeclareOperation:CutNonSepCombinatorialMap:1"
@@ -1078,10 +1078,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::cut_non_separating"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:DeclareOperation:JoinCurveCombinatorialMap:1"
@@ -1091,10 +1091,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::join_curve"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:DeclareOperation:CutJoinCurveCombinatorialMap:1"
@@ -1104,10 +1104,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::cut_join_curve"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:DeclareAttribute:HomologyBasisOfCombinatorialMap:1"
@@ -1117,10 +1117,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::homology_basis"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:BindGlobal:TheFamilyOfCombinatorialMaps:1"
@@ -1312,10 +1312,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 585
 source_end = 672
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::non_separating_curve"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:InstallMethod:CutNonSepCombinatorialMap:1"
@@ -1325,10 +1325,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 687
 source_end = 738
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::cut_non_separating"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:InstallMethod:JoinCurveCombinatorialMap:1"
@@ -1338,10 +1338,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 750
 source_end = 792
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::join_curve"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:InstallMethod:CutJoinCurveCombinatorialMap:1"
@@ -1351,10 +1351,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 805
 source_end = 867
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::cut_join_curve"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:InstallMethod:HomologyBasisOfCombinatorialMap:1"
@@ -1364,10 +1364,10 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 880
 source_end = 930
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "CombinatorialMap::homology_basis"
+tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
+deviations = ["COMBMAP-002"]
 
 [[entries]]
 id = "combinatorialmap:InstallMethod:AreDerivedEquivalent:1"

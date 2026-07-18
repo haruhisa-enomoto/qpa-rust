@@ -90,7 +90,8 @@ pub use coefficient::{
     CoefficientDomain, CoefficientDomainError, QpaCoefficientField, QpaFieldCharacteristic,
 };
 pub use combinatorial_map::{
-    CombinatorialMap, CombinatorialMapError, Permutation, PermutationError,
+    CombinatorialMap, CombinatorialMapError, CutJoinCurveResult, CutNonSeparatingResult,
+    HomologyCurvePair, Permutation, PermutationError,
 };
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use element_inverse::ElementInverseError;
