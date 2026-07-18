@@ -23711,9 +23711,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_valid_string"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23724,9 +23724,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_quiver_rho"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23737,9 +23737,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_sigma_epsilon"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23750,9 +23750,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_direct_left"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23763,9 +23763,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_direct_right"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23776,9 +23776,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_inverse_left"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23789,9 +23789,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_inverse_right"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23802,9 +23802,9 @@ source_file = "upstream/qpa/lib/validity.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "local_ar_quiver"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23815,9 +23815,9 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 1
 source_end = 22
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_quiver_rho"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23828,9 +23828,9 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 24
 source_end = 136
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_sigma_epsilon"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23841,9 +23841,9 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 138
 source_end = 463
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_valid_string"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23854,9 +23854,9 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 465
 source_end = 565
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_direct_left"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23867,9 +23867,9 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 567
 source_end = 665
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_inverse_left"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23880,9 +23880,9 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 667
 source_end = 770
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_direct_right"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23893,9 +23893,9 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 772
 source_end = 879
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_string_inverse_right"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23906,7 +23906,7 @@ source_file = "upstream/qpa/lib/validity.gi"
 source_start = 881
 source_end = 1014
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "local_ar_quiver"
+tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []

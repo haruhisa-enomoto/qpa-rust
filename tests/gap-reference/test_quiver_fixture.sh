@@ -686,6 +686,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_special_biserial.g" \
     "$repo_root/tests/fixtures/pathalg_special_biserial.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/validity.g" \
+    "$repo_root/tests/fixtures/validity.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_predefined.g" \
     "$repo_root/tests/fixtures/pathalg_predefined.schema-v1.json"
 compare_fixture \

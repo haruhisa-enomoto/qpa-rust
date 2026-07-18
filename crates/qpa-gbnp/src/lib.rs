@@ -27,6 +27,7 @@ pub mod reptype;
 pub mod sgrobner;
 pub mod tensor;
 pub mod trivial_extension;
+pub mod validity;
 
 pub use algebra_conversion::{
     AdrAlgebraError, AdrAlgebraOfAlgebraResult, AlgebraAsQuiverAlgebraError,
@@ -217,4 +218,9 @@ pub use trivial_extension::{
     TrivialExtensionError, enveloping_algebra_homomorphism, opposite_algebra_homomorphism,
     trivial_extension_level, trivial_extension_of_quiver_algebra,
     trivial_extension_of_quiver_algebra_projection,
+};
+pub use validity::{
+    QpaStringAlgebra, QpaStringExtension, StringSigmaEpsilon, ValidityError, is_valid_string,
+    local_ar_quiver, qpa_string_direct_left, qpa_string_direct_right, qpa_string_inverse_left,
+    qpa_string_inverse_right, qpa_string_quiver_rho, qpa_string_sigma_epsilon,
 };

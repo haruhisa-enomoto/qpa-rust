@@ -753,6 +753,10 @@ Primary QPA files: `stringalgebra`, `validity`, `combinatorialrep`,
 
 - [ ] Port string/band syntax, validity, inversion, enumeration, modules, and
   local AR operations.
+  `validity.gd`/`.gi` is now complete: relation-word reconstruction, QPA's
+  concrete sigma/epsilon choice, lazy-string validation, all four hook/cohook
+  moves, and local AR descriptions are pinned over `GF(2)` and `QQ`; the
+  `stringalgebra` enumeration/module surface remains pending.
 - [ ] Port special-biserial, string, gentle, and domestic recognition methods
   that are part of QPA itself.
 - [ ] Port unit forms, roots, Euler/Tits forms, and reflections.
