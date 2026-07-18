@@ -20786,9 +20786,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 59
 source_end = 59
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::lift_path_algebra_module; RightProjectivePathAlgebraSubmodule::lift_path_algebra_module; RightProjectiveQuotientPathAlgebraModule::lift_path_algebra_module"
+tests = ["tests/fixtures/projpathalgmodule_lift.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21527,9 +21527,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1576
 source_end = 1650
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::lift_path_algebra_module; RightProjectivePathAlgebraSubmodule::lift_path_algebra_module; RightProjectiveQuotientPathAlgebraModule::lift_path_algebra_module"
+tests = ["tests/fixtures/projpathalgmodule_lift.schema-v1.json"]
 deviations = []
 
 [[entries]]

@@ -142,6 +142,12 @@ impl<F: Field> RightProjectivePathAlgebraModule<F> {
         ))
     }
 
+    /// Translate `LiftPathAlgebraModule`'s pure path-algebra early return.
+    #[must_use]
+    pub fn lift_path_algebra_module(&self) -> Self {
+        self.clone()
+    }
+
     /// Construct QPA's `SubAlgebraModule` with entered generators retained.
     ///
     /// # Errors
@@ -385,6 +391,12 @@ impl<F: Field> RightProjectivePathAlgebraSubmodule<F> {
             self.clone(),
             vectors,
         ))
+    }
+
+    /// Translate `LiftPathAlgebraModule`'s pure path-algebra early return.
+    #[must_use]
+    pub fn lift_path_algebra_module(&self) -> Self {
+        self.clone()
     }
 
     /// Translate QPA's vertex-idempotent splitting into uniform generators.
