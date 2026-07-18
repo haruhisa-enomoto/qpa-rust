@@ -294,6 +294,12 @@ impl<F: Field> RightProjectivePathAlgebraModule<F> {
                 .sum(),
         )
     }
+
+    /// Return QPA's installed vertex-projective property for this constructor.
+    #[must_use]
+    pub const fn is_vertex_projective_module(&self) -> bool {
+        true
+    }
 }
 
 impl<F: Field> fmt::Debug for RightProjectivePathAlgebraModule<F> {
@@ -464,6 +470,24 @@ impl<F: Field> RightProjectivePathAlgebraSubmodule<F> {
     /// Propagates [`Self::basis`] failures.
     pub fn dimension(&self) -> Result<Option<usize>, ProjectivePathModuleError> {
         Ok(self.basis()?.map(|basis| basis.basis_vectors().len()))
+    }
+
+    /// Translate QPA's computed `IsVertexProjectiveModule` method.
+    ///
+    /// QPA first computes `Basis(self)` and then reads its unbound
+    /// `delegateBasis` record component. Its custom path-vector basis does not
+    /// install that component, so every ordinary submodule reaches the pinned
+    /// record-access error before membership is tested.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the source basis computation, then reports QPA's missing
+    /// delegate component explicitly.
+    pub fn is_vertex_projective_module(&self) -> Result<bool, ProjectivePathModuleError> {
+        let _basis = self
+            .basis()?
+            .ok_or(ProjectivePathModuleError::MissingVertexProjectiveBasis)?;
+        Err(ProjectivePathModuleError::MissingVertexProjectiveDelegateBasis)
     }
 }
 
@@ -2073,6 +2097,12 @@ pub enum ProjectivePathModuleError {
     /// QPA's structural `NewBasis` does not install coefficient data.
     #[error("the path-vector basis has no echelon data for coefficients")]
     MissingVectorBasisEchelonData,
+    /// QPA's projectivity test cannot obtain a basis over a cyclic parent.
+    #[error("the path-algebra submodule has no finite basis for the vertex-projective test")]
+    MissingVertexProjectiveBasis,
+    /// QPA's custom path-vector basis has no `delegateBasis` component.
+    #[error("QPA's path-vector basis has no delegateBasis record component")]
+    MissingVertexProjectiveDelegateBasis,
     /// GAP's empty list misses QPA's element-collection method dispatch.
     #[error("QPA does not dispatch its projective SubAlgebraModule method on an empty list")]
     EmptySubmoduleGenerators,
@@ -2783,6 +2813,43 @@ mod tests {
                 entry.numerator_ref().to_string().parse::<i64>().unwrap(),
                 entry.denominator_ref().to_string().parse::<i64>().unwrap(),
             ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn pinned_qpa_vertex_projective_failure_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/projpathalgmodule_vertex_projective_error.schema-v1.json"
+        ))
+        .unwrap();
+        let algebra = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+        )
+        .unwrap();
+        let generators = algebra.generators();
+        let projective =
+            right_projective_path_algebra_module(&algebra, &[generators[0].clone()]).unwrap();
+        let generator = projective.vector(vec![generators[2].clone()]).unwrap();
+        let submodule = projective.submodule(vec![generator]).unwrap();
+        assert!(matches!(
+            submodule.is_vertex_projective_module(),
+            Err(ProjectivePathModuleError::MissingVertexProjectiveDelegateBasis)
+        ));
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "projpathalgmodule_vertex_projective_error",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "whole_projective": projective.is_vertex_projective_module(),
+            "submodule_success": submodule.is_vertex_projective_module().is_ok(),
         });
         assert_eq!(actual, expected);
     }

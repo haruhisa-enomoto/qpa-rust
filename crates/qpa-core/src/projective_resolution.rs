@@ -207,6 +207,12 @@ impl<F: Field> RightProjectiveQuotientPathAlgebraModule<F> {
         Ok(self.canonical_basis()?.map(|basis| basis.len()))
     }
 
+    /// Return QPA's installed vertex-projective property for this constructor.
+    #[must_use]
+    pub const fn is_vertex_projective_module(&self) -> bool {
+        true
+    }
+
     /// Translate QPA's `LiftPathAlgebraModule` for a quotient vertex projective.
     ///
     /// QPA lifts the summand vertices to the original path algebra and adds,

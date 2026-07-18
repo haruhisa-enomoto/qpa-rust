@@ -1183,6 +1183,9 @@ grep -Fq "lib/moduleprojres.gi:319" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_basis.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_basis.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/projpathalgmodule_vertex_projective_error.g" \
+    "$repo_root/tests/fixtures/projpathalgmodule_vertex_projective_error.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_lift.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_lift.schema-v1.json"

@@ -20384,8 +20384,8 @@ source_start = 9
 source_end = 9
 classification = "declared_surface"
 status = "verified"
-rust_symbol = "RightProjectivePathAlgebraModule"
-tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
+rust_symbol = "RightProjectivePathAlgebraModule::is_vertex_projective_module; RightProjectivePathAlgebraSubmodule::is_vertex_projective_module; RightProjectiveQuotientPathAlgebraModule::is_vertex_projective_module"
+tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_projective_error.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21371,9 +21371,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1147
 source_end = 1172
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::is_vertex_projective_module; RightProjectivePathAlgebraSubmodule::is_vertex_projective_module; RightProjectiveQuotientPathAlgebraModule::is_vertex_projective_module"
+tests = ["tests/fixtures/projpathalgmodule_vertex_projective_error.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21488,9 +21488,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1497
 source_end = 1511
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis::completely_reduce"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
