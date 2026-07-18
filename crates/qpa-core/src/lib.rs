@@ -21,6 +21,7 @@ pub mod path_module;
 pub mod poset;
 pub mod projective_path_module;
 pub mod projective_presentation;
+pub mod projective_resolution;
 pub mod quiver;
 pub mod quotient;
 pub mod static_dictionary;
@@ -167,6 +168,11 @@ pub use projective_path_module::{
     tip_reduce_path_algebra_vectors, x_set_of_path_algebra_vector,
 };
 pub use projective_presentation::{ProjectivePresentation, ProjectivePresentationError};
+pub use projective_resolution::{
+    ProjectiveResolutionError, ProjectiveResolutionFpPathAlgebraModule,
+    RightProjectiveQuotientPathAlgebraModule, projective_resolution_fp_path_algebra_module,
+    right_projective_quotient_path_algebra_module,
+};
 pub use quiver::{
     Arrow, ArrowIndex, ArrowSpec, DYNKIN_NOT_CONNECTED_MESSAGE, DYNKIN_UNORIENTED_CYCLE_MESSAGE,
     DynkinDecision, DynkinFamily, DynkinOrientation, DynkinType, Generator, INFO_QUIVER,

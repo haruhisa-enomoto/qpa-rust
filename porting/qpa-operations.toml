@@ -15248,9 +15248,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15261,9 +15261,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::parent_algebra"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15274,9 +15274,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::ring_ideal"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15287,9 +15287,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::maps"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15300,9 +15300,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::projectives"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15313,9 +15313,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::r_projectives"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15339,9 +15339,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::f_lists; ProjectiveResolutionFpPathAlgebraModule::f_prime_lists"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15365,9 +15365,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 23
 source_end = 25
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15378,9 +15378,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 27
 source_end = 29
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15404,9 +15404,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 37
 source_end = 42
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution_fp_path_algebra_module"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15521,9 +15521,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gi"
 source_start = 14
 source_end = 283
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution_fp_path_algebra_module"
+tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
 
 [[entries]]

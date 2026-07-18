@@ -1030,6 +1030,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/moduleprojres_xset_firstpart.g" \
     "$repo_root/tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/moduleprojres_resolution.g" \
+    "$repo_root/tests/fixtures/moduleprojres_resolution.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_groebner.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_groebner.schema-v1.json"
 compare_fixture \
