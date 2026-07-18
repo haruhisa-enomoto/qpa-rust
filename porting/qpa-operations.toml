@@ -948,9 +948,9 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::are_derived_equivalent"
+tests = ["tests/fixtures/combinatorialmap_derived.schema-v1.json","tests/gap-reference/combinatorialmap_derived_error.g"]
 deviations = []
 
 [[entries]]
@@ -1377,9 +1377,9 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 941
 source_end = 1105
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::are_derived_equivalent"
+tests = ["tests/fixtures/combinatorialmap_derived.schema-v1.json","tests/gap-reference/combinatorialmap_derived_error.g"]
 deviations = []
 
 [[entries]]
@@ -6306,7 +6306,7 @@ source_end = 36
 classification = "declared_surface"
 status = "verified"
 rust_symbol = "SuffixTree::insert_pattern"
-tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_empty_error.g","tests/gap-reference/suffix_tree_duplicate_error.g"]
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_empty_error.g","tests/gap-reference/suffix_tree_duplicate_error.g","tests/fixtures/combinatorialmap_derived.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -6527,7 +6527,7 @@ source_end = 499
 classification = "installed_implementation"
 status = "verified"
 rust_symbol = "SuffixTree::insert_pattern"
-tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_empty_error.g","tests/gap-reference/suffix_tree_duplicate_error.g"]
+tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_empty_error.g","tests/gap-reference/suffix_tree_duplicate_error.g","tests/fixtures/combinatorialmap_derived.schema-v1.json"]
 deviations = []
 
 [[entries]]

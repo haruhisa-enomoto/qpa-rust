@@ -1086,6 +1086,18 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/combinatorialmap_homology.g" \
     "$repo_root/tests/fixtures/combinatorialmap_homology.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialmap_derived.g" \
+    "$repo_root/tests/fixtures/combinatorialmap_derived.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialmap_derived_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a nongentle derived-equivalence input" >&2
+    exit 1
+fi
+grep -Fq "At least one of the algebras is not gentle?" "$actual"
+grep -Fq "lib/combinatorialmap.gi:950" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_gentle_error.g" \
     >"$actual" 2>&1

@@ -674,8 +674,15 @@ where
                     location = 0;
                 }
                 if let Some(previous_internal) = w {
-                    if self.label_of_node(v)? != qpa_pattern_slice(&pattern_tokens, j, i) {
-                        return Err(SuffixTreeError::IncorrectSuffixLink);
+                    let actual_label = self.label_of_node(v)?;
+                    let expected_label = qpa_pattern_slice(&pattern_tokens, j, i);
+                    if actual_label != expected_label {
+                        return Err(SuffixTreeError::IncorrectSuffixLink {
+                            phase: i,
+                            extension: j,
+                            actual_length: actual_label.len(),
+                            expected_length: expected_label.len(),
+                        });
                     }
                     self.set_suffix_link(previous_internal, v)?;
                 }
@@ -937,11 +944,11 @@ where
             current_node: self.root,
             new_node: None,
         };
+        let applied_edge;
 
         match locus {
             ExtensionLocus::Edge(current_edge, location) => {
-                result.current_edge = Some(current_edge);
-                result.location = location;
+                applied_edge = Some(current_edge);
                 let label = self.label_of_edge(current_edge)?;
                 if label
                     .get(location)
@@ -985,9 +992,10 @@ where
             ExtensionLocus::Node(current_node) => {
                 result.current_node = current_node;
                 let current_edge = self.edge_starting_at(current_node, &next_token)?;
-                result.current_edge = current_edge;
+                applied_edge = current_edge;
                 if let Some(current_edge) = current_edge {
                     if self.label_of_edge(current_edge)?.len() > 1 {
+                        result.current_edge = Some(current_edge);
                         result.location = 1;
                         result.next_node = Some(current_node);
                     } else {
@@ -1007,9 +1015,7 @@ where
         }
 
         if next_token == SuffixTreeToken::Termination && result.new_node.is_none() {
-            let current_edge = result
-                .current_edge
-                .ok_or(SuffixTreeError::InvalidSuffixTreeState)?;
+            let current_edge = applied_edge.ok_or(SuffixTreeError::InvalidSuffixTreeState)?;
             let child = self.edge_child_required(current_edge)?;
             if self.node_kind(child)? != SuffixTreeNodeKind::External {
                 return Err(SuffixTreeError::ExpectedExternalNode);
@@ -1589,8 +1595,19 @@ pub enum SuffixTreeError {
     #[error("the suffix-tree node has no dynamic-tree handle")]
     MissingDynamicTree,
     /// QPA's suffix-link assertion failed.
-    #[error("QPA computed an incorrect suffix link")]
-    IncorrectSuffixLink,
+    #[error(
+        "QPA computed an incorrect suffix link in phase {phase}, extension {extension}: label lengths {actual_length} and {expected_length} differ"
+    )]
+    IncorrectSuffixLink {
+        /// Zero-based source phase index.
+        phase: usize,
+        /// One-based source extension index.
+        extension: usize,
+        /// Length of the reached node label.
+        actual_length: usize,
+        /// Length of QPA's expected pattern slice.
+        expected_length: usize,
+    },
     /// QPA's deletion compression expected exactly one remaining edge.
     #[error("QPA expected a unary internal suffix-tree node")]
     ExpectedUnaryInternalNode,
@@ -1862,6 +1879,48 @@ mod tests {
             tree.delete_pattern(pattern),
             Err(SuffixTreeError::PatternAlreadyDeleted)
         );
+    }
+
+    #[test]
+    fn disjoint_quadratic_patterns_support_qpa_gentle_relations() {
+        let mut tree = SuffixTree::new();
+        for pattern in [
+            vec![0, 2],
+            vec![2, 3],
+            vec![3, 0],
+            vec![4, 5],
+            vec![5, 6],
+            vec![6, 7],
+            vec![7, 8],
+        ] {
+            tree.insert_pattern(pattern).unwrap();
+        }
+    }
+
+    #[test]
+    fn cubic_radical_products_support_qpa_gentle_relations() {
+        let mut tree = SuffixTree::new();
+        for pattern in [
+            vec![1, 3, 4],
+            vec![1, 3, 7],
+            vec![2, 1, 3],
+            vec![3, 4, 1],
+            vec![3, 7, 8],
+            vec![4, 1, 3],
+            vec![5, 6, 4],
+            vec![5, 6, 7],
+            vec![6, 4, 1],
+            vec![6, 7, 8],
+            vec![7, 8, 6],
+            vec![7, 8, 9],
+            vec![8, 6, 7],
+            vec![8, 9, 8],
+            vec![9, 8, 9],
+        ] {
+            if let Err(error) = tree.insert_pattern(pattern.clone()) {
+                panic!("failed to insert {pattern:?}: {error:?}");
+            }
+        }
     }
 
     #[test]

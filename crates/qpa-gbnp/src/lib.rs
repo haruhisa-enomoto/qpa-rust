@@ -35,7 +35,7 @@ pub use algebra_conversion::{
     end_of_basic_module_as_quiver_algebra_with_bound, end_of_module_as_quiver_algebra,
 };
 pub use combinatorial_map::{
-    GentleCombinatorialMapError, combinatorial_map_of_gentle_algebra,
+    GentleCombinatorialMapError, are_derived_equivalent, combinatorial_map_of_gentle_algebra,
     maximal_paths_of_gentle_algebra,
 };
 pub use complex::{

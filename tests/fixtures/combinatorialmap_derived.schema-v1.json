@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "kind": "combinatorialmap_derived",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "genus_one_a": {
+    "genus": [1, 1],
+    "face_count": 3,
+    "vertex_count": 3,
+    "boundary": [[-3, 0], [-3, 2], [0, 1]],
+    "basis_winding": [[3, 0]],
+    "gcd": 1
+  },
+  "genus_one_b": {
+    "genus": [1, 1],
+    "face_count": 3,
+    "vertex_count": 3,
+    "boundary": [[-3, 0], [-3, 2], [0, 1]],
+    "basis_winding": [[0, 0]],
+    "gcd": 1
+  },
+  "results": {
+    "source_genus_one": true,
+    "reflexive_genus_one": true,
+    "genus_zero_disc": true,
+    "different_field": false,
+    "different_vertex_count": false,
+    "different_genus": false
+  }
+}
