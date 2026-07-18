@@ -17341,9 +17341,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 692
 source_end = 767
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverAlgebraHomomorphism::image"
+tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -17354,10 +17354,10 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 770
 source_end = 788
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "QuiverAlgebraHomomorphism::image"
+tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json","tests/gap-reference/natural_map_image_error.g"]
+deviations = ["PATHALG-001"]
 
 [[entries]]
 id = "pathalg:InstallOtherMethod:OrderedBy:1"
@@ -17367,10 +17367,10 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 791
 source_end = 802
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "QuotientPathAlgebra::ordered_by"
+tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json"]
+deviations = ["PATHALG-004"]
 
 [[entries]]
 id = "pathalg:InstallMethod:\\.:2"
@@ -17718,9 +17718,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 1222
 source_end = 1230
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "QuiverAlgebraHomomorphism::image"
+tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18290,10 +18290,10 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 2600
 source_end = 2633
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "QuiverAlgebra::generator_variable_assignments; QuiverAlgebra::generator_variable_assignments_with_read_only; GeneratorVariableAssignment"
+tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json"]
+deviations = ["PATHALG-005"]
 
 [[entries]]
 id = "pathalg:InstallMethod:AssociatedGradedAlgebra:1"

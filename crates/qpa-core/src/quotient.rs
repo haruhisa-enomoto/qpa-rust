@@ -711,6 +711,20 @@ impl<F: Field> QuotientPathAlgebra<F> {
         self.original_path_algebra().ordering()
     }
 
+    /// Preserve the reachable failure of QPA's quotient `OrderedBy` method.
+    ///
+    /// `FactorPathAlgebraByRelators` stores the defining ideal on the quotient
+    /// family, but the installed `OrderedBy` method reads an unassigned private
+    /// `relators` component instead. Every ordinary quotient therefore fails
+    /// before it can inspect or apply the requested ordering.
+    ///
+    /// # Errors
+    ///
+    /// Always returns [`QuotientError::UnboundRelatorsForOrderedBy`].
+    pub fn ordered_by(&self, _ordering: &crate::QuiverOrdering) -> Result<Self, QuotientError> {
+        Err(QuotientError::UnboundRelatorsForOrderedBy)
+    }
+
     /// Return the QPA `IsPathRing` value. Quotients are quiver algebras but
     /// are not path rings themselves.
     #[must_use]
@@ -2568,6 +2582,10 @@ pub enum QuotientError {
     /// QPA only installs quotient comparison for normal-form elements.
     #[error("quotient elements must be in normal form for this operation")]
     ElementsNotInNormalForm,
+    /// QPA's quotient `OrderedBy` implementation reads the unassigned private
+    /// family component `relators`.
+    #[error("QPA's quotient OrderedBy method has no bound relators component")]
+    UnboundRelatorsForOrderedBy,
     /// An ideal-level method requiring an attached basis did not receive one.
     #[error("the path-algebra ideal has no attached Groebner basis")]
     MissingGroebnerBasis,

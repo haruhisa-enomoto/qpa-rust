@@ -220,9 +220,16 @@ pub enum QuiverAlgebraHomomorphismError {
 
 #[cfg(test)]
 mod tests {
-    use numerica::domains::rational::Q;
+    use numerica::domains::{
+        finite_field::{FiniteFieldCore, Zp},
+        rational::Q,
+    };
+    use serde_json::{Value, json};
 
-    use crate::{NamedArrowSpec, PathAlgebra, Quiver, QuiverAlgebra};
+    use crate::{
+        GeneratorVariableError, NamedArrowSpec, PathAlgebra, Quiver, QuiverAlgebra,
+        QuiverAlgebraElement, QuotientError, QuotientPathAlgebra,
+    };
 
     use super::{QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError};
 
@@ -237,6 +244,42 @@ mod tests {
                 .unwrap(),
             )
             .unwrap(),
+        )
+    }
+
+    fn loop_algebra(field: Zp, first: &str, second: &str) -> QuiverAlgebra<Zp> {
+        QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field,
+                Quiver::from_named(
+                    vec!["v1".into()],
+                    vec![
+                        NamedArrowSpec::named("v1", "v1", first),
+                        NamedArrowSpec::named("v1", "v1", second),
+                    ],
+                )
+                .unwrap(),
+            )
+            .unwrap(),
+        )
+    }
+
+    fn element_json(element: &QuiverAlgebraElement<Zp>, field: &Zp) -> Value {
+        let representative = match element {
+            QuiverAlgebraElement::Path(element) => element,
+            QuiverAlgebraElement::Quotient(element) => element.representative(),
+        };
+        Value::Array(
+            representative
+                .terms()
+                .iter()
+                .map(|term| {
+                    json!({
+                        "path": term.path().to_string(),
+                        "coefficient": field.to_integer(term.coefficient()).to_string().parse::<i64>().unwrap()
+                    })
+                })
+                .collect(),
         )
     }
 
@@ -280,6 +323,201 @@ mod tests {
         assert_eq!(
             map.image(&foreign.zero()).unwrap_err(),
             QuiverAlgebraHomomorphismError::ForeignSourceElement
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_mapped_expression_and_ordered_by_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_mapping_ordering.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            expected["oracle"],
+            json!({
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            })
+        );
+
+        let field = Zp::new(5);
+        let source = loop_algebra(field.clone(), "a", "b");
+        let range = loop_algebra(field.clone(), "x", "y");
+        let source_generators = source.generators_with_one().unwrap();
+        let range_generators = range.generators_with_one().unwrap();
+        let range_images = vec![
+            range_generators[0].clone(),
+            range_generators[2].clone(),
+            range_generators[1].clone(),
+        ];
+        let element = source_generators[0]
+            .scale_left(&field.to_element(2))
+            .unwrap()
+            .add(
+                &source_generators[1]
+                    .multiply(&source_generators[1])
+                    .unwrap()
+                    .scale_left(&field.to_element(3))
+                    .unwrap(),
+            )
+            .unwrap()
+            .add(
+                &source_generators[1]
+                    .multiply(&source_generators[2])
+                    .unwrap()
+                    .scale_left(&field.to_element(4))
+                    .unwrap(),
+            )
+            .unwrap()
+            .add(&source_generators[2])
+            .unwrap();
+        let mapping = QuiverAlgebraHomomorphism::by_generators_with_one_images(
+            source.clone(),
+            range,
+            range_images,
+        )
+        .unwrap();
+        let mapped = mapping.image(&element).unwrap();
+        assert_eq!(
+            json!({
+                "mapped": element_json(&mapped, &field),
+                "mapped_zero": element_json(&mapping.image(&source.zero()).unwrap(), &field),
+                "unretained_success": false,
+                "retained_success": true,
+                "retained_image": element_json(&mapped, &field)
+            }),
+            expected["path"]
+        );
+
+        let assignments = source.generator_variable_assignments().unwrap();
+        let invalid = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_named(
+                    vec!["v1".into()],
+                    vec![NamedArrowSpec::named("v1", "v1", "not-valid")],
+                )
+                .unwrap(),
+            )
+            .unwrap(),
+        );
+        let read_only = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field.clone(),
+                Quiver::from_named(
+                    vec!["v1".into()],
+                    vec![NamedArrowSpec::named("v1", "v1", "Z")],
+                )
+                .unwrap(),
+            )
+            .unwrap(),
+        );
+        let invalid_assignment = invalid.generator_variable_assignments();
+        assert_eq!(
+            invalid_assignment.as_ref().unwrap_err(),
+            &GeneratorVariableError::InvalidIdentifier {
+                name: "not-valid".into(),
+            }
+        );
+        let read_only_assignment =
+            read_only.generator_variable_assignments_with_read_only(|name| name == "Z");
+        assert_eq!(
+            read_only_assignment.as_ref().unwrap_err(),
+            &GeneratorVariableError::ReadOnlyIdentifier { name: "Z".into() }
+        );
+        assert_eq!(
+            json!({
+                "success": true,
+                "invalid_success": invalid_assignment.is_ok(),
+                "read_only_success": read_only_assignment.is_ok(),
+                "names": assignments
+                    .iter()
+                    .map(crate::GeneratorVariableAssignment::name)
+                    .collect::<Vec<_>>(),
+                "values": assignments
+                    .iter()
+                    .map(|assignment| element_json(assignment.element(), &field))
+                    .collect::<Vec<_>>()
+            }),
+            expected["assignment"]
+        );
+
+        let QuiverAlgebra::Path(source_parent) = source else {
+            unreachable!();
+        };
+        let source_parent_generators = source_parent.generators();
+        let source_quotient = QuotientPathAlgebra::by_relations_high_level(
+            source_parent,
+            &[source_parent_generators[1]
+                .multiply(&source_parent_generators[1])
+                .unwrap()],
+        )
+        .unwrap();
+        let range_parent = loop_algebra(field.clone(), "x", "y");
+        let QuiverAlgebra::Path(range_parent) = range_parent else {
+            unreachable!();
+        };
+        let range_parent_generators = range_parent.generators();
+        let range_quotient = QuotientPathAlgebra::by_relations_high_level(
+            range_parent,
+            &[range_parent_generators[2]
+                .multiply(&range_parent_generators[2])
+                .unwrap()],
+        )
+        .unwrap();
+        let source = QuiverAlgebra::Quotient(source_quotient.clone());
+        let range = QuiverAlgebra::Quotient(range_quotient);
+        let source_generators = source.generators_with_one().unwrap();
+        let range_generators = range.generators_with_one().unwrap();
+        let range_images = vec![
+            range_generators[0].clone(),
+            range_generators[2].clone(),
+            range_generators[1].clone(),
+        ];
+        let element = source_generators[0]
+            .scale_left(&field.to_element(2))
+            .unwrap()
+            .add(
+                &source_generators[1]
+                    .multiply(&source_generators[2])
+                    .unwrap()
+                    .scale_left(&field.to_element(3))
+                    .unwrap(),
+            )
+            .unwrap()
+            .add(
+                &source_generators[2]
+                    .multiply(&source_generators[2])
+                    .unwrap()
+                    .scale_left(&field.to_element(4))
+                    .unwrap(),
+            )
+            .unwrap();
+        let mapping =
+            QuiverAlgebraHomomorphism::by_generators_with_one_images(source, range, range_images)
+                .unwrap();
+        let mapped = mapping.image(&element).unwrap();
+        assert_eq!(
+            json!({
+                "mapped": element_json(&mapped, &field),
+                "retained_success": true,
+                "retained_image": element_json(&mapped, &field),
+                "ordered_success": source_quotient
+                    .ordered_by(source_quotient.ordering())
+                    .is_ok()
+            }),
+            expected["quotient"]
+        );
+        assert_eq!(
+            source_quotient
+                .ordered_by(source_quotient.ordering())
+                .unwrap_err(),
+            QuotientError::UnboundRelatorsForOrderedBy
         );
     }
 }

@@ -142,6 +142,22 @@ compare_pathalg_surface_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_pathalg_mapping_ordering_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw" 2>&1
+    test "$(grep -Fc "Record Element: '<rec>.generators' must have an assigned value" "$raw")" -eq 1
+    test "$(grep -Fc "Record Element: '<rec>.relators' must have an assigned value" "$raw")" -eq 1
+    test "$(grep -Fc "Variable \`not-valid' would not be a proper identifier" "$raw")" -eq 1
+    test "$(grep -Fc "Variable \`Z' is write protected." "$raw")" -eq 1
+    test "$(grep -Fc 'Assigned the global variables [ v1, a, b ]' "$raw")" -eq 1
+    grep -E '^\{"schema_version":' "$raw" | tail -n 1 |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_fixture \
     "$repo_root/tests/gap-reference/quiver_paths.g" \
     "$repo_root/tests/fixtures/quiver_paths.schema-v1.json"
@@ -684,6 +700,9 @@ compare_fixture \
 compare_pathalg_surface_fixture \
     "$repo_root/tests/gap-reference/pathalg_surface.g" \
     "$repo_root/tests/fixtures/pathalg_surface.schema-v1.json"
+compare_pathalg_mapping_ordering_fixture \
+    "$repo_root/tests/gap-reference/pathalg_mapping_ordering.g" \
+    "$repo_root/tests/fixtures/pathalg_mapping_ordering.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_foundational.g" \
     "$repo_root/tests/fixtures/pathalg_foundational.schema-v1.json"

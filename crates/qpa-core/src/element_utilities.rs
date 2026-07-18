@@ -30,6 +30,37 @@ pub enum QuiverAlgebra<F: Field> {
     Quotient(QuotientPathAlgebra<F>),
 }
 
+/// One name/value pair prepared by QPA's `AssignGeneratorVariables` loop.
+///
+/// Rust returns this ordered assignment plan instead of mutating a process-wide
+/// language namespace. Applying entries in order preserves QPA's behavior for
+/// repeated generator names, where the final entry wins.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GeneratorVariableAssignment<F: Field> {
+    name: Box<str>,
+    element: QuiverAlgebraElement<F>,
+}
+
+impl<F: Field> GeneratorVariableAssignment<F> {
+    /// Return the GAP generator string used as the global-variable name.
+    #[must_use]
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Return `One(A) * g`, the value assigned by QPA.
+    #[must_use]
+    pub const fn element(&self) -> &QuiverAlgebraElement<F> {
+        &self.element
+    }
+
+    /// Consume this assignment into its name and algebra element.
+    #[must_use]
+    pub fn into_parts(self) -> (Box<str>, QuiverAlgebraElement<F>) {
+        (self.name, self.element)
+    }
+}
+
 impl<F: Field> QuiverAlgebra<F> {
     /// Return whether two handles denote the identical QPA algebra object.
     #[must_use]
@@ -693,6 +724,123 @@ impl<F: Field> QuiverAlgebra<F> {
             }
         }))
     }
+
+    /// Translate the deterministic part of QPA's
+    /// `AssignGeneratorVariables` method.
+    ///
+    /// QPA first validates every generator string with GAP's
+    /// `IsValidIdentifier`, then assigns `One(A) * g` in quiver-generator
+    /// order. Rust returns those ordered assignments for the caller to install
+    /// in its own namespace. GAP-specific read-only/bound-global checks and
+    /// warning output are necessarily namespace policy at the binding layer.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`GeneratorVariableError::InvalidIdentifier`] before producing
+    /// any assignments when one name fails GAP's lexical predicate, and
+    /// propagates path or quotient embedding failures.
+    pub fn generator_variable_assignments(
+        &self,
+    ) -> Result<Vec<GeneratorVariableAssignment<F>>, GeneratorVariableError> {
+        self.generator_variable_assignments_with_read_only(|_| false)
+    }
+
+    /// Prepare generator assignments using a caller-supplied namespace
+    /// read-only predicate.
+    ///
+    /// This exposes QPA's `IS_READ_ONLY_GLOBAL` validation point to a Rust or
+    /// future Python binding without coupling the algebra crate to one process
+    /// global namespace.
+    ///
+    /// # Errors
+    ///
+    /// In addition to [`Self::generator_variable_assignments`] failures,
+    /// returns [`GeneratorVariableError::ReadOnlyIdentifier`] at QPA's exact
+    /// pre-assignment validation stage.
+    pub fn generator_variable_assignments_with_read_only(
+        &self,
+        mut is_read_only: impl FnMut(&str) -> bool,
+    ) -> Result<Vec<GeneratorVariableAssignment<F>>, GeneratorVariableError> {
+        let generators = self.quiver().generators().collect::<Vec<_>>();
+        for generator in &generators {
+            if !is_valid_gap_identifier(generator.name()) {
+                return Err(GeneratorVariableError::InvalidIdentifier {
+                    name: generator.name().into(),
+                });
+            }
+            if is_read_only(generator.name()) {
+                return Err(GeneratorVariableError::ReadOnlyIdentifier {
+                    name: generator.name().into(),
+                });
+            }
+        }
+        generators
+            .into_iter()
+            .map(|generator| {
+                let name = generator.name().into();
+                let element = match self {
+                    Self::Path(algebra) => QuiverAlgebraElement::Path(
+                        algebra
+                            .element(generator.path())
+                            .map_err(QuiverAlgebraElementError::from)?,
+                    ),
+                    Self::Quotient(algebra) => QuiverAlgebraElement::Quotient(
+                        algebra
+                            .path(generator.path())
+                            .map_err(QuiverAlgebraElementError::from)?,
+                    ),
+                };
+                Ok(GeneratorVariableAssignment { name, element })
+            })
+            .collect()
+    }
+}
+
+const GAP_KEYWORDS: &[&str] = &[
+    "Assert",
+    "Info",
+    "IsBound",
+    "QUIT",
+    "TryNextMethod",
+    "Unbind",
+    "and",
+    "atomic",
+    "break",
+    "continue",
+    "do",
+    "elif",
+    "else",
+    "end",
+    "false",
+    "fi",
+    "for",
+    "function",
+    "if",
+    "in",
+    "local",
+    "mod",
+    "not",
+    "od",
+    "or",
+    "quit",
+    "readonly",
+    "readwrite",
+    "rec",
+    "repeat",
+    "return",
+    "then",
+    "true",
+    "until",
+    "while",
+];
+
+fn is_valid_gap_identifier(name: &str) -> bool {
+    !name.is_empty()
+        && name
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'@' | b'_'))
+        && name.bytes().any(|byte| !byte.is_ascii_digit())
+        && !GAP_KEYWORDS.contains(&name)
 }
 
 impl<F: Field> From<PathAlgebra<F>> for QuiverAlgebra<F> {
@@ -841,6 +989,26 @@ pub enum QuiverAlgebraElementError {
     /// Quotient arithmetic or normal-form reduction failed.
     #[error(transparent)]
     Quotient(#[from] QuotientError),
+}
+
+/// Failure while preparing QPA generator-variable assignments.
+#[derive(Clone, Debug, Eq, Error, PartialEq)]
+pub enum GeneratorVariableError {
+    /// GAP's `IsValidIdentifier` rejected a generator string.
+    #[error("generator name {name:?} is not a valid GAP identifier")]
+    InvalidIdentifier {
+        /// Rejected generator name.
+        name: Box<str>,
+    },
+    /// GAP's `IS_READ_ONLY_GLOBAL` rejected an otherwise valid name.
+    #[error("generator name {name:?} is read-only in the target namespace")]
+    ReadOnlyIdentifier {
+        /// Protected generator name.
+        name: Box<str>,
+    },
+    /// Embedding `One(A) * g` in the observable algebra failed.
+    #[error(transparent)]
+    Element(#[from] QuiverAlgebraElementError),
 }
 
 /// The rebuilt named quiver and converted relation list immediately before

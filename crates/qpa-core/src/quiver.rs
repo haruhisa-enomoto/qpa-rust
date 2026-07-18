@@ -1710,6 +1710,15 @@ pub enum Generator {
 }
 
 impl Generator {
+    /// Return the generator name.
+    #[must_use]
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Vertex(vertex) => vertex.name(),
+            Self::Arrow(arrow) => arrow.name(),
+        }
+    }
+
     /// Convert this generator to a path.
     #[must_use]
     pub fn path(&self) -> Path {

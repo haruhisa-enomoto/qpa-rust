@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_mapping_ordering",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "path": {
+    "mapped": [
+      {"path": "v1", "coefficient": 2},
+      {"path": "x", "coefficient": 1},
+      {"path": "y*x", "coefficient": 4},
+      {"path": "y^2", "coefficient": 3}
+    ],
+    "mapped_zero": [],
+    "unretained_success": false,
+    "retained_success": true,
+    "retained_image": [
+      {"path": "v1", "coefficient": 2},
+      {"path": "x", "coefficient": 1},
+      {"path": "y*x", "coefficient": 4},
+      {"path": "y^2", "coefficient": 3}
+    ]
+  },
+  "quotient": {
+    "mapped": [
+      {"path": "v1", "coefficient": 2},
+      {"path": "x^2", "coefficient": 4},
+      {"path": "y*x", "coefficient": 3}
+    ],
+    "retained_success": true,
+    "retained_image": [
+      {"path": "v1", "coefficient": 2},
+      {"path": "x^2", "coefficient": 4},
+      {"path": "y*x", "coefficient": 3}
+    ],
+    "ordered_success": false
+  },
+  "assignment": {
+    "success": true,
+    "invalid_success": false,
+    "read_only_success": false,
+    "names": ["v1", "a", "b"],
+    "values": [
+      [{"path": "v1", "coefficient": 1}],
+      [{"path": "a", "coefficient": 1}],
+      [{"path": "b", "coefficient": 1}]
+    ]
+  }
+}

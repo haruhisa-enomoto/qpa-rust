@@ -221,6 +221,50 @@ the computations remain translations of the cited source methods.
   failures, and `tests/fixtures/pathalg_surface.schema-v1.json` plus the Rust
   fixture test pin their false success states.
 
+## PATHALG-004 — Broken quotient reordering is a typed error
+
+- Source: QPA `lib/pathalg.gi`, quotient `OrderedBy` at lines 791–802 and
+  `FactorPathAlgebraByRelators` at lines 215–309.
+- Affected Rust operation: `QuotientPathAlgebra::ordered_by`.
+- Difference: the QPA factor constructor stores `pathAlgebra`, `ideal`, and
+  `familyRing` components on the element family, but its `OrderedBy` method
+  reads `fam!.relators`, which the constructor never assigns. Every ordinary
+  quotient call therefore raises a GAP record-element error. Rust returns
+  `QuotientError::UnboundRelatorsForOrderedBy` at the same branch.
+- Reason: returning a typed error preserves the pinned source behavior without
+  silently repairing the method by reading ideal generators instead.
+- Compatibility impact: no normally constructed QPA quotient can reach the
+  advertised reordering calculation. Rust likewise does not reorder it; the
+  failure is deterministic and matchable instead of entering a GAP break loop.
+- Evidence: `tests/gap-reference/pathalg_mapping_ordering.g` pins the unbound
+  `relators` failure and
+  `tests/fixtures/pathalg_mapping_ordering.schema-v1.json` pins its false
+  success state alongside valid mapped-expression behavior.
+
+## PATHALG-005 — Generator-variable assignment returns a namespace plan
+
+- Source: QPA `lib/pathalg.gi`, `AssignGeneratorVariables` at lines
+  2600–2633, and pinned GAP `IsValidIdentifier` in `lib/global.gi` lines 47–52.
+- Affected Rust operations: `QuiverAlgebra::generator_variable_assignments`,
+  `QuiverAlgebra::generator_variable_assignments_with_read_only`, and
+  `GeneratorVariableAssignment`.
+- Difference: QPA validates generator strings, warns for already-bound GAP
+  globals, unbinds them, and mutates the GAP global namespace. Rust returns the
+  ordered name/`One(A) * g` assignment plan. A binding supplies its namespace's
+  read-only predicate and decides how to warn about or overwrite bound names.
+- Reason: a reusable Rust algebra library has no GAP global-variable table and
+  must not mutate a caller language's process-wide namespace implicitly. The
+  future Python layer can install the returned values in an explicit mapping.
+- Compatibility impact: GAP's exact identifier alphabet, keyword exclusion,
+  all-digit rejection, pre-assignment validation order, read-only branch,
+  vertex-then-arrow order, and repeated-name last-wins order are preserved.
+  Warning emission and actual namespace mutation occur only when the caller
+  applies the returned plan.
+- Evidence: `tests/gap-reference/pathalg_mapping_ordering.g` pins successful
+  assignment plus invalid and read-only failures;
+  `tests/fixtures/pathalg_mapping_ordering.schema-v1.json` pins assigned names
+  and algebra elements in source order.
+
 ## ORDERING-001 — Quiver-ordering ownership is checked at construction
 
 - Source: QPA `lib/groebnerordering.gi`, all ordering constructors,

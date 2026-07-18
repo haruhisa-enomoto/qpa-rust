@@ -100,7 +100,8 @@ pub use combinatorial_map::{
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use element_inverse::ElementInverseError;
 pub use element_utilities::{
-    QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, VertexQuotientPresentation,
+    GeneratorVariableAssignment, GeneratorVariableError, QuiverAlgebra, QuiverAlgebraElement,
+    QuiverAlgebraElementError, VertexQuotientPresentation,
 };
 pub use fp_path_module::{
     FpPathAlgebraByImagesHomomorphism, FpPathAlgebraEndomorphismAlgebra, FpPathAlgebraHomSpace,
