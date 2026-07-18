@@ -1089,6 +1089,26 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/combinatorialmap_derived.g" \
     "$repo_root/tests/fixtures/combinatorialmap_derived.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialrep_unit_form.g" \
+    "$repo_root/tests/fixtures/combinatorialrep_unit_form.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialrep_unit_form_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a nonsquare unit form" >&2
+    exit 1
+fi
+grep -Fq "the entered matrix is not a square matrix" "$actual"
+grep -Fq "lib/combinatorialrep.gi:33" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialrep_unit_form_empty_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly dispatched UnitForm on an empty list" >&2
+    exit 1
+fi
+grep -Fq "no 1st choice method found for \`UnitForm' on 1 arguments" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_derived_error.g" \
     >"$actual" 2>&1

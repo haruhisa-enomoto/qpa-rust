@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "kind": "combinatorialrep_unit_form",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "a2": {
+    "matrix": [[2, -1], [-1, 2]],
+    "bilinear": 9,
+    "quadratic": 3,
+    "reflection": [1, -1],
+    "weakly_nonnegative": true,
+    "weakly_positive": true,
+    "positive_roots": [[1, 0], [0, 1], [1, 1]]
+  },
+  "a3": {
+    "weakly_nonnegative": true,
+    "weakly_positive": true,
+    "positive_roots": [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, 1, 1]]
+  },
+  "affine_a1": {
+    "weakly_nonnegative": true,
+    "weakly_positive": false
+  },
+  "indefinite": {
+    "weakly_nonnegative": false,
+    "weakly_positive": false
+  },
+  "nonnegative_failure": {
+    "weakly_nonnegative": false
+  },
+  "positive_off_diagonal": {
+    "weakly_positive": true,
+    "positive_roots": [[1, 0], [0, 1]]
+  }
+}

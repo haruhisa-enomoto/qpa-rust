@@ -1390,9 +1390,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1403,9 +1403,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1416,9 +1416,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Vec<UnitForm>"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1429,9 +1429,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1442,9 +1442,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::new"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json","tests/gap-reference/combinatorialrep_unit_form_error.g","tests/gap-reference/combinatorialrep_unit_form_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -1455,9 +1455,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 6
 source_end = 6
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::symmetric_matrix"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1468,9 +1468,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::bilinear_form"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1481,9 +1481,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::quadratic_form"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1494,9 +1494,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::positive_roots"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1533,9 +1533,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::reflection_by_bilinear_form"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1546,9 +1546,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::is_weakly_nonnegative"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1559,9 +1559,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::is_weakly_positive"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1572,9 +1572,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 21
 source_end = 81
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::new; UnitForm::bilinear_form; UnitForm::quadratic_form"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json","tests/gap-reference/combinatorialrep_unit_form_error.g","tests/gap-reference/combinatorialrep_unit_form_empty_error.g"]
 deviations = []
 
 [[entries]]
@@ -1624,9 +1624,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 196
 source_end = 213
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::reflection_by_bilinear_form"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1637,9 +1637,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 225
 source_end = 266
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::is_weakly_nonnegative"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -1650,9 +1650,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 278
 source_end = 354
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "UnitForm::is_weakly_positive"
+tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
 
 [[entries]]

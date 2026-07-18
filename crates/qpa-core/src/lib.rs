@@ -30,6 +30,7 @@ pub mod structure_constants;
 pub mod suffix_tree;
 pub mod tensor;
 pub mod triangular_reduced;
+pub mod unit_form;
 pub mod util;
 pub mod vector_reduction;
 
@@ -212,5 +213,6 @@ pub use tensor::{
     quiver_product, reverse_path, simple_tensor, vertices_of_path_algebra, walk_of_path_or_vertex,
 };
 pub use triangular_reduced::TriangularReducedError;
+pub use unit_form::{UnitForm, UnitFormError};
 pub use util::{null_list, positions_nonzero, positions_nonzero_in_field};
 pub use vector_reduction::{VectorCoefficients, VectorReductionError, VectorTip};
