@@ -21,6 +21,7 @@ use thiserror::Error;
 use crate::{
     CachedAttribute, CachedNakayamaAutomorphismOrder, OrderedQuiver, OrderingError, Path,
     PathEndpoint, PathError, Quiver, QuiverError, QuiverOrdering, Vertex,
+    combinatorial_map::CombinatorialMap,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule, WeakPathAlgebraModuleListCache},
     quotient::{QuotientPathAlgebra, WeakQuotientPathAlgebra},
     tensor::WeakTensorProductAlgebra,
@@ -44,6 +45,8 @@ struct PathAlgebraData<F: Field> {
     indec_projective_modules: WeakPathAlgebraModuleListCache<F>,
     indec_injective_modules: WeakPathAlgebraModuleListCache<F>,
     simple_modules: WeakPathAlgebraModuleListCache<F>,
+    gentle_maximal_paths: OnceLock<Vec<Path>>,
+    gentle_combinatorial_map: OnceLock<CombinatorialMap>,
     gorenstein_dimension: OnceLock<usize>,
     cartan_matrix: OnceLock<Option<Vec<Vec<usize>>>>,
     coxeter_matrix: OnceLock<Option<DenseMatrix<RationalField>>>,
@@ -162,6 +165,8 @@ impl<F: Field> PathAlgebra<F> {
             indec_projective_modules: WeakPathAlgebraModuleListCache::new(),
             indec_injective_modules: WeakPathAlgebraModuleListCache::new(),
             simple_modules: WeakPathAlgebraModuleListCache::new(),
+            gentle_maximal_paths: OnceLock::new(),
+            gentle_combinatorial_map: OnceLock::new(),
             gorenstein_dimension: OnceLock::new(),
             cartan_matrix: OnceLock::new(),
             coxeter_matrix: OnceLock::new(),
@@ -186,6 +191,34 @@ impl<F: Field> PathAlgebra<F> {
     #[must_use]
     pub fn quiver(&self) -> &Quiver {
         &self.0.quiver
+    }
+
+    /// Return QPA's cached `MaximalPathsOfGentleAlgebra` attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gentle_maximal_paths(&self) -> Option<&[Path]> {
+        self.0.gentle_maximal_paths.get().map(Vec::as_slice)
+    }
+
+    /// Bind QPA's `MaximalPathsOfGentleAlgebra` attribute if it is unbound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gentle_maximal_paths(&self, paths: Vec<Path>) -> &[Path] {
+        self.0.gentle_maximal_paths.get_or_init(|| paths)
+    }
+
+    /// Return QPA's cached `CombinatorialMapOfGentleAlgebra`, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gentle_combinatorial_map(&self) -> Option<&CombinatorialMap> {
+        self.0.gentle_combinatorial_map.get()
+    }
+
+    /// Bind QPA's `CombinatorialMapOfGentleAlgebra` attribute if it is unbound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gentle_combinatorial_map(&self, map: CombinatorialMap) -> &CombinatorialMap {
+        self.0.gentle_combinatorial_map.get_or_init(|| map)
     }
 
     /// Return the path ordering used to canonicalize terms.

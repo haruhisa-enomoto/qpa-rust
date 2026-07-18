@@ -12,9 +12,9 @@ use numerica::domains::{
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, CachedNakayamaAutomorphismOrder, DenseMatrix, NamedArrowSpec, Path,
-    PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraModule, Quiver, QuotientError,
-    QuotientPathAlgebra, QuotientPathAlgebraElement, TensorProductAlgebra,
+    CachedAttribute, CachedNakayamaAutomorphismOrder, CombinatorialMap, DenseMatrix,
+    NamedArrowSpec, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraModule,
+    Quiver, QuotientError, QuotientPathAlgebra, QuotientPathAlgebraElement, TensorProductAlgebra,
 };
 
 /// A QPA quiver algebra that may be a path algebra or a proper quotient.
@@ -74,6 +74,46 @@ impl<F: Field> QuiverAlgebra<F> {
         match self {
             Self::Path(_) => &[],
             Self::Quotient(algebra) => algebra.relations(),
+        }
+    }
+
+    /// Return QPA's cached gentle maximal-path attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gentle_maximal_paths(&self) -> Option<&[Path]> {
+        match self {
+            Self::Path(algebra) => algebra.cached_gentle_maximal_paths(),
+            Self::Quotient(algebra) => algebra.cached_gentle_maximal_paths(),
+        }
+    }
+
+    /// Bind QPA's gentle maximal-path attribute if it is unbound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gentle_maximal_paths(&self, paths: Vec<Path>) -> &[Path] {
+        match self {
+            Self::Path(algebra) => algebra.cache_gentle_maximal_paths(paths),
+            Self::Quotient(algebra) => algebra.cache_gentle_maximal_paths(paths),
+        }
+    }
+
+    /// Return QPA's cached gentle combinatorial-map attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gentle_combinatorial_map(&self) -> Option<&CombinatorialMap> {
+        match self {
+            Self::Path(algebra) => algebra.cached_gentle_combinatorial_map(),
+            Self::Quotient(algebra) => algebra.cached_gentle_combinatorial_map(),
+        }
+    }
+
+    /// Bind QPA's gentle combinatorial-map attribute if it is unbound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gentle_combinatorial_map(&self, map: CombinatorialMap) -> &CombinatorialMap {
+        match self {
+            Self::Path(algebra) => algebra.cache_gentle_combinatorial_map(map),
+            Self::Quotient(algebra) => algebra.cache_gentle_combinatorial_map(map),
         }
     }
 

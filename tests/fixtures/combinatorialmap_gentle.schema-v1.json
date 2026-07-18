@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "kind": "combinatorialmap_gentle",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "chain": {
+      "maximal_paths": [["a", "b"]],
+      "map": {
+        "size": 6,
+        "ordering": [3, 2, 5, 4, 1, 6],
+        "pairing": [2, 1, 4, 3, 6, 5],
+        "marked": [5, 2, 4, 6],
+        "faces": [[1, 2, 3, 4, 5, 6]],
+        "genus": [0, 1]
+      }
+    },
+    "discrete": {
+      "maximal_paths": [],
+      "map": {
+        "size": 4,
+        "ordering": [1, 2, 3, 4],
+        "pairing": [2, 1, 4, 3],
+        "marked": [1, 2, 3, 4],
+        "faces": [[1, 2], [3, 4]],
+        "genus": [-1, 1]
+      }
+    },
+    "square_loop": {
+      "maximal_paths": [["x"]]
+    },
+    "branch": {
+      "maximal_paths": [["a", "c"], ["b"]],
+      "map": {
+        "size": 8,
+        "ordering": [3, 2, 7, 5, 4, 6, 1, 8],
+        "pairing": [2, 1, 4, 3, 6, 5, 8, 7],
+        "marked": [7, 5, 2, 6, 8],
+        "faces": [[1, 2, 3, 5, 6, 4, 7, 8]],
+        "genus": [0, 1]
+      }
+    }
+  },
+  "f2": {
+    "chain": {
+      "maximal_paths": [["a", "b"]],
+      "map": {
+        "size": 6,
+        "ordering": [3, 2, 5, 4, 1, 6],
+        "pairing": [2, 1, 4, 3, 6, 5],
+        "marked": [5, 2, 4, 6],
+        "faces": [[1, 2, 3, 4, 5, 6]],
+        "genus": [0, 1]
+      }
+    },
+    "discrete": {
+      "maximal_paths": [],
+      "map": {
+        "size": 4,
+        "ordering": [1, 2, 3, 4],
+        "pairing": [2, 1, 4, 3],
+        "marked": [1, 2, 3, 4],
+        "faces": [[1, 2], [3, 4]],
+        "genus": [-1, 1]
+      }
+    },
+    "square_loop": {
+      "maximal_paths": [["x"]]
+    },
+    "branch": {
+      "maximal_paths": [["a", "c"], ["b"]],
+      "map": {
+        "size": 8,
+        "ordering": [3, 2, 7, 5, 4, 6, 1, 8],
+        "pairing": [2, 1, 4, 3, 6, 5, 8, 7],
+        "marked": [7, 5, 2, 6, 8],
+        "faces": [[1, 2, 3, 5, 6, 4, 7, 8]],
+        "genus": [0, 1]
+      }
+    }
+  }
+}

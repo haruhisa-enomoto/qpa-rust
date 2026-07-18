@@ -4,6 +4,7 @@
 //! algorithm is substituted here.
 
 pub mod algebra_conversion;
+pub mod combinatorial_map;
 pub mod complex;
 pub mod heap;
 pub mod higher_preprojective;
@@ -32,6 +33,10 @@ pub use algebra_conversion::{
     EndOfModuleAsQuiverAlgebraResult, adr_algebra_of_algebra, adr_algebra_of_basic_module,
     algebra_as_quiver_algebra, end_of_basic_module_as_quiver_algebra,
     end_of_basic_module_as_quiver_algebra_with_bound, end_of_module_as_quiver_algebra,
+};
+pub use combinatorial_map::{
+    GentleCombinatorialMapError, combinatorial_map_of_gentle_algebra,
+    maximal_paths_of_gentle_algebra,
 };
 pub use complex::{
     InjectiveResolution, ProjectiveResolution, injective_resolution, projective_resolution,

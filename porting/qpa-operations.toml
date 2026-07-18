@@ -961,9 +961,9 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::maximal_paths_of_gentle_algebra"
+tests = ["tests/fixtures/combinatorialmap_gentle.schema-v1.json","tests/gap-reference/combinatorialmap_gentle_error.g"]
 deviations = []
 
 [[entries]]
@@ -987,9 +987,9 @@ source_file = "upstream/qpa/lib/combinatorialmap.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::combinatorial_map_of_gentle_algebra"
+tests = ["tests/fixtures/combinatorialmap_gentle.schema-v1.json","tests/gap-reference/combinatorialmap_gentle_loop_map_error.g"]
 deviations = []
 
 [[entries]]
@@ -1208,9 +1208,9 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 140
 source_end = 193
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::maximal_paths_of_gentle_algebra"
+tests = ["tests/fixtures/combinatorialmap_gentle.schema-v1.json","tests/gap-reference/combinatorialmap_gentle_error.g"]
 deviations = []
 
 [[entries]]
@@ -1234,9 +1234,9 @@ source_file = "upstream/qpa/lib/combinatorialmap.gi"
 source_start = 245
 source_end = 301
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_gbnp::combinatorial_map_of_gentle_algebra"
+tests = ["tests/fixtures/combinatorialmap_gentle.schema-v1.json","tests/gap-reference/combinatorialmap_gentle_loop_map_error.g"]
 deviations = []
 
 [[entries]]

@@ -21,8 +21,8 @@ use numerica::domains::{
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, CachedNakayamaAutomorphismOrder, DenseMatrix, GroebnerBasis, GroebnerError,
-    MatrixError, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError,
+    CachedAttribute, CachedNakayamaAutomorphismOrder, CombinatorialMap, DenseMatrix, GroebnerBasis,
+    GroebnerError, MatrixError, Path, PathAlgebra, PathAlgebraElement, PathAlgebraError,
     PathAlgebraExternalRepresentation, PathEndpoint, Quiver, QuiverError, TensorProductAlgebra,
     path_module::{PathAlgebraModule, WeakPathAlgebraModule, WeakPathAlgebraModuleListCache},
     tensor::WeakTensorProductAlgebra,
@@ -473,6 +473,8 @@ struct QuotientPathAlgebraData<F: Field> {
     indec_projective_modules: WeakPathAlgebraModuleListCache<F>,
     indec_injective_modules: WeakPathAlgebraModuleListCache<F>,
     simple_modules: WeakPathAlgebraModuleListCache<F>,
+    gentle_maximal_paths: OnceLock<Vec<Path>>,
+    gentle_combinatorial_map: OnceLock<CombinatorialMap>,
     is_enveloping: OnceLock<bool>,
     trivial_extension_level: OnceLock<usize>,
     trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
@@ -602,6 +604,8 @@ impl<F: Field> QuotientPathAlgebra<F> {
             indec_projective_modules: WeakPathAlgebraModuleListCache::new(),
             indec_injective_modules: WeakPathAlgebraModuleListCache::new(),
             simple_modules: WeakPathAlgebraModuleListCache::new(),
+            gentle_maximal_paths: OnceLock::new(),
+            gentle_combinatorial_map: OnceLock::new(),
             is_enveloping: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
@@ -659,6 +663,8 @@ impl<F: Field> QuotientPathAlgebra<F> {
             indec_projective_modules: WeakPathAlgebraModuleListCache::new(),
             indec_injective_modules: WeakPathAlgebraModuleListCache::new(),
             simple_modules: WeakPathAlgebraModuleListCache::new(),
+            gentle_maximal_paths: OnceLock::new(),
+            gentle_combinatorial_map: OnceLock::new(),
             is_enveloping: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
@@ -683,6 +689,34 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn relations(&self) -> &[PathAlgebraElement<F>] {
         self.ideal().generators()
+    }
+
+    /// Return QPA's cached `MaximalPathsOfGentleAlgebra` attribute, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gentle_maximal_paths(&self) -> Option<&[Path]> {
+        self.0.gentle_maximal_paths.get().map(Vec::as_slice)
+    }
+
+    /// Bind QPA's `MaximalPathsOfGentleAlgebra` attribute if it is unbound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gentle_maximal_paths(&self, paths: Vec<Path>) -> &[Path] {
+        self.0.gentle_maximal_paths.get_or_init(|| paths)
+    }
+
+    /// Return QPA's cached `CombinatorialMapOfGentleAlgebra`, if bound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_gentle_combinatorial_map(&self) -> Option<&CombinatorialMap> {
+        self.0.gentle_combinatorial_map.get()
+    }
+
+    /// Bind QPA's `CombinatorialMapOfGentleAlgebra` attribute if it is unbound.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_gentle_combinatorial_map(&self, map: CombinatorialMap) -> &CombinatorialMap {
+        self.0.gentle_combinatorial_map.get_or_init(|| map)
     }
 
     /// Return the complete Groebner basis used for normal forms.
@@ -1632,6 +1666,8 @@ impl<F: Field> QuotientPathAlgebra<F> {
             indec_projective_modules: WeakPathAlgebraModuleListCache::new(),
             indec_injective_modules: WeakPathAlgebraModuleListCache::new(),
             simple_modules: WeakPathAlgebraModuleListCache::new(),
+            gentle_maximal_paths: OnceLock::new(),
+            gentle_combinatorial_map: OnceLock::new(),
             is_enveloping: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),

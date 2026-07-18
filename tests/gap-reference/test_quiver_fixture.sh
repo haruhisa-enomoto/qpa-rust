@@ -1080,6 +1080,26 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/combinatorialmap_foundation.g" \
     "$repo_root/tests/fixtures/combinatorialmap_foundation.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialmap_gentle.g" \
+    "$repo_root/tests/fixtures/combinatorialmap_gentle.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialmap_gentle_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly dispatched maximal paths on a nongentle algebra" >&2
+    exit 1
+fi
+grep -Fq "no 2nd choice method found for \`MaximalPathsOfGentleAlgebra'" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialmap_gentle_loop_map_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted the gentle loop's duplicate cycle" >&2
+    exit 1
+fi
+grep -Fq "Permutation: cycles must be disjoint and duplicate-free" "$actual"
+grep -Fq "lib/combinatorialmap.gi:287" "$actual"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_ordering_error.g" \
     >"$actual" 2>&1
