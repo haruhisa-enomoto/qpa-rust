@@ -22,6 +22,8 @@ checked := Basis(space, space_generators);;
 domain_basis := BasisOfDomain(space);;
 default_basis := Basis(space);;
 canonical := CanonicalBasis(module);;
+line_space := LeftModuleByGenerators(Rationals, [standard[1]]);;
+zero_module := RightModuleOverPathAlgebra(a2, [0, 0], []);;
 
 Print("NEW_VECTORS=", BasisVectors(new_basis), "\n");
 Print("UNCHECKED_VECTORS=", BasisVectors(unchecked), "\n");
@@ -31,6 +33,9 @@ Print("DOMAIN_VECTORS=", BasisVectors(domain_basis), "\n");
 Print("DEFAULT_VECTORS=", BasisVectors(default_basis), "\n");
 Print("CANONICAL_VECTORS=", BasisVectors(canonical), "\n");
 Print("CANONICAL_PROPERTY=", IsCanonicalBasis(canonical), "\n");
+Print("MEMBERSHIP=", [standard[1] in line_space,
+    standard[2] in line_space, ExtRepOfObj(Zero(module)) in line_space], "\n");
+Print("MODULE_IS_ZERO=", [IsZero(module), IsZero(zero_module)], "\n");
 
 prime_a2 := PathAlgebra(GF(2),
     Quiver(["p1", "p2"], [["p1", "p2", "b"]]));;

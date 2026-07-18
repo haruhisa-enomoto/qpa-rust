@@ -6,4 +6,6 @@ DOMAIN_VECTORS=[ [ [ 0, 1 ], [ 0 ] ], [ [ 1, 0 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
 DEFAULT_VECTORS=[ [ [ 0, 1 ], [ 0 ] ], [ [ 1, 0 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
 CANONICAL_VECTORS=[ [ [ 1, 0 ], [ 0 ] ], [ [ 0, 1 ], [ 0 ] ], [ [ 0, 0 ], [ 1 ] ] ]
 CANONICAL_PROPERTY=true
+MEMBERSHIP=[ true, false, true ]
+MODULE_IS_ZERO=[ false, true ]
 GF2_COEFFICIENTS=[ Z(2)^0, Z(2)^0, 0*Z(2) ]

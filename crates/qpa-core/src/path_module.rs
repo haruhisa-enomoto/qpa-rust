@@ -230,6 +230,12 @@ impl<F: Field> PathAlgebraModule<F> {
         self.0.dimension
     }
 
+    /// Translate QPA's `IsZero(M)` method for path-algebra matrix modules.
+    #[must_use]
+    pub fn is_zero(&self) -> bool {
+        self.dimension() == 0
+    }
+
     /// Return QPA's additive zero module element.
     #[must_use]
     pub fn zero_element(&self) -> PathAlgebraModuleElement<F> {
@@ -1458,7 +1464,16 @@ impl<F: Field> PathAlgebraModuleElementSpace<F> {
         self.basis_of_domain()
     }
 
-    fn contains(
+    /// Translate QPA's membership test `element in V`.
+    ///
+    /// QPA computes `Coefficients(BasisOfDomain(V), element)` and returns
+    /// whether that operation succeeds. An element from another ambient
+    /// module family is therefore not a member.
+    ///
+    /// # Errors
+    ///
+    /// Propagates exact flattened-row basis construction and solving.
+    pub fn contains(
         &self,
         element: &PathAlgebraModuleElement<F>,
     ) -> Result<bool, PathAlgebraModuleError> {
@@ -7914,6 +7929,17 @@ mod tests {
         let default_basis = space.basis().unwrap();
         let canonical =
             super::PathAlgebraModuleElementBasis::canonical_for_module(&module).unwrap();
+        let line = super::PathAlgebraModuleElementSpace::by_generators(
+            module.clone(),
+            vec![standard[0].clone()],
+        )
+        .unwrap();
+        let membership = [
+            line.contains(&standard[0]).unwrap(),
+            line.contains(&standard[1]).unwrap(),
+            line.contains(&module.zero_element()).unwrap(),
+        ];
+        let zero = zero_module(module.right_acting_algebra()).unwrap();
         let v = standard[0]
             .scale_left(&q(2))
             .subtract(&standard[1].scale_left(&q(3)))
@@ -7972,7 +7998,7 @@ mod tests {
         };
 
         let actual = format!(
-            "NEW_VECTORS={}\nUNCHECKED_VECTORS={}\nCHECKED_VECTORS={}\nCHECKED_COEFFICIENTS={}\nDOMAIN_VECTORS={}\nDEFAULT_VECTORS={}\nCANONICAL_VECTORS={}\nCANONICAL_PROPERTY={}\nGF2_COEFFICIENTS={}\n",
+            "NEW_VECTORS={}\nUNCHECKED_VECTORS={}\nCHECKED_VECTORS={}\nCHECKED_COEFFICIENTS={}\nDOMAIN_VECTORS={}\nDEFAULT_VECTORS={}\nCANONICAL_VECTORS={}\nCANONICAL_PROPERTY={}\nMEMBERSHIP={}\nMODULE_IS_ZERO={}\nGF2_COEFFICIENTS={}\n",
             qpa_elements(new_basis.basis_vectors()),
             qpa_elements(unchecked.basis_vectors()),
             qpa_elements(checked.basis_vectors()),
@@ -7981,6 +8007,12 @@ mod tests {
             qpa_elements(default_basis.basis_vectors()),
             qpa_elements(canonical.basis_vectors()),
             canonical.is_canonical_basis(),
+            super::qpa_list(membership.iter().map(ToString::to_string)),
+            super::qpa_list(
+                [module.is_zero(), zero.is_zero()]
+                    .iter()
+                    .map(ToString::to_string)
+            ),
             super::qpa_list(prime_coefficients.iter().map(gap_z2)),
         );
         assert_eq!(
@@ -7998,17 +8030,11 @@ mod tests {
                 .unwrap()
                 .is_none()
         );
-        let line = super::PathAlgebraModuleElementSpace::by_generators(
-            module.clone(),
-            vec![standard[0].clone()],
-        )
-        .unwrap();
         assert!(
             line.basis_from_vectors(vec![standard[1].clone()])
                 .unwrap()
                 .is_none()
         );
-        let zero = zero_module(module.right_acting_algebra()).unwrap();
         assert_eq!(
             super::PathAlgebraModuleElementBasis::canonical_for_module(&zero).unwrap_err(),
             PathAlgebraModuleError::ZeroModuleCanonicalBasisFailure

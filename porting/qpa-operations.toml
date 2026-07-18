@@ -10750,9 +10750,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 994
 source_end = 1007
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleElementSpace::contains"
+tests = ["tests/fixtures/module_basis.txt"]
 deviations = []
 
 [[entries]]
@@ -11114,9 +11114,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 2213
 source_end = 2220
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModule::is_zero"
+tests = ["tests/fixtures/module_basis.txt"]
 deviations = []
 
 [[entries]]
