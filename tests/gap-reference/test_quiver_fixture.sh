@@ -129,6 +129,19 @@ compare_noisy_catching_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_pathalg_surface_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw" 2>&1
+    test "$(grep -Fc 'no method found!' "$raw")" -eq 2
+    test "$(grep -Fc "no 1st choice method found for \`CoefficientsAndMagmaElements'" "$raw")" -eq 2
+    grep -E '^\{"schema_version":' "$raw" | tail -n 1 |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_fixture \
     "$repo_root/tests/gap-reference/quiver_paths.g" \
     "$repo_root/tests/fixtures/quiver_paths.schema-v1.json"
@@ -668,6 +681,9 @@ grep -Fq "The 1st argument is 'fail'" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/path_algebra.g" \
     "$repo_root/tests/fixtures/path_algebra.schema-v1.json"
+compare_pathalg_surface_fixture \
+    "$repo_root/tests/gap-reference/pathalg_surface.g" \
+    "$repo_root/tests/fixtures/pathalg_surface.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_foundational.g" \
     "$repo_root/tests/fixtures/pathalg_foundational.schema-v1.json"

@@ -177,6 +177,50 @@ the computations remain translations of the cited source methods.
   surjectivity, lazy and attached-basis quotient states; Rust tests exercise the
   repaired projection over `QQ` and `GF(2)`.
 
+## PATHALG-002 — Path rings use the field coefficient tier
+
+- Source: QPA `lib/pathalg.gd` and `lib/pathalg.gi`, `IsPathRing`, `PathRing`,
+  and `PathAlgebra` at lines 4–14 and 5–88.
+- Affected Rust surface: `PathAlgebra`, `PathAlgebraElement`,
+  `PathAlgebra::new`, and `PathAlgebra::is_path_ring`.
+- Difference: QPA's `PathRing(R, Q)` accepts a general coefficient ring and is
+  only an algebra when GAP's coefficient-domain dispatch makes it one. Rust's
+  initial Numerica contract requires `F: Field`; within that tier `PathRing`
+  and `PathAlgebra` have the same typed representation. Nonfield examples such
+  as `PathRing(Integers, Q)` are not admitted yet.
+- Reason: the agreed first coefficient tier is the rational field and
+  Numerica-supported prime fields. This keeps the foundational sparse and
+  Gröbner algorithms exact without building unrelated general-ring machinery
+  before the field-backed QPA port is complete.
+- Compatibility impact: every supported Rust path algebra is both a QPA path
+  ring and path algebra, with the identical quiver, identity, ordering, sparse
+  normalization, and arithmetic. General coefficient rings require a later
+  coefficient-tier extension.
+- Evidence: `tests/fixtures/pathalg_surface.schema-v1.json` pins the field path
+  ring/algebra categories and independent constructor identity; the existing
+  `path_algebra` fixture pins `QQ`, `GF(2)`, and `GF(5)` arithmetic.
+
+## PATHALG-003 — Broken list uniformity dispatch is a typed error
+
+- Source: QPA `lib/pathalg.gi`, the list-plus-path `IsLeftUniform` and
+  `IsRightUniform` methods at lines 574–663.
+- Affected Rust operations: `PathAlgebra::is_left_uniform_list_at_path` and
+  `PathAlgebra::is_right_uniform_list_at_path`.
+- Difference: both installed GAP methods accept an `IsPath` second argument
+  and then call `CoefficientsAndMagmaElements` on that path. No such method is
+  installed, so every reachable call raises GAP's generic no-method error
+  before inspecting the list. Rust returns
+  `PathAlgebraError::UniformityListPathDispatch`.
+- Reason: a typed library cannot reproduce an interpreter break loop as a
+  value. The error preserves the exact failing branch without substituting an
+  independently repaired endpoint test.
+- Compatibility impact: the useful one-element uniformity methods agree
+  exactly. Both defective list overloads fail deterministically in Rust just
+  as they do in QPA, but callers receive a matchable error value.
+- Evidence: `tests/gap-reference/pathalg_surface.g` pins both QPA no-method
+  failures, and `tests/fixtures/pathalg_surface.schema-v1.json` plus the Rust
+  fixture test pin their false success states.
+
 ## ORDERING-001 — Quiver-ordering ownership is checked at construction
 
 - Source: QPA `lib/groebnerordering.gi`, all ordering constructors,

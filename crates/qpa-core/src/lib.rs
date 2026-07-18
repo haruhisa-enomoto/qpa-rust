@@ -218,9 +218,9 @@ pub use quiver::{
     Quiver, QuiverCardinality, QuiverError, Vertex, VertexIndex, unique_quiver_name,
 };
 pub use quotient::{
-    AlgebraDimension, AlgebraGlobalDimension, NaturalQuotientMap, PathAlgebraIdeal,
-    QuotientCanonicalBasis, QuotientError, QuotientNiceBasis, QuotientPathAlgebra,
-    QuotientPathAlgebraElement, is_homogeneous_list_of_elements,
+    AlgebraDimension, AlgebraGlobalDimension, INFO_ELEMENT_OF_QUOTIENT_OF_PATH_ALGEBRA,
+    NaturalQuotientMap, PathAlgebraIdeal, QuotientCanonicalBasis, QuotientError, QuotientNiceBasis,
+    QuotientPathAlgebra, QuotientPathAlgebraElement, is_homogeneous_list_of_elements,
 };
 pub use static_dictionary::{
     DictionaryMatch, QuiverStaticDictionary, STATIC_DICTIONARY_CHECKING_CYCLE_INFO,

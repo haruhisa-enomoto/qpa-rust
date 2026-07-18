@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_surface",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "path_ring": {
+    "categories": [true, true, true],
+    "separate_identity": false,
+    "quiver_identical": true
+  },
+  "path_algebra": {
+    "categories": [true, true, true],
+    "quiver_identical": true,
+    "ordering_identical": true,
+    "view": "<GF(2)[<quiver with 2 vertices and 2 arrows>]>",
+    "print": "<Path algebra of the quiver <quiver with 2 vertices and 2 arrows> over the field GF(2)>",
+    "cyclic_basis_is_fail": true,
+    "dot_matches_embedding": [true, true],
+    "zero_shortcut_equal": [true, true, true, true],
+    "comparison": [true, true, false, true, false],
+    "leading": {
+      "term": [{"path": "b", "coefficient": 1}],
+      "tip_equal": true,
+      "coefficient": 1,
+      "monomial": "b"
+    },
+    "uniformity": {
+      "zero": [true, true, true],
+      "mixed": [true, false, false],
+      "list_success": [false, false]
+    }
+  },
+  "quotient": {
+    "categories": [false, false, true, true, true],
+    "quiver_identical": true,
+    "ordering_identical": true,
+    "view": "<GF(2)[<quiver with 2 vertices and 2 arrows>]/<two-sided ideal in <GF(2)[<quiver with 2 vertices and 2 arrows>]>, (1 generator)>>",
+    "print": "<A quotient of the path algebra <GF(2)[<quiver with 2 vertices and 2 arrows>]> modulo the ideal <two-sided ideal in <GF(2)[<quiver with 2 vertices and 2 arrows>]>, (1 generator)>>",
+    "element_print": "[(Z(2)^0)*a+(Z(2)^0)*b]",
+    "dot_matches_generator": [true, true],
+    "equality": [true, false],
+    "comparison": [true, true, false],
+    "leading": {
+      "term": [{"path": "b", "coefficient": 1}],
+      "coefficient": 1,
+      "monomial": "b"
+    },
+    "uniformity": [true, false, false],
+    "normal_form_function_bound": true,
+    "arithmetic": {
+      "sum": [
+        {"path": "a", "coefficient": 1},
+        {"path": "b", "coefficient": 1}
+      ],
+      "difference": [
+        {"path": "a", "coefficient": 1},
+        {"path": "b", "coefficient": 1}
+      ],
+      "product": [{"path": "a*b", "coefficient": 1}],
+      "left_scalar": [
+        {"path": "a", "coefficient": 1},
+        {"path": "b", "coefficient": 1}
+      ],
+      "right_scalar": [
+        {"path": "a", "coefficient": 1},
+        {"path": "b", "coefficient": 1}
+      ],
+      "left_path": [
+        {"path": "a", "coefficient": 1},
+        {"path": "b", "coefficient": 1}
+      ],
+      "right_path": [{"path": "b", "coefficient": 1}],
+      "negative": [
+        {"path": "a", "coefficient": 1},
+        {"path": "b", "coefficient": 1}
+      ],
+      "one": [
+        {"path": "v1", "coefficient": 1},
+        {"path": "v2", "coefficient": 1}
+      ],
+      "zero": [],
+      "zero_power": [
+        {"path": "v1", "coefficient": 1},
+        {"path": "v2", "coefficient": 1}
+      ]
+    }
+  }
+}

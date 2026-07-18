@@ -193,6 +193,49 @@ impl<F: Field> PathAlgebra<F> {
         &self.0.quiver
     }
 
+    /// Return the QPA `IsPathRing` category value.
+    ///
+    /// Rust's initial coefficient contract is field-only, so [`PathAlgebra`]
+    /// represents the intersection of QPA path rings and algebras. General
+    /// coefficient rings such as `PathRing(Integers, Q)` are outside this
+    /// coefficient tier.
+    #[must_use]
+    pub const fn is_path_ring(&self) -> bool {
+        true
+    }
+
+    /// Return the QPA `IsPathAlgebra` synonym value.
+    #[must_use]
+    pub const fn is_path_algebra(&self) -> bool {
+        true
+    }
+
+    /// Return the QPA `IsQuiverAlgebra` true-method value.
+    #[must_use]
+    pub const fn is_quiver_algebra(&self) -> bool {
+        true
+    }
+
+    /// Translate QPA's concise path-algebra `ViewObj` text.
+    ///
+    /// The caller supplies GAP-facing field text because Numerica owns exact
+    /// arithmetic values, not GAP presentation syntax.
+    #[must_use]
+    pub fn view_obj_with(&self, field_display: &str) -> String {
+        format!("<{field_display}[{}]>", self.quiver().view_string())
+    }
+
+    /// Translate QPA's verbose path-algebra `PrintObj` text.
+    ///
+    /// QPA prints a bound quiver object name when one exists and otherwise its
+    /// concise view. Rust quivers do not carry GAP's mutable object-name
+    /// attribute, so callers may supply that optional presentation name.
+    #[must_use]
+    pub fn print_obj_with(&self, field_display: &str, quiver_object_name: Option<&str>) -> String {
+        let quiver = quiver_object_name.map_or_else(|| self.quiver().view_string(), str::to_owned);
+        format!("<Path algebra of the quiver {quiver} over the field {field_display}>")
+    }
+
     /// Return QPA's cached `MaximalPathsOfGentleAlgebra` attribute, if bound.
     #[doc(hidden)]
     #[must_use]
@@ -225,6 +268,41 @@ impl<F: Field> PathAlgebra<F> {
     #[must_use]
     pub fn ordering(&self) -> &QuiverOrdering {
         &self.0.ordering
+    }
+
+    /// Preserve the source failure of QPA's list-plus-path
+    /// `IsLeftUniform` overload.
+    ///
+    /// The installed GAP method accepts `[IsList, IsPath]` but immediately
+    /// calls `CoefficientsAndMagmaElements` on the path argument, for which no
+    /// method exists. Consequently every reachable call fails before the list
+    /// is inspected.
+    ///
+    /// # Errors
+    ///
+    /// Always returns [`PathAlgebraError::UniformityListPathDispatch`].
+    pub fn is_left_uniform_list_at_path(
+        &self,
+        _elements: &[PathAlgebraElement<F>],
+        _path: &Path,
+    ) -> Result<bool, PathAlgebraError> {
+        Err(PathAlgebraError::UniformityListPathDispatch)
+    }
+
+    /// Preserve the source failure of QPA's list-plus-path
+    /// `IsRightUniform` overload.
+    ///
+    /// # Errors
+    ///
+    /// Always returns [`PathAlgebraError::UniformityListPathDispatch`], for
+    /// the same source-level dispatch defect as
+    /// [`Self::is_left_uniform_list_at_path`].
+    pub fn is_right_uniform_list_at_path(
+        &self,
+        _elements: &[PathAlgebraElement<F>],
+        _path: &Path,
+    ) -> Result<bool, PathAlgebraError> {
+        Err(PathAlgebraError::UniformityListPathDispatch)
     }
 
     /// Return whether two handles denote the identical QPA algebra object.
@@ -918,6 +996,21 @@ impl<F: Field> PathAlgebraElement<F> {
         )
     }
 
+    /// Translate GAP's path-ring element printing.
+    ///
+    /// The coefficient formatter supplies GAP-facing spelling such as
+    /// `Z(2)^0`; Numerica deliberately does not encode GAP syntax.
+    pub fn print_obj_with(&self, coefficient: impl Fn(&F::Element) -> String + Copy) -> String {
+        if self.is_zero() {
+            return "0".into();
+        }
+        self.terms()
+            .iter()
+            .map(|term| format!("({})*{}", coefficient(term.coefficient()), term.path()))
+            .collect::<Vec<_>>()
+            .join("+")
+    }
+
     /// Translate QPA's `VertexPosition` on a trivial-path element.
     ///
     /// # Errors
@@ -1279,6 +1372,10 @@ pub enum PathAlgebraError {
     /// GAP's documented normalized-descriptor precondition was violated.
     #[error("the path-algebra external representation is not normalized")]
     ExternalRepresentationNotNormalized,
+    /// QPA's list-plus-path uniformity overload calls a missing GAP method on
+    /// its path argument before inspecting the list.
+    #[error("QPA's list uniformity overload cannot extract coefficients from a path")]
+    UniformityListPathDispatch,
     /// `VertexPosition` requires one trivial-path monomial.
     #[error("the element is not a scalar multiple of one trivial path")]
     NotTrivialPathElement,

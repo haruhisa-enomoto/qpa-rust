@@ -28,6 +28,10 @@ use crate::{
     tensor::WeakTensorProductAlgebra,
 };
 
+/// Rust logging target corresponding to QPA's declared
+/// `InfoElementOfQuotientOfPathAlgebra` class.
+pub const INFO_ELEMENT_OF_QUOTIENT_OF_PATH_ALGEBRA: &str = "qpa::quotient_element";
+
 struct PathAlgebraIdealData<F: Field> {
     algebra: PathAlgebra<F>,
     generators: Vec<PathAlgebraElement<F>>,
@@ -81,6 +85,22 @@ impl<F: Field> PathAlgebraIdeal<F> {
     #[must_use]
     pub fn generators(&self) -> &[PathAlgebraElement<F>] {
         &self.0.generators
+    }
+
+    /// Return GAP's concise two-sided-ideal view used inside quotient
+    /// `ViewObj` and `PrintObj` methods.
+    #[must_use]
+    pub fn view_obj_with(&self, field_display: &str) -> String {
+        let count = self.generators().len();
+        let noun = if count == 1 {
+            "generator"
+        } else {
+            "generators"
+        };
+        format!(
+            "<two-sided ideal in {}, ({count} {noun})>",
+            self.algebra().view_obj_with(field_display)
+        )
     }
 
     /// Return whether two handles denote the identical QPA ideal object.
@@ -677,6 +697,69 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn original_path_algebra(&self) -> &PathAlgebra<F> {
         &self.0.parent
+    }
+
+    /// Return QPA's `QuiverOfPathAlgebra` value for this quotient.
+    #[must_use]
+    pub fn quiver(&self) -> &Quiver {
+        self.original_path_algebra().quiver()
+    }
+
+    /// Return QPA's `OrderingOfAlgebra` value for this quotient.
+    #[must_use]
+    pub fn ordering(&self) -> &crate::QuiverOrdering {
+        self.original_path_algebra().ordering()
+    }
+
+    /// Return the QPA `IsPathRing` value. Quotients are quiver algebras but
+    /// are not path rings themselves.
+    #[must_use]
+    pub const fn is_path_ring(&self) -> bool {
+        false
+    }
+
+    /// Return the QPA `IsPathAlgebra` value.
+    #[must_use]
+    pub const fn is_path_algebra(&self) -> bool {
+        false
+    }
+
+    /// Return the QPA `IsQuiverAlgebra` category value.
+    #[must_use]
+    pub const fn is_quiver_algebra(&self) -> bool {
+        true
+    }
+
+    /// Return the QPA `IsQuotientOfPathAlgebra` category value.
+    #[must_use]
+    pub const fn is_quotient_of_path_algebra(&self) -> bool {
+        true
+    }
+
+    /// Return QPA's constructor-installed `IsFullFpPathAlgebra` property.
+    #[must_use]
+    pub const fn is_full_fp_path_algebra(&self) -> bool {
+        true
+    }
+
+    /// Translate QPA's concise quotient `ViewObj` text.
+    #[must_use]
+    pub fn view_obj_with(&self, field_display: &str) -> String {
+        format!(
+            "<{field_display}[{}]/{}>",
+            self.quiver().view_string(),
+            self.ideal().view_obj_with(field_display)
+        )
+    }
+
+    /// Translate QPA's verbose quotient `PrintObj` text.
+    #[must_use]
+    pub fn print_obj_with(&self, field_display: &str) -> String {
+        format!(
+            "<A quotient of the path algebra {} modulo the ideal {}>",
+            self.original_path_algebra().view_obj_with(field_display),
+            self.ideal().view_obj_with(field_display)
+        )
     }
 
     /// Return QPA's defining ideal.
@@ -2013,6 +2096,11 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
         self.representative().external_representation()
     }
 
+    /// Translate QPA's quotient-element `PrintObj` wrapper.
+    pub fn print_obj_with(&self, coefficient: impl Fn(&F::Element) -> String + Copy) -> String {
+        format!("[{}]", self.representative().print_obj_with(coefficient))
+    }
+
     /// Translate QPA's `VertexPosition` on a residue class of a trivial path.
     ///
     /// # Errors
@@ -2092,6 +2180,26 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
             .element_with_normality(self.representative.multiply(&right.representative)?, false)
     }
 
+    /// Multiply a raw quiver path on the left, translating QPA's
+    /// `[IsPath, IsElementOfQuotientOfPathAlgebra]` overload.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a path from another quiver and propagates normal-form failures.
+    pub fn multiply_path_left(&self, path: &Path) -> Result<Self, QuotientError> {
+        self.algebra().path(path.clone())?.multiply(self)
+    }
+
+    /// Multiply a raw quiver path on the right, translating QPA's
+    /// `[IsElementOfQuotientOfPathAlgebra, IsPath]` overload.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a path from another quiver and propagates normal-form failures.
+    pub fn multiply_path_right(&self, path: &Path) -> Result<Self, QuotientError> {
+        self.multiply(&self.algebra().path(path.clone())?)
+    }
+
     /// Scale on the left and normalize.
     ///
     /// # Errors
@@ -2100,6 +2208,19 @@ impl<F: Field> QuotientPathAlgebraElement<F> {
     pub fn scale_left(&self, scalar: &F::Element) -> Result<Self, QuotientError> {
         self.algebra
             .element_with_normality(self.representative.scale_left(scalar)?, self.is_normal_form)
+    }
+
+    /// Scale on the right and normalize, translating QPA's quotient-element
+    /// times ring-element method.
+    ///
+    /// # Errors
+    ///
+    /// Propagates arithmetic and reduction failures.
+    pub fn scale_right(&self, scalar: &F::Element) -> Result<Self, QuotientError> {
+        self.algebra.element_with_normality(
+            self.representative.scale_right(scalar)?,
+            self.is_normal_form,
+        )
     }
 
     /// Raise to a nonnegative power and normalize each multiplication.
@@ -2731,6 +2852,187 @@ mod tests {
         assert_eq!(y.multiply(x).unwrap(), x.multiply(y).unwrap());
         assert!(y.multiply(x).unwrap().multiply(y).unwrap().is_zero());
         assert_eq!(quotient.relations().len(), 3);
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn pinned_qpa_pathalg_surface_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_surface.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            expected["oracle"],
+            json!({
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            })
+        );
+
+        let quiver = Quiver::from_indexed(
+            2,
+            vec![
+                ArrowSpec::named(vertex(1), vertex(1), "a"),
+                ArrowSpec::named(vertex(1), vertex(2), "b"),
+            ],
+        )
+        .unwrap();
+        let path_ring = PathAlgebra::new(Z2, quiver.clone()).unwrap();
+        let algebra = PathAlgebra::new(Z2, quiver.clone()).unwrap();
+        let a = algebra
+            .element(quiver.arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        let b = algebra
+            .element(quiver.arrow(arrow(2)).unwrap().path())
+            .unwrap();
+        let mixed = a.add(&b).unwrap();
+        let zero = algebra.zero();
+
+        assert_eq!(
+            json!({
+                "categories": [
+                    path_ring.is_path_ring(),
+                    path_ring.is_path_algebra(),
+                    path_ring.is_quiver_algebra()
+                ],
+                "separate_identity": path_ring.is_identical(&algebra),
+                "quiver_identical": path_ring.quiver().is_identical(&quiver)
+            }),
+            expected["path_ring"]
+        );
+        assert_eq!(
+            json!({
+                "categories": [
+                    algebra.is_path_ring(),
+                    algebra.is_path_algebra(),
+                    algebra.is_quiver_algebra()
+                ],
+                "quiver_identical": algebra.quiver().is_identical(&quiver),
+                "ordering_identical": algebra
+                    .ordering()
+                    .is_identical(&quiver.ordering().unwrap()),
+                "view": algebra.view_obj_with("GF(2)"),
+                "print": algebra.print_obj_with("GF(2)", None),
+                "cyclic_basis_is_fail": algebra.canonical_basis().is_none(),
+                "dot_matches_embedding": [
+                    a == algebra.element(quiver.generator_by_name("a").unwrap().path()).unwrap(),
+                    algebra.generators()[0]
+                        == algebra.element(quiver.generator_by_name("v1").unwrap().path()).unwrap()
+                ],
+                "zero_shortcut_equal": [
+                    zero.multiply(&a).unwrap() == zero,
+                    a.multiply(&zero).unwrap() == zero,
+                    zero.add(&a).unwrap() == a,
+                    a.add(&zero).unwrap() == a
+                ],
+                "comparison": [
+                    zero.compare(&a).unwrap().is_lt(),
+                    a.compare(&a.pow(2).unwrap()).unwrap().is_lt(),
+                    a.pow(2).unwrap().compare(&a).unwrap().is_lt(),
+                    a.compare(&mixed).unwrap().is_lt(),
+                    mixed.compare(&a).unwrap().is_lt()
+                ],
+                "leading": {
+                    "term": z2_json(&mixed.leading_term()),
+                    "tip_equal": mixed.leading_term() == mixed.leading_term(),
+                    "coefficient": small_integer(&Z2.to_integer(&mixed.leading_coefficient())),
+                    "monomial": mixed.leading_monomial().to_string()
+                },
+                "uniformity": {
+                    "zero": [zero.is_left_uniform(), zero.is_right_uniform(), zero.is_uniform()],
+                    "mixed": [mixed.is_left_uniform(), mixed.is_right_uniform(), mixed.is_uniform()],
+                    "list_success": [
+                        algebra
+                            .is_left_uniform_list_at_path(&[a.clone(), b.clone()], &quiver.vertex(vertex(1)).unwrap().path())
+                            .is_ok(),
+                        algebra
+                            .is_right_uniform_list_at_path(&[a.clone(), b.clone()], &quiver.vertex(vertex(1)).unwrap().path())
+                            .is_ok()
+                    ]
+                }
+            }),
+            expected["path_algebra"]
+        );
+
+        let relation = a.pow(2).unwrap();
+        let ideal = PathAlgebraIdeal::new(algebra.clone(), vec![relation.clone()])
+            .unwrap()
+            .with_complete_groebner_basis(std::slice::from_ref(&relation))
+            .unwrap();
+        let quotient = QuotientPathAlgebra::by_ideal(&ideal).unwrap();
+        let generators = quotient.generators().unwrap();
+        let ba = &generators[2];
+        let bb = &generators[3];
+        let bmixed = ba.add(bb).unwrap();
+        let one = Z2.one();
+        assert_eq!(
+            json!({
+                "categories": [
+                    quotient.is_path_ring(),
+                    quotient.is_path_algebra(),
+                    quotient.is_quiver_algebra(),
+                    quotient.is_quotient_of_path_algebra(),
+                    quotient.is_full_fp_path_algebra()
+                ],
+                "quiver_identical": quotient.quiver().is_identical(&quiver),
+                "ordering_identical": quotient.ordering().is_identical(algebra.ordering()),
+                "view": quotient.view_obj_with("GF(2)"),
+                "print": quotient.print_obj_with("GF(2)"),
+                "element_print": bmixed.print_obj_with(|coefficient| {
+                    assert_eq!(coefficient, &one);
+                    "Z(2)^0".into()
+                }),
+                "dot_matches_generator": [ba == &generators[2], bb == &generators[3]],
+                "equality": [
+                    ba == &ba.add(&ba.pow(2).unwrap()).unwrap(),
+                    ba == bb
+                ],
+                "comparison": [
+                    quotient.zero().compare(ba).unwrap().is_lt(),
+                    ba.compare(bb).unwrap().is_lt(),
+                    bb.compare(ba).unwrap().is_lt()
+                ],
+                "leading": {
+                    "term": z2_json(bmixed.leading_term().representative()),
+                    "coefficient": small_integer(&Z2.to_integer(&bmixed.leading_coefficient())),
+                    "monomial": bmixed.leading_monomial().to_string()
+                },
+                "uniformity": [
+                    bmixed.is_left_uniform(),
+                    bmixed.is_right_uniform(),
+                    bmixed.is_uniform()
+                ],
+                "normal_form_function_bound": quotient.has_normal_form_function(),
+                "arithmetic": {
+                    "sum": z2_json(ba.add(bb).unwrap().representative()),
+                    "difference": z2_json(ba.sub(bb).unwrap().representative()),
+                    "product": z2_json(ba.multiply(bb).unwrap().representative()),
+                    "left_scalar": z2_json(bmixed.scale_left(&one).unwrap().representative()),
+                    "right_scalar": z2_json(bmixed.scale_right(&one).unwrap().representative()),
+                    "left_path": z2_json(
+                        bmixed
+                            .multiply_path_left(&quiver.vertex(vertex(1)).unwrap().path())
+                            .unwrap()
+                            .representative()
+                    ),
+                    "right_path": z2_json(
+                        bmixed
+                            .multiply_path_right(&quiver.vertex(vertex(2)).unwrap().path())
+                            .unwrap()
+                            .representative()
+                    ),
+                    "negative": z2_json(bmixed.neg().unwrap().representative()),
+                    "one": z2_json(bmixed.algebra().one().unwrap().representative()),
+                    "zero": z2_json(bmixed.algebra().zero().representative()),
+                    "zero_power": z2_json(bmixed.pow(0).unwrap().representative())
+                }
+            }),
+            expected["quotient"]
+        );
     }
 
     #[test]
