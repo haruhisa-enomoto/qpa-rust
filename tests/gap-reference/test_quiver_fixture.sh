@@ -1099,6 +1099,12 @@ compare_text_fixture \
 compare_noisy_catching_fixture \
     "$repo_root/tests/gap-reference/module_submodule_errors.g" \
     "$repo_root/tests/fixtures/module_submodule_errors.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/module_generic_hom.g" \
+    "$repo_root/tests/fixtures/module_generic_hom.txt"
+compare_noisy_catching_fixture \
+    "$repo_root/tests/gap-reference/module_generic_hom_errors.g" \
+    "$repo_root/tests/fixtures/module_generic_hom_errors.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/module_basis_zero_error.g" \
     >"$actual" 2>&1

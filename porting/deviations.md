@@ -390,6 +390,32 @@ the computations remain translations of the cited source methods.
   coordinates; `tests/fixtures/module_submodule_errors.schema-v1.json` pins
   every listed dispatch and interpreter failure.
 
+## MODULE-005 — Generic Hom/End dispatch failures are typed
+
+- Source: QPA `lib/module.gi`, `HOPF_MatrixModuleHom` at lines 1255–1360,
+  generic `Hom` at lines 1369–1411, and generic `End` at lines 1419–1441.
+- Affected Rust operations: `generic_hom_over_path_ring` and
+  `generic_end_over_path_ring`.
+- Difference: QPA's helper indexes an unavailable ordinary basis for a zero
+  module, and `NullspaceMat(TransposedMat(equations))` loses its intended
+  width when the equation matrix has no rows. Its installed methods also do
+  not dispatch on quotient path algebras, while a structurally equal but
+  nonidentical acting algebra is rejected explicitly. Rust returns a distinct
+  `PathAlgebraModuleError` for each branch.
+- Reason: GAP method-selection, unbound-basis, and empty-matrix nullspace
+  failures cannot be represented as Rust return values. The errors preserve
+  the source outcomes without extending QPA's domain or substituting the
+  separately ported `HomOverAlgebra` algorithm.
+- Compatibility impact: valid modules and submodules retain QPA's exact HOPF
+  equation layout, nullspace order, full matrices, canonical-basis rebasing,
+  installed algebra-homomorphism flag, and End basis. Invalid cases return
+  typed errors instead of the pinned GAP diagnostics.
+- Evidence: `tests/fixtures/module_generic_hom.txt` pins all four ambient and
+  submodule source/range combinations over `QQ` and `GF(2)`;
+  `tests/fixtures/module_generic_hom_errors.schema-v1.json` pins the zero,
+  arrowless, wrong-algebra, quotient-dispatch, and returned-space basis
+  failures.
+
 ## MODULEHOM-001 — Semisimple block counting uses the split-prime tier
 
 - Source: QPA `lib/modulehom.gi`, `NumberOfNonIsoDirSummands` at lines

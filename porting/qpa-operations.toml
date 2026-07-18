@@ -10802,10 +10802,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1369
 source_end = 1411
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "generic_hom_over_path_ring; GenericPathAlgebraModuleHomSpace"
+tests = ["tests/fixtures/module_generic_hom.txt","tests/fixtures/module_generic_hom_errors.schema-v1.json"]
+deviations = ["MODULE-005"]
 
 [[entries]]
 id = "module:InstallOtherMethod:End:1"
@@ -10815,10 +10815,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1419
 source_end = 1441
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "generic_end_over_path_ring; GenericPathAlgebraModuleEndomorphismAlgebra"
+tests = ["tests/fixtures/module_generic_hom.txt","tests/fixtures/module_generic_hom_errors.schema-v1.json"]
+deviations = ["MODULE-005"]
 
 [[entries]]
 id = "module:InstallMethod:MatricesOfPathAlgebraModule:1"

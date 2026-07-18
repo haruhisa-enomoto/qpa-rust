@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "module_generic_hom_errors",
+  "success": {
+    "valid_hom": true,
+    "valid_end": true,
+    "basis_vectors": false,
+    "zero_source": false,
+    "zero_range": false,
+    "zero_end": false,
+    "zero_sub_hom": false,
+    "zero_sub_end": false,
+    "arrowless_hom": false,
+    "arrowless_end": false,
+    "wrong_algebra": false,
+    "quotient_hom": false,
+    "quotient_end": false
+  }
+}

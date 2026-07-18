@@ -342,6 +342,64 @@ struct PathAlgebraModuleBasisMappingData<F: Field> {
 #[derive(Clone)]
 pub struct PathAlgebraModuleBasisMapping<F: Field>(Arc<PathAlgebraModuleBasisMappingData<F>>);
 
+/// An object accepted by QPA's generic `Hom(R, M, N)` method.
+///
+/// QPA uses the same `IsPathAlgebraMatModule` filter for ambient matrix
+/// modules and for `SubAlgebraModule` objects carrying a `Parent` attribute.
+/// The enum keeps that dispatch distinction explicit in Rust.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PathAlgebraMatModuleObject<F: Field> {
+    /// A matrix module without a `Parent` attribute.
+    Module(PathAlgebraModule<F>),
+    /// A `SubAlgebraModule` with its ambient module retained as `Parent`.
+    Submodule(PathAlgebraModuleSubmodule<F>),
+}
+
+struct GenericPathAlgebraModuleHomomorphismData<F: Field> {
+    source: PathAlgebraMatModuleObject<F>,
+    range: PathAlgebraMatModuleObject<F>,
+    source_basis: Box<[PathAlgebraModuleElement<F>]>,
+    range_basis: Box<[PathAlgebraModuleElement<F>]>,
+    matrix: DenseMatrix<F>,
+}
+
+/// One generator returned by QPA's generic `Hom(R, M, N)` method.
+///
+/// QPA represents these as `LeftModuleHomomorphismByMatrix` mappings and
+/// installs `IsAlgebraModuleHomomorphism`. The matrix is expressed in the
+/// ordinary module basis or, for a submodule, its ordered canonical basis.
+#[derive(Clone)]
+pub struct GenericPathAlgebraModuleHomomorphism<F: Field>(
+    Arc<GenericPathAlgebraModuleHomomorphismData<F>>,
+);
+
+/// QPA's generic `Hom(R, M, N)` vector space.
+///
+/// The `generators` retain the exact `HOPF_MatrixModuleHom` nullspace order.
+/// GAP's `GeneratorsOfLeftModule` exposes this list even in cases where its
+/// later `BasisVectors(Basis(...))` dispatch fails.
+#[derive(Clone, Debug)]
+pub struct GenericPathAlgebraModuleHomSpace<F: Field> {
+    field: F,
+    source: PathAlgebraMatModuleObject<F>,
+    range: PathAlgebraMatModuleObject<F>,
+    generators: Vec<GenericPathAlgebraModuleHomomorphism<F>>,
+    flattened_generators: DenseMatrix<F>,
+}
+
+/// QPA's generic `End(R, M)` algebra-with-one wrapper.
+///
+/// QPA passes the ordered `HOPF_MatrixModuleHom` list directly to
+/// `AlgebraWithOne(..., "basis")`; no semi-echelon rebasing is performed.
+#[derive(Clone, Debug)]
+pub struct GenericPathAlgebraModuleEndomorphismAlgebra<F: Field> {
+    field: F,
+    module: PathAlgebraMatModuleObject<F>,
+    generators: Vec<GenericPathAlgebraModuleHomomorphism<F>>,
+    flattened_generators: DenseMatrix<F>,
+    one: GenericPathAlgebraModuleHomomorphism<F>,
+}
+
 impl<F: Field> PathAlgebraModule<F> {
     /// Return QPA's `RightActingAlgebra` value.
     #[must_use]
@@ -1979,6 +2037,296 @@ impl<F: Field> PartialEq for PathAlgebraModuleBasisMapping<F> {
 }
 
 impl<F: Field> Eq for PathAlgebraModuleBasisMapping<F> {}
+
+impl<F: Field> From<PathAlgebraModule<F>> for PathAlgebraMatModuleObject<F> {
+    fn from(module: PathAlgebraModule<F>) -> Self {
+        Self::Module(module)
+    }
+}
+
+impl<F: Field> From<PathAlgebraModuleSubmodule<F>> for PathAlgebraMatModuleObject<F> {
+    fn from(submodule: PathAlgebraModuleSubmodule<F>) -> Self {
+        Self::Submodule(submodule)
+    }
+}
+
+impl<F: Field> PathAlgebraMatModuleObject<F> {
+    /// Return QPA's `ActingAlgebra` value for this matrix-module object.
+    #[must_use]
+    pub fn right_acting_algebra(&self) -> &QuiverAlgebra<F> {
+        match self {
+            Self::Module(module) => module.right_acting_algebra(),
+            Self::Submodule(submodule) => submodule.parent().right_acting_algebra(),
+        }
+    }
+
+    /// Return the module whose element family represents this object.
+    #[must_use]
+    pub fn ambient_module(&self) -> &PathAlgebraModule<F> {
+        match self {
+            Self::Module(module) => module,
+            Self::Submodule(submodule) => submodule.parent(),
+        }
+    }
+
+    /// Return whether two handles denote the identical QPA object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Module(left), Self::Module(right)) => left.is_identical(right),
+            (Self::Submodule(left), Self::Submodule(right)) => left.is_identical(right),
+            _ => false,
+        }
+    }
+
+    /// Return the basis used by QPA's generic matrix-homomorphism wrapper.
+    ///
+    /// # Errors
+    ///
+    /// Preserves failures of a submodule's ordered canonical basis.
+    pub fn canonical_basis_elements(
+        &self,
+    ) -> Result<Vec<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
+        match self {
+            Self::Module(module) => Ok(module.basis_elements()),
+            Self::Submodule(submodule) => submodule.canonical_basis_elements(),
+        }
+    }
+}
+
+impl<F: Field> GenericPathAlgebraModuleHomomorphism<F> {
+    /// Return QPA's generic mapping source.
+    #[must_use]
+    pub fn source(&self) -> &PathAlgebraMatModuleObject<F> {
+        &self.0.source
+    }
+
+    /// Return QPA's generic mapping range.
+    #[must_use]
+    pub fn range(&self) -> &PathAlgebraMatModuleObject<F> {
+        &self.0.range
+    }
+
+    /// Return the full row-action matrix in the retained source/range bases.
+    #[must_use]
+    pub fn matrix(&self) -> &DenseMatrix<F> {
+        &self.0.matrix
+    }
+
+    /// Return QPA's explicitly installed mapping filter.
+    #[must_use]
+    pub const fn is_algebra_module_homomorphism(&self) -> bool {
+        true
+    }
+
+    /// Return whether two handles denote the identical GAP mapping object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Apply QPA's basis-matrix mapping to an ambient module element.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a foreign element family or an element outside a submodule
+    /// source, and propagates exact row-coordinate arithmetic.
+    pub fn image(
+        &self,
+        element: &PathAlgebraModuleElement<F>,
+    ) -> Result<PathAlgebraModuleElement<F>, PathAlgebraModuleError> {
+        if !self
+            .source()
+            .ambient_module()
+            .is_identical(element.module())
+        {
+            return Err(PathAlgebraModuleError::ForeignGenericHomomorphismSourceElement);
+        }
+        let field = self.source().right_acting_algebra().field().clone();
+        let source_basis = DenseMatrix::from_rows(
+            self.0
+                .source_basis
+                .iter()
+                .map(PathAlgebraModuleElement::basis_coefficients)
+                .collect(),
+            field.clone(),
+        )?;
+        let coefficients = source_basis
+            .solution_row(&element.basis_coefficients())?
+            .ok_or(PathAlgebraModuleError::ElementOutsideGenericHomomorphismSource)?;
+        let coefficient_row = DenseMatrix::from_flat(1, coefficients.len(), coefficients, field)?;
+        let image_coefficients = coefficient_row.multiply(self.matrix())?.row(0).to_vec();
+        let mut image = self.range().ambient_module().zero_element();
+        for (coefficient, basis_element) in image_coefficients.iter().zip(self.0.range_basis.iter())
+        {
+            image = image.add(&basis_element.scale_left(coefficient))?;
+        }
+        Ok(image)
+    }
+}
+
+impl<F: Field> fmt::Debug for GenericPathAlgebraModuleHomomorphism<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("GenericPathAlgebraModuleHomomorphism")
+            .field("source", self.source())
+            .field("range", self.range())
+            .field("matrix", self.matrix())
+            .finish()
+    }
+}
+
+impl<F: Field> PartialEq for GenericPathAlgebraModuleHomomorphism<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.source() == other.source()
+            && self.range() == other.range()
+            && self.matrix() == other.matrix()
+    }
+}
+
+impl<F: Field> Eq for GenericPathAlgebraModuleHomomorphism<F> {}
+
+impl<F: Field> GenericPathAlgebraModuleHomSpace<F> {
+    /// Return the common coefficient field.
+    #[must_use]
+    pub const fn field(&self) -> &F {
+        &self.field
+    }
+
+    /// Return QPA's entered source object.
+    #[must_use]
+    pub const fn source(&self) -> &PathAlgebraMatModuleObject<F> {
+        &self.source
+    }
+
+    /// Return QPA's entered range object.
+    #[must_use]
+    pub const fn range(&self) -> &PathAlgebraMatModuleObject<F> {
+        &self.range
+    }
+
+    /// Return `Dimension(Hom(R, M, N))`.
+    #[must_use]
+    pub fn dimension(&self) -> usize {
+        self.generators.len()
+    }
+
+    /// Return QPA's `GeneratorsOfLeftModule` list.
+    #[must_use]
+    pub fn generators(&self) -> &[GenericPathAlgebraModuleHomomorphism<F>] {
+        &self.generators
+    }
+
+    /// Express a compatible full matrix in QPA's retained generator basis.
+    ///
+    /// `Ok(None)` means that the matrix is outside the represented Hom space.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a different field or matrix shape.
+    pub fn coefficients(
+        &self,
+        matrix: &DenseMatrix<F>,
+    ) -> Result<Option<Vec<F::Element>>, MatrixError> {
+        if matrix.field() != &self.field {
+            return Err(MatrixError::DifferentFields);
+        }
+        self.flattened_generators
+            .solution_row(&flatten_matrix(matrix))
+    }
+}
+
+impl<F: Field> GenericPathAlgebraModuleEndomorphismAlgebra<F> {
+    /// Return the common coefficient field.
+    #[must_use]
+    pub const fn field(&self) -> &F {
+        &self.field
+    }
+
+    /// Return the entered QPA matrix-module object.
+    #[must_use]
+    pub const fn module(&self) -> &PathAlgebraMatModuleObject<F> {
+        &self.module
+    }
+
+    /// Return `Dimension(End(R, M))`.
+    #[must_use]
+    pub fn dimension(&self) -> usize {
+        self.generators.len()
+    }
+
+    /// Return the basis list passed to QPA's `AlgebraWithOne` constructor.
+    #[must_use]
+    pub fn generators(&self) -> &[GenericPathAlgebraModuleHomomorphism<F>] {
+        &self.generators
+    }
+
+    /// Return the identity endomorphism on the retained object basis.
+    #[must_use]
+    pub const fn one(&self) -> &GenericPathAlgebraModuleHomomorphism<F> {
+        &self.one
+    }
+
+    /// Return the zero endomorphism in the retained object basis.
+    #[must_use]
+    pub fn zero(&self) -> GenericPathAlgebraModuleHomomorphism<F> {
+        self.mapping_from_matrix(DenseMatrix::zero(
+            self.one.matrix().nrows(),
+            self.one.matrix().ncols(),
+            self.field.clone(),
+        ))
+    }
+
+    /// Multiply two represented generic endomorphisms in row-action order.
+    ///
+    /// # Errors
+    ///
+    /// Rejects mappings outside this algebra object and propagates exact
+    /// matrix multiplication.
+    pub fn multiply(
+        &self,
+        left: &GenericPathAlgebraModuleHomomorphism<F>,
+        right: &GenericPathAlgebraModuleHomomorphism<F>,
+    ) -> Result<GenericPathAlgebraModuleHomomorphism<F>, PathAlgebraModuleError> {
+        if !left.source().is_identical(&self.module)
+            || !left.range().is_identical(&self.module)
+            || !right.source().is_identical(&self.module)
+            || !right.range().is_identical(&self.module)
+        {
+            return Err(PathAlgebraModuleError::ForeignGenericEndomorphism);
+        }
+        Ok(self.mapping_from_matrix(left.matrix().multiply(right.matrix())?))
+    }
+
+    /// Express an endomorphism matrix in QPA's supplied algebra basis.
+    ///
+    /// # Errors
+    ///
+    /// Propagates a different field or matrix shape.
+    pub fn coefficients(
+        &self,
+        matrix: &DenseMatrix<F>,
+    ) -> Result<Option<Vec<F::Element>>, MatrixError> {
+        if matrix.field() != &self.field {
+            return Err(MatrixError::DifferentFields);
+        }
+        self.flattened_generators
+            .solution_row(&flatten_matrix(matrix))
+    }
+
+    fn mapping_from_matrix(
+        &self,
+        matrix: DenseMatrix<F>,
+    ) -> GenericPathAlgebraModuleHomomorphism<F> {
+        GenericPathAlgebraModuleHomomorphism(Arc::new(GenericPathAlgebraModuleHomomorphismData {
+            source: self.module.clone(),
+            range: self.module.clone(),
+            source_basis: self.one.0.source_basis.clone(),
+            range_basis: self.one.0.range_basis.clone(),
+            matrix,
+        }))
+    }
+}
 
 #[derive(Clone, Debug)]
 pub(crate) struct WeakPathAlgebraModule<F: Field>(Weak<PathAlgebraModuleData<F>>);
@@ -5234,6 +5582,229 @@ fn flatten_matrix<F: Field>(matrix: &DenseMatrix<F>) -> Vec<F::Element> {
         .collect()
 }
 
+#[allow(clippy::too_many_lines)]
+fn hopf_matrix_module_hom<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<Vec<DenseMatrix<F>>, PathAlgebraModuleError> {
+    if !algebra.is_identical(source.right_acting_algebra())
+        || !algebra.is_identical(range.right_acting_algebra())
+    {
+        return Err(PathAlgebraModuleError::GenericHomActingAlgebraMismatch);
+    }
+    if source.dimension() == 0 || range.dimension() == 0 {
+        return Err(PathAlgebraModuleError::ZeroGenericHomModuleFailure);
+    }
+
+    let field = algebra.field().clone();
+    let source_dimensions = source.dimension_vector();
+    let range_dimensions = range.dimension_vector();
+    let vertex_count = source_dimensions.len();
+    let mut column_count = 0_usize;
+    let mut column_starts = Vec::with_capacity(vertex_count);
+    for vertex in 0..vertex_count {
+        column_starts.push(column_count);
+        column_count = column_count
+            .checked_add(
+                source_dimensions[vertex]
+                    .checked_mul(range_dimensions[vertex])
+                    .ok_or(PathAlgebraModuleError::GenericHomEquationSizeOverflow)?,
+            )
+            .ok_or(PathAlgebraModuleError::GenericHomEquationSizeOverflow)?;
+    }
+
+    let mut row_count = 0_usize;
+    for arrow in algebra.quiver().arrows() {
+        let source_vertex = arrow.source().index().zero_based();
+        let target_vertex = arrow.target().index().zero_based();
+        row_count = row_count
+            .checked_add(
+                source_dimensions[source_vertex]
+                    .checked_mul(range_dimensions[target_vertex])
+                    .ok_or(PathAlgebraModuleError::GenericHomEquationSizeOverflow)?,
+            )
+            .ok_or(PathAlgebraModuleError::GenericHomEquationSizeOverflow)?;
+    }
+    if row_count == 0 {
+        return Err(PathAlgebraModuleError::DegenerateGenericHomNullspaceFailure);
+    }
+
+    let mut equations = DenseMatrix::zero(row_count, column_count, field.clone());
+    let mut row_start = 0_usize;
+    for arrow in algebra.quiver().arrows() {
+        let arrow_index = arrow.index().zero_based();
+        let source_vertex = arrow.source().index().zero_based();
+        let target_vertex = arrow.target().index().zero_based();
+        let source_action = logical_submatrix(
+            &source.arrow_matrices()[arrow_index],
+            source_dimensions[source_vertex],
+            source_dimensions[target_vertex],
+        )?;
+        let transposed_range_action = logical_submatrix(
+            &range.arrow_matrices()[arrow_index],
+            range_dimensions[source_vertex],
+            range_dimensions[target_vertex],
+        )?
+        .transpose();
+        let range_target_dimension = range_dimensions[target_vertex];
+        let range_source_dimension = range_dimensions[source_vertex];
+
+        for source_row in 0..source_dimensions[source_vertex] {
+            let block_row = row_start + source_row * range_target_dimension;
+            let block_column = column_starts[source_vertex] + source_row * range_source_dimension;
+            for row in 0..range_target_dimension {
+                for column in 0..range_source_dimension {
+                    equations[(block_row + row, block_column + column)] =
+                        transposed_range_action[(row, column)].clone();
+                }
+            }
+        }
+
+        let mut equation_row = row_start;
+        for source_row in 0..source_dimensions[source_vertex] {
+            for range_column in 0..range_target_dimension {
+                let mut column = column_starts[target_vertex] + range_column;
+                for source_target_row in 0..source_dimensions[target_vertex] {
+                    let negative = field.neg(&source_action[(source_row, source_target_row)]);
+                    field.add_assign(&mut equations[(equation_row, column)], &negative);
+                    column += range_target_dimension;
+                }
+                equation_row += 1;
+            }
+        }
+        row_start += source_dimensions[source_vertex] * range_target_dimension;
+    }
+
+    let nullspace = equations.transpose().nullspace_rows();
+    let mut basis = Vec::with_capacity(nullspace.nrows());
+    for basis_row in 0..nullspace.nrows() {
+        let coefficients = nullspace.row(basis_row);
+        let mut matrix = DenseMatrix::zero(source.dimension(), range.dimension(), field.clone());
+        let mut coefficient = 0_usize;
+        let mut row_offset = 0_usize;
+        let mut column_offset = 0_usize;
+        for vertex in 0..vertex_count {
+            for row in 0..source_dimensions[vertex] {
+                for column in 0..range_dimensions[vertex] {
+                    matrix[(row_offset + row, column_offset + column)] =
+                        coefficients[coefficient].clone();
+                    coefficient += 1;
+                }
+            }
+            row_offset += source_dimensions[vertex];
+            column_offset += range_dimensions[vertex];
+        }
+        basis.push(matrix);
+    }
+    Ok(basis)
+}
+
+/// Translate QPA's generic `Hom(R, M, N)` method for path-ring matrix modules.
+///
+/// This is the `HOPF_MatrixModuleHom` implementation from `module.gi`, not
+/// the separately installed `HomOverAlgebra` algorithm. For submodules QPA
+/// computes their ordered canonical bases, converts them with
+/// `SubmoduleAsModule`, and then reuses the standalone full matrices without
+/// changing their row or column order.
+///
+/// # Errors
+///
+/// Preserves QPA's pure-path-ring dispatch, identical acting-algebra check,
+/// zero-module and degenerate-nullspace failures, and every submodule
+/// conversion failure. Exact matrix failures and address-size overflow also
+/// propagate.
+pub fn generic_hom_over_path_ring<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    source: PathAlgebraMatModuleObject<F>,
+    range: PathAlgebraMatModuleObject<F>,
+) -> Result<GenericPathAlgebraModuleHomSpace<F>, PathAlgebraModuleError> {
+    if !algebra.is_path_algebra() {
+        return Err(PathAlgebraModuleError::GenericHomPathRingDispatchFailure);
+    }
+    if !algebra.is_identical(source.right_acting_algebra())
+        || !algebra.is_identical(range.right_acting_algebra())
+    {
+        return Err(PathAlgebraModuleError::GenericHomActingAlgebraMismatch);
+    }
+
+    let source_basis = source.canonical_basis_elements()?;
+    let range_basis = range.canonical_basis_elements()?;
+    let source_standalone = match &source {
+        PathAlgebraMatModuleObject::Module(module) => module.clone(),
+        PathAlgebraMatModuleObject::Submodule(submodule) => submodule_as_module(submodule)?,
+    };
+    let range_standalone = match &range {
+        PathAlgebraMatModuleObject::Module(module) => module.clone(),
+        PathAlgebraMatModuleObject::Submodule(submodule) => submodule_as_module(submodule)?,
+    };
+    let matrices = hopf_matrix_module_hom(algebra, &source_standalone, &range_standalone)?;
+    let flattened_width = source_basis
+        .len()
+        .checked_mul(range_basis.len())
+        .ok_or(PathAlgebraModuleError::GenericHomEquationSizeOverflow)?;
+    let flattened_generators = DenseMatrix::from_flat(
+        matrices.len(),
+        flattened_width,
+        matrices.iter().flat_map(flatten_matrix).collect(),
+        algebra.field().clone(),
+    )?;
+    let generators = matrices
+        .into_iter()
+        .map(|matrix| {
+            GenericPathAlgebraModuleHomomorphism(Arc::new(
+                GenericPathAlgebraModuleHomomorphismData {
+                    source: source.clone(),
+                    range: range.clone(),
+                    source_basis: source_basis.clone().into_boxed_slice(),
+                    range_basis: range_basis.clone().into_boxed_slice(),
+                    matrix,
+                },
+            ))
+        })
+        .collect();
+    Ok(GenericPathAlgebraModuleHomSpace {
+        field: algebra.field().clone(),
+        source,
+        range,
+        generators,
+        flattened_generators,
+    })
+}
+
+/// Translate QPA's generic `End(R, M)` method for a path-ring matrix module.
+///
+/// The returned basis is exactly the generic Hom basis supplied to
+/// `AlgebraWithOne(..., "basis")`; unlike [`end_over_algebra`], QPA performs
+/// no generated-subalgebra semi-echelon conversion here.
+///
+/// # Errors
+///
+/// Propagates [`generic_hom_over_path_ring`] and exact identity construction.
+pub fn generic_end_over_path_ring<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    module: PathAlgebraMatModuleObject<F>,
+) -> Result<GenericPathAlgebraModuleEndomorphismAlgebra<F>, PathAlgebraModuleError> {
+    let hom = generic_hom_over_path_ring(algebra, module.clone(), module.clone())?;
+    let basis = module.canonical_basis_elements()?;
+    let dimension = basis.len();
+    let one =
+        GenericPathAlgebraModuleHomomorphism(Arc::new(GenericPathAlgebraModuleHomomorphismData {
+            source: module.clone(),
+            range: module.clone(),
+            source_basis: basis.clone().into_boxed_slice(),
+            range_basis: basis.into_boxed_slice(),
+            matrix: DenseMatrix::identity(dimension, algebra.field().clone()),
+        }));
+    Ok(GenericPathAlgebraModuleEndomorphismAlgebra {
+        field: hom.field,
+        module,
+        generators: hom.generators,
+        flattened_generators: hom.flattened_generators,
+        one,
+    })
+}
+
 /// Translate QPA's matrix-module `SubAlgebraModule(V, generators)` method.
 ///
 /// Entered elements are split by vertex idempotents in generator-major,
@@ -8051,6 +8622,38 @@ pub enum PathAlgebraModuleError {
     /// QPA's Hom-space equation matrix exceeded Rust's addressable size.
     #[error("the HomOverAlgebra equation matrix dimensions overflow usize")]
     HomEquationSizeOverflow,
+    /// QPA installs its generic three-argument Hom method only for a path
+    /// ring, not for a quotient of one.
+    #[error("QPA's generic Hom/End method does not dispatch on this algebra")]
+    GenericHomPathRingDispatchFailure,
+    /// The explicit path-ring argument must be the identical acting algebra
+    /// of both matrix-module objects.
+    #[error("<ring> must be right acting domain of <M> and <N>")]
+    GenericHomActingAlgebraMismatch,
+    /// QPA's `HOPF_MatrixModuleHom` indexes the first ordinary basis vector
+    /// and therefore fails for a zero source or range module.
+    #[error("QPA's generic Hom construction cannot use a zero module")]
+    ZeroGenericHomModuleFailure,
+    /// GAP loses the intended nullspace width when QPA transposes an empty
+    /// equation matrix.
+    #[error("QPA's generic Hom construction cannot take this empty matrix nullspace")]
+    DegenerateGenericHomNullspaceFailure,
+    /// QPA's generic Hom equation or full mapping matrix exceeded Rust's
+    /// addressable size.
+    #[error("the generic QPA Hom equation matrix dimensions overflow usize")]
+    GenericHomEquationSizeOverflow,
+    /// A generic basis-matrix mapping accepts elements only from the ambient
+    /// family of its source object.
+    #[error("the entered element has a foreign generic-Hom source family")]
+    ForeignGenericHomomorphismSourceElement,
+    /// A parent-module element need not belong to a generic map's submodule
+    /// source.
+    #[error("the entered element is outside the generic-Hom source object")]
+    ElementOutsideGenericHomomorphismSource,
+    /// Multiplication in a generic End algebra accepts only endomorphisms of
+    /// its identical retained matrix-module object.
+    #[error("the entered mapping is outside this generic endomorphism algebra")]
+    ForeignGenericEndomorphism,
     /// A supported vertex must have a row block in QPA's Hom unknown vector.
     #[error("supported vertex {vertex} has no HomOverAlgebra unknown block")]
     MissingHomUnknownBlock {
@@ -8509,12 +9112,14 @@ mod tests {
     };
 
     use super::{
-        CommonDirectSummandResult, IndexedPathAlgebraModuleArrowAction, ModuleEndomorphismAlgebra,
+        CommonDirectSummandResult, GenericPathAlgebraModuleHomomorphism,
+        IndexedPathAlgebraModuleArrowAction, ModuleEndomorphismAlgebra,
         ModuleEndomorphismAlgebraData, MoreMinimalVersionResult, NamedArrowMatrix,
         NamedPathAlgebraModuleArrowAction, PathAlgebraModule, PathAlgebraModuleArrowAction,
         PathAlgebraModuleArrowActions, PathAlgebraModuleError, PathAlgebraModuleHomomorphism,
         PathAlgebraModuleMatrix, cokernel_projection, common_direct_summand, direct_sum_inclusions,
-        direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra, hom_over_algebra,
+        direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
+        generic_end_over_path_ring, generic_hom_over_path_ring, hom_over_algebra,
         hom_over_algebra_with_basis_function, homomorphism_from_images, identity_module_mapping,
         image_projection_inclusion, intersection_of_submodules, intersection_of_submodules_list,
         inverse_of_isomorphism, is_direct_summand, is_in_additive_closure, is_in_full_matrix_ring,
@@ -8591,6 +9196,30 @@ mod tests {
                 PathAlgebraModuleMatrix::Matrix(matrix) => qpa_matrix(matrix, coefficient),
             },
         ))
+    }
+
+    fn qpa_nonzero_positions<F: Field>(matrix: &DenseMatrix<F>) -> String {
+        let mut positions = Vec::new();
+        let mut position = 1_usize;
+        for row in 0..matrix.nrows() {
+            for entry in matrix.row(row) {
+                if !matrix.field().is_zero(entry) {
+                    positions.push(position);
+                }
+                position += 1;
+            }
+        }
+        super::qpa_usize_list(&positions)
+    }
+
+    fn qpa_generic_hom_supports<F: Field>(
+        mappings: &[GenericPathAlgebraModuleHomomorphism<F>],
+    ) -> String {
+        super::qpa_list(
+            mappings
+                .iter()
+                .map(|mapping| qpa_nonzero_positions(mapping.matrix())),
+        )
     }
 
     #[test]
@@ -10493,6 +11122,249 @@ mod tests {
         assert_eq!(
             actual,
             include_str!("../../../tests/fixtures/module_submodules.txt")
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn generic_path_ring_hom_and_end_match_qpa_hopf_oracle() {
+        fn run<F: Field>(field: F) -> String {
+            let algebra = QuiverAlgebra::Path(
+                PathAlgebra::new(
+                    field.clone(),
+                    Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")])
+                        .unwrap(),
+                )
+                .unwrap(),
+            );
+            let module = right_module_over_path_algebra(
+                algebra.clone(),
+                vec![2, 2],
+                &[NamedArrowMatrix::new(
+                    "a",
+                    DenseMatrix::identity(2, field.clone()),
+                )],
+            )
+            .unwrap()
+            .unwrap();
+            let hom =
+                generic_hom_over_path_ring(&algebra, module.clone().into(), module.clone().into())
+                    .unwrap();
+            let end = generic_end_over_path_ring(&algebra, module.clone().into()).unwrap();
+            let basis = module.basis_elements();
+            let generator = basis[0].add(&basis[3]).unwrap();
+            let submodule = subalgebra_module(module.clone(), &[generator]).unwrap();
+            let canonical = submodule.canonical_basis_elements().unwrap();
+            let sub_hom = generic_hom_over_path_ring(
+                &algebra,
+                submodule.clone().into(),
+                submodule.clone().into(),
+            )
+            .unwrap();
+            let sub_end = generic_end_over_path_ring(&algebra, submodule.clone().into()).unwrap();
+            let to_submodule = generic_hom_over_path_ring(
+                &algebra,
+                module.clone().into(),
+                submodule.clone().into(),
+            )
+            .unwrap();
+            let from_submodule =
+                generic_hom_over_path_ring(&algebra, submodule.into(), module.clone().into())
+                    .unwrap();
+
+            assert!(
+                hom.generators()
+                    .iter()
+                    .all(GenericPathAlgebraModuleHomomorphism::is_algebra_module_homomorphism)
+            );
+            assert_eq!(end.one().matrix(), &DenseMatrix::identity(4, field.clone()));
+            assert_eq!(
+                end.multiply(&end.generators()[1], &end.generators()[2])
+                    .unwrap()
+                    .matrix(),
+                end.generators()[0].matrix()
+            );
+            assert_eq!(
+                end.multiply(&end.generators()[2], &end.generators()[1])
+                    .unwrap()
+                    .matrix(),
+                end.generators()[3].matrix()
+            );
+            assert_eq!(sub_end.one().matrix(), &DenseMatrix::identity(3, field));
+            assert_eq!(
+                sub_hom.generators()[0].image(&canonical[0]).unwrap(),
+                canonical[0]
+            );
+            assert_eq!(
+                sub_hom.generators()[0].image(&canonical[1]).unwrap(),
+                canonical[1]
+            );
+            assert!(
+                sub_hom.generators()[0]
+                    .image(&canonical[2])
+                    .unwrap()
+                    .is_zero()
+            );
+
+            let canonical_support = super::qpa_list(canonical.iter().map(|element| {
+                let positions = element
+                    .basis_coefficients()
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(position, entry)| {
+                        (!module.right_acting_algebra().field().is_zero(entry))
+                            .then_some(position + 1)
+                    })
+                    .collect::<Vec<_>>();
+                super::qpa_usize_list(&positions)
+            }));
+            super::qpa_list([
+                hom.dimension().to_string(),
+                qpa_generic_hom_supports(hom.generators()),
+                super::qpa_list(
+                    hom.generators()
+                        .iter()
+                        .map(|mapping| mapping.is_algebra_module_homomorphism().to_string()),
+                ),
+                end.dimension().to_string(),
+                qpa_generic_hom_supports(end.generators()),
+                canonical_support,
+                sub_hom.dimension().to_string(),
+                qpa_generic_hom_supports(sub_hom.generators()),
+                sub_end.dimension().to_string(),
+                qpa_generic_hom_supports(sub_end.generators()),
+                qpa_generic_hom_supports(to_submodule.generators()),
+                qpa_generic_hom_supports(from_submodule.generators()),
+            ])
+        }
+
+        let actual = format!("QQ={}\nGF2={}\n", run(Q), run(Z2));
+        assert_eq!(
+            actual,
+            include_str!("../../../tests/fixtures/module_generic_hom.txt")
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn generic_path_ring_hom_failures_match_qpa_dispatch() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new("a", DenseMatrix::identity(1, Q))],
+        )
+        .unwrap()
+        .unwrap();
+        let zero = zero_module(&algebra).unwrap();
+        assert_eq!(
+            generic_hom_over_path_ring(&algebra, zero.clone().into(), module.clone().into(),)
+                .unwrap_err(),
+            PathAlgebraModuleError::ZeroGenericHomModuleFailure
+        );
+        assert_eq!(
+            generic_hom_over_path_ring(&algebra, module.clone().into(), zero.clone().into(),)
+                .unwrap_err(),
+            PathAlgebraModuleError::ZeroGenericHomModuleFailure
+        );
+        assert_eq!(
+            generic_end_over_path_ring(&algebra, zero.into()).unwrap_err(),
+            PathAlgebraModuleError::ZeroGenericHomModuleFailure
+        );
+
+        let zero_submodule = subalgebra_module(module.clone(), &[]).unwrap();
+        assert_eq!(
+            generic_hom_over_path_ring(
+                &algebra,
+                zero_submodule.clone().into(),
+                zero_submodule.clone().into(),
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::ZeroSubmoduleAsModuleFailure
+        );
+        assert_eq!(
+            generic_end_over_path_ring(&algebra, zero_submodule.into()).unwrap_err(),
+            PathAlgebraModuleError::ZeroSubmoduleAsModuleFailure
+        );
+
+        let arrowless = QuiverAlgebra::Path(
+            PathAlgebra::new(Q, Quiver::from_indexed(1, Vec::new()).unwrap()).unwrap(),
+        );
+        let arrowless_module = right_module_over_path_algebra(arrowless.clone(), vec![2], &[])
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            generic_hom_over_path_ring(
+                &arrowless,
+                arrowless_module.clone().into(),
+                arrowless_module.clone().into(),
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::DegenerateGenericHomNullspaceFailure
+        );
+        assert_eq!(
+            generic_end_over_path_ring(&arrowless, arrowless_module.into()).unwrap_err(),
+            PathAlgebraModuleError::DegenerateGenericHomNullspaceFailure
+        );
+
+        let other_algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let other_module = right_module_over_path_algebra(
+            other_algebra,
+            vec![1, 1],
+            &[NamedArrowMatrix::new("a", DenseMatrix::identity(1, Q))],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            generic_hom_over_path_ring(&algebra, module.clone().into(), other_module.into())
+                .unwrap_err(),
+            PathAlgebraModuleError::GenericHomActingAlgebraMismatch
+        );
+
+        let loop_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap(),
+        )
+        .unwrap();
+        let t = loop_parent.generators()[1].clone();
+        let quotient = QuiverAlgebra::Quotient(
+            QuotientPathAlgebra::by_relations_high_level(loop_parent, &[t.pow(2).unwrap()])
+                .unwrap(),
+        );
+        let quotient_module = right_module_over_path_algebra(
+            quotient.clone(),
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "t",
+                DenseMatrix::from_rows(vec![vec![q(0), q(1)], vec![q(0), q(0)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            generic_hom_over_path_ring(
+                &quotient,
+                quotient_module.clone().into(),
+                quotient_module.clone().into(),
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::GenericHomPathRingDispatchFailure
+        );
+        assert_eq!(
+            generic_end_over_path_ring(&quotient, quotient_module.into()).unwrap_err(),
+            PathAlgebraModuleError::GenericHomPathRingDispatchFailure
         );
     }
 
