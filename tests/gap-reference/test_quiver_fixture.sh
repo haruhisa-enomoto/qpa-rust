@@ -1044,6 +1044,18 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehomalg_cotilting_approximations.g" \
     "$repo_root/tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/module_ar_perp.g" \
+    "$repo_root/tests/fixtures/module_ar_perp.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/module_ar_perp_unbound_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an unbound cotilting property" >&2
+    exit 1
+fi
+grep -Fq "The first argument should be a cotilting module" "$actual"
+grep -Fq "moduleARtheory.gi:367" "$actual"
+compare_fixture \
     "$repo_root/tests/gap-reference/modulehomalg_is_nth_syzygy.g" \
     "$repo_root/tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"
 compare_fixture \

@@ -5648,6 +5648,37 @@ pub fn almost_split_sequence_from_side<F: QpaCoefficientField>(
     )))
 }
 
+/// Translate QPA's `AlmostSplitSequenceInPerpT(T, M)` operation.
+///
+/// The source first requires only that `IsCotiltingModule(T)` has already
+/// been installed. It returns `fail` for projective `M`; otherwise it takes
+/// the almost-split epimorphism ending in `M`, precomposes it with
+/// `RightApproximationByPerpT(T, Source(epi))`, applies QPA's right-minimal
+/// version, and returns that epimorphism with its kernel inclusion.
+///
+/// # Errors
+///
+/// Preserves the unbound cotilting-property error and propagates
+/// almost-split, perpendicular-approximation, composition, minimal-version,
+/// and kernel failures.
+pub fn almost_split_sequence_in_perp_t<F: QpaCoefficientField>(
+    cotilting: &PathAlgebraModule<F>,
+    module: &PathAlgebraModule<F>,
+) -> Result<Option<PathAlgebraModuleHomomorphismPair<F>>, AuslanderReitenError> {
+    if cotilting.cached_is_cotilting_module().is_none() {
+        return Err(AuslanderReitenError::CotiltingPerpPropertyUnbound);
+    }
+    if is_projective_module(module)? {
+        return Ok(None);
+    }
+    let (_, epimorphism) = almost_split_sequence(module)?
+        .ok_or(AuslanderReitenError::UnexpectedProjectiveAlmostSplitFail)?;
+    let approximation = right_approximation_by_perp_t(cotilting, epimorphism.source())?;
+    let composite = approximation.compose(&epimorphism)?;
+    let minimal = right_minimal_version(&composite)?.0;
+    Ok(Some((kernel_inclusion(&minimal)?, minimal)))
+}
+
 /// Translate QPA's cached `IrreducibleMorphismsEndingIn(M)` attribute.
 ///
 /// Over a finite field, the source uses the radical inclusion for a
@@ -5976,6 +6007,9 @@ fn flat_row_in_span<F: Field>(
 /// Auslander--Reiten data.
 #[derive(Debug, Error)]
 pub enum AuslanderReitenError {
+    /// QPA requires users to run `CotiltingModule(T, n)` before this method.
+    #[error("the first argument has no installed cotilting-module property")]
+    CotiltingPerpPropertyUnbound,
     /// The attribute accepts only unbound, `fail`, or a two-map sequence.
     #[error("the AlmostSplitSequence attribute cache contains boolean false")]
     InvalidAlmostSplitCacheState,
@@ -8923,11 +8957,11 @@ mod tests {
 
     use super::{
         AddMCoresolution, AddMResolution, AllComplementsResult, AlmostSplitSide,
-        CotiltingModuleResult, DominantDimensionResult, EnvelopingModuleError,
-        ExtAlgebraGeneratorsResult, ExtOverAlgebraResult, FaithfulDimensionResult,
-        FiniteAddMResolutionResult, GlobalDimensionOfAlgebraResult, IyamaGeneratorError,
-        ModuleLengthError, NakayamaAutomorphismOrder, NumberOfComplementsResult,
-        PredecessorMultiplicity, PredecessorsOfModuleResult,
+        AuslanderReitenError, CotiltingModuleResult, DominantDimensionResult,
+        EnvelopingModuleError, ExtAlgebraGeneratorsResult, ExtOverAlgebraResult,
+        FaithfulDimensionResult, FiniteAddMResolutionResult, GlobalDimensionOfAlgebraResult,
+        IyamaGeneratorError, ModuleLengthError, NakayamaAutomorphismOrder,
+        NumberOfComplementsResult, PredecessorMultiplicity, PredecessorsOfModuleResult,
         ProjectiveResolutionOfSimpleModuleOverEndoResult,
         ProjectiveResolutionOfSimpleModuleOverEndoStatus, TensorProductOfModulesResult,
         TiltingModuleResult, algebra_as_module_of_enveloping_algebra,
@@ -8935,12 +8969,13 @@ mod tests {
         all_complements_of_almost_complete_cotilting_module,
         all_complements_of_almost_complete_tilting_module, all_indec_modules_of_length_at_most,
         all_modules_of_length_at_most, all_modules_of_length_plus_one, almost_split_sequence,
-        almost_split_sequence_from_side, annihilator_of_module, basis_of_projectives,
-        canonical_basis_coefficients, cartan_matrix, complexity_of_algebra, complexity_of_module,
-        cotilting_module, coxeter_matrix, coxeter_polynomial, d_tr, d_tr_homomorphism,
-        d_tr_homomorphism_iterated, d_tr_iterated, dominant_dimension_of_algebra,
-        dominant_dimension_of_module, dual_of_algebra_as_module_over_enveloping_algebra,
-        dual_of_module, dual_of_module_homomorphism, element_in_indec_projective,
+        almost_split_sequence_from_side, almost_split_sequence_in_perp_t, annihilator_of_module,
+        basis_of_projectives, canonical_basis_coefficients, cartan_matrix, complexity_of_algebra,
+        complexity_of_module, cotilting_module, coxeter_matrix, coxeter_polynomial, d_tr,
+        d_tr_homomorphism, d_tr_homomorphism_iterated, d_tr_iterated,
+        dominant_dimension_of_algebra, dominant_dimension_of_module,
+        dual_of_algebra_as_module_over_enveloping_algebra, dual_of_module,
+        dual_of_module_homomorphism, element_in_indec_projective,
         element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_algebra_generators,
         ext_over_algebra, faithful_dimension, finite_canonical_basis, finite_qpa_default_basis,
         first_syzygy, frobenius_form, frobenius_linear_functional,
@@ -12111,6 +12146,74 @@ mod tests {
         });
 
         assert_eq!(actual, expected);
+    }
+
+    #[allow(clippy::needless_pass_by_value)]
+    fn module_ar_perp_case<F: QpaCoefficientField>(
+        field: F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                field,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let injectives = indec_injective_modules(&a2).unwrap();
+        let simples = simple_modules(&a2).unwrap();
+        let cotilting = direct_sum_of_qpa_modules(&[injectives[1].clone(), simples[1].clone()])
+            .unwrap()
+            .unwrap();
+        cotilting_module(&cotilting, &Integer::one())
+            .unwrap()
+            .expect("the pinned A2 module is cotilting");
+
+        json!({
+            "simple_one": almost_split_sequence_json(
+                almost_split_sequence_in_perp_t(&cotilting, &simples[0]).unwrap(), coefficient
+            ),
+            "projective_simple_two": almost_split_sequence_json(
+                almost_split_sequence_in_perp_t(&cotilting, &simples[1]).unwrap(), coefficient
+            ),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_module_ar_perp_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/module_ar_perp.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let rational = module_ar_perp_case(Q, |entry: &Rational| {
+            json!(entry.numerator_ref().to_i64().unwrap())
+        });
+        let binary = module_ar_perp_case(Z2, |entry| json!(Z2.to_integer(entry).to_i64().unwrap()));
+        let quinary = module_ar_perp_case(field5, |entry| {
+            json!(field5_coefficients.to_integer(entry).to_i64().unwrap())
+        });
+
+        assert_eq!(rational, expected["rational"]);
+        assert_eq!(binary, expected["binary"]);
+        assert_eq!(quinary, expected["quinary"]);
+    }
+
+    #[test]
+    fn almost_split_sequence_in_perp_t_preserves_unbound_property_error() {
+        let a2 = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let simples = simple_modules(&a2).unwrap();
+        assert!(matches!(
+            almost_split_sequence_in_perp_t(&simples[1], &simples[0]),
+            Err(AuslanderReitenError::CotiltingPerpPropertyUnbound)
+        ));
     }
 
     #[test]

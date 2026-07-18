@@ -11153,9 +11153,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "almost_split_sequence_in_perp_t"
+tests = ["tests/fixtures/module_ar_perp.schema-v1.json","tests/gap-reference/module_ar_perp_unbound_error.g"]
 deviations = []
 
 [[entries]]
@@ -11270,9 +11270,9 @@ source_file = "upstream/qpa/lib/moduleARtheory.gi"
 source_start = 359
 source_end = 379
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "almost_split_sequence_in_perp_t"
+tests = ["tests/fixtures/module_ar_perp.schema-v1.json","tests/gap-reference/module_ar_perp_unbound_error.g"]
 deviations = []
 
 [[entries]]

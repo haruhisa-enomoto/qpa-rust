@@ -731,6 +731,9 @@ Primary QPA files: `functors`, `modulehomalg`, and `moduleARtheory`.
   objects and morphisms.
 - [ ] Port almost-split sequences, irreducible morphisms, predecessors, and
   related AR computations.
+  `AlmostSplitSequenceInPerpT` now composes QPA's almost-split epimorphism
+  with the exact cotilting perpendicular approximation/minimalization path,
+  including the source's bound-property precondition and projective `fail`.
 - [ ] Verify functoriality and exact-sequence identities, not only dimensions.
 
 Exit gate: all homological/functor/AR operations in the pinned QPA ledger are

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp": "1.1.0@e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "simple_one": {
+      "monomorphism": {"source_dimension":[0,1],"range_dimension":[1,1],"matrices":[[[0]],[[1]]]},
+      "epimorphism": {"source_dimension":[1,1],"range_dimension":[1,0],"matrices":[[[1]],[[0]]]}
+    },
+    "projective_simple_two": null
+  },
+  "binary": {
+    "simple_one": {
+      "monomorphism": {"source_dimension":[0,1],"range_dimension":[1,1],"matrices":[[[0]],[[1]]]},
+      "epimorphism": {"source_dimension":[1,1],"range_dimension":[1,0],"matrices":[[[1]],[[0]]]}
+    },
+    "projective_simple_two": null
+  },
+  "quinary": {
+    "simple_one": {
+      "monomorphism": {"source_dimension":[0,1],"range_dimension":[1,1],"matrices":[[[0]],[[1]]]},
+      "epimorphism": {"source_dimension":[1,1],"range_dimension":[1,0],"matrices":[[[1]],[[0]]]}
+    },
+    "projective_simple_two": null
+  }
+}
