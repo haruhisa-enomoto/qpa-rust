@@ -340,6 +340,25 @@ the computations remain translations of the cited source methods.
   result. `tests/fixtures/modulehom_end_quiver.schema-v1.json` pins successful
   nonzero-radical conversions over `GF(2)` and `GF(5)`.
 
+## MODULEHOMALG-001 — Finite-field zero Iyama failure is typed
+
+- Source: QPA `lib/modulehomalg.gi`, `IyamaGenerator` at lines 692–715.
+- Affected Rust operation: `iyama_generator`.
+- Difference: for a zero module over a finite field, QPA obtains `fail` from
+  `DecomposeModuleWithMultiplicities` and then indexes `L[1]`, aborting with a
+  generic GAP list error. Rust returns
+  `IyamaGeneratorError::MissingMultiplicityDecomposition` at the same branch.
+- Reason: Rust has no untyped `fail` value to index. The typed result identifies
+  the precise failed QPA intermediate without repairing or bypassing it.
+- Compatibility impact: every nonzero rational and finite-prime-field radical
+  filtration and finite-field basicification retains QPA's summand and matrix
+  order. Rational zero input still succeeds; finite-field zero input returns a
+  typed error instead of the source interpreter error.
+- Evidence: `tests/fixtures/modulehomalg_iyama.schema-v1.json` pins partial and
+  complete generators for three nontrivial module shapes over `QQ` and
+  `GF(2)`, while `tests/gap-reference/modulehomalg_iyama_zero_error.g` pins the
+  source failure at `modulehomalg.gi:710`.
+
 ## MODULEPROJRES-001 — Stalled FirstPart reduction is reported
 
 - Source: QPA `lib/moduleprojres.gi`, `FirstPart` at lines 648–682.

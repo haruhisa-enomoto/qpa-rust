@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "source": {
+    "gap": "4.17dev@4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa": "1.37@8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp": "1.1.0@e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "rational": {
+    "a2_sum_n2": {
+      "dimensions": [2, 1, 0],
+      "generator_counts": [2, 1, 0],
+      "generators": [
+        [
+          {"source_dimension":[1,1],"range_dimension":[1,1],"matrices":[{"shape":[1,1],"rows":[[1]]},{"shape":[1,1],"rows":[[0]]}]},
+          {"source_dimension":[1,1],"range_dimension":[1,1],"matrices":[{"shape":[1,1],"rows":[[0]]},{"shape":[1,1],"rows":[[1]]}]}
+        ],
+        [
+          {"source_dimension":[0,1],"range_dimension":[1,1],"matrices":[{"shape":[1,1],"rows":[[0]]},{"shape":[1,1],"rows":[[1]]}]}
+        ],
+        []
+      ]
+    },
+    "vector2_n2": {
+      "dimensions": [4, 0, 0],
+      "generator_counts": [4, 0, 0],
+      "generators": [
+        [
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[1,0],[0,0]]}]},
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[0,1],[0,0]]}]},
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[0,0],[1,0]]}]},
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[0,0],[0,1]]}]}
+        ],
+        [],
+        []
+      ]
+    },
+    "dual_simple_n3": {
+      "dimensions": [1, 1, 1, 1],
+      "generator_counts": [1, 1, 0, 0],
+      "generators": [
+        [{"source_dimension":[1],"range_dimension":[1],"matrices":[{"shape":[1,1],"rows":[[1]]}]}],
+        [{"source_dimension":[1],"range_dimension":[1],"matrices":[{"shape":[1,1],"rows":[[1]]}]}],
+        [],
+        []
+      ]
+    },
+    "dual_sum_n3": {
+      "dimensions": [5, 1, 1, 1],
+      "generator_counts": [4, 1, 0, 0],
+      "generators": [
+        [
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[1,0,0],[0,0,0],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,0,1],[0,0,0],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,0,0],[1,0,0],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,0,0],[0,1,0],[0,0,1]]}]}
+        ],
+        [{"source_dimension":[1],"range_dimension":[3],"matrices":[{"shape":[1,3],"rows":[[1,0,0]]}]}],
+        [],
+        []
+      ]
+    },
+    "truncated_projective_n2": {
+      "dimensions": [3, 0, 0],
+      "generator_counts": [2, 0, 0],
+      "generators": [
+        [
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,1,0],[0,0,1],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[1,0,0],[0,1,0],[0,0,1]]}]}
+        ],
+        [],
+        []
+      ]
+    }
+  },
+  "binary": {
+    "a2_sum_n2": {
+      "dimensions": [2, 1, 0],
+      "generator_counts": [2, 1, 0],
+      "generators": [
+        [
+          {"source_dimension":[1,1],"range_dimension":[1,1],"matrices":[{"shape":[1,1],"rows":[[1]]},{"shape":[1,1],"rows":[[0]]}]},
+          {"source_dimension":[1,1],"range_dimension":[1,1],"matrices":[{"shape":[1,1],"rows":[[0]]},{"shape":[1,1],"rows":[[1]]}]}
+        ],
+        [
+          {"source_dimension":[0,1],"range_dimension":[1,1],"matrices":[{"shape":[1,1],"rows":[[0]]},{"shape":[1,1],"rows":[[1]]}]}
+        ],
+        []
+      ]
+    },
+    "vector2_n2": {
+      "dimensions": [4, 0, 0],
+      "generator_counts": [4, 0, 0],
+      "generators": [
+        [
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[1,0],[0,0]]}]},
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[0,1],[0,0]]}]},
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[0,0],[1,0]]}]},
+          {"source_dimension":[2],"range_dimension":[2],"matrices":[{"shape":[2,2],"rows":[[0,0],[0,1]]}]}
+        ],
+        [],
+        []
+      ]
+    },
+    "dual_simple_n3": {
+      "dimensions": [1, 1, 1, 1],
+      "generator_counts": [1, 1, 0, 0],
+      "generators": [
+        [{"source_dimension":[1],"range_dimension":[1],"matrices":[{"shape":[1,1],"rows":[[1]]}]}],
+        [{"source_dimension":[1],"range_dimension":[1],"matrices":[{"shape":[1,1],"rows":[[1]]}]}],
+        [],
+        []
+      ]
+    },
+    "dual_sum_n3": {
+      "dimensions": [5, 1, 1, 1],
+      "generator_counts": [4, 1, 0, 0],
+      "generators": [
+        [
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[1,0,0],[0,0,0],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,0,1],[0,0,0],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,0,0],[1,0,0],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,0,0],[0,1,0],[0,0,1]]}]}
+        ],
+        [{"source_dimension":[1],"range_dimension":[3],"matrices":[{"shape":[1,3],"rows":[[1,0,0]]}]}],
+        [],
+        []
+      ]
+    },
+    "truncated_projective_n2": {
+      "dimensions": [3, 0, 0],
+      "generator_counts": [2, 0, 0],
+      "generators": [
+        [
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[0,1,0],[0,0,1],[0,0,0]]}]},
+          {"source_dimension":[3],"range_dimension":[3],"matrices":[{"shape":[3,3],"rows":[[1,0,0],[0,1,0],[0,0,1]]}]}
+        ],
+        [],
+        []
+      ]
+    }
+  }
+}

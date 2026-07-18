@@ -1585,9 +1585,9 @@ source_file = "upstream/qpa/lib/combinatorialrep.gi"
 source_start = 89
 source_end = 97
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "Display for UnitForm"
+tests = ["tests/fixtures/combinatorialrep_unit_form_view.txt"]
 deviations = []
 
 [[entries]]
@@ -14104,9 +14104,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ext_algebra_generators; ExtAlgebraGeneratorsResult"
+tests = ["tests/fixtures/modulehomalg_ext_algebra_generators.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14117,9 +14117,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "partial_iyama_generator"
+tests = ["tests/fixtures/modulehomalg_iyama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14130,10 +14130,10 @@ source_file = "upstream/qpa/lib/modulehomalg.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "iyama_generator"
+tests = ["tests/fixtures/modulehomalg_iyama.schema-v1.json","tests/gap-reference/modulehomalg_iyama_zero_error.g"]
+deviations = ["MODULEHOMALG-001"]
 
 [[entries]]
 id = "modulehomalg:DeclareOperation:GlobalDimensionOfAlgebra:1"
@@ -14832,9 +14832,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 548
 source_end = 648
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ext_algebra_generators; ExtAlgebraGeneratorsResult"
+tests = ["tests/fixtures/modulehomalg_ext_algebra_generators.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14845,9 +14845,9 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 658
 source_end = 682
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "partial_iyama_generator"
+tests = ["tests/fixtures/modulehomalg_iyama.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -14858,10 +14858,10 @@ source_file = "upstream/qpa/lib/modulehomalg.gi"
 source_start = 692
 source_end = 715
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "iyama_generator"
+tests = ["tests/fixtures/modulehomalg_iyama.schema-v1.json","tests/gap-reference/modulehomalg_iyama_zero_error.g"]
+deviations = ["MODULEHOMALG-001"]
 
 [[entries]]
 id = "modulehomalg:InstallMethod:GlobalDimensionOfAlgebra:1"

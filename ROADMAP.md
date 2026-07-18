@@ -717,9 +717,16 @@ Primary QPA files: `functors`, `modulehomalg`, and `moduleARtheory`.
 
 - [ ] Port projective covers, injective envelopes, syzygies, and cosyzygies.
 - [ ] Port `ExtOverAlgebra` and all QPA extension constructions.
+  QPA's bounded `ExtAlgebraGenerators` construction is now source-faithful,
+  including successive projective liftings, Yoneda-product complements, and
+  the degree-zero quotient by the ideal generated from the endomorphism
+  radical. Exact map representatives are pinned over `QQ` and `GF(2)`.
 - [ ] Port pushouts, pullbacks, approximations, and perpendicular-category tools.
 - [ ] Port tilting, cotilting, Gorenstein, dominant-dimension, and periodicity
   computations present in QPA.
+  QPA's partial and complete Iyama generators now follow the exact
+  endomorphism-radical filtration and finite-field basicification loops over
+  `QQ` and prime fields.
 - [ ] Port dual, transpose, `DTr`, `TrD`, star, Nakayama, and tensor functors on
   objects and morphisms.
 - [ ] Port almost-split sequences, irreducible morphisms, predecessors, and
@@ -761,7 +768,7 @@ Primary QPA files: `stringalgebra`, `validity`, `combinatorialrep`,
   weak-bridge reduction now complete the `stringalgebra.gd`/`.gi` ledger.
 - [x] Port special-biserial, string, gentle, and domestic recognition methods
   that are part of QPA itself.
-- [ ] Port unit forms, roots, Euler/Tits forms, and reflections.
+- [x] Port unit forms, roots, Euler/Tits forms, and reflections.
 - [ ] Port combinatorial maps, genus/faces/boundaries, cutting/joining, homology,
   and gentle-derived-equivalence computations.
 - [x] Port finite-type AR-quiver data and degeneration-order algorithms.

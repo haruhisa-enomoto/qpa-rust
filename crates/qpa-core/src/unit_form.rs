@@ -4,7 +4,7 @@
 //! Numerica supplies arbitrary-precision integers and the stored matrix, while
 //! QPA's reflection and positivity procedures remain the defining algorithms.
 
-use std::sync::OnceLock;
+use std::{fmt, sync::OnceLock};
 
 use numerica::{
     domains::{
@@ -62,6 +62,26 @@ pub struct UnitForm {
     weakly_nonnegative: OnceLock<bool>,
     weakly_positive: OnceLock<bool>,
     positive_roots: OnceLock<Vec<Vec<Integer>>>,
+}
+
+impl fmt::Display for UnitForm {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "[ ")?;
+        for (row_index, row) in self.matrix.row_iter().enumerate() {
+            if row_index != 0 {
+                write!(formatter, ", ")?;
+            }
+            write!(formatter, "[ ")?;
+            for (column_index, entry) in row.iter().enumerate() {
+                if column_index != 0 {
+                    write!(formatter, ", ")?;
+                }
+                write!(formatter, "{entry}")?;
+            }
+            write!(formatter, " ]")?;
+        }
+        write!(formatter, " ]")
+    }
 }
 
 impl UnitForm {
@@ -518,6 +538,18 @@ mod tests {
                 .collect(),
         )
         .unwrap()
+    }
+
+    #[test]
+    fn qpa_view_format_is_the_symmetric_matrix() {
+        assert_eq!(
+            form(&[&[2, -1], &[-1, 2]]).to_string(),
+            "[ [ 2, -1 ], [ -1, 2 ] ]"
+        );
+        assert_eq!(
+            form(&[&[2, -1, 0], &[-1, 2, -1], &[0, -1, 2]]).to_string(),
+            "[ [ 2, -1, 0 ], [ -1, 2, -1 ], [ 0, -1, 2 ] ]"
+        );
     }
 
     fn rows(unit_form: &UnitForm) -> Vec<Vec<i64>> {

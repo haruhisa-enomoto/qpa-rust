@@ -1,0 +1,173 @@
+{
+  "binary": {
+    "a2_iyama": {
+      "dimension": [
+        2,
+        1
+      ],
+      "matrices": [
+        [
+          [
+            0
+          ],
+          [
+            1
+          ]
+        ]
+      ]
+    },
+    "a2_partial": {
+      "dimension": [
+        1,
+        0
+      ],
+      "matrices": [
+        [
+          [
+            0
+          ]
+        ]
+      ]
+    },
+    "dual_iyama": {
+      "dimension": [
+        3
+      ],
+      "matrices": [
+        [
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      ]
+    },
+    "dual_partial": {
+      "dimension": [
+        1
+      ],
+      "matrices": [
+        [
+          [
+            0
+          ]
+        ]
+      ]
+    },
+    "vector_iyama": {
+      "dimension": [
+        1
+      ],
+      "matrices": []
+    },
+    "vector_partial": {
+      "dimension": [
+        0
+      ],
+      "matrices": []
+    }
+  },
+  "kind": "modulehomalg_iyama",
+  "oracle": {
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "gap_version": "4.17dev",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654",
+    "gbnp_version": "1.1.0",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "qpa_version": "1.37"
+  },
+  "rational": {
+    "a2_iyama": {
+      "dimension": [
+        3,
+        1
+      ],
+      "matrices": [
+        [
+          [
+            1
+          ],
+          [
+            0
+          ],
+          [
+            0
+          ]
+        ]
+      ]
+    },
+    "a2_partial": {
+      "dimension": [
+        1,
+        0
+      ],
+      "matrices": [
+        [
+          [
+            0
+          ]
+        ]
+      ]
+    },
+    "dual_iyama": {
+      "dimension": [
+        3
+      ],
+      "matrices": [
+        [
+          [
+            0,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0
+          ]
+        ]
+      ]
+    },
+    "dual_partial": {
+      "dimension": [
+        1
+      ],
+      "matrices": [
+        [
+          [
+            0
+          ]
+        ]
+      ]
+    },
+    "vector_iyama": {
+      "dimension": [
+        2
+      ],
+      "matrices": []
+    },
+    "vector_partial": {
+      "dimension": [
+        0
+      ],
+      "matrices": []
+    }
+  },
+  "schema_version": 1
+}
