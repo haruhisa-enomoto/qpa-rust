@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "kind": "inflist",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "half_lists": {
+    "positive_repeat": {
+      "start": 2,
+      "direction": 1,
+      "type": "repeat",
+      "repeating": [10, 20, 30],
+      "storing": false,
+      "initial_is_fail": true,
+      "values": [10, 20, 30, 10, 20, 30, 10],
+      "lowest": 2,
+      "highest": "infinity"
+    },
+    "negative_repeat": {
+      "values": [8, 7, 8, 7, 8, 7],
+      "lowest": "-infinity",
+      "highest": -1
+    },
+    "next_repeat": {
+      "value_10": 2,
+      "stored": [0, 1, 2, 3, 0, 1, 2, 3, 0],
+      "callbacks": [
+        [0, 1, "next"],
+        [1, 1, "next"],
+        [2, 1, "next"],
+        [3, 1, "next"],
+        [4, 1, "next"],
+        [5, 1, "next"],
+        [6, 1, "next"],
+        [7, 1, "next"],
+        [8, 1, "next"]
+      ],
+      "repeat_data": [[], 0, 1, [0, 1, 2, 3]]
+    },
+    "position_storing": {
+      "lowest_before": "none",
+      "value_2": 4,
+      "value_0_again": 0,
+      "stored": [4, 1, 0, 1, 4],
+      "callbacks": [
+        [-2, 1, "pos"],
+        [-1, 1, "pos"],
+        [0, 1, "pos"],
+        [1, 1, "pos"],
+        [2, 1, "pos"]
+      ],
+      "lowest_after": -2,
+      "highest_after": 2
+    },
+    "position_nonstoring": {
+      "value_1": 101,
+      "stored": [],
+      "callbacks": [],
+      "lowest": "none"
+    }
+  },
+  "full": {
+    "middle_start": 0,
+    "middle_end": 1,
+    "middle": [100, 200],
+    "positive_start": 2,
+    "negative_start": -1,
+    "values": [7, 8, 7, 100, 200, 1, 1],
+    "lowest_known": "-infinity",
+    "highest_known": "infinity",
+    "lower_bound": "-infinity",
+    "upper_bound": "infinity"
+  },
+  "transformations": {
+    "shift": {
+      "middle_start": -3,
+      "values": [8, 100, 200, 1, 1]
+    },
+    "map": [16, 14, 200, 400, 2],
+    "positive_cut": {
+      "middle_start": 3,
+      "middle": [2, 3],
+      "positive_start": 5,
+      "values": [2, 3, 1, 2, 3, 1]
+    },
+    "negative_cut": {
+      "middle_start": -2,
+      "middle": [8],
+      "negative_start": -3,
+      "values": [8, 7, 8, 7, 8]
+    },
+    "positive_from_values": [2, 3, 1, 2, 3, 1],
+    "negative_from_values": [8, 7, 8, 7, 8],
+    "splice": [19, 18, 20, 200, 1, 2],
+    "concatenation": {
+      "middle_start": -2,
+      "middle": [20, 21, 100, 200],
+      "positive_start": 2,
+      "negative_start": -3,
+      "values": [19, 18, 20, 21, 100, 200, 1, 2]
+    },
+    "half_map": [11, 21, 31, 11, 21, 31]
+  },
+  "constructors": {
+    "finite": {
+      "middle_start": -1,
+      "middle_end": 1,
+      "values": [4, 5, 6],
+      "lower_bound": -1,
+      "upper_bound": 1
+    },
+    "constant": [9, 9, 9],
+    "integers": [-3, 0, 4]
+  },
+  "repeat_conversion": {
+    "positive_parent": {
+      "value_10": 7,
+      "middle_start": 0,
+      "middle": [99, 9],
+      "positive_start": 2,
+      "period": [5, 6, 7]
+    },
+    "negative_parent": {
+      "value_minus_10": 7,
+      "middle_start": 0,
+      "middle": [9, 99],
+      "negative_start": -2,
+      "period": [5, 6, 7]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "kind": "inflist_errors",
+  "success": {
+    "shift_finite": false,
+    "map_finite": false,
+    "empty_known": false,
+    "shifted_splice": false,
+    "illegal_half_position": false,
+    "empty_repeat_value": false,
+    "cut_outside": false,
+    "finite_outside": false,
+    "bad_positive_start": false,
+    "bad_negative_start": false
+  }
+}

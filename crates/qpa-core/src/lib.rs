@@ -13,6 +13,7 @@ pub mod element_utilities;
 pub mod groebner;
 pub mod homomorphism;
 pub mod idempotent;
+pub mod infinite_list;
 pub mod koszul;
 pub mod matrix;
 pub mod module_decomposition;
@@ -106,6 +107,12 @@ pub use groebner::{
 };
 pub use homomorphism::{QuiverAlgebraHomomorphism, QuiverAlgebraHomomorphismError};
 pub use idempotent::{HOPF_DEFAULT_SEED, HopfError};
+pub use infinite_list::{
+    ExtendedInteger, HalfInfiniteList, HalfInfiniteListElementFunction,
+    HalfInfiniteListSpecification, HalfInfiniteListType, InfiniteList, InfiniteListDirection,
+    InfiniteListError, InfiniteListNewValueCallback, InfiniteListNextFunction,
+    InfiniteListPositionFunction, InfiniteListRepeatifyCallback, integers_list, shifted_splice,
+};
 pub use koszul::{
     KoszulError, QuadraticPerpendicular, is_quadratic_ideal, paths_of_length_two,
     quadratic_perpendicular_of_path_algebra_ideal,

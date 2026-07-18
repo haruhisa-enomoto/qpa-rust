@@ -1149,6 +1149,12 @@ compare_fixture \
     "$repo_root/tests/gap-reference/combinatorialrep_euler_fail.g" \
     >"$actual" 2>&1
 grep -Fq "The Cartan matrix is not invertible over Z!" "$actual"
+compare_fixture \
+    "$repo_root/tests/gap-reference/inflist.g" \
+    "$repo_root/tests/fixtures/inflist.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/inflist_errors.g" \
+    "$repo_root/tests/fixtures/inflist_errors.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/combinatorialmap_derived_error.g" \
     >"$actual" 2>&1

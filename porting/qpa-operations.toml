@@ -8423,9 +8423,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 1
 source_end = 1
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ExtendedInteger"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8436,9 +8436,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 2
 source_end = 2
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ExtendedInteger"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8449,9 +8449,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8462,9 +8462,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 5
 source_end = 5
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8475,9 +8475,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 7
 source_end = 7
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList; HalfInfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8488,9 +8488,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 8
 source_end = 8
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList; HalfInfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8501,9 +8501,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 10
 source_end = 10
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::middle_start"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8514,9 +8514,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::middle_end"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8527,9 +8527,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::middle_part"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8540,9 +8540,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 13
 source_end = 13
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::positive_part"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8553,9 +8553,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::negative_part"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8566,9 +8566,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::lowest_known_position; InfiniteList::lowest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8579,9 +8579,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 16
 source_end = 16
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::highest_known_position; InfiniteList::highest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8592,9 +8592,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 17
 source_end = 17
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::upper_bound"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8605,9 +8605,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 18
 source_end = 18
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::lower_bound"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8618,9 +8618,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 20
 source_end = 20
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::start_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8631,9 +8631,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 21
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::direction"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8644,9 +8644,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::list_type"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8657,9 +8657,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 23
 source_end = 23
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::repeating_list"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8670,9 +8670,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 24
 source_end = 24
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::element_function"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8683,9 +8683,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 25
 source_end = 25
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::is_storing_values"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8696,9 +8696,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 26
 source_end = 26
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::new_value_callback"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8709,9 +8709,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 27
 source_end = 27
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::is_repeating"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8722,9 +8722,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 28
 source_end = 28
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::initial_value"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8735,9 +8735,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 29
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::lowest_known_position; InfiniteList::lowest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8748,9 +8748,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 30
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::highest_known_position; InfiniteList::highest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8761,9 +8761,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 31
 source_end = 31
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::make_repeating_list"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8774,9 +8774,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 33
 source_end = 33
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::finite_part_as_list"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8787,9 +8787,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 34
 source_end = 34
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::positive_part_from"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8800,9 +8800,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 35
 source_end = 35
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::negative_part_from"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8813,9 +8813,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::splice"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8826,9 +8826,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 37
 source_end = 37
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "shifted_splice"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8839,9 +8839,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::shift; InfiniteList::shift"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8852,9 +8852,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 39
 source_end = 39
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::shift; InfiniteList::shift"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8865,9 +8865,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 40
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::cut"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8878,9 +8878,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 41
 source_end = 41
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::concatenate"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8891,9 +8891,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 43
 source_end = 43
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::map"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8904,9 +8904,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 44
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::map"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8917,9 +8917,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 46
 source_end = 51
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8930,9 +8930,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 53
 source_end = 55
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8943,9 +8943,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 57
 source_end = 57
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::new"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8956,9 +8956,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 65
 source_end = 65
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::new"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8969,9 +8969,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 75
 source_end = 75
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::from_parts"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8982,9 +8982,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 79
 source_end = 79
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::function"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -8995,9 +8995,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 80
 source_end = 80
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::constant"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9008,9 +9008,9 @@ source_file = "upstream/qpa/lib/inflist.gd"
 source_start = 81
 source_end = 81
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::finite"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9021,9 +9021,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 11
 source_end = 57
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::new"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9034,9 +9034,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 65
 source_end = 69
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::start_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9047,9 +9047,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 77
 source_end = 81
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::direction"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9060,9 +9060,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 89
 source_end = 93
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::list_type"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9073,9 +9073,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 101
 source_end = 105
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::repeating_list"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9086,9 +9086,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 113
 source_end = 117
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::element_function"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9099,9 +9099,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 126
 source_end = 130
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::is_storing_values"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9112,9 +9112,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 138
 source_end = 142
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::new_value_callback"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9125,9 +9125,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 151
 source_end = 155
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::is_repeating"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9138,9 +9138,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 163
 source_end = 167
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::initial_value"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9151,9 +9151,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 176
 source_end = 231
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList; HalfInfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9164,9 +9164,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 233
 source_end = 261
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::make_repeating_list"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9177,9 +9177,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 270
 source_end = 288
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::lowest_known_position; InfiniteList::lowest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9190,9 +9190,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 297
 source_end = 315
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::highest_known_position; InfiniteList::highest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9203,9 +9203,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 330
 source_end = 355
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::new"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9216,9 +9216,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 365
 source_end = 385
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::from_parts"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9229,9 +9229,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 394
 source_end = 399
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::function"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9242,9 +9242,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 407
 source_end = 410
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::constant"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9255,9 +9255,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 419
 source_end = 422
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::finite"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9268,9 +9268,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 431
 source_end = 435
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::middle_start"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9281,9 +9281,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 443
 source_end = 447
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::middle_end"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9294,9 +9294,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 455
 source_end = 459
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::middle_part"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9307,9 +9307,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 467
 source_end = 471
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::positive_part"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9320,9 +9320,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 479
 source_end = 483
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::negative_part"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9333,9 +9333,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 492
 source_end = 503
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::lowest_known_position; InfiniteList::lowest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9346,9 +9346,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 512
 source_end = 523
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::highest_known_position; InfiniteList::highest_known_position"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9359,9 +9359,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 532
 source_end = 544
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::upper_bound"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9372,9 +9372,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 553
 source_end = 565
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::lower_bound"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9385,9 +9385,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 573
 source_end = 588
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList; HalfInfiniteList"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9398,9 +9398,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 598
 source_end = 610
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::shift; InfiniteList::shift"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9411,9 +9411,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 620
 source_end = 628
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::shift; InfiniteList::shift"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9424,9 +9424,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 638
 source_end = 642
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::finite_part_as_list"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9437,9 +9437,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 651
 source_end = 688
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::cut"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9450,9 +9450,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 697
 source_end = 710
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::positive_part_from"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9463,9 +9463,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 719
 source_end = 733
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::negative_part_from"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9476,9 +9476,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 743
 source_end = 757
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::splice"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9489,9 +9489,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 768
 source_end = 791
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::concatenate"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9502,9 +9502,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 802
 source_end = 812
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "InfiniteList::map"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9515,9 +9515,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 823
 source_end = 837
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "HalfInfiniteList::map"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -9528,9 +9528,9 @@ source_file = "upstream/qpa/lib/inflist.gi"
 source_start = 845
 source_end = 845
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "integers_list"
+tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
