@@ -3938,9 +3938,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 2
 source_end = 2
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_projective_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -3951,9 +3951,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 3
 source_end = 3
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_injective_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4120,9 +4120,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 29
 source_end = 29
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_projective_module"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4133,9 +4133,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 30
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "compare_with_indec_projective"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4146,9 +4146,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 31
 source_end = 31
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "compare_with_indec_injective"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4159,9 +4159,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 33
 source_end = 34
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_proj_or_inj_complex_in_degree"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4172,9 +4172,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 35
 source_end = 35
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_proj_complex_in_degree"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4185,9 +4185,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_inj_complex_in_degree"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4198,9 +4198,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_finite_proj_or_inj_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4211,9 +4211,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 39
 source_end = 39
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_finite_proj_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4224,9 +4224,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 40
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_finite_inj_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4237,9 +4237,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 44
 source_end = 44
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "matrices_of_dual_map"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4250,9 +4250,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 45
 source_end = 45
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "find_all_map_components"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4263,9 +4263,9 @@ source_file = "upstream/qpa/lib/derivedcat.gd"
 source_start = 46
 source_end = 46
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "direct_sum_minus_summands"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4276,9 +4276,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 12
 source_end = 28
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_projective_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4289,9 +4289,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 39
 source_end = 54
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_injective_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4302,9 +4302,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 70
 source_end = 132
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_projective_complex_string"
+tests = ["tests/fixtures/derivedcat_foundation_print.txt"]
 deviations = []
 
 [[entries]]
@@ -4315,9 +4315,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 146
 source_end = 207
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "qpa_injective_complex_string"
+tests = ["tests/fixtures/derivedcat_foundation_print.txt"]
 deviations = []
 
 [[entries]]
@@ -4484,9 +4484,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 887
 source_end = 910
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_projective_module"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4497,9 +4497,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 924
 source_end = 928
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_proj_complex_in_degree"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4510,9 +4510,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 940
 source_end = 944
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_inj_complex_in_degree"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4523,9 +4523,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 960
 source_end = 975
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_proj_or_inj_complex_in_degree"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4536,9 +4536,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 988
 source_end = 992
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_finite_proj_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4549,9 +4549,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 1005
 source_end = 1009
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_finite_inj_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4562,9 +4562,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 1026
 source_end = 1046
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "description_of_finite_proj_or_inj_complex"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4575,9 +4575,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 1056
 source_end = 1075
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "compare_with_indec_projective"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4588,9 +4588,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 1085
 source_end = 1104
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "compare_with_indec_injective"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4601,9 +4601,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 1158
 source_end = 1173
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "find_all_map_components"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4614,9 +4614,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 1185
 source_end = 1192
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "matrices_of_dual_map"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -4627,9 +4627,9 @@ source_file = "upstream/qpa/lib/derivedcat.gi"
 source_start = 1209
 source_end = 1262
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "direct_sum_minus_summands"
+tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
 
 [[entries]]

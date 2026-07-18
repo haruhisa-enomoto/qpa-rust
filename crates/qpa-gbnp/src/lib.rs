@@ -7,6 +7,7 @@ pub mod algebra_conversion;
 pub mod combinatorial_map;
 pub mod combinatorial_rep;
 pub mod complex;
+pub mod derived_category;
 pub mod heap;
 pub mod higher_preprojective;
 pub mod invlenlex;
@@ -52,6 +53,15 @@ pub use complex::{
     finite_complex, injective_resolution, injective_resolution_complex, mapping_cone,
     projective_resolution, projective_resolution_complex, short_exact_sequence, stalk_complex,
     yoneda_product, zero_chain_map, zero_complex,
+};
+pub use derived_category::{
+    DerivedCategoryError, compare_with_indec_injective, compare_with_indec_projective,
+    description_of_finite_inj_complex, description_of_finite_proj_complex,
+    description_of_finite_proj_or_inj_complex, description_of_inj_complex_in_degree,
+    description_of_proj_complex_in_degree, description_of_proj_or_inj_complex_in_degree,
+    description_of_projective_module, direct_sum_minus_summands, find_all_map_components,
+    is_injective_complex, is_projective_complex, matrices_of_dual_map,
+    qpa_injective_complex_string, qpa_projective_complex_string,
 };
 pub use heap::{TodoHeap, TodoHeapError};
 pub use higher_preprojective::{

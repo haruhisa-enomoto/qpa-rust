@@ -481,6 +481,8 @@ struct QpaComplexData<C: QpaCategory> {
     category: C,
     differentials: OnceLock<InfiniteList<C::Morphism, ComplexError>>,
     zero_complex: bool,
+    projective_complex: OnceLock<bool>,
+    injective_complex: OnceLock<bool>,
 }
 
 /// QPA's `IsQPAComplex` object.
@@ -521,6 +523,34 @@ impl<C: QpaCategory> QpaComplex<C> {
     #[must_use]
     pub fn is_zero_complex(&self) -> bool {
         self.0.zero_complex
+    }
+
+    /// Return QPA's cached `IsProjectiveComplex` property, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_projective_complex(&self) -> Option<bool> {
+        self.0.projective_complex.get().copied()
+    }
+
+    /// Install QPA's `IsProjectiveComplex` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_projective_complex(&self, value: bool) -> bool {
+        *self.0.projective_complex.get_or_init(|| value)
+    }
+
+    /// Return QPA's cached `IsInjectiveComplex` property, if installed.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_is_injective_complex(&self) -> Option<bool> {
+        self.0.injective_complex.get().copied()
+    }
+
+    /// Install QPA's `IsInjectiveComplex` property value.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cache_is_injective_complex(&self, value: bool) -> bool {
+        *self.0.injective_complex.get_or_init(|| value)
     }
 
     /// Return QPA's `DifferentialsOfComplex` attribute.
@@ -818,6 +848,8 @@ impl<C: QpaCategory> QpaComplex<C> {
             category,
             differentials: OnceLock::new(),
             zero_complex: false,
+            projective_complex: OnceLock::new(),
+            injective_complex: OnceLock::new(),
         });
         data.differentials
             .set(differentials)
@@ -1425,6 +1457,8 @@ pub fn complex<C: QpaCategory>(
         category: category.clone(),
         differentials: OnceLock::new(),
         zero_complex: false,
+        projective_complex: OnceLock::new(),
+        injective_complex: OnceLock::new(),
     });
     let result = QpaComplex(data);
     let zero_map = category.zero_map(&category.zero_object(), &category.zero_object())?;
@@ -1489,6 +1523,8 @@ pub fn zero_complex<C: QpaCategory>(category: C) -> Result<QpaComplex<C>, Comple
         category,
         differentials: OnceLock::new(),
         zero_complex: true,
+        projective_complex: OnceLock::new(),
+        injective_complex: OnceLock::new(),
     });
     data.differentials
         .set(InfiniteList::constant(zero_map))
