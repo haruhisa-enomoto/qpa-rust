@@ -211,9 +211,10 @@ pub use sgrobner::{
     sgrobner_with_options, strong_normal_form_trees,
 };
 pub use string_algebra::{
-    StringAlgebraError, band_representatives_less_than, bands_less_than, compute_lps_array,
-    cyclic_permutations_of_band, is_a_band, maximum_length_of_direct_string, number_of_joints,
-    source_of_string_arrow, strings_less_than, target_of_string_arrow,
+    StringAlgebraError, band_representatives_less_than, bands_less_than, bridge_quiver,
+    compute_lps_array, cyclic_permutations_of_band, is_a_band, is_domestic_string_algebra,
+    maximum_length_of_direct_string, number_of_joints, source_of_string_arrow, strings_less_than,
+    target_of_string_arrow,
 };
 pub use tensor::{
     EMPTY_TENSOR_RELATIONS_ERROR, TensorProductAlgebra, TensorProductError, enveloping_algebra,

@@ -23477,9 +23477,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 11
 source_end = 11
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_domestic_string_algebra"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23490,9 +23490,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "bridge_quiver"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23633,9 +23633,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 457
 source_end = 520
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "is_domestic_string_algebra"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -23646,9 +23646,9 @@ source_file = "upstream/qpa/lib/stringalgebra.gi"
 source_start = 522
 source_end = 775
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "bridge_quiver"
+tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
 
 [[entries]]

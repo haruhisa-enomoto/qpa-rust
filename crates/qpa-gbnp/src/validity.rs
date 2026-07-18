@@ -616,7 +616,7 @@ fn relation_paths<F: Field, A: QpaStringAlgebra<F>>(
         .collect()
 }
 
-fn ensure_acceptable_quiver(quiver: &Quiver) -> Result<(), ValidityError> {
+pub(crate) fn ensure_acceptable_quiver(quiver: &Quiver) -> Result<(), ValidityError> {
     for vertex in quiver.vertices() {
         let decimal = vertex.index().get().to_string();
         let expected = decimal.chars().next().expect("positive vertex index");

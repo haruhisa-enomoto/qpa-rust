@@ -20,7 +20,7 @@ PrintStringList := function(values)
 end;
 
 PrintCase := function(field)
-    local Q, kQ, A, endpoints, bandInputs, bands;
+    local Q, kQ, A, endpoints, bandInputs, bands, bridge, bridgeArrows;
     Q := Quiver(4,
         [[1,2,"a"], [1,2,"b"], [2,3,"c"], [3,4,"d"], [3,4,"e"]]);
     kQ := PathAlgebra(field, Q);
@@ -29,6 +29,9 @@ PrintCase := function(field)
         [String(SourceOfArrow(Q, ch)), String(TargetOfArrow(Q, ch))]);
     bandInputs := ["eca", "Ab", "aB", "De", "(1,1)", "A", "AbAb"];
     bands := List(bandInputs, word -> IsABand(A, word));
+    bridge := BridgeQuiver(A);
+    bridgeArrows := List(ArrowsOfQuiver(bridge), arrow ->
+        [String(SourceOfPath(arrow)), String(TargetOfPath(arrow)), String(arrow)]);
 
     Print("{\"lps\":[", computeLPSarray("ababaca"), ",",
         computeLPSarray("aaaa"), ",", computeLPSarray(""), "]");
@@ -43,6 +46,10 @@ PrintCase := function(field)
     Print(",\"bands_3\":"); PrintStringList(BandsLessThan(A, 3));
     Print(",\"representatives_3\":");
     PrintStringList(BandRepresentativesLessThan(A, 3));
+    Print(",\"domestic\":", IsDomesticStringAlgebra(A));
+    Print(",\"bridge_vertices\":");
+    PrintStringList(List(VerticesOfQuiver(bridge), String));
+    Print(",\"bridge_arrows\":", bridgeArrows);
     Print("}");
 end;
 

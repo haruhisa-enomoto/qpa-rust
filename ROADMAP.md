@@ -757,9 +757,9 @@ Primary QPA files: `stringalgebra`, `validity`, `combinatorialrep`,
   concrete sigma/epsilon choice, lazy-string validation, all four hook/cohook
   moves, and local AR descriptions are pinned over `GF(2)` and `QQ`.
   `stringalgebra` word primitives, bounded string/band enumeration, and band
-  representatives are likewise pinned; domestic recognition and the bridge
-  quiver remain.
-- [ ] Port special-biserial, string, gentle, and domestic recognition methods
+  representatives are likewise pinned. Domestic recognition and QPA's full
+  weak-bridge reduction now complete the `stringalgebra.gd`/`.gi` ledger.
+- [x] Port special-biserial, string, gentle, and domestic recognition methods
   that are part of QPA itself.
 - [ ] Port unit forms, roots, Euler/Tits forms, and reflections.
 - [ ] Port combinatorial maps, genus/faces/boundaries, cutting/joining, homology,

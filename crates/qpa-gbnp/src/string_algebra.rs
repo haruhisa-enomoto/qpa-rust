@@ -5,12 +5,13 @@
 //! cyclic-band representative order, and KMP prefix-array convention.
 
 use numerica::domains::Field;
-use qpa_core::{Arrow, Quiver, Vertex};
+use qpa_core::{Arrow, ArrowSpec, Quiver, QuiverError, Vertex, VertexIndex};
 use thiserror::Error;
 
 use crate::{
     QpaStringAlgebra, QpaStringExtension, ValidityError, is_valid_string, qpa_string_direct_left,
     qpa_string_inverse_left, qpa_string_inverse_right, qpa_string_sigma_epsilon,
+    validity::ensure_acceptable_quiver,
 };
 
 /// Failures made implicit by GAP indexing in `stringalgebra.gi`.
@@ -35,6 +36,12 @@ pub enum StringAlgebraError {
     /// string is required.
     #[error("a string extension returned an arrow list instead of a string")]
     NonStringExtension,
+    /// `BridgeQuiver` explicitly rejects a non-domestic string algebra.
+    #[error("The String Algebra represented by the input is not a Domestic String Algebra.")]
+    NonDomestic,
+    /// Quiver construction failed at QPA's domesticity or bridge graph stage.
+    #[error(transparent)]
+    Quiver(#[from] QuiverError),
     /// String validity or its underlying algebra backend failed.
     #[error(transparent)]
     Validity(#[from] ValidityError),
@@ -296,6 +303,312 @@ pub fn band_representatives_less_than<F: Field, A: QpaStringAlgebra<F>>(
     Ok(representatives)
 }
 
+/// Translate QPA's finite band-concatenation test
+/// `IsDomesticStringAlgebra`.
+///
+/// QPA constructs this graph on every enumerated cyclic permutation of every
+/// band, not only on band representatives; Rust preserves that distinction.
+///
+/// # Errors
+///
+/// Propagates string-algebra validation, bounded enumeration, and QPA's quiver
+/// construction failures (including its zero-band `Quiver(0,[])` branch).
+pub fn is_domestic_string_algebra<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+) -> Result<bool, StringAlgebraError> {
+    ensure_string_algebra_input(algebra)?;
+    let level = string_algebra_search_level(algebra)?;
+    let bands = bands_less_than(algebra, level)?;
+    Ok(domesticity_quiver(algebra, &bands)?.is_acyclic())
+}
+
+/// Translate QPA's complete `BridgeQuiver` construction.
+///
+/// The implementation follows the source's band-free substring search,
+/// weak-bridge order, zero-string concatenation behavior, KMP removal stage,
+/// and final arrow filtering.
+///
+/// # Errors
+///
+/// Propagates validation, enumeration, endpoint, and quiver-construction
+/// failures. A cyclic domesticity graph returns QPA's explicit non-domestic
+/// error.
+pub fn bridge_quiver<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+) -> Result<Quiver, StringAlgebraError> {
+    ensure_string_algebra_input(algebra)?;
+    let level = string_algebra_search_level(algebra)?;
+    let strings = strings_less_than(algebra, level)?;
+    let mut bands = Vec::new();
+    for string in &strings {
+        if is_a_band(algebra, string)? {
+            bands.push(string.clone());
+        }
+    }
+    let representatives = band_representatives_from_bands(&bands)?;
+    if !domesticity_quiver(algebra, &bands)?.is_acyclic() {
+        return Err(StringAlgebraError::NonDomestic);
+    }
+    let (weak_bridges, indexed_weak_bridges) =
+        weak_bridge_data(algebra, &representatives, &strings)?;
+    reduce_weak_bridges(
+        algebra,
+        &representatives,
+        &weak_bridges,
+        &indexed_weak_bridges,
+    )
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct WeakBridge {
+    left_band: String,
+    right_band: String,
+    word: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct IndexedWeakBridge {
+    source: usize,
+    target: usize,
+    word: String,
+}
+
+fn ensure_string_algebra_input<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+) -> Result<(), StringAlgebraError> {
+    if !algebra
+        .qpa_is_string_algebra()
+        .map_err(ValidityError::from)?
+    {
+        return Err(ValidityError::NotStringAlgebra.into());
+    }
+    ensure_acceptable_quiver(algebra.qpa_underlying_path_algebra().quiver())?;
+    Ok(())
+}
+
+fn string_algebra_search_level<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+) -> Result<usize, StringAlgebraError> {
+    let joints = number_of_joints(algebra)?;
+    let maximum = maximum_length_of_direct_string(algebra)?;
+    maximum
+        .checked_mul(joints)
+        .and_then(|value| value.checked_mul(2))
+        .ok_or(StringAlgebraError::EnumerationLevelOverflow)
+}
+
+fn domesticity_quiver<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+    bands: &[String],
+) -> Result<Quiver, StringAlgebraError> {
+    let mut arrows = Vec::new();
+    let mut count = 0_usize;
+    for (left_index, left) in bands.iter().enumerate() {
+        for (right_index, right) in bands.iter().enumerate() {
+            if left_index != right_index {
+                let candidate = format!("{left}{right}");
+                if is_valid_string(algebra, &candidate)? && !candidate.starts_with('(') {
+                    count += 1;
+                    arrows.push(ArrowSpec::named(
+                        vertex_index(right_index + 1)?,
+                        vertex_index(left_index + 1)?,
+                        format!("a{count}"),
+                    ));
+                }
+            }
+        }
+    }
+    Ok(Quiver::from_indexed(bands.len(), arrows)?)
+}
+
+fn band_representatives_from_bands(bands: &[String]) -> Result<Vec<String>, StringAlgebraError> {
+    let mut rotations = Vec::<String>::new();
+    let mut representatives = Vec::new();
+    for band in bands {
+        let Some(first) = band.chars().next() else {
+            return Err(StringAlgebraError::InvalidString);
+        };
+        let Some(last) = band.chars().last() else {
+            return Err(StringAlgebraError::InvalidString);
+        };
+        if !rotations.contains(band) && (first as u32) >= 97 && (last as u32) < 97 {
+            representatives.push(band.clone());
+            rotations.extend(cyclic_permutations_of_band(band));
+        }
+    }
+    Ok(representatives)
+}
+
+fn is_band_free_string<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+    input: &str,
+) -> Result<bool, StringAlgebraError> {
+    if input.starts_with('(') {
+        return Ok(true);
+    }
+    let quiver = algebra.qpa_underlying_path_algebra().quiver();
+    let characters = input.chars().collect::<Vec<_>>();
+    for left in 0..characters.len() {
+        for right in left + 1..characters.len() {
+            if target_of_string_arrow(quiver, characters[left])?
+                == source_of_string_arrow(quiver, characters[right])?
+            {
+                let candidate = characters[left..=right].iter().collect::<String>();
+                if is_a_band(algebra, &candidate)? {
+                    return Ok(false);
+                }
+            }
+        }
+    }
+    Ok(true)
+}
+
+fn band_free_strings<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+    source: usize,
+    target: usize,
+    strings: &[String],
+) -> Result<Vec<String>, StringAlgebraError> {
+    let quiver = algebra.qpa_underlying_path_algebra().quiver();
+    if source > quiver.number_of_vertices() || target > quiver.number_of_vertices() {
+        return Ok(Vec::new());
+    }
+    let source_digit = source.to_string().chars().next();
+    let mut result = Vec::new();
+    for string in strings {
+        let characters = string.chars().collect::<Vec<_>>();
+        if characters.first() == Some(&'(') {
+            if source == target && characters.get(1).copied() == source_digit {
+                result.push(string.clone());
+            }
+        } else if let (Some(&first), Some(&last)) = (characters.first(), characters.last())
+            && target_of_string_arrow(quiver, first)?.index().get() == target
+            && source_of_string_arrow(quiver, last)?.index().get() == source
+            && is_band_free_string(algebra, string)?
+        {
+            result.push(string.clone());
+        }
+    }
+    Ok(result)
+}
+
+fn weak_bridge_data<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+    representatives: &[String],
+    strings: &[String],
+) -> Result<(Vec<WeakBridge>, Vec<IndexedWeakBridge>), StringAlgebraError> {
+    let quiver = algebra.qpa_underlying_path_algebra().quiver();
+    let mut weak = Vec::new();
+    let mut indexed = Vec::new();
+    for (left_index, left) in representatives.iter().enumerate() {
+        for (right_index, right) in representatives.iter().enumerate() {
+            let right_first = right
+                .chars()
+                .next()
+                .ok_or(StringAlgebraError::InvalidString)?;
+            let left_last = left
+                .chars()
+                .last()
+                .ok_or(StringAlgebraError::InvalidString)?;
+            let source = target_of_string_arrow(quiver, right_first)?.index().get();
+            let target = source_of_string_arrow(quiver, left_last)?.index().get();
+            for word in band_free_strings(algebra, source, target, strings)? {
+                let candidate = format!("{left}{word}{right}");
+                if is_valid_string(algebra, &candidate)? && !candidate.starts_with('(') {
+                    weak.push(WeakBridge {
+                        left_band: right.clone(),
+                        right_band: left.clone(),
+                        word: word.clone(),
+                    });
+                    indexed.push(IndexedWeakBridge {
+                        source: right_index + 1,
+                        target: left_index + 1,
+                        word,
+                    });
+                }
+            }
+        }
+    }
+    let specs = indexed
+        .iter()
+        .map(indexed_bridge_spec)
+        .collect::<Result<Vec<_>, _>>()?;
+    let _source_weak_quiver = Quiver::from_indexed(representatives.len(), specs)?;
+    Ok((weak, indexed))
+}
+
+fn reduce_weak_bridges<F: Field, A: QpaStringAlgebra<F>>(
+    algebra: &A,
+    representatives: &[String],
+    weak: &[WeakBridge],
+    indexed: &[IndexedWeakBridge],
+) -> Result<Quiver, StringAlgebraError> {
+    let mut retained = vec![true; weak.len()];
+    for left in weak {
+        for right in weak {
+            if left.left_band == right.right_band {
+                let joined = format!("{}{}", left.word, right.word);
+                if is_valid_string(algebra, &joined)? && joined.starts_with('(') {
+                    if is_band_free_string(algebra, &joined)? {
+                        if let Some(position) = weak.iter().position(|bridge| bridge.word == joined)
+                        {
+                            retained[position] = false;
+                        }
+                    } else {
+                        let mut remainder = String::new();
+                        for rotation in cyclic_permutations_of_band(&left.left_band) {
+                            if let Some(position) = kmp_search(&rotation, &joined) {
+                                let joined_chars = joined.chars().collect::<Vec<_>>();
+                                remainder = joined_chars[..position]
+                                    .iter()
+                                    .chain(
+                                        joined_chars[position + rotation.chars().count()..].iter(),
+                                    )
+                                    .collect();
+                                break;
+                            }
+                        }
+                        if let Some(position) =
+                            weak.iter().position(|bridge| bridge.word == remainder)
+                        {
+                            retained[position] = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let specs = indexed
+        .iter()
+        .zip(retained)
+        .filter(|(_, retain)| *retain)
+        .map(|(bridge, _)| indexed_bridge_spec(bridge))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Quiver::from_indexed(representatives.len(), specs)?)
+}
+
+fn kmp_search(pattern: &str, text: &str) -> Option<usize> {
+    let pattern = pattern.chars().collect::<Vec<_>>();
+    let text = text.chars().collect::<Vec<_>>();
+    if pattern.is_empty() {
+        return Some(0);
+    }
+    text.windows(pattern.len())
+        .position(|window| window == pattern)
+}
+
+fn indexed_bridge_spec(bridge: &IndexedWeakBridge) -> Result<ArrowSpec, StringAlgebraError> {
+    Ok(ArrowSpec::named(
+        vertex_index(bridge.source)?,
+        vertex_index(bridge.target)?,
+        bridge.word.clone(),
+    ))
+}
+
+fn vertex_index(position: usize) -> Result<VertexIndex, StringAlgebraError> {
+    VertexIndex::new(position).ok_or(StringAlgebraError::SparseEnumerationTree)
+}
+
 fn make_string_tree<F: Field, A: QpaStringAlgebra<F>>(
     algebra: &A,
     root: &str,
@@ -383,9 +696,10 @@ mod tests {
     use crate::quotient_by_relations;
 
     use super::{
-        band_representatives_less_than, bands_less_than, compute_lps_array,
-        cyclic_permutations_of_band, is_a_band, maximum_length_of_direct_string, number_of_joints,
-        source_of_string_arrow, strings_less_than, target_of_string_arrow,
+        band_representatives_less_than, bands_less_than, bridge_quiver, compute_lps_array,
+        cyclic_permutations_of_band, is_a_band, is_domestic_string_algebra,
+        maximum_length_of_direct_string, number_of_joints, source_of_string_arrow,
+        strings_less_than, target_of_string_arrow,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -422,6 +736,17 @@ mod tests {
             ]
         });
         let band_inputs = ["eca", "Ab", "aB", "De", "(1,1)", "A", "AbAb"];
+        let bridge = bridge_quiver(&algebra).unwrap();
+        let bridge_arrows = bridge
+            .arrows()
+            .map(|arrow| {
+                [
+                    arrow.source().to_string(),
+                    arrow.target().to_string(),
+                    arrow.to_string(),
+                ]
+            })
+            .collect::<Vec<_>>();
         json!({
             "lps": [compute_lps_array("ababaca"), compute_lps_array("aaaa"), compute_lps_array("")],
             "endpoints": endpoints,
@@ -433,7 +758,10 @@ mod tests {
             "strings_1": strings_less_than(&algebra, 1).unwrap(),
             "strings_2": strings_less_than(&algebra, 2).unwrap(),
             "bands_3": bands_less_than(&algebra, 3).unwrap(),
-            "representatives_3": band_representatives_less_than(&algebra, 3).unwrap()
+            "representatives_3": band_representatives_less_than(&algebra, 3).unwrap(),
+            "domestic": is_domestic_string_algebra(&algebra).unwrap(),
+            "bridge_vertices": bridge.vertices().map(|vertex| vertex.to_string()).collect::<Vec<_>>(),
+            "bridge_arrows": bridge_arrows
         })
     }
 
