@@ -299,3 +299,22 @@ the computations remain translations of the cited source methods.
   QPA error; the Rust algebra-conversion test pins the repaired field-algebra
   result. `tests/fixtures/modulehom_end_quiver.schema-v1.json` pins successful
   nonzero-radical conversions over `GF(2)` and `GF(5)`.
+
+## MODULEPROJRES-001 — Stalled FirstPart reduction is reported
+
+- Source: QPA `lib/moduleprojres.gi`, `FirstPart` at lines 648–682.
+- Affected Rust operation: `first_part`.
+- Difference: QPA repeats its outer reduction loop until the entered vector is
+  zero, but it has no branch for a complete pass in which no entered `f` or
+  `fprime` tip divides the current tip. Such input therefore loops forever.
+  Rust returns `ProjectivePathModuleError::FirstPartNotSpanned` after that
+  unchanged pass.
+- Reason: the valid GSZ-resolution domain assumes the vector is spanned by the
+  entered reducers. Reporting violation of that precondition prevents an
+  uninterruptible library call without changing the literal reducer order,
+  divisions, coefficient accumulation, or valid result.
+- Compatibility impact: valid spanned inputs agree exactly. An invalid input
+  that never terminates in QPA returns a typed Rust error.
+- Evidence: `tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json` pins
+  ordinary and prime-generator reductions over `GF(2)`, `GF(5)`, and the
+  rationals; the projective-path boundary test pins the stalled Rust result.

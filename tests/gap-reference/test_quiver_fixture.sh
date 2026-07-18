@@ -1027,6 +1027,9 @@ compare_fixture \
     "$repo_root/tests/gap-reference/modulehomalg_projective_resolution_simple_endo.g" \
     "$repo_root/tests/fixtures/modulehomalg_projective_resolution_simple_endo.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/moduleprojres_xset_firstpart.g" \
+    "$repo_root/tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_groebner.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_groebner.schema-v1.json"
 compare_fixture \

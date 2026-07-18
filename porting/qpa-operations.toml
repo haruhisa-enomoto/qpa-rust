@@ -15456,9 +15456,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 56
 source_end = 60
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "x_set_of_path_algebra_vector"
+tests = ["tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15469,10 +15469,10 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 62
 source_end = 64
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "first_part"
+tests = ["tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"]
+deviations = ["MODULEPROJRES-001"]
 
 [[entries]]
 id = "moduleprojres:DeclareOperation:TipReduce:1"
@@ -15547,9 +15547,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gi"
 source_start = 458
 source_end = 547
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "x_set_of_path_algebra_vector"
+tests = ["tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15586,10 +15586,10 @@ source_file = "upstream/qpa/lib/moduleprojres.gi"
 source_start = 648
 source_end = 682
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "first_part"
+tests = ["tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"]
+deviations = ["MODULEPROJRES-001"]
 
 [[entries]]
 id = "moduleprojres:InstallMethod:LeftDivision:1"

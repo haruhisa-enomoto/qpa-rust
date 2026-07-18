@@ -11,8 +11,8 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathEndpoint, PathError,
-    QuiverStaticDictionary, StaticDictionaryError, VertexIndex,
+    Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, PathEndpoint,
+    PathError, QuiverStaticDictionary, StaticDictionaryError, VertexIndex,
 };
 
 struct RightProjectivePathAlgebraModuleData<F: Field> {
@@ -930,6 +930,242 @@ fn insert_path_algebra_vector<F: Field>(
     Ok(())
 }
 
+/// One QPA O-set entry returned by `XSetOfPathAlgebraVector`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PathAlgebraVectorOSetEntry<F: Field> {
+    /// Tip monomial of the selected right Gröbner-basis relation.
+    pub right_tip: Path,
+    /// One-based position of the selected `f` generator.
+    pub generator_position: usize,
+    /// QPA's coefficient-bearing prefix `q'`.
+    pub q_prime: PathAlgebraElement<F>,
+    /// Selected relation from the attached two-sided Gröbner basis.
+    pub relation: PathAlgebraElement<F>,
+}
+
+/// One QPA N-set entry returned by `XSetOfPathAlgebraVector`.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PathAlgebraVectorNSetEntry<F: Field> {
+    /// Tip monomial of the selected right Gröbner-basis relation.
+    pub right_tip: Path,
+    /// QPA's intervening path `z`.
+    pub z: PathAlgebraElement<F>,
+    /// Selected relation from the attached two-sided Gröbner basis.
+    pub relation: PathAlgebraElement<F>,
+}
+
+/// QPA's ordered O-set and N-set pair.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PathAlgebraVectorXSet<F: Field> {
+    /// Green--Solberg--Zacharia overlap entries.
+    pub o_set: Vec<PathAlgebraVectorOSetEntry<F>>,
+    /// Green--Solberg--Zacharia nonoverlap entries.
+    pub n_set: Vec<PathAlgebraVectorNSetEntry<F>>,
+}
+
+/// Translate QPA's `FirstPart(f, fprime, v)` scan.
+///
+/// Reducers are concatenated in entered order. Each complete pass tries every
+/// nonzero reducer against the current tip, and successful divisions are
+/// accumulated. Only the coefficients belonging to `f` are returned.
+///
+/// # Errors
+///
+/// Propagates exact vector division and arithmetic failures. QPA loops forever
+/// when the entered reducers do not span the vector; Rust reports that stalled
+/// source branch explicitly.
+pub fn first_part<F: Field>(
+    f: &[PathAlgebraVector<F>],
+    f_prime: &[PathAlgebraVector<F>],
+    vector: &PathAlgebraVector<F>,
+) -> Result<Vec<PathAlgebraElement<F>>, ProjectivePathModuleError> {
+    let algebra = vector.module().algebra();
+    let reducers = f.iter().chain(f_prime).collect::<Vec<_>>();
+    let mut coefficients = vec![algebra.zero(); reducers.len()];
+    let mut current = vector.clone();
+    while !current.is_zero() {
+        let before = current.clone();
+        let mut reduced = false;
+        for (position, reducer) in reducers.iter().enumerate() {
+            if current.is_zero() || reducer.is_zero() {
+                continue;
+            }
+            if let Some(factor) = left_division(&current, reducer)? {
+                coefficients[position] = coefficients[position].add(&factor)?;
+                current = current.sub(&reducer.act(&factor)?)?;
+                reduced = true;
+            }
+        }
+        if !reduced || current == before {
+            return Err(ProjectivePathModuleError::FirstPartNotSpanned);
+        }
+    }
+    coefficients.truncate(f.len());
+    Ok(coefficients)
+}
+
+/// Translate QPA's `XSetOfPathAlgebraVector(f, fprime, I, fn)`.
+///
+/// This retains the source's right-basis pruning, maximal coefficient-tip
+/// choice, first suffix relation, and entered relation order exactly.
+///
+/// # Errors
+///
+/// Requires an attached finite-nontip Gröbner basis for `ideal`, a nonzero
+/// `fn` spanned by the entered vectors, and the identical parent path algebra.
+/// All exact Gröbner, path, field, and vector failures are propagated.
+#[allow(clippy::too_many_lines)]
+pub fn x_set_of_path_algebra_vector<F: Field>(
+    f: &[PathAlgebraVector<F>],
+    f_prime: &[PathAlgebraVector<F>],
+    ideal: &PathAlgebraIdeal<F>,
+    f_n: &PathAlgebraVector<F>,
+) -> Result<PathAlgebraVectorXSet<F>, ProjectivePathModuleError> {
+    let algebra = f_n.module().algebra();
+    if !ideal.algebra().is_identical(algebra) {
+        return Err(ProjectivePathModuleError::ForeignXSetIdeal);
+    }
+    if f_n.is_zero() {
+        return Err(ProjectivePathModuleError::ZeroXSetVector);
+    }
+
+    let right_basis = ideal.right_groebner_basis()?;
+    let right_relations = right_basis.relations();
+    if right_relations.is_empty() {
+        return Err(ProjectivePathModuleError::EmptyXSetRightBasis);
+    }
+    let mut right_tips = right_relations
+        .iter()
+        .enumerate()
+        .map(|(position, relation)| (relation.leading_monomial(), position))
+        .collect::<Vec<_>>();
+    let mut divided = vec![false; right_tips.len()];
+    for left in 0..right_tips.len() {
+        let left_walk = path_walk(&right_tips[left].0)?;
+        for right in 0..right_tips.len() {
+            if left != right
+                && !divided[right]
+                && path_walk(&right_tips[right].0)?.starts_with(left_walk)
+            {
+                divided[right] = true;
+            }
+        }
+    }
+    right_tips = right_tips
+        .into_iter()
+        .enumerate()
+        .filter_map(|(position, tip)| (!divided[position]).then_some(tip))
+        .collect();
+
+    let f_n_tip = f_n.leading_path()?;
+    let f_n_walk = path_walk(&f_n_tip)?;
+    let f_n_coefficient = f_n.leading_coefficient()?;
+    let coefficients = first_part(f, f_prime, f_n)?;
+    let mut selected: Option<(usize, Path)> = None;
+    for (position, generator) in f.iter().enumerate() {
+        if generator.is_zero() || !f_n_walk.starts_with(path_walk(&generator.leading_path()?)?) {
+            continue;
+        }
+        let coefficient = &coefficients[position];
+        if coefficient.is_zero() {
+            continue;
+        }
+        let tip = coefficient.leading_monomial();
+        let replace = match &selected {
+            None => true,
+            Some((_, greatest)) => algebra.ordering().compare(&tip, greatest)?.is_gt(),
+        };
+        if replace {
+            selected = Some((position, tip));
+        }
+    }
+    let (generator_position, reduced_tip) =
+        selected.ok_or(ProjectivePathModuleError::MissingFirstPartTip)?;
+    let reduced_walk = path_walk(&reduced_tip)?.to_vec();
+    let reduced_length = reduced_walk.len();
+    let mut test_set = Vec::new();
+    for tip in right_tips {
+        if path_walk(&tip.0)?.starts_with(&reduced_walk) {
+            test_set.push(tip.0);
+        }
+    }
+
+    let two_sided_basis = ideal
+        .groebner_basis()
+        .ok_or(ProjectivePathModuleError::MissingXSetGroebnerBasis)?;
+    let two_sided_relations = two_sided_basis.relations();
+    let two_sided_walks = two_sided_relations
+        .iter()
+        .map(|relation| path_walk(&relation.leading_monomial()).map(<[_]>::to_vec))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let mut o_set = Vec::new();
+    let mut n_set = Vec::new();
+    for right_tip in test_set {
+        let right_walk = path_walk(&right_tip)?;
+        let right_length = right_walk.len();
+        let relation_position = two_sided_walks
+            .iter()
+            .position(|walk| right_walk.ends_with(walk))
+            .ok_or(ProjectivePathModuleError::MissingXSetSuffixRelation)?;
+        let relation = &two_sided_relations[relation_position];
+        let relation_length = two_sided_walks[relation_position].len();
+        let prefix_length = right_length - relation_length;
+
+        if reduced_length <= prefix_length {
+            let z = if reduced_length == prefix_length {
+                algebra.one()
+            } else {
+                path_segment_element(algebra, &right_tip, reduced_length, prefix_length)?
+            };
+            n_set.push(PathAlgebraVectorNSetEntry {
+                right_tip,
+                z,
+                relation: relation.clone(),
+            });
+        } else {
+            let coefficient = algebra
+                .field()
+                .div(&f_n_coefficient, &relation.leading_coefficient());
+            let q_prime = if prefix_length == 0 {
+                algebra.one()
+            } else {
+                path_segment_element(algebra, &right_tip, 0, prefix_length)?
+            }
+            .scale_left(&coefficient)?;
+            o_set.push(PathAlgebraVectorOSetEntry {
+                right_tip,
+                generator_position: generator_position + 1,
+                q_prime,
+                relation: relation.clone(),
+            });
+        }
+    }
+
+    Ok(PathAlgebraVectorXSet { o_set, n_set })
+}
+
+fn path_segment_element<F: Field>(
+    algebra: &PathAlgebra<F>,
+    path: &Path,
+    start: usize,
+    end: usize,
+) -> Result<PathAlgebraElement<F>, ProjectivePathModuleError> {
+    let walk = path_walk(path)?;
+    let arrows = walk[start..end]
+        .iter()
+        .map(|index| {
+            algebra
+                .quiver()
+                .arrow(*index)
+                .ok_or(ProjectivePathModuleError::MissingPathArrow)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let segment = Path::from_arrow_product(algebra.quiver(), &arrows)?
+        .ok_or(ProjectivePathModuleError::EmptyRightFactor)?;
+    Ok(algebra.element(segment)?)
+}
+
 /// Translate `moduleprojres.gi`'s `LeftDivision(x, y)`.
 ///
 /// `None` is QPA's `false`; success returns the coefficient-bearing right path
@@ -1218,6 +1454,27 @@ pub enum ProjectivePathModuleError {
     /// Internal tip reduction called its reducer on a nondivisible vector.
     #[error("tip reduction selected a vector that does not divide the current tip")]
     ReductionByNondivisor,
+    /// QPA's `FirstPart` source loop stalls when the vector is not spanned.
+    #[error("the entered f and f-prime vectors do not reduce the FirstPart vector to zero")]
+    FirstPartNotSpanned,
+    /// The X-set ideal and projective vector must use the identical algebra.
+    #[error("the X-set ideal belongs to another path algebra")]
+    ForeignXSetIdeal,
+    /// QPA indexes the leading path of its X-set vector unconditionally.
+    #[error("XSetOfPathAlgebraVector does not accept a zero vector")]
+    ZeroXSetVector,
+    /// QPA indexes the first relation of its right basis unconditionally.
+    #[error("the X-set right Groebner basis is empty")]
+    EmptyXSetRightBasis,
+    /// No nonzero first-part coefficient supplied QPA's maximal reduced tip.
+    #[error("XSetOfPathAlgebraVector found no usable FirstPart coefficient tip")]
+    MissingFirstPartTip,
+    /// The ideal lost the attached two-sided basis required after right-basis construction.
+    #[error("the X-set ideal has no attached two-sided Groebner basis")]
+    MissingXSetGroebnerBasis,
+    /// QPA's unbounded suffix scan found no originating two-sided relation.
+    #[error("a right Groebner-basis tip has no two-sided relation suffix")]
+    MissingXSetSuffixRelation,
     /// Parent path-algebra arithmetic failed.
     #[error(transparent)]
     Algebra(#[from] PathAlgebraError),
@@ -1227,6 +1484,9 @@ pub enum ProjectivePathModuleError {
     /// QPA path ordering failed.
     #[error(transparent)]
     Ordering(#[from] crate::OrderingError),
+    /// Ideal-level Gröbner construction or reduction failed.
+    #[error(transparent)]
+    Quotient(#[from] crate::QuotientError),
     /// QPA's module Gröbner basis uses quiver static dictionaries.
     #[error(transparent)]
     StaticDictionary(#[from] StaticDictionaryError),
@@ -1241,12 +1501,15 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use crate::{ArrowSpec, PathAlgebra, PathAlgebraElement, Quiver, VertexIndex};
+    use crate::{
+        ArrowSpec, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal, Quiver, VertexIndex,
+    };
 
     use super::{
-        PathAlgebraVector, ProjectivePathModuleError, left_division,
-        right_projective_path_algebra_module, tip_reduce_path_algebra_vector,
-        tip_reduce_path_algebra_vectors,
+        PathAlgebraVector, PathAlgebraVectorNSetEntry, PathAlgebraVectorOSetEntry,
+        ProjectivePathModuleError, first_part, left_division, right_projective_path_algebra_module,
+        tip_reduce_path_algebra_vector, tip_reduce_path_algebra_vectors,
+        x_set_of_path_algebra_vector,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1294,6 +1557,170 @@ mod tests {
                 .map(|vector| vector_json(vector, coefficient))
                 .collect(),
         )
+    }
+
+    fn element_list_json<F: Field>(
+        elements: &[PathAlgebraElement<F>],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        Value::Array(
+            elements
+                .iter()
+                .map(|element| element_json(element, coefficient))
+                .collect(),
+        )
+    }
+
+    fn o_set_json<F: Field>(
+        entries: &[PathAlgebraVectorOSetEntry<F>],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        Value::Array(
+            entries
+                .iter()
+                .map(|entry| {
+                    json!({
+                        "right_tip": entry.right_tip.external_representation(),
+                        "generator_position": entry.generator_position,
+                        "q_prime": element_json(&entry.q_prime, coefficient),
+                        "relation": element_json(&entry.relation, coefficient),
+                    })
+                })
+                .collect(),
+        )
+    }
+
+    fn n_set_json<F: Field>(
+        entries: &[PathAlgebraVectorNSetEntry<F>],
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        Value::Array(
+            entries
+                .iter()
+                .map(|entry| {
+                    json!({
+                        "right_tip": entry.right_tip.external_representation(),
+                        "z": element_json(&entry.z, coefficient),
+                        "relation": element_json(&entry.relation, coefficient),
+                    })
+                })
+                .collect(),
+        )
+    }
+
+    fn moduleprojres_xset_firstpart_case<F: Field>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let algebra = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(
+                1,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(1), "x"),
+                    ArrowSpec::named(vertex(1), vertex(1), "y"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = algebra.generators();
+        let (vertex_element, arrow_x, arrow_y) = (&generators[0], &generators[1], &generators[2]);
+        let relations = vec![
+            arrow_x.multiply(arrow_x).unwrap(),
+            arrow_x.multiply(arrow_y).unwrap(),
+            arrow_y.multiply(arrow_y).unwrap(),
+        ];
+        let ideal = PathAlgebraIdeal::new(algebra.clone(), relations.clone())
+            .unwrap()
+            .with_complete_groebner_basis(&relations)
+            .unwrap();
+        let projective =
+            right_projective_path_algebra_module(&algebra, std::slice::from_ref(vertex_element))
+                .unwrap();
+        let generator = projective.generators().unwrap().into_iter().next().unwrap();
+        let f_x = projective.vector(vec![arrow_x.clone()]).unwrap();
+        let f_y = projective.vector(vec![arrow_y.clone()]).unwrap();
+        let mixed = projective
+            .vector(vec![
+                arrow_y
+                    .multiply(arrow_x)
+                    .unwrap()
+                    .add(&arrow_x.multiply(arrow_y).unwrap())
+                    .unwrap(),
+            ])
+            .unwrap();
+        let prime_only = projective
+            .vector(vec![arrow_y.multiply(arrow_x).unwrap()])
+            .unwrap();
+        let mixed_first = first_part(
+            std::slice::from_ref(&f_x),
+            std::slice::from_ref(&f_y),
+            &mixed,
+        )
+        .unwrap();
+        let prime_first = first_part(
+            std::slice::from_ref(&f_x),
+            std::slice::from_ref(&f_y),
+            &prime_only,
+        )
+        .unwrap();
+        let f_n = projective.vector(vec![arrow_y.neg().unwrap()]).unwrap();
+        let x_set =
+            x_set_of_path_algebra_vector(std::slice::from_ref(&generator), &[], &ideal, &f_n)
+                .unwrap();
+        let vertex_x_set =
+            x_set_of_path_algebra_vector(std::slice::from_ref(&generator), &[], &ideal, &generator)
+                .unwrap();
+        let right_relations = ideal.right_groebner_basis().unwrap();
+        let two_sided_relations = ideal.groebner_basis().unwrap();
+        json!({
+            "first_part_mixed": element_list_json(&mixed_first, coefficient),
+            "first_part_prime_only": element_list_json(&prime_first, coefficient),
+            "two_sided_relations": element_list_json(two_sided_relations.relations(), coefficient),
+            "right_relations": element_list_json(right_relations.relations(), coefficient),
+            "o_set": o_set_json(&x_set.o_set, coefficient),
+            "n_set": n_set_json(&x_set.n_set, coefficient),
+            "vertex_o_set": o_set_json(&vertex_x_set.o_set, coefficient),
+            "vertex_n_set": n_set_json(&vertex_x_set.n_set, coefficient),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_moduleprojres_xset_firstpart_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "moduleprojres_xset_firstpart",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": moduleprojres_xset_firstpart_case(&Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": moduleprojres_xset_firstpart_case(&field5, |entry| json!(
+                field5_coefficients
+                    .to_integer(entry)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+            )),
+            "rational": moduleprojres_xset_firstpart_case(&Q, |entry: &Rational| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
     }
 
     #[allow(clippy::too_many_lines)]
@@ -1624,6 +2051,33 @@ mod tests {
         assert!(matches!(
             left_division(&first.zero(), &first_vector),
             Err(ProjectivePathModuleError::ZeroVectorDivision)
+        ));
+        assert!(matches!(
+            first_part(&[], &[], &first_vector),
+            Err(ProjectivePathModuleError::FirstPartNotSpanned)
+        ));
+        assert!(first_part(&[], &[], &first.zero()).unwrap().is_empty());
+        let unattached_ideal =
+            PathAlgebraIdeal::new(algebra.clone(), vec![generators[1].clone()]).unwrap();
+        assert!(matches!(
+            x_set_of_path_algebra_vector(
+                std::slice::from_ref(&first_vector),
+                &[],
+                &unattached_ideal,
+                &first_vector,
+            ),
+            Err(ProjectivePathModuleError::Quotient(
+                crate::QuotientError::MissingGroebnerBasis
+            ))
+        ));
+        assert!(matches!(
+            x_set_of_path_algebra_vector(
+                std::slice::from_ref(&first_vector),
+                &[],
+                &unattached_ideal,
+                &first.zero(),
+            ),
+            Err(ProjectivePathModuleError::ZeroXSetVector)
         ));
         assert!(matches!(
             first.submodule(vec![second_vector.clone()]),
