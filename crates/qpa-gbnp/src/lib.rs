@@ -20,6 +20,7 @@ pub mod options;
 pub mod pathalg;
 pub mod persistence;
 pub mod predefined;
+pub mod predefined_ar;
 pub mod preprocessing;
 pub mod projective_path_presentation;
 pub mod qpa_conversion;
@@ -183,6 +184,11 @@ pub use predefined::{
     finite_global_dim_green, finite_global_dim_kirk_kuz, kronecker_algebra, nakayama_algebra,
     nakayama_algebra_sequence_first, poset_algebra, poset_algebra_with_string_function,
     preprojective_algebra,
+};
+pub use predefined_ar::{
+    PREDEFINED_AR_QUIVER_CATALOG, PredefinedArQuiver, PredefinedArQuiverConstructionError,
+    PredefinedArQuiverData, PredefinedArQuiverError, predefined_ar_quiver,
+    predefined_ar_quiver_data,
 };
 pub use preprocessing::{
     PreprocessingError, calculate_prefix_generators, reduce_cancellation, reduce_polynomials,

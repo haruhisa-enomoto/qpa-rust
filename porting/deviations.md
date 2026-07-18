@@ -401,3 +401,29 @@ the computations remain translations of the cited source methods.
 - Evidence: `tests/fixtures/degorderfinitetype_print.txt` pins QPA's exact
   stable text, while `tests/fixtures/degorderfinitetype.schema-v1.json` pins the
   comparisons and conjecture result/counters.
+
+## DEGORDER-003 — Predefined AR dispatch is a typed selector
+
+- Source: QPA `lib/degorderfinitetype.gi`, `PredefARQuivers` at lines
+  1303–1794.
+- Affected Rust operations: `PredefinedArQuiver`,
+  `predefined_ar_quiver_data`, `predefined_ar_quiver`, and
+  `PREDEFINED_AR_QUIVER_CATALOG`.
+- Difference: QPA dispatches on a variable-length untyped argument list and
+  prints the `"what"` catalog before returning `false`. Rust uses an enum whose
+  optional parameter represents the two- and three-argument BG forms, returns
+  a typed error for QPA's wrong-argument branch, and exposes the stable catalog
+  as a string constant.
+- Reason: the enum makes QPA's finite dispatch domain explicit and prevents
+  strings, list numbers, and parameters from being silently interchanged. A
+  constant lets callers choose where to display the catalog.
+- Compatibility impact: every supported table, generated series, and orbit
+  encoding is identical after the documented one-based to zero-based position
+  conversion. Missing, superfluous, zero, and unsupported parameters return a
+  typed error instead of a GAP interpreter error.
+- Evidence:
+  `tests/fixtures/degorderfinitetype_predefined.schema-v1.json` pins all 36
+  distinct fixed and representative parameterized dispatch cases, including
+  both BG4 parity branches, and
+  `tests/fixtures/degorderfinitetype_predefined_catalog.txt` pins the exact QPA
+  catalog output.

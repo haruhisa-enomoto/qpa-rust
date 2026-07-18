@@ -709,6 +709,12 @@ compare_text_fixture \
     "$repo_root/tests/gap-reference/degorderfinitetype_print.g" \
     "$repo_root/tests/fixtures/degorderfinitetype_print.txt"
 compare_fixture \
+    "$repo_root/tests/gap-reference/degorderfinitetype_predefined.g" \
+    "$repo_root/tests/fixtures/degorderfinitetype_predefined.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/degorderfinitetype_predefined_catalog.g" \
+    "$repo_root/tests/fixtures/degorderfinitetype_predefined_catalog.txt"
+compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_predefined.g" \
     "$repo_root/tests/fixtures/pathalg_predefined.schema-v1.json"
 compare_fixture \

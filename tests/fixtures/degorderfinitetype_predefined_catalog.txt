@@ -1,0 +1,10 @@
+1) ("BG",i), for i=2,5,7,8,9,11,12,13,14, algebra no. i from Bongartz-Gabriel list of maximal finite type with 2 simples;
+2) ("BG",i,r), for i=1,3,4,6,10; r>=1; algebra no. i with parameter r from Bongartz-Gabriel list of maximal finite type with 2 simples;
+3) ("D4 subspace"), path algebra of Dynkin quiver D4 with subspace
+ orientation of arrows;
+4) ("E6 subspace"), path algebra of Dynkin quiver E6 with subspace
+ orientation of arrows;
+5) ("A3 zero"), path algebra of equioriented Dynkin quiver A3  modulo unique zero relation of length 2;
+6) ("A1,2 zero"), path algebra of Euclidean quiver A1,2 modulo zero relation  (i.e. Quiver(3,[[3,1,"a"],[3,2,"b"],[2,1,"c"]])/(bc) );
+7) ("A2,2 comm"), path algebra of Euclidean quiver A2,2 modulo unique commutativity relation;
+8) ("R nilp"), one arrow + one loop modulo nilpotency deg. 2  (i.e. Quiver(2,[[2,1,"a"],[1,1,"b"]])/(b^2) );

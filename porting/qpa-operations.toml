@@ -3418,10 +3418,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gd"
 source_start = 9
 source_end = 9
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "predefined_ar_quiver_data; PREDEFINED_AR_QUIVER_CATALOG"
+tests = ["tests/fixtures/degorderfinitetype_predefined.schema-v1.json","tests/fixtures/degorderfinitetype_predefined_catalog.txt"]
+deviations = ["DEGORDER-001","DEGORDER-003"]
 
 [[entries]]
 id = "degorderfinitetype:DeclareGlobalFunction:ARQuiverNumerical:1"
@@ -3925,10 +3925,10 @@ source_file = "upstream/qpa/lib/degorderfinitetype.gi"
 source_start = 1303
 source_end = 1794
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "predefined_ar_quiver_data; PREDEFINED_AR_QUIVER_CATALOG"
+tests = ["tests/fixtures/degorderfinitetype_predefined.schema-v1.json","tests/fixtures/degorderfinitetype_predefined_catalog.txt"]
+deviations = ["DEGORDER-001","DEGORDER-003"]
 
 [[entries]]
 id = "derivedcat:DeclareProperty:IsProjectiveComplex:1"
