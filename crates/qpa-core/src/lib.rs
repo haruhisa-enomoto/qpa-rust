@@ -10,6 +10,7 @@ pub mod combinatorial_map;
 pub mod dynamic_tree;
 pub mod element_inverse;
 pub mod element_utilities;
+pub mod fp_path_module;
 pub mod groebner;
 pub mod homomorphism;
 pub mod idempotent;
@@ -100,6 +101,11 @@ pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use element_inverse::ElementInverseError;
 pub use element_utilities::{
     QuiverAlgebra, QuiverAlgebraElement, QuiverAlgebraElementError, VertexQuotientPresentation,
+};
+pub use fp_path_module::{
+    FpPathAlgebraVector, FpPathModuleError, NaturalSubmoduleHomomorphism, RightFpPathAlgebraModule,
+    natural_homomorphism_by_projective_submodule, vertex_projective_presentation,
+    vertex_projective_presentation_with_vertices,
 };
 pub use groebner::{
     GroebnerBasis, GroebnerBasisKind, GroebnerError, INFO_GROEBNER_BASIS,

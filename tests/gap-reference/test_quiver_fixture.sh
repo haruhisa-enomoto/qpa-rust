@@ -1190,6 +1190,12 @@ compare_catching_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_uniform_projective.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/projpathalgmodule_vertex_presentation.g" \
+    "$repo_root/tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"
+compare_catching_fixture \
+    "$repo_root/tests/gap-reference/projpathalgmodule_vertex_presentation_errors.g" \
+    "$repo_root/tests/fixtures/projpathalgmodule_vertex_presentation_errors.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_lift.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_lift.schema-v1.json"
 compare_fixture \
