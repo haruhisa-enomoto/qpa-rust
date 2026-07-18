@@ -10295,10 +10295,10 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 41
 source_end = 41
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "right_algebra_module_to_path_algebra_mat_module; BasedRightAlgebraModule"
+tests = ["tests/fixtures/module_right_algebra_conversion.txt","tests/fixtures/module_right_algebra_conversion_errors.schema-v1.json"]
+deviations = ["MODULE-006"]
 
 [[entries]]
 id = "module:DeclareProperty:IsRigidModule:1"
@@ -11023,10 +11023,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1973
 source_end = 2041
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "right_algebra_module_to_path_algebra_mat_module; BasedRightAlgebraModule"
+tests = ["tests/fixtures/module_right_algebra_conversion.txt","tests/fixtures/module_right_algebra_conversion_errors.schema-v1.json"]
+deviations = ["MODULE-006"]
 
 [[entries]]
 id = "module:InstallMethod:IsRigidModule:1"

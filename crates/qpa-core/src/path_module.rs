@@ -355,6 +355,20 @@ pub enum PathAlgebraMatModuleObject<F: Field> {
     Submodule(PathAlgebraModuleSubmodule<F>),
 }
 
+/// A finite-dimensional based right module over a quiver algebra.
+///
+/// This is the Rust boundary for QPA's generic GAP
+/// `IsRightAlgebraModuleElementCollection` input. Each matrix describes right
+/// action on row coordinates in one common entered basis. Vertex actions are
+/// ordered by quiver vertex and arrow actions by quiver arrow.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BasedRightAlgebraModule<F: Field> {
+    algebra: QuiverAlgebra<F>,
+    dimension: usize,
+    vertex_actions: Vec<DenseMatrix<F>>,
+    arrow_actions: Vec<DenseMatrix<F>>,
+}
+
 struct GenericPathAlgebraModuleHomomorphismData<F: Field> {
     source: PathAlgebraMatModuleObject<F>,
     range: PathAlgebraMatModuleObject<F>,
@@ -2047,6 +2061,152 @@ impl<F: Field> From<PathAlgebraModule<F>> for PathAlgebraMatModuleObject<F> {
 impl<F: Field> From<PathAlgebraModuleSubmodule<F>> for PathAlgebraMatModuleObject<F> {
     fn from(submodule: PathAlgebraModuleSubmodule<F>) -> Self {
         Self::Submodule(submodule)
+    }
+}
+
+impl<F: Field> BasedRightAlgebraModule<F> {
+    /// Construct a based finite-dimensional right module from generator
+    /// action matrices.
+    ///
+    /// The caller contract is that these matrices come from an actual module
+    /// action. As in QPA's source conversion, this constructor checks only the
+    /// representation boundary (counts, field, and common square shape), not
+    /// the module axioms or algebra relations.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a missing or extra generator action, a foreign coefficient
+    /// field, or matrices without one common square shape.
+    pub fn new(
+        algebra: QuiverAlgebra<F>,
+        vertex_actions: Vec<DenseMatrix<F>>,
+        arrow_actions: Vec<DenseMatrix<F>>,
+    ) -> Result<Self, PathAlgebraModuleError> {
+        let expected_vertices = algebra.quiver().number_of_vertices();
+        if vertex_actions.len() != expected_vertices {
+            return Err(PathAlgebraModuleError::BasedModuleVertexActionCount {
+                actual: vertex_actions.len(),
+                expected: expected_vertices,
+            });
+        }
+        let expected_arrows = algebra.quiver().number_of_arrows();
+        if arrow_actions.len() != expected_arrows {
+            return Err(PathAlgebraModuleError::BasedModuleArrowActionCount {
+                actual: arrow_actions.len(),
+                expected: expected_arrows,
+            });
+        }
+        let dimension = vertex_actions[0].nrows();
+        let expected_shape = (dimension, dimension);
+        for (label, action) in algebra
+            .quiver()
+            .vertices()
+            .map(|vertex| format!("vertex {}", vertex.name()))
+            .chain(
+                algebra
+                    .quiver()
+                    .arrows()
+                    .map(|arrow| format!("arrow {}", arrow.name())),
+            )
+            .zip(vertex_actions.iter().chain(&arrow_actions))
+        {
+            if action.field() != algebra.field() {
+                return Err(PathAlgebraModuleError::BasedModuleActionField {
+                    generator: label.into_boxed_str(),
+                });
+            }
+            let actual = (action.nrows(), action.ncols());
+            if actual != expected_shape {
+                return Err(PathAlgebraModuleError::BasedModuleActionShape {
+                    generator: label.into_boxed_str(),
+                    actual,
+                    expected: expected_shape,
+                });
+            }
+        }
+        Ok(Self {
+            algebra,
+            dimension,
+            vertex_actions,
+            arrow_actions,
+        })
+    }
+
+    /// Expose a QPA path-algebra matrix module through the generic based-module
+    /// input boundary.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the common based-action shape validation.
+    pub fn from_path_algebra_module(
+        module: &PathAlgebraModule<F>,
+    ) -> Result<Self, PathAlgebraModuleError> {
+        let algebra = module.right_acting_algebra().clone();
+        let field = algebra.field().clone();
+        let dimension = module.dimension();
+        let mut offsets = Vec::with_capacity(module.dimension_vector().len());
+        let mut offset = 0_usize;
+        for &vertex_dimension in module.dimension_vector() {
+            offsets.push(offset);
+            offset += vertex_dimension;
+        }
+        let vertex_actions = module
+            .dimension_vector()
+            .iter()
+            .enumerate()
+            .map(|(vertex, &vertex_dimension)| {
+                let mut action = DenseMatrix::zero(dimension, dimension, field.clone());
+                for row in 0..vertex_dimension {
+                    action[(offsets[vertex] + row, offsets[vertex] + row)] = field.one();
+                }
+                action
+            })
+            .collect::<Vec<_>>();
+        let mut arrow_actions = Vec::with_capacity(algebra.quiver().number_of_arrows());
+        for arrow in algebra.quiver().arrows() {
+            let source = arrow.source().index().zero_based();
+            let target = arrow.target().index().zero_based();
+            let source_dimension = module.dimension_vector()[source];
+            let target_dimension = module.dimension_vector()[target];
+            let logical = logical_submatrix(
+                &module.arrow_matrices()[arrow.index().zero_based()],
+                source_dimension,
+                target_dimension,
+            )?;
+            let mut action = DenseMatrix::zero(dimension, dimension, field.clone());
+            for row in 0..source_dimension {
+                for column in 0..target_dimension {
+                    action[(offsets[source] + row, offsets[target] + column)] =
+                        logical[(row, column)].clone();
+                }
+            }
+            arrow_actions.push(action);
+        }
+        Self::new(algebra, vertex_actions, arrow_actions)
+    }
+
+    /// Return the right acting quiver algebra.
+    #[must_use]
+    pub const fn algebra(&self) -> &QuiverAlgebra<F> {
+        &self.algebra
+    }
+
+    /// Return the entered common basis dimension.
+    #[must_use]
+    pub const fn dimension(&self) -> usize {
+        self.dimension
+    }
+
+    /// Return the vertex-idempotent right-action matrices.
+    #[must_use]
+    pub fn vertex_actions(&self) -> &[DenseMatrix<F>] {
+        &self.vertex_actions
+    }
+
+    /// Return the arrow right-action matrices.
+    #[must_use]
+    pub fn arrow_actions(&self) -> &[DenseMatrix<F>] {
+        &self.arrow_actions
     }
 }
 
@@ -5805,6 +5965,74 @@ pub fn generic_end_over_path_ring<F: Field>(
     })
 }
 
+/// Translate QPA's `RightAlgebraModuleToPathAlgebraMatModule(M)` method.
+///
+/// QPA projects each entered basis vector through every vertex idempotent,
+/// takes `Basis(Subspace(...))` in insertion-preserving semi-echelon order,
+/// acts those vertex-basis rows by each arrow, and solves coordinates in the
+/// target vertex basis. This function follows that loop literally on the
+/// generator-action matrices of [`BasedRightAlgebraModule`].
+///
+/// # Errors
+///
+/// Reports an action that leaves the computed target vertex space, a converted
+/// representation that violates the entered quotient relations, and exact
+/// matrix failures.
+pub fn right_algebra_module_to_path_algebra_mat_module<F: Field>(
+    module: &BasedRightAlgebraModule<F>,
+) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    let algebra = module.algebra();
+    let field = algebra.field().clone();
+    let mut vertex_bases = Vec::with_capacity(algebra.quiver().number_of_vertices());
+    for action in module.vertex_actions() {
+        let projected = (0..module.dimension())
+            .filter(|&row| action.row(row).iter().any(|entry| !field.is_zero(entry)))
+            .map(|row| action.row(row).to_vec())
+            .collect::<Vec<_>>();
+        let basis = if projected.is_empty() {
+            DenseMatrix::from_flat(0, module.dimension(), Vec::new(), field.clone())?
+        } else {
+            DenseMatrix::from_rows(projected, field.clone())?
+                .semi_echelon_transformation()
+                .vectors
+        };
+        vertex_bases.push(basis);
+    }
+    let dimensions = vertex_bases
+        .iter()
+        .map(DenseMatrix::nrows)
+        .collect::<Vec<_>>();
+    let mut arrow_matrices = Vec::new();
+    for arrow in algebra.quiver().arrows() {
+        let source = arrow.source().index().zero_based();
+        let target = arrow.target().index().zero_based();
+        if dimensions[source] == 0 || dimensions[target] == 0 {
+            continue;
+        }
+        let acted =
+            vertex_bases[source].multiply(&module.arrow_actions()[arrow.index().zero_based()])?;
+        let mut entries = Vec::with_capacity(dimensions[source] * dimensions[target]);
+        for row in 0..acted.nrows() {
+            entries.extend(vertex_bases[target].solution_row(acted.row(row))?.ok_or(
+                PathAlgebraModuleError::BasedModuleArrowImageOutsideTarget {
+                    arrow: arrow.name().into(),
+                },
+            )?);
+        }
+        arrow_matrices.push(NamedArrowMatrix::new(
+            arrow.name(),
+            DenseMatrix::from_flat(
+                dimensions[source],
+                dimensions[target],
+                entries,
+                field.clone(),
+            )?,
+        ));
+    }
+    right_module_over_path_algebra(algebra.clone(), dimensions, &arrow_matrices)?
+        .ok_or(PathAlgebraModuleError::GeneratedBasedModuleConversionRejectedRelations)
+}
+
 /// Translate QPA's matrix-module `SubAlgebraModule(V, generators)` method.
 ///
 /// Entered elements are split by vertex idempotents in generator-major,
@@ -8619,6 +8847,51 @@ pub enum PathAlgebraModuleError {
     /// Total module dimension exceeded Rust's addressable size.
     #[error("the total module dimension overflows usize")]
     DimensionOverflow,
+    /// A based generic module needs one right-action matrix per quiver vertex.
+    #[error("entered {actual} based vertex actions, expected {expected}")]
+    BasedModuleVertexActionCount {
+        /// Entered matrix count.
+        actual: usize,
+        /// Quiver vertex count.
+        expected: usize,
+    },
+    /// A based generic module needs one right-action matrix per quiver arrow.
+    #[error("entered {actual} based arrow actions, expected {expected}")]
+    BasedModuleArrowActionCount {
+        /// Entered matrix count.
+        actual: usize,
+        /// Quiver arrow count.
+        expected: usize,
+    },
+    /// Every based generator action must use the acting algebra's coefficient
+    /// field.
+    #[error("based action for {generator:?} uses a different coefficient field")]
+    BasedModuleActionField {
+        /// Vertex or arrow generator description.
+        generator: Box<str>,
+    },
+    /// Every based generator action is an endomorphism of one common entered
+    /// vector-space basis.
+    #[error("based action for {generator:?} has shape {actual:?}, expected {expected:?}")]
+    BasedModuleActionShape {
+        /// Vertex or arrow generator description.
+        generator: Box<str>,
+        /// Entered matrix shape.
+        actual: (usize, usize),
+        /// Required common square shape.
+        expected: (usize, usize),
+    },
+    /// An entered based action that is not actually a module action can carry
+    /// a vertex-basis row outside the target idempotent space.
+    #[error("based right action of arrow {arrow:?} lies outside its target vertex space")]
+    BasedModuleArrowImageOutsideTarget {
+        /// Offending arrow name.
+        arrow: Box<str>,
+    },
+    /// An entered based action that violates quotient relations is rejected by
+    /// QPA's final checked matrix-module constructor.
+    #[error("the converted based module does not satisfy the entered algebra relations")]
+    GeneratedBasedModuleConversionRejectedRelations,
     /// QPA's Hom-space equation matrix exceeded Rust's addressable size.
     #[error("the HomOverAlgebra equation matrix dimensions overflow usize")]
     HomEquationSizeOverflow,
@@ -9112,7 +9385,7 @@ mod tests {
     };
 
     use super::{
-        CommonDirectSummandResult, GenericPathAlgebraModuleHomomorphism,
+        BasedRightAlgebraModule, CommonDirectSummandResult, GenericPathAlgebraModuleHomomorphism,
         IndexedPathAlgebraModuleArrowAction, ModuleEndomorphismAlgebra,
         ModuleEndomorphismAlgebraData, MoreMinimalVersionResult, NamedArrowMatrix,
         NamedPathAlgebraModuleArrowAction, PathAlgebraModule, PathAlgebraModuleArrowAction,
@@ -9131,10 +9404,10 @@ mod tests {
         natural_endomorphism_quotient_by_ideal, natural_homomorphism_by_subalgebra_module,
         number_of_nonisomorphic_direct_summands, pull_back, push_out, radical_of_module_inclusion,
         reject_of_module, restriction_via_algebra_homomorphism,
-        restriction_via_algebra_homomorphism_map, right_fac_approximation,
-        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
-        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
-        right_module_over_path_algebra_infer_dimension,
+        restriction_via_algebra_homomorphism_map, right_algebra_module_to_path_algebra_mat_module,
+        right_fac_approximation, right_fac_approximation_via_all_basis_images,
+        right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
+        right_module_over_path_algebra, right_module_over_path_algebra_infer_dimension,
         right_module_over_path_algebra_infer_dimension_nc, socle_of_module,
         socle_of_module_inclusion, subalgebra_module, sum_of_submodules, sum_of_submodules_list,
         top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
@@ -11365,6 +11638,286 @@ mod tests {
         assert_eq!(
             generic_end_over_path_ring(&quotient, quotient_module.into()).unwrap_err(),
             PathAlgebraModuleError::GenericHomPathRingDispatchFailure
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn based_right_algebra_module_conversion_matches_qpa_oracle() {
+        fn data<F: Field>(
+            module: &PathAlgebraModule<F>,
+            coefficient: impl Fn(&F::Element) -> String + Copy,
+        ) -> String {
+            super::qpa_list([
+                super::qpa_usize_list(module.dimension_vector()),
+                qpa_module_matrix_list(module, coefficient),
+            ])
+        }
+
+        fn run<F: QpaCoefficientField>(
+            field: F,
+            coefficient: impl Fn(&F::Element) -> String + Copy,
+        ) -> String {
+            let zero = field.zero();
+            let one = field.one();
+            let negative_one = field.neg(&one);
+            let algebra = QuiverAlgebra::Path(
+                PathAlgebra::new(
+                    field.clone(),
+                    Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")])
+                        .unwrap(),
+                )
+                .unwrap(),
+            );
+            let standard = BasedRightAlgebraModule::new(
+                algebra.clone(),
+                vec![
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![one.clone(), zero.clone(), zero.clone()],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                            vec![zero.clone(), one.clone(), zero.clone()],
+                            vec![zero.clone(), zero.clone(), one.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                ],
+                vec![
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![zero.clone(), zero.clone(), one.clone()],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                ],
+            )
+            .unwrap();
+            let converted = right_algebra_module_to_path_algebra_mat_module(&standard).unwrap();
+
+            let custom = BasedRightAlgebraModule::new(
+                algebra.clone(),
+                vec![
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![one.clone(), zero.clone(), negative_one],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![zero.clone(), zero.clone(), one.clone()],
+                            vec![zero.clone(), one.clone(), zero.clone()],
+                            vec![zero.clone(), zero.clone(), one.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                ],
+                vec![
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![zero.clone(), zero.clone(), one.clone()],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                            vec![zero.clone(), zero.clone(), zero.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                ],
+            )
+            .unwrap();
+            let custom_converted =
+                right_algebra_module_to_path_algebra_mat_module(&custom).unwrap();
+
+            let zero_based = BasedRightAlgebraModule::new(
+                algebra.clone(),
+                vec![
+                    DenseMatrix::zero(0, 0, field.clone()),
+                    DenseMatrix::zero(0, 0, field.clone()),
+                ],
+                vec![DenseMatrix::zero(0, 0, field.clone())],
+            )
+            .unwrap();
+            let zero_converted =
+                right_algebra_module_to_path_algebra_mat_module(&zero_based).unwrap();
+
+            let matrix_module = right_module_over_path_algebra(
+                algebra,
+                vec![2, 2],
+                &[NamedArrowMatrix::new(
+                    "a",
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![one.clone(), one.clone()],
+                            vec![zero.clone(), one.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                )],
+            )
+            .unwrap()
+            .unwrap();
+            let exposed =
+                BasedRightAlgebraModule::from_path_algebra_module(&matrix_module).unwrap();
+            let reconverted = right_algebra_module_to_path_algebra_mat_module(&exposed).unwrap();
+
+            let loop_parent = PathAlgebra::new(
+                field.clone(),
+                Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap(),
+            )
+            .unwrap();
+            let t = loop_parent.generators()[1].clone();
+            let quotient = QuiverAlgebra::Quotient(
+                QuotientPathAlgebra::by_relations_high_level(loop_parent, &[t.pow(2).unwrap()])
+                    .unwrap(),
+            );
+            let quotient_based = BasedRightAlgebraModule::new(
+                quotient,
+                vec![DenseMatrix::identity(2, field.clone())],
+                vec![
+                    DenseMatrix::from_rows(
+                        vec![
+                            vec![zero.clone(), one.clone()],
+                            vec![zero.clone(), zero.clone()],
+                        ],
+                        field.clone(),
+                    )
+                    .unwrap(),
+                ],
+            )
+            .unwrap();
+            let quotient_converted =
+                right_algebra_module_to_path_algebra_mat_module(&quotient_based).unwrap();
+
+            let arrowless_algebra = QuiverAlgebra::Path(
+                PathAlgebra::new(field.clone(), Quiver::from_indexed(1, Vec::new()).unwrap())
+                    .unwrap(),
+            );
+            let arrowless_based = BasedRightAlgebraModule::new(
+                arrowless_algebra,
+                vec![DenseMatrix::identity(1, field)],
+                Vec::new(),
+            )
+            .unwrap();
+            let arrowless_converted =
+                right_algebra_module_to_path_algebra_mat_module(&arrowless_based).unwrap();
+
+            super::qpa_list([
+                data(&converted, coefficient),
+                data(&custom_converted, coefficient),
+                data(&zero_converted, coefficient),
+                data(&reconverted, coefficient),
+                data(&quotient_converted, coefficient),
+                data(&arrowless_converted, coefficient),
+            ])
+        }
+
+        let rational = run(Q, ToString::to_string);
+        let binary = run(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        assert_eq!(
+            format!("QQ={rational}\nGF2={binary}\n"),
+            include_str!("../../../tests/fixtures/module_right_algebra_conversion.txt")
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn based_right_algebra_module_contract_failures_are_typed() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            BasedRightAlgebraModule::new(
+                algebra.clone(),
+                vec![DenseMatrix::identity(1, Q)],
+                vec![DenseMatrix::identity(1, Q)],
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::BasedModuleVertexActionCount {
+                actual: 1,
+                expected: 2,
+            }
+        );
+        assert_eq!(
+            BasedRightAlgebraModule::new(
+                algebra.clone(),
+                vec![DenseMatrix::identity(1, Q), DenseMatrix::identity(1, Q)],
+                Vec::new(),
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::BasedModuleArrowActionCount {
+                actual: 0,
+                expected: 1,
+            }
+        );
+        assert!(matches!(
+            BasedRightAlgebraModule::new(
+                algebra.clone(),
+                vec![DenseMatrix::identity(2, Q), DenseMatrix::identity(1, Q)],
+                vec![DenseMatrix::identity(2, Q)],
+            ),
+            Err(PathAlgebraModuleError::BasedModuleActionShape { .. })
+        ));
+
+        let invalid_target = BasedRightAlgebraModule::new(
+            algebra,
+            vec![
+                DenseMatrix::from_rows(vec![vec![q(1), q(0)], vec![q(0), q(0)]], Q).unwrap(),
+                DenseMatrix::from_rows(vec![vec![q(0), q(0)], vec![q(0), q(1)]], Q).unwrap(),
+            ],
+            vec![DenseMatrix::identity(2, Q)],
+        )
+        .unwrap();
+        assert!(matches!(
+            right_algebra_module_to_path_algebra_mat_module(&invalid_target),
+            Err(PathAlgebraModuleError::BasedModuleArrowImageOutsideTarget { .. })
+        ));
+
+        let loop_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "t")]).unwrap(),
+        )
+        .unwrap();
+        let t = loop_parent.generators()[1].clone();
+        let quotient = QuiverAlgebra::Quotient(
+            QuotientPathAlgebra::by_relations_high_level(loop_parent, &[t.pow(2).unwrap()])
+                .unwrap(),
+        );
+        let relation_violating = BasedRightAlgebraModule::new(
+            quotient,
+            vec![DenseMatrix::identity(2, Q)],
+            vec![DenseMatrix::identity(2, Q)],
+        )
+        .unwrap();
+        assert_eq!(
+            right_algebra_module_to_path_algebra_mat_module(&relation_violating).unwrap_err(),
+            PathAlgebraModuleError::GeneratedBasedModuleConversionRejectedRelations
         );
     }
 

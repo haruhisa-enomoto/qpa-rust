@@ -416,6 +416,39 @@ the computations remain translations of the cited source methods.
   arrowless, wrong-algebra, quotient-dispatch, and returned-space basis
   failures.
 
+## MODULE-006 — General right modules use a based action contract
+
+- Source: QPA `lib/module.gd` line 41 and
+  `RightAlgebraModuleToPathAlgebraMatModule` in `lib/module.gi` at lines
+  1973–2041.
+- Affected Rust operations: `BasedRightAlgebraModule::new`,
+  `BasedRightAlgebraModule::from_path_algebra_module`, and
+  `right_algebra_module_to_path_algebra_mat_module`.
+- Difference: GAP accepts its open-ended
+  `IsRightAlgebraModuleElementCollection` hierarchy and then rejects
+  nonfinite modules or modules over unrelated algebras at runtime. Rust uses a
+  finite based-module boundary whose common square matrices give right action
+  by each vertex and arrow generator; count, field, and shape violations are
+  typed at construction. An invalid claimed action that leaves a target
+  vertex space or violates quotient relations is also typed.
+- Reason: Rust has no ambient GAP object/filter system from which to query an
+  arbitrary element action. Generator matrices are the finite data read by
+  QPA's method and are sufficient to execute the source algorithm without
+  introducing an independent representation method.
+- Compatibility impact: every representable finite path-algebra or quotient
+  module retains QPA's entered-basis projection order,
+  insertion-preserving `Basis(Subspace(...))` order, arrow coordinate solves,
+  omitted zero-endpoint maps, and final checked constructor. Nonfinite and
+  unrelated-algebra objects are excluded by the Rust input type rather than
+  failing after GAP dispatch.
+- Evidence: `tests/fixtures/module_right_algebra_conversion.txt` pins regular,
+  changed-basis, zero, already-matrix, quotient, and arrowless inputs over
+  `QQ` and `GF(2)`; the changed basis distinguishes QPA's semi-echelon
+  insertion order from a canonical RREF replacement.
+  `tests/fixtures/module_right_algebra_conversion_errors.schema-v1.json` pins
+  QPA's nonfinite and unrelated-algebra failures, while Rust unit tests pin
+  the based-action boundary failures.
+
 ## MODULEHOM-001 — Semisimple block counting uses the split-prime tier
 
 - Source: QPA `lib/modulehom.gi`, `NumberOfNonIsoDirSummands` at lines
