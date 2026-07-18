@@ -4,6 +4,23 @@ This ledger records places where Rust's public boundary intentionally differs
 from the pinned GAP/QPA surface. It does not authorize algorithmic deviations:
 the computations remain translations of the cited source methods.
 
+## COMBMAP-001 — Invalid winding pairs terminate with a typed error
+
+- Source: QPA `lib/combinatorialmap.gi`, `WindingNumber` at lines 349–395.
+- Affected Rust operation: `CombinatorialMap::winding_number`.
+- Difference: QPA repeatedly applies the ordering permutation until the first
+  half-edge of each pair reaches the second. If the two points lie in different
+  ordering orbits, that loop never terminates. Rust detects the return to the
+  starting point and returns
+  `CombinatorialMapError::CurvePairInDifferentVertices`.
+- Reason: the QPA documentation requires a closed curve in minimal position,
+  so different-vertex pairs violate the method's input contract. A typed error
+  makes this failure finite without changing any documented computation.
+- Compatibility impact: valid curves have the exact QPA winding number and
+  rotation behavior. Invalid different-vertex pairs return instead of hanging.
+- Evidence: `tests/fixtures/combinatorialmap_foundation.schema-v1.json` pins
+  the valid source results, and the Rust boundary test covers the finite error.
+
 ## ALG-001 — Finite opposite-algebra display repairs recursive QPA method
 
 - Source: QPA `lib/algebra.gi`, `PrintObj` at lines 109–115.

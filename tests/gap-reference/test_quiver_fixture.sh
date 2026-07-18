@@ -1077,6 +1077,36 @@ grep -Fq "lib/projpathalgmodule.gi:2251" "$actual"
 compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_vectors.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_vectors.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/combinatorialmap_foundation.g" \
+    "$repo_root/tests/fixtures/combinatorialmap_foundation.schema-v1.json"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialmap_ordering_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted an ordering outside its symmetric group" >&2
+    exit 1
+fi
+grep -Fq "the ordering is not a permutation of proper form" "$actual"
+grep -Fq "lib/combinatorialmap.gi:27" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialmap_pairing_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly accepted a pairing of order one" >&2
+    exit 1
+fi
+grep -Fq "the paring is not an involution" "$actual"
+grep -Fq "lib/combinatorialmap.gi:33" "$actual"
+if "$repo_root/scripts/gap-reference" --alwaystrace \
+    "$repo_root/tests/gap-reference/combinatorialmap_boundary_error.g" \
+    >"$actual" 2>&1
+then
+    echo "QPA unexpectedly reduced a degenerate fixed-point boundary" >&2
+    exit 1
+fi
+grep -Fq "Remove: <list> must not be empty" "$actual"
+grep -Fq "lib/combinatorialmap.gi:443" "$actual"
 
 # QPA's public unchecked GBNP adapter deliberately prints informational lines.
 # Its fixture is the final line emitted by the reference script.

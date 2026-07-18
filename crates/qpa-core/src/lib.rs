@@ -6,6 +6,7 @@
 
 pub mod centre;
 pub mod coefficient;
+pub mod combinatorial_map;
 pub mod dynamic_tree;
 pub mod element_inverse;
 pub mod element_utilities;
@@ -87,6 +88,9 @@ pub enum CachedNakayamaAutomorphismOrder {
 pub use centre::{CentreError, PathAlgebraCentre, QuotientPathAlgebraCentre};
 pub use coefficient::{
     CoefficientDomain, CoefficientDomainError, QpaCoefficientField, QpaFieldCharacteristic,
+};
+pub use combinatorial_map::{
+    CombinatorialMap, CombinatorialMapError, Permutation, PermutationError,
 };
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use element_inverse::ElementInverseError;

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "kind": "combinatorialmap_foundation",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "torus": {
+    "size": 4,
+    "ordering": [2, 3, 4, 1],
+    "pairing": [3, 4, 1, 2],
+    "marked": [1, 3],
+    "faces": [[1, 4, 3, 2]],
+    "genus": [1, 1],
+    "marked_boundaries": [[[1, 4, 3, 2], 2]]
+  },
+  "dual": {
+    "size": 4,
+    "ordering": [4, 1, 2, 3],
+    "pairing": [3, 4, 1, 2],
+    "marked": [1, 3],
+    "faces": [[1, 2, 3, 4]],
+    "genus": [1, 1],
+    "marked_boundaries": [[[1, 2, 3, 4], 2]]
+  },
+  "dual_identity": true,
+  "removed": {
+    "size": 4,
+    "ordering": [1, 4, 3, 2],
+    "pairing": [1, 4, 3, 2],
+    "marked": [],
+    "faces": [[1], [2], [3], [4]],
+    "genus": [-3, 2],
+    "marked_boundaries": [[[1], 0], [[2], 0], [[3], 0], [[4], 0]]
+  },
+  "search_map": {
+    "size": 8,
+    "ordering": [2, 3, 1, 5, 4, 7, 6, 8],
+    "pairing": [4, 6, 8, 1, 7, 2, 5, 3],
+    "marked": [1, 5, 8],
+    "faces": [[1, 5, 6, 3, 8], [2, 7, 4]],
+    "genus": [0, 1],
+    "marked_boundaries": [[[1, 5, 6, 3, 8], 1], [[2, 7, 4], 2]]
+  },
+  "searches": {
+    "depth_1": [[5, 7], [6, 2], [8, 3]],
+    "width_1": [[4, 1], [6, 2], [8, 3]],
+    "depth_9": []
+  },
+  "boundary_curves": {
+    "torus": [[[1, 3, 4, 2, 3, 1, 2, 4], 2]],
+    "search_map": [[[1, 4, 5, 7, 6, 2], 1], [[2, 6, 7, 5, 4, 1], 2]]
+  },
+  "winding": {
+    "equal": 0,
+    "marked": -1,
+    "rotated": -1
+  },
+  "fixed_pairing": {
+    "size": 3,
+    "ordering": [1, 2, 3],
+    "pairing": [2, 1, 3],
+    "marked": [0, 4],
+    "faces": [[1, 2], [3]],
+    "genus": [-3, 4],
+    "marked_boundaries": [[[1, 2], 0], [[3], 0]]
+  }
+}
