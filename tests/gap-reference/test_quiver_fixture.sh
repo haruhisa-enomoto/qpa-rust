@@ -1181,6 +1181,9 @@ fi
 grep -Fq "Record Element: '<rec>.ideal' must have an assigned value" "$actual"
 grep -Fq "lib/moduleprojres.gi:319" "$actual"
 compare_fixture \
+    "$repo_root/tests/gap-reference/projpathalgmodule_basis.g" \
+    "$repo_root/tests/fixtures/projpathalgmodule_basis.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/projpathalgmodule_groebner.g" \
     "$repo_root/tests/fixtures/projpathalgmodule_groebner.schema-v1.json"
 compare_fixture \

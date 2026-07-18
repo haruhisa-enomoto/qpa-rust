@@ -20474,9 +20474,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 20
 source_end = 21
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::vector_nc"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20565,9 +20565,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 33
 source_end = 33
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorBasis"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20812,9 +20812,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 64
 source_end = 64
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::new_basis"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20825,9 +20825,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 65
 source_end = 65
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::new_basis; RightProjectivePathAlgebraSubmodule::new_basis"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20838,9 +20838,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 68
 source_end = 68
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::basis_of_domain"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20877,9 +20877,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 4
 source_end = 9
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVector::is_normal_form"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20916,9 +20916,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 121
 source_end = 128
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::vector_nc"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21202,9 +21202,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 656
 source_end = 673
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::new_basis"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21215,9 +21215,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 675
 source_end = 692
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::new_basis; RightProjectivePathAlgebraSubmodule::new_basis"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21228,9 +21228,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 773
 source_end = 796
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::basis_nc"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21241,9 +21241,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 799
 source_end = 812
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::basis_from_vectors"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21254,9 +21254,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 815
 source_end = 832
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::basis_of_domain"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21267,9 +21267,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 835
 source_end = 851
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::basis"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21280,9 +21280,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 854
 source_end = 899
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorBasis::coefficients"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21293,9 +21293,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 902
 source_end = 916
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraVectorSpace::contains"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21358,9 +21358,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1121
 source_end = 1143
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::submodule_with_basis"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21423,9 +21423,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1248
 source_end = 1275
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraSubmodule::basis; RightProjectivePathAlgebraSubmodule::dimension"
+tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json"]
 deviations = []
 
 [[entries]]

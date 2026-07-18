@@ -121,6 +121,27 @@ impl<F: Field> RightProjectivePathAlgebraModule<F> {
         Ok(Some(basis))
     }
 
+    /// Translate QPA's structural `NewBasis(self, vectors)` overload.
+    ///
+    /// # Errors
+    ///
+    /// Rust makes QPA's homogeneous-family dispatch boundary explicit.
+    pub fn new_basis(
+        &self,
+        vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Result<PathAlgebraVectorBasis<F>, ProjectivePathModuleError> {
+        if vectors
+            .iter()
+            .any(|vector| !self.is_identical(vector.module()))
+        {
+            return Err(ProjectivePathModuleError::ForeignVectorBasisVector);
+        }
+        Ok(PathAlgebraVectorBasis::structural_for_projective(
+            self.clone(),
+            vectors,
+        ))
+    }
+
     /// Construct QPA's `SubAlgebraModule` with entered generators retained.
     ///
     /// # Errors
@@ -131,7 +152,24 @@ impl<F: Field> RightProjectivePathAlgebraModule<F> {
         &self,
         generators: Vec<PathAlgebraVector<F>>,
     ) -> Result<RightProjectivePathAlgebraSubmodule<F>, ProjectivePathModuleError> {
-        RightProjectivePathAlgebraSubmodule::new(self, generators)
+        RightProjectivePathAlgebraSubmodule::new(self, generators, false)
+    }
+
+    /// Translate QPA's `SubAlgebraModule(self, generators, "basis")` overload.
+    ///
+    /// QPA trusts the entered nonempty list as a field basis, stores it as the
+    /// left-module generators, and sets the dimension to its length without an
+    /// independence test. Rust exposes that literal branch as a named method
+    /// instead of accepting an arbitrary sentinel string.
+    ///
+    /// # Errors
+    ///
+    /// Uses the same family and nonempty-list checks as [`Self::submodule`].
+    pub fn submodule_with_basis(
+        &self,
+        generators: Vec<PathAlgebraVector<F>>,
+    ) -> Result<RightProjectivePathAlgebraSubmodule<F>, ProjectivePathModuleError> {
+        RightProjectivePathAlgebraSubmodule::new(self, generators, true)
     }
 
     /// Translate `UniformGeneratorsOfModule` for the whole projective module.
@@ -214,6 +252,21 @@ impl<F: Field> RightProjectivePathAlgebraModule<F> {
         ))
     }
 
+    /// Translate QPA's pure-path-algebra `PathAlgebraVectorNC` constructor.
+    ///
+    /// The source performs no component, family, length, or position checks,
+    /// and ignores its `normal` Boolean when no quotient normal-form function
+    /// is installed. This deliberately retains that unsafe semantic boundary.
+    #[must_use]
+    pub fn vector_nc(
+        &self,
+        components: Vec<PathAlgebraElement<F>>,
+        leading_position: usize,
+        _normal: bool,
+    ) -> PathAlgebraVector<F> {
+        PathAlgebraVector::new_unchecked(self.clone(), components, leading_position)
+    }
+
     /// Return the finite dimension when QPA's canonical path basis is finite.
     #[must_use]
     pub fn dimension(&self) -> Option<usize> {
@@ -258,6 +311,7 @@ impl<F: Field> Eq for RightProjectivePathAlgebraModule<F> {}
 struct RightProjectivePathAlgebraSubmoduleData<F: Field> {
     parent: RightProjectivePathAlgebraModule<F>,
     generators: Box<[PathAlgebraVector<F>]>,
+    entered_generators_are_basis: bool,
 }
 
 /// QPA's `SubAlgebraModule` inside a vertex-projective path module.
@@ -273,6 +327,7 @@ impl<F: Field> RightProjectivePathAlgebraSubmodule<F> {
     fn new(
         parent: &RightProjectivePathAlgebraModule<F>,
         generators: Vec<PathAlgebraVector<F>>,
+        entered_generators_are_basis: bool,
     ) -> Result<Self, ProjectivePathModuleError> {
         if generators.is_empty() {
             return Err(ProjectivePathModuleError::EmptySubmoduleGenerators);
@@ -286,6 +341,7 @@ impl<F: Field> RightProjectivePathAlgebraSubmodule<F> {
         Ok(Self(Arc::new(RightProjectivePathAlgebraSubmoduleData {
             parent: parent.clone(),
             generators: generators.into_boxed_slice(),
+            entered_generators_are_basis,
         })))
     }
 
@@ -305,6 +361,30 @@ impl<F: Field> RightProjectivePathAlgebraSubmodule<F> {
     #[must_use]
     pub fn is_identical(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Translate QPA's structural `NewBasis(self, vectors)` overload.
+    ///
+    /// This does not test that the vectors span or belong to this submodule;
+    /// QPA's method only relies on their common ambient element family.
+    ///
+    /// # Errors
+    ///
+    /// Rejects vectors from another projective-vector family.
+    pub fn new_basis(
+        &self,
+        vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Result<PathAlgebraVectorBasis<F>, ProjectivePathModuleError> {
+        if vectors
+            .iter()
+            .any(|vector| !self.parent().is_identical(vector.module()))
+        {
+            return Err(ProjectivePathModuleError::ForeignVectorBasisVector);
+        }
+        Ok(PathAlgebraVectorBasis::structural_for_submodule(
+            self.clone(),
+            vectors,
+        ))
     }
 
     /// Translate QPA's vertex-idempotent splitting into uniform generators.
@@ -331,6 +411,47 @@ impl<F: Field> RightProjectivePathAlgebraSubmodule<F> {
             RightPathAlgebraModuleSource::Submodule(self.clone()),
             &uniform_generators,
         )
+    }
+
+    /// Translate QPA's `Basis` method for a projective path submodule.
+    ///
+    /// For the three-argument `"basis"` constructor this is the exact entered
+    /// list. Otherwise QPA subtracts each ambient canonical vector's complete
+    /// normal form modulo a right Gröbner basis, removes zeroes and duplicates
+    /// with `AsSet`, and stores the resulting structural basis.
+    /// `None` is QPA's unavailable canonical basis for a cyclic path algebra.
+    ///
+    /// # Errors
+    ///
+    /// Propagates canonical-basis, Gröbner, reduction, and ordering failures.
+    pub fn basis(&self) -> Result<Option<PathAlgebraVectorBasis<F>>, ProjectivePathModuleError> {
+        if self.0.entered_generators_are_basis {
+            return Ok(Some(self.new_basis(self.generators().to_vec())?));
+        }
+        let Some(ambient_basis) = self.parent().canonical_basis()? else {
+            return Ok(None);
+        };
+        let groebner_basis = self.right_groebner_basis()?;
+        let mut vectors = Vec::new();
+        for ambient_vector in ambient_basis {
+            let normal_form = groebner_basis.completely_reduce(&ambient_vector)?;
+            let vector = ambient_vector.sub(&normal_form)?;
+            if !vector.is_zero() {
+                add_set_path_algebra_vector(&mut vectors, vector)?;
+            }
+        }
+        Ok(Some(self.new_basis(vectors)?))
+    }
+
+    /// Return the dimension installed by QPA's projective-submodule basis.
+    ///
+    /// `None` means the ambient canonical basis is unavailable.
+    ///
+    /// # Errors
+    ///
+    /// Propagates [`Self::basis`] failures.
+    pub fn dimension(&self) -> Result<Option<usize>, ProjectivePathModuleError> {
+        Ok(self.basis()?.map(|basis| basis.basis_vectors().len()))
     }
 }
 
@@ -591,6 +712,15 @@ impl<F: Field> PathAlgebraVector<F> {
     #[must_use]
     pub const fn leading_position(&self) -> usize {
         self.leading_position
+    }
+
+    /// Return QPA's stored `IsNormalForm` filter.
+    ///
+    /// Pure path-projective families create their default vector type with
+    /// this filter set, so the generic `ReturnFalse` method is not consulted.
+    #[must_use]
+    pub const fn is_normal_form(&self) -> bool {
+        true
     }
 
     /// Return whether all components vanish.
@@ -877,6 +1007,487 @@ impl<F: Field> PartialEq for PathAlgebraVector<F> {
 }
 
 impl<F: Field> Eq for PathAlgebraVector<F> {}
+
+/// A free left field-module whose elements are QPA path-algebra vectors.
+///
+/// This is the typed counterpart of the `LeftModuleByGenerators` objects on
+/// which `projpathalgmodule.gi` installs `NewBasis`, `BasisNC`, `Basis`,
+/// `BasisOfDomain`, `Coefficients`, and membership.
+#[derive(Clone, Debug)]
+pub struct PathAlgebraVectorSpace<F: Field> {
+    module: RightProjectivePathAlgebraModule<F>,
+    generators: Vec<PathAlgebraVector<F>>,
+}
+
+impl<F: Field> PathAlgebraVectorSpace<F> {
+    /// Construct a field-space from entered path-vector generators.
+    ///
+    /// # Errors
+    ///
+    /// Every generator must belong to the identical projective-vector family.
+    pub fn by_generators(
+        module: RightProjectivePathAlgebraModule<F>,
+        generators: Vec<PathAlgebraVector<F>>,
+    ) -> Result<Self, ProjectivePathModuleError> {
+        if generators
+            .iter()
+            .any(|generator| !module.is_identical(generator.module()))
+        {
+            return Err(ProjectivePathModuleError::ForeignVectorSpaceGenerator);
+        }
+        Ok(Self { module, generators })
+    }
+
+    /// Return the identical ambient projective-vector family.
+    #[must_use]
+    pub const fn module(&self) -> &RightProjectivePathAlgebraModule<F> {
+        &self.module
+    }
+
+    /// Return `GeneratorsOfLeftModule` in entered order.
+    #[must_use]
+    pub fn generators(&self) -> &[PathAlgebraVector<F>] {
+        &self.generators
+    }
+
+    /// Translate QPA's structural `NewBasis(V, vectors)` method.
+    ///
+    /// No echelon data is attached, so `Coefficients` on the result is not
+    /// available—exactly as in QPA.
+    ///
+    /// # Errors
+    ///
+    /// Rust makes QPA's implicit homogeneous-family boundary explicit.
+    pub fn new_basis(
+        &self,
+        vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Result<PathAlgebraVectorBasis<F>, ProjectivePathModuleError> {
+        self.ensure_ambient_family(&vectors)?;
+        Ok(PathAlgebraVectorBasis::structural_for_space(
+            self.clone(),
+            vectors,
+        ))
+    }
+
+    /// Translate QPA's unchecked `BasisNC(V, vectors)` method.
+    ///
+    /// `Ok(None)` is GAP's `fail` if QPA's own triangularization removes a
+    /// dependent nonzero vector. The ordered basis vectors remain the entered
+    /// nonzero vectors; echelon and sparse base-change data are stored apart.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a foreign vector family and propagates exact arithmetic and
+    /// path-ordering failures.
+    pub fn basis_nc(
+        &self,
+        vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Result<Option<PathAlgebraVectorBasis<F>>, ProjectivePathModuleError> {
+        self.ensure_ambient_family(&vectors)?;
+        let vectors = vectors
+            .into_iter()
+            .filter(|vector| !vector.is_zero())
+            .collect::<Vec<_>>();
+        let triangular = triangularize_path_algebra_vector_list(&vectors)?;
+        if triangular.echelon_basis.len() != vectors.len() {
+            return Ok(None);
+        }
+        Ok(Some(PathAlgebraVectorBasis::echelon_for_space(
+            self.clone(),
+            vectors,
+            triangular,
+        )))
+    }
+
+    /// Translate QPA's checked `Basis(V, vectors)` overload.
+    ///
+    /// `Ok(None)` is GAP's `fail` when membership or independence fails.
+    /// Membership intentionally uses QPA's tip-scanning coefficient method,
+    /// including its observable early-stop behavior.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a foreign vector family and propagates exact basis arithmetic.
+    pub fn basis_from_vectors(
+        &self,
+        vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Result<Option<PathAlgebraVectorBasis<F>>, ProjectivePathModuleError> {
+        self.ensure_ambient_family(&vectors)?;
+        for vector in &vectors {
+            if !self.contains(vector)? {
+                return Ok(None);
+            }
+        }
+        self.basis_nc(vectors)
+    }
+
+    /// Translate QPA's `BasisOfDomain(V)` method.
+    ///
+    /// QPA triangularizes the left-module generators, uses those echelon
+    /// vectors themselves as `BasisVectors`, and resets the sparse base-change
+    /// matrix to the identity.
+    ///
+    /// # Errors
+    ///
+    /// Propagates exact triangularization failures.
+    pub fn basis_of_domain(&self) -> Result<PathAlgebraVectorBasis<F>, ProjectivePathModuleError> {
+        let triangular = triangularize_path_algebra_vector_list(&self.generators)?;
+        let vectors = triangular.echelon_basis.clone();
+        let field = self.module.algebra().field();
+        let base_change = (0..vectors.len())
+            .map(|position| vec![(position, field.one())])
+            .collect();
+        Ok(PathAlgebraVectorBasis::echelon_for_space(
+            self.clone(),
+            vectors,
+            PathAlgebraVectorTriangularization {
+                echelon_basis: triangular.echelon_basis,
+                heads: triangular.heads,
+                base_change,
+            },
+        ))
+    }
+
+    /// Translate QPA's default `Basis(V)` method.
+    ///
+    /// # Errors
+    ///
+    /// Propagates [`Self::basis_of_domain`] failures.
+    pub fn basis(&self) -> Result<PathAlgebraVectorBasis<F>, ProjectivePathModuleError> {
+        self.basis_of_domain()
+    }
+
+    /// Translate QPA's `vector in V` method.
+    ///
+    /// A different projective-vector family is outside this typed space.
+    ///
+    /// # Errors
+    ///
+    /// Propagates QPA's basis construction and coefficient scan.
+    pub fn contains(
+        &self,
+        vector: &PathAlgebraVector<F>,
+    ) -> Result<bool, ProjectivePathModuleError> {
+        if !self.module.is_identical(vector.module()) {
+            return Ok(false);
+        }
+        Ok(self.basis_of_domain()?.coefficients(vector)?.is_some())
+    }
+
+    fn ensure_ambient_family(
+        &self,
+        vectors: &[PathAlgebraVector<F>],
+    ) -> Result<(), ProjectivePathModuleError> {
+        if vectors
+            .iter()
+            .any(|vector| !self.module.is_identical(vector.module()))
+        {
+            Err(ProjectivePathModuleError::ForeignVectorBasisVector)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+enum PathAlgebraVectorBasisUnderlying<F: Field> {
+    Space(PathAlgebraVectorSpace<F>),
+    Projective(RightProjectivePathAlgebraModule<F>),
+    Submodule(RightProjectivePathAlgebraSubmodule<F>),
+}
+
+type PathAlgebraVectorBaseChange<E> = Vec<Vec<(usize, E)>>;
+
+/// QPA's `IsBasisOfPathAlgebraVectorSpace` object.
+#[derive(Clone, Debug)]
+pub struct PathAlgebraVectorBasis<F: Field> {
+    underlying: PathAlgebraVectorBasisUnderlying<F>,
+    basis_vectors: Vec<PathAlgebraVector<F>>,
+    echelon_basis: Option<Vec<PathAlgebraVector<F>>>,
+    heads: Option<Vec<PathAlgebraVector<F>>>,
+    base_change: Option<PathAlgebraVectorBaseChange<F::Element>>,
+}
+
+impl<F: Field> PathAlgebraVectorBasis<F> {
+    fn structural_for_space(
+        space: PathAlgebraVectorSpace<F>,
+        basis_vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Self {
+        Self {
+            underlying: PathAlgebraVectorBasisUnderlying::Space(space),
+            basis_vectors,
+            echelon_basis: None,
+            heads: None,
+            base_change: None,
+        }
+    }
+
+    fn structural_for_submodule(
+        submodule: RightProjectivePathAlgebraSubmodule<F>,
+        basis_vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Self {
+        Self {
+            underlying: PathAlgebraVectorBasisUnderlying::Submodule(submodule),
+            basis_vectors,
+            echelon_basis: None,
+            heads: None,
+            base_change: None,
+        }
+    }
+
+    fn structural_for_projective(
+        module: RightProjectivePathAlgebraModule<F>,
+        basis_vectors: Vec<PathAlgebraVector<F>>,
+    ) -> Self {
+        Self {
+            underlying: PathAlgebraVectorBasisUnderlying::Projective(module),
+            basis_vectors,
+            echelon_basis: None,
+            heads: None,
+            base_change: None,
+        }
+    }
+
+    fn echelon_for_space(
+        space: PathAlgebraVectorSpace<F>,
+        basis_vectors: Vec<PathAlgebraVector<F>>,
+        triangular: PathAlgebraVectorTriangularization<F>,
+    ) -> Self {
+        Self {
+            underlying: PathAlgebraVectorBasisUnderlying::Space(space),
+            basis_vectors,
+            echelon_basis: Some(triangular.echelon_basis),
+            heads: Some(triangular.heads),
+            base_change: Some(triangular.base_change),
+        }
+    }
+
+    /// Return QPA's ordered `BasisVectors` list.
+    #[must_use]
+    pub fn basis_vectors(&self) -> &[PathAlgebraVector<F>] {
+        &self.basis_vectors
+    }
+
+    /// Return the underlying free field-space, when this basis came from one.
+    #[must_use]
+    pub fn underlying_space(&self) -> Option<&PathAlgebraVectorSpace<F>> {
+        match &self.underlying {
+            PathAlgebraVectorBasisUnderlying::Space(space) => Some(space),
+            PathAlgebraVectorBasisUnderlying::Projective(_)
+            | PathAlgebraVectorBasisUnderlying::Submodule(_) => None,
+        }
+    }
+
+    /// Return the underlying whole projective module, when applicable.
+    #[must_use]
+    pub fn underlying_projective_module(&self) -> Option<&RightProjectivePathAlgebraModule<F>> {
+        match &self.underlying {
+            PathAlgebraVectorBasisUnderlying::Projective(module) => Some(module),
+            PathAlgebraVectorBasisUnderlying::Space(_)
+            | PathAlgebraVectorBasisUnderlying::Submodule(_) => None,
+        }
+    }
+
+    /// Return the underlying projective submodule, when applicable.
+    #[must_use]
+    pub fn underlying_submodule(&self) -> Option<&RightProjectivePathAlgebraSubmodule<F>> {
+        match &self.underlying {
+            PathAlgebraVectorBasisUnderlying::Space(_)
+            | PathAlgebraVectorBasisUnderlying::Projective(_) => None,
+            PathAlgebraVectorBasisUnderlying::Submodule(submodule) => Some(submodule),
+        }
+    }
+
+    /// Translate QPA's `Coefficients(B, vector)` tip scan.
+    ///
+    /// `Ok(None)` is GAP's `fail`. In particular, this preserves QPA's scan
+    /// stopping at a head in a larger component position, even when a later
+    /// head could span the query.
+    ///
+    /// # Errors
+    ///
+    /// Structural `NewBasis` values have no echelon data. Foreign vector
+    /// families and exact arithmetic/order failures are reported explicitly.
+    pub fn coefficients(
+        &self,
+        vector: &PathAlgebraVector<F>,
+    ) -> Result<Option<Vec<F::Element>>, ProjectivePathModuleError> {
+        let module = match &self.underlying {
+            PathAlgebraVectorBasisUnderlying::Space(space) => space.module(),
+            PathAlgebraVectorBasisUnderlying::Projective(module) => module,
+            PathAlgebraVectorBasisUnderlying::Submodule(submodule) => submodule.parent(),
+        };
+        if !module.is_identical(vector.module()) {
+            return Err(ProjectivePathModuleError::ForeignVectorBasisVector);
+        }
+        let echelon_basis = self
+            .echelon_basis
+            .as_ref()
+            .ok_or(ProjectivePathModuleError::MissingVectorBasisEchelonData)?;
+        let heads = self
+            .heads
+            .as_ref()
+            .ok_or(ProjectivePathModuleError::MissingVectorBasisEchelonData)?;
+        let base_change = self
+            .base_change
+            .as_ref()
+            .ok_or(ProjectivePathModuleError::MissingVectorBasisEchelonData)?;
+        let field = module.algebra().field();
+        let mut current = vector.clone();
+        let mut coefficients = vec![field.zero(); self.basis_vectors.len()];
+        let mut index = heads.len();
+
+        while index > 0 && !current.is_zero() {
+            let leading_monomial = current.leading_path()?;
+            let position = current.leading_position();
+            let head_monomial = loop {
+                let head = &heads[index - 1];
+                let head_monomial = head.leading_path()?;
+                let head_position = head.leading_position();
+                index -= 1;
+                let monomial_not_greater = !module
+                    .algebra()
+                    .ordering()
+                    .compare(&head_monomial, &leading_monomial)?
+                    .is_gt();
+                if (head_position == position && monomial_not_greater)
+                    || position < head_position
+                    || index == 0
+                {
+                    break head_monomial;
+                }
+            };
+            if leading_monomial != head_monomial {
+                return Ok(None);
+            }
+            let coefficient = current.leading_coefficient()?;
+            current = current.sub(&echelon_basis[index].scale_left(&coefficient)?)?;
+            for (basis_position, base_coefficient) in &base_change[index] {
+                field.add_mul_assign(
+                    &mut coefficients[*basis_position],
+                    base_coefficient,
+                    &coefficient,
+                );
+            }
+        }
+
+        Ok(current.is_zero().then_some(coefficients))
+    }
+}
+
+#[derive(Clone, Debug)]
+struct PathAlgebraVectorTriangularization<F: Field> {
+    echelon_basis: Vec<PathAlgebraVector<F>>,
+    heads: Vec<PathAlgebraVector<F>>,
+    base_change: PathAlgebraVectorBaseChange<F::Element>,
+}
+
+fn triangularize_path_algebra_vector_list<F: Field>(
+    entered: &[PathAlgebraVector<F>],
+) -> Result<PathAlgebraVectorTriangularization<F>, ProjectivePathModuleError> {
+    let mut vectors = entered
+        .iter()
+        .filter(|vector| !vector.is_zero())
+        .cloned()
+        .collect::<Vec<_>>();
+    if vectors.is_empty() {
+        return Ok(PathAlgebraVectorTriangularization {
+            echelon_basis: Vec::new(),
+            heads: Vec::new(),
+            base_change: Vec::new(),
+        });
+    }
+    let module = vectors[0].module().clone();
+    let field = module.algebra().field();
+    let mut base_change = (0..vectors.len())
+        .map(|position| vec![(position, field.one())])
+        .collect::<Vec<_>>();
+    sort_parallel_path_algebra_vectors(&mut vectors, &mut base_change)?;
+    let mut heads = Vec::new();
+    let mut k = vectors.len();
+
+    while k > 0 {
+        let reducer = k - 1;
+        let leading_coefficient = vectors[reducer].leading_coefficient()?;
+        let inverse = field.div(&field.one(), &leading_coefficient);
+        vectors[reducer] = vectors[reducer].scale_left(&inverse)?;
+        for (_, coefficient) in &mut base_change[reducer] {
+            *coefficient = field.div(coefficient, &leading_coefficient);
+        }
+        let head = vectors[reducer].leading_term();
+        let head_position = head.leading_position();
+        heads.push(head.clone());
+        let mut sort = false;
+
+        for position in (0..reducer).rev() {
+            let test_head = vectors[position].leading_term();
+            let same_component_head = head_position == test_head.leading_position()
+                && head.components()[head_position - 1]
+                    == test_head.components()[head_position - 1];
+            if !same_component_head {
+                continue;
+            }
+            sort = true;
+            let coefficient = vectors[position].leading_coefficient()?;
+            vectors[position] =
+                vectors[position].sub(&vectors[reducer].scale_left(&coefficient)?)?;
+            let reducer_change = base_change[reducer].clone();
+            for (basis_position, reducer_coefficient) in reducer_change {
+                let correction = field.neg(&field.mul(&coefficient, &reducer_coefficient));
+                match base_change[position].binary_search_by_key(&basis_position, |entry| entry.0) {
+                    Ok(existing) => {
+                        field.add_assign(&mut base_change[position][existing].1, &correction);
+                    }
+                    Err(insertion) => {
+                        base_change[position].insert(insertion, (basis_position, correction));
+                    }
+                }
+            }
+        }
+
+        if sort {
+            let old_k = k;
+            let mut position = 0;
+            while position < old_k - 1 {
+                if vectors[position].is_zero() {
+                    vectors.remove(position);
+                    base_change.remove(position);
+                    k -= 1;
+                } else {
+                    position += 1;
+                }
+            }
+            sort_parallel_path_algebra_vectors(&mut vectors, &mut base_change)?;
+        }
+        k -= 1;
+    }
+    heads.reverse();
+    Ok(PathAlgebraVectorTriangularization {
+        echelon_basis: vectors,
+        heads,
+        base_change,
+    })
+}
+
+fn sort_parallel_path_algebra_vectors<F: Field>(
+    vectors: &mut Vec<PathAlgebraVector<F>>,
+    parallel: &mut Vec<Vec<(usize, F::Element)>>,
+) -> Result<(), ProjectivePathModuleError> {
+    let entered_vectors = std::mem::take(vectors);
+    let entered_parallel = std::mem::take(parallel);
+    for (vector, data) in entered_vectors.into_iter().zip(entered_parallel) {
+        let mut insertion = vectors.len();
+        for (position, existing) in vectors.iter().enumerate() {
+            if vector.compare(existing)?.is_lt() {
+                insertion = position;
+                break;
+            }
+        }
+        vectors.insert(insertion, vector);
+        parallel.insert(insertion, data);
+    }
+    Ok(())
+}
 
 fn uniform_generators_of_module<F: Field>(
     module: &RightProjectivePathAlgebraModule<F>,
@@ -1441,6 +2052,15 @@ pub enum ProjectivePathModuleError {
     /// Submodule generators must belong to their ambient vector family.
     #[error("a submodule generator belongs to another projective-vector family")]
     ForeignSubmoduleGenerator,
+    /// A generated field-space has one fixed projective-vector family.
+    #[error("a path-vector-space generator belongs to another projective-vector family")]
+    ForeignVectorSpaceGenerator,
+    /// Basis construction and coordinates use one fixed vector family.
+    #[error("a path-vector basis received a vector from another projective-vector family")]
+    ForeignVectorBasisVector,
+    /// QPA's structural `NewBasis` does not install coefficient data.
+    #[error("the path-vector basis has no echelon data for coefficients")]
+    MissingVectorBasisEchelonData,
     /// GAP's empty list misses QPA's element-collection method dispatch.
     #[error("QPA does not dispatch its projective SubAlgebraModule method on an empty list")]
     EmptySubmoduleGenerators,
@@ -1529,9 +2149,9 @@ mod tests {
 
     use super::{
         PathAlgebraVector, PathAlgebraVectorNSetEntry, PathAlgebraVectorOSetEntry,
-        ProjectivePathModuleError, first_part, left_division, right_projective_path_algebra_module,
-        tip_reduce_path_algebra_vector, tip_reduce_path_algebra_vectors,
-        x_set_of_path_algebra_vector,
+        PathAlgebraVectorSpace, ProjectivePathModuleError, first_part, left_division,
+        right_projective_path_algebra_module, tip_reduce_path_algebra_vector,
+        tip_reduce_path_algebra_vectors, x_set_of_path_algebra_vector,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -1873,6 +2493,117 @@ mod tests {
     }
 
     #[allow(clippy::too_many_lines)]
+    fn projective_path_basis_case<F: Field>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let algebra = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(
+                3,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "a"),
+                    ArrowSpec::named(vertex(2), vertex(3), "b"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = algebra.generators();
+        let (vertex_v, arrow_a, arrow_b) = (&generators[0], &generators[3], &generators[4]);
+        let zero = algebra.zero();
+        let projective =
+            right_projective_path_algebra_module(&algebra, &[vertex_v.clone(), vertex_v.clone()])
+                .unwrap();
+        let ab = arrow_a.multiply(arrow_b).unwrap();
+        let u = projective
+            .vector(vec![arrow_a.clone(), zero.clone()])
+            .unwrap();
+        let two = field.add(&field.one(), &field.one());
+        let v = projective
+            .vector(vec![
+                arrow_a.scale_left(&two).unwrap().add(vertex_v).unwrap(),
+                zero.clone(),
+            ])
+            .unwrap();
+        let w = projective.vector(vec![zero.clone(), ab.clone()]).unwrap();
+        let raw = projective
+            .vector(vec![zero.clone(), vertex_v.clone()])
+            .unwrap();
+        let entered = vec![projective.zero(), v.clone(), u.clone(), w.clone()];
+        let space =
+            PathAlgebraVectorSpace::by_generators(projective.clone(), entered.clone()).unwrap();
+        let new_basis = space.new_basis(entered.clone()).unwrap();
+        let unchecked = space.basis_nc(entered.clone()).unwrap().unwrap();
+        let checked = space.basis_from_vectors(entered).unwrap();
+        let domain_basis = space.basis_of_domain().unwrap();
+        let dependent = space
+            .basis_from_vectors(vec![u.clone(), u.clone()])
+            .unwrap();
+        let outside =
+            PathAlgebraVectorSpace::by_generators(projective.clone(), vec![u.clone()]).unwrap();
+        let probe = v.add(&w).unwrap();
+        let nc = projective.vector_nc(raw.components().to_vec(), 2, false);
+        assert!(new_basis.underlying_space().is_some());
+        assert!(matches!(
+            new_basis.coefficients(&probe),
+            Err(ProjectivePathModuleError::MissingVectorBasisEchelonData)
+        ));
+        let projective_new_basis = projective.new_basis(vec![u.clone()]).unwrap();
+        assert!(
+            projective_new_basis
+                .underlying_projective_module()
+                .unwrap()
+                .is_identical(&projective)
+        );
+
+        let g1 = projective
+            .vector(vec![arrow_a.add(&ab).unwrap(), arrow_a.clone()])
+            .unwrap();
+        let g2 = projective.vector(vec![ab, zero]).unwrap();
+        let submodule = projective.submodule(vec![g1.clone(), g2.clone()]).unwrap();
+        let submodule_basis = submodule.basis().unwrap().unwrap();
+        let based_submodule = projective.submodule_with_basis(vec![g1, g2]).unwrap();
+        let based_basis = based_submodule.basis().unwrap().unwrap();
+        assert!(
+            based_basis
+                .underlying_submodule()
+                .unwrap()
+                .is_identical(&based_submodule)
+        );
+        let coefficient_list = |entries: Option<Vec<F::Element>>| match entries {
+            Some(entries) => Value::Array(entries.iter().map(coefficient).collect()),
+            None => Value::Null,
+        };
+        json!({
+            "new_basis": vector_list_json(new_basis.basis_vectors(), coefficient),
+            "unchecked_basis": vector_list_json(unchecked.basis_vectors(), coefficient),
+            "checked_basis": checked
+                .as_ref()
+                .map_or(Value::Null, |basis| vector_list_json(basis.basis_vectors(), coefficient)),
+            "domain_basis": vector_list_json(domain_basis.basis_vectors(), coefficient),
+            "probe_coefficients": coefficient_list(domain_basis.coefficients(&probe).unwrap()),
+            "outside_coefficients": coefficient_list(domain_basis.coefficients(&raw).unwrap()),
+            "dependent_failed": dependent.is_none(),
+            "membership": [
+                space.contains(&u).unwrap(),
+                space.contains(&raw).unwrap(),
+                space.contains(&projective.zero()).unwrap(),
+                outside.contains(&raw).unwrap(),
+            ],
+            "nc": {
+                "vector": vector_json(&nc, coefficient),
+                "leading_position": nc.leading_position(),
+                "is_normal_form": nc.is_normal_form(),
+            },
+            "submodule_basis": vector_list_json(submodule_basis.basis_vectors(), coefficient),
+            "submodule_dimension": submodule.dimension().unwrap().unwrap(),
+            "based_basis": vector_list_json(based_basis.basis_vectors(), coefficient),
+            "based_dimension": based_submodule.dimension().unwrap().unwrap(),
+        })
+    }
+
+    #[allow(clippy::too_many_lines)]
     fn projective_path_groebner_case<F: Field>(
         field: &F,
         coefficient: impl Fn(&F::Element) -> Value + Copy,
@@ -2000,6 +2731,43 @@ mod tests {
                     .unwrap()
             )),
             "rational": projective_path_groebner_case(&Q, |entry: &Rational| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn pinned_qpa_projective_path_module_basis_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/projpathalgmodule_basis.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "projpathalgmodule_basis",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": projective_path_basis_case(&Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": projective_path_basis_case(&field5, |entry| json!(
+                field5_coefficients
+                    .to_integer(entry)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+            )),
+            "rational": projective_path_basis_case(&Q, |entry: &Rational| json!([
                 entry.numerator_ref().to_string().parse::<i64>().unwrap(),
                 entry.denominator_ref().to_string().parse::<i64>().unwrap(),
             ])),
