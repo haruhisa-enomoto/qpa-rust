@@ -160,7 +160,8 @@ pub use path_module::{
 };
 pub use poset::{Poset, PosetError};
 pub use projective_path_module::{
-    PathAlgebraVector, ProjectivePathModuleError, RightProjectivePathAlgebraModule, left_division,
+    PathAlgebraVector, ProjectivePathModuleError, RightPathAlgebraModuleGroebnerBasis,
+    RightProjectivePathAlgebraModule, RightProjectivePathAlgebraSubmodule, left_division,
     right_projective_path_algebra_module, tip_reduce_path_algebra_vector,
     tip_reduce_path_algebra_vectors,
 };

@@ -11,7 +11,8 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathEndpoint, PathError, VertexIndex,
+    Path, PathAlgebra, PathAlgebraElement, PathAlgebraError, PathEndpoint, PathError,
+    QuiverStaticDictionary, StaticDictionaryError, VertexIndex,
 };
 
 struct RightProjectivePathAlgebraModuleData<F: Field> {
@@ -85,6 +86,78 @@ impl<F: Field> RightProjectivePathAlgebraModule<F> {
                 ))
             })
             .collect()
+    }
+
+    /// Translate QPA's canonical basis of a vertex-projective path module.
+    ///
+    /// QPA first iterates summands and the canonical path-algebra basis, then
+    /// sorts the resulting vectors by path tip and descending component
+    /// position. `None` is QPA's unavailable basis for a cyclic quiver.
+    ///
+    /// # Errors
+    ///
+    /// Propagates vector construction and path-ordering failures.
+    pub fn canonical_basis(
+        &self,
+    ) -> Result<Option<Vec<PathAlgebraVector<F>>>, ProjectivePathModuleError> {
+        let Some(algebra_basis) = self.algebra().canonical_basis() else {
+            return Ok(None);
+        };
+        let mut basis = Vec::new();
+        for (position, vertex) in self.vertex_indices().iter().copied().enumerate() {
+            for element in &algebra_basis {
+                if !matches!(
+                    element.leading_monomial().source(),
+                    PathEndpoint::Vertex(source) if source.index() == vertex
+                ) {
+                    continue;
+                }
+                let mut components = vec![self.algebra().zero(); self.vertex_indices().len()];
+                components[position] = element.clone();
+                basis.push(self.vector(components)?);
+            }
+        }
+        sort_path_algebra_vectors(&mut basis)?;
+        Ok(Some(basis))
+    }
+
+    /// Construct QPA's `SubAlgebraModule` with entered generators retained.
+    ///
+    /// # Errors
+    ///
+    /// QPA's installed method does not dispatch on an empty GAP list. Every
+    /// entered generator must belong to this identical projective-vector family.
+    pub fn submodule(
+        &self,
+        generators: Vec<PathAlgebraVector<F>>,
+    ) -> Result<RightProjectivePathAlgebraSubmodule<F>, ProjectivePathModuleError> {
+        RightProjectivePathAlgebraSubmodule::new(self, generators)
+    }
+
+    /// Translate `UniformGeneratorsOfModule` for the whole projective module.
+    ///
+    /// # Errors
+    ///
+    /// Propagates generator construction, right action, and ordering failures.
+    pub fn uniform_generators(
+        &self,
+    ) -> Result<Vec<PathAlgebraVector<F>>, ProjectivePathModuleError> {
+        uniform_generators_of_module(self, &self.generators()?)
+    }
+
+    /// Translate `RightGroebnerBasisOfModule` for the whole projective module.
+    ///
+    /// # Errors
+    ///
+    /// Propagates uniformization, tip reduction, and dictionary failures.
+    pub fn right_groebner_basis(
+        &self,
+    ) -> Result<RightPathAlgebraModuleGroebnerBasis<F>, ProjectivePathModuleError> {
+        let uniform_generators = self.uniform_generators()?;
+        RightPathAlgebraModuleGroebnerBasis::new(
+            RightPathAlgebraModuleSource::Whole(self.clone()),
+            &uniform_generators,
+        )
     }
 
     /// Translate QPA's checked `PathAlgebraVector`/`Vectorize` constructor.
@@ -181,6 +254,263 @@ impl<F: Field> PartialEq for RightProjectivePathAlgebraModule<F> {
 }
 
 impl<F: Field> Eq for RightProjectivePathAlgebraModule<F> {}
+
+struct RightProjectivePathAlgebraSubmoduleData<F: Field> {
+    parent: RightProjectivePathAlgebraModule<F>,
+    generators: Box<[PathAlgebraVector<F>]>,
+}
+
+/// QPA's `SubAlgebraModule` inside a vertex-projective path module.
+///
+/// The entered generating list is retained verbatim, including zero and
+/// redundant generators. Clones preserve QPA object identity.
+#[derive(Clone)]
+pub struct RightProjectivePathAlgebraSubmodule<F: Field>(
+    Arc<RightProjectivePathAlgebraSubmoduleData<F>>,
+);
+
+impl<F: Field> RightProjectivePathAlgebraSubmodule<F> {
+    fn new(
+        parent: &RightProjectivePathAlgebraModule<F>,
+        generators: Vec<PathAlgebraVector<F>>,
+    ) -> Result<Self, ProjectivePathModuleError> {
+        if generators.is_empty() {
+            return Err(ProjectivePathModuleError::EmptySubmoduleGenerators);
+        }
+        if generators
+            .iter()
+            .any(|generator| !generator.module().is_identical(parent))
+        {
+            return Err(ProjectivePathModuleError::ForeignSubmoduleGenerator);
+        }
+        Ok(Self(Arc::new(RightProjectivePathAlgebraSubmoduleData {
+            parent: parent.clone(),
+            generators: generators.into_boxed_slice(),
+        })))
+    }
+
+    /// Return the ambient vertex-projective module.
+    #[must_use]
+    pub fn parent(&self) -> &RightProjectivePathAlgebraModule<F> {
+        &self.0.parent
+    }
+
+    /// Return QPA's entered `GeneratorsOfAlgebraModule` list.
+    #[must_use]
+    pub fn generators(&self) -> &[PathAlgebraVector<F>] {
+        &self.0.generators
+    }
+
+    /// Return whether two handles denote the identical QPA submodule object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Translate QPA's vertex-idempotent splitting into uniform generators.
+    ///
+    /// # Errors
+    ///
+    /// Propagates exact right action and vector-ordering failures.
+    pub fn uniform_generators(
+        &self,
+    ) -> Result<Vec<PathAlgebraVector<F>>, ProjectivePathModuleError> {
+        uniform_generators_of_module(self.parent(), self.generators())
+    }
+
+    /// Translate QPA's right module Gröbner-basis construction.
+    ///
+    /// # Errors
+    ///
+    /// Propagates uniformization, tip reduction, and dictionary failures.
+    pub fn right_groebner_basis(
+        &self,
+    ) -> Result<RightPathAlgebraModuleGroebnerBasis<F>, ProjectivePathModuleError> {
+        let uniform_generators = self.uniform_generators()?;
+        RightPathAlgebraModuleGroebnerBasis::new(
+            RightPathAlgebraModuleSource::Submodule(self.clone()),
+            &uniform_generators,
+        )
+    }
+}
+
+impl<F: Field> fmt::Debug for RightProjectivePathAlgebraSubmodule<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RightProjectivePathAlgebraSubmodule")
+            .field("parent", self.parent())
+            .field("generators", &self.generators())
+            .finish()
+    }
+}
+
+impl<F: Field> PartialEq for RightProjectivePathAlgebraSubmodule<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.is_identical(other)
+    }
+}
+
+impl<F: Field> Eq for RightProjectivePathAlgebraSubmodule<F> {}
+
+#[derive(Clone, Debug)]
+enum RightPathAlgebraModuleSource<F: Field> {
+    Whole(RightProjectivePathAlgebraModule<F>),
+    Submodule(RightProjectivePathAlgebraSubmodule<F>),
+}
+
+impl<F: Field> RightPathAlgebraModuleSource<F> {
+    fn parent(&self) -> &RightProjectivePathAlgebraModule<F> {
+        match self {
+            Self::Whole(module) => module,
+            Self::Submodule(module) => module.parent(),
+        }
+    }
+
+    fn is_whole(&self) -> bool {
+        matches!(self, Self::Whole(_))
+    }
+}
+
+/// QPA's right Gröbner-basis object for a projective path module or submodule.
+#[derive(Clone, Debug)]
+pub struct RightPathAlgebraModuleGroebnerBasis<F: Field> {
+    underlying: RightPathAlgebraModuleSource<F>,
+    grouped_basis: Vec<Vec<PathAlgebraVector<F>>>,
+    static_dictionaries: Vec<Option<QuiverStaticDictionary>>,
+    basis_vectors: Vec<PathAlgebraVector<F>>,
+}
+
+impl<F: Field> RightPathAlgebraModuleGroebnerBasis<F> {
+    fn new(
+        underlying: RightPathAlgebraModuleSource<F>,
+        uniform_generators: &[PathAlgebraVector<F>],
+    ) -> Result<Self, ProjectivePathModuleError> {
+        let parent = underlying.parent();
+        let reduced = tip_reduce_path_algebra_vectors(uniform_generators)?;
+        let mut grouped_basis = vec![Vec::new(); parent.vertex_indices().len()];
+        for vector in reduced {
+            let position = vector.leading_position().checked_sub(1).ok_or(
+                ProjectivePathModuleError::InvalidLeadingPosition {
+                    position: vector.leading_position(),
+                    length: parent.vertex_indices().len(),
+                },
+            )?;
+            let Some(group) = grouped_basis.get_mut(position) else {
+                return Err(ProjectivePathModuleError::InvalidLeadingPosition {
+                    position: vector.leading_position(),
+                    length: parent.vertex_indices().len(),
+                });
+            };
+            group.push(vector);
+        }
+
+        let static_dictionaries = grouped_basis
+            .iter()
+            .map(|group| {
+                if group.is_empty() {
+                    return Ok(None);
+                }
+                let patterns = group
+                    .iter()
+                    .map(PathAlgebraVector::leading_path)
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(Some(QuiverStaticDictionary::new(
+                    parent.algebra().quiver(),
+                    &patterns,
+                )?))
+            })
+            .collect::<Result<Vec<_>, ProjectivePathModuleError>>()?;
+        let basis_vectors = grouped_basis.iter().flatten().cloned().collect();
+        Ok(Self {
+            underlying,
+            grouped_basis,
+            static_dictionaries,
+            basis_vectors,
+        })
+    }
+
+    /// Return the ambient vertex-projective module/vector family.
+    #[must_use]
+    pub fn parent_module(&self) -> &RightProjectivePathAlgebraModule<F> {
+        self.underlying.parent()
+    }
+
+    /// Return whether QPA constructed this basis for the whole projective.
+    #[must_use]
+    pub fn is_for_whole_module(&self) -> bool {
+        self.underlying.is_whole()
+    }
+
+    /// Return QPA's exact underlying whole module, when applicable.
+    #[must_use]
+    pub fn underlying_projective_module(&self) -> Option<&RightProjectivePathAlgebraModule<F>> {
+        match &self.underlying {
+            RightPathAlgebraModuleSource::Whole(module) => Some(module),
+            RightPathAlgebraModuleSource::Submodule(_) => None,
+        }
+    }
+
+    /// Return QPA's exact underlying submodule, when applicable.
+    #[must_use]
+    pub fn underlying_submodule(&self) -> Option<&RightProjectivePathAlgebraSubmodule<F>> {
+        match &self.underlying {
+            RightPathAlgebraModuleSource::Whole(_) => None,
+            RightPathAlgebraModuleSource::Submodule(module) => Some(module),
+        }
+    }
+
+    /// Return QPA's `BasisVectors`, flattened by leading coordinate.
+    #[must_use]
+    pub fn basis_vectors(&self) -> &[PathAlgebraVector<F>] {
+        &self.basis_vectors
+    }
+
+    /// Translate `CompletelyReduce(gb, vector)`.
+    ///
+    /// QPA selects the first shortest prefix match in the static dictionary;
+    /// unreducible leading terms are moved to the result one at a time.
+    ///
+    /// # Errors
+    ///
+    /// The vector must belong to the identical ambient family. Exact path,
+    /// field, and static-dictionary failures are propagated.
+    pub fn completely_reduce(
+        &self,
+        vector: &PathAlgebraVector<F>,
+    ) -> Result<PathAlgebraVector<F>, ProjectivePathModuleError> {
+        if !vector.module().is_identical(self.parent_module()) {
+            return Err(ProjectivePathModuleError::DifferentVectorFamilies);
+        }
+        if vector.is_zero() {
+            return Ok(vector.clone());
+        }
+
+        let mut current = vector.clone();
+        let mut normal_form = vector.module().zero();
+        loop {
+            let position = current.leading_position() - 1;
+            let path = current.leading_path()?;
+            let matches = match &self.static_dictionaries[position] {
+                Some(dictionary) => dictionary.prefix_search(&path)?,
+                None => Vec::new(),
+            };
+            if let Some(pattern) = matches
+                .first()
+                .and_then(|matched| matched.pattern_indices.first())
+            {
+                let reducer = &self.grouped_basis[position][pattern - 1];
+                current = reduce_right_module_element(&current, reducer)?;
+            } else {
+                let leading_term = current.leading_term();
+                normal_form = normal_form.add(&leading_term)?;
+                current = current.sub(&leading_term)?;
+            }
+            if current.is_zero() {
+                return Ok(normal_form);
+            }
+        }
+    }
+}
 
 /// Construct QPA's vertex-list overload of `RightProjectiveModule`.
 ///
@@ -548,6 +878,58 @@ impl<F: Field> PartialEq for PathAlgebraVector<F> {
 
 impl<F: Field> Eq for PathAlgebraVector<F> {}
 
+fn uniform_generators_of_module<F: Field>(
+    module: &RightProjectivePathAlgebraModule<F>,
+    generators: &[PathAlgebraVector<F>],
+) -> Result<Vec<PathAlgebraVector<F>>, ProjectivePathModuleError> {
+    let mut uniform = Vec::new();
+    for vertex in module.algebra().quiver().vertices() {
+        let idempotent = module.algebra().element(vertex.path())?;
+        for generator in generators {
+            let component = generator.act(&idempotent)?;
+            if !component.is_zero() {
+                add_set_path_algebra_vector(&mut uniform, component)?;
+            }
+        }
+    }
+    Ok(uniform)
+}
+
+fn sort_path_algebra_vectors<F: Field>(
+    vectors: &mut Vec<PathAlgebraVector<F>>,
+) -> Result<(), ProjectivePathModuleError> {
+    let entered = std::mem::take(vectors);
+    for vector in entered {
+        insert_path_algebra_vector(vectors, vector, false)?;
+    }
+    Ok(())
+}
+
+fn add_set_path_algebra_vector<F: Field>(
+    vectors: &mut Vec<PathAlgebraVector<F>>,
+    vector: PathAlgebraVector<F>,
+) -> Result<(), ProjectivePathModuleError> {
+    insert_path_algebra_vector(vectors, vector, true)
+}
+
+fn insert_path_algebra_vector<F: Field>(
+    vectors: &mut Vec<PathAlgebraVector<F>>,
+    vector: PathAlgebraVector<F>,
+    remove_equal: bool,
+) -> Result<(), ProjectivePathModuleError> {
+    for (position, existing) in vectors.iter().enumerate() {
+        if remove_equal && existing == &vector {
+            return Ok(());
+        }
+        if vector.compare(existing)?.is_lt() {
+            vectors.insert(position, vector);
+            return Ok(());
+        }
+    }
+    vectors.push(vector);
+    Ok(())
+}
+
 /// Translate `moduleprojres.gi`'s `LeftDivision(x, y)`.
 ///
 /// `None` is QPA's `false`; success returns the coefficient-bearing right path
@@ -798,6 +1180,12 @@ pub enum ProjectivePathModuleError {
     /// QPA installs vector arithmetic only for identical families.
     #[error("the path-algebra vectors belong to different module families")]
     DifferentVectorFamilies,
+    /// Submodule generators must belong to their ambient vector family.
+    #[error("a submodule generator belongs to another projective-vector family")]
+    ForeignSubmoduleGenerator,
+    /// GAP's empty list misses QPA's element-collection method dispatch.
+    #[error("QPA does not dispatch its projective SubAlgebraModule method on an empty list")]
+    EmptySubmoduleGenerators,
     /// A right action element must belong to the module's parent algebra.
     #[error("the right action element belongs to another path algebra")]
     ForeignActionAlgebra,
@@ -839,6 +1227,9 @@ pub enum ProjectivePathModuleError {
     /// QPA path ordering failed.
     #[error(transparent)]
     Ordering(#[from] crate::OrderingError),
+    /// QPA's module Gröbner basis uses quiver static dictionaries.
+    #[error(transparent)]
+    StaticDictionary(#[from] StaticDictionaryError),
 }
 
 #[cfg(test)]
@@ -1032,6 +1423,141 @@ mod tests {
         })
     }
 
+    #[allow(clippy::too_many_lines)]
+    fn projective_path_groebner_case<F: Field>(
+        field: &F,
+        coefficient: impl Fn(&F::Element) -> Value + Copy,
+    ) -> Value {
+        let algebra = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(
+                3,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "a"),
+                    ArrowSpec::named(vertex(1), vertex(2), "b"),
+                    ArrowSpec::named(vertex(2), vertex(3), "c"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = algebra.generators();
+        let (vertex_v, vertex_w, arrow_a, arrow_b, arrow_c) = (
+            &generators[0],
+            &generators[1],
+            &generators[3],
+            &generators[4],
+            &generators[5],
+        );
+        let zero = algebra.zero();
+        let projective = right_projective_path_algebra_module(
+            &algebra,
+            &[vertex_v.clone(), vertex_v.clone(), vertex_w.clone()],
+        )
+        .unwrap();
+        let ac = arrow_a.multiply(arrow_c).unwrap();
+        let bc = arrow_b.multiply(arrow_c).unwrap();
+        let a_plus_ac = arrow_a.add(&ac).unwrap();
+        let g1 = projective
+            .vector(vec![a_plus_ac.clone(), arrow_b.clone(), zero.clone()])
+            .unwrap();
+        let g2 = projective
+            .vector(vec![bc.add(&ac).unwrap(), zero.clone(), arrow_c.clone()])
+            .unwrap();
+        let g3 = projective
+            .vector(vec![a_plus_ac, zero.clone(), zero.clone()])
+            .unwrap();
+        let submodule = projective
+            .submodule(vec![g1.clone(), g2.clone(), g3.clone()])
+            .unwrap();
+        let zero_submodule = projective.submodule(vec![projective.zero()]).unwrap();
+        let groebner_basis = submodule.right_groebner_basis().unwrap();
+        assert!(
+            groebner_basis
+                .underlying_submodule()
+                .unwrap()
+                .is_identical(&submodule)
+        );
+
+        let probe1 = projective
+            .vector(vec![ac.add(arrow_a).unwrap(), zero.clone(), zero.clone()])
+            .unwrap();
+        let probe2 = projective
+            .vector(vec![
+                bc.add(&ac).unwrap().add(arrow_a).unwrap(),
+                zero.clone(),
+                arrow_c.clone(),
+            ])
+            .unwrap();
+        let probe3 = projective.vector(vec![bc, ac, zero]).unwrap();
+        json!({
+            "projective_dimension": projective.dimension().unwrap(),
+            "projective_basis": vector_list_json(
+                &projective.canonical_basis().unwrap().unwrap(),
+                coefficient,
+            ),
+            "whole_uniform_generators": vector_list_json(
+                &projective.uniform_generators().unwrap(),
+                coefficient,
+            ),
+            "entered_generators": vector_list_json(submodule.generators(), coefficient),
+            "uniform_generators": vector_list_json(
+                &submodule.uniform_generators().unwrap(),
+                coefficient,
+            ),
+            "zero_uniform_generators": vector_list_json(
+                &zero_submodule.uniform_generators().unwrap(),
+                coefficient,
+            ),
+            "groebner_basis": vector_list_json(groebner_basis.basis_vectors(), coefficient),
+            "reduced_probes": vector_list_json(
+                &[
+                    groebner_basis.completely_reduce(&probe1).unwrap(),
+                    groebner_basis.completely_reduce(&probe2).unwrap(),
+                    groebner_basis.completely_reduce(&probe3).unwrap(),
+                ],
+                coefficient,
+            ),
+        })
+    }
+
+    #[test]
+    fn pinned_qpa_projective_path_module_groebner_fixture_matches() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/projpathalgmodule_groebner.schema-v1.json"
+        ))
+        .unwrap();
+        let field5 = Zp::new(5);
+        let field5_coefficients = field5.clone();
+        let actual = json!({
+            "schema_version": 1,
+            "kind": "projpathalgmodule_groebner",
+            "oracle": {
+                "gap_version": "4.17dev",
+                "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+                "qpa_version": "1.37",
+                "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+                "gbnp_version": "1.1.0",
+                "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+            },
+            "binary": projective_path_groebner_case(&Z2, |entry| json!(
+                Z2.to_integer(entry).to_string().parse::<i64>().unwrap()
+            )),
+            "quinary": projective_path_groebner_case(&field5, |entry| json!(
+                field5_coefficients
+                    .to_integer(entry)
+                    .to_string()
+                    .parse::<i64>()
+                    .unwrap()
+            )),
+            "rational": projective_path_groebner_case(&Q, |entry: &Rational| json!([
+                entry.numerator_ref().to_string().parse::<i64>().unwrap(),
+                entry.denominator_ref().to_string().parse::<i64>().unwrap(),
+            ])),
+        });
+        assert_eq!(actual, expected);
+    }
+
     #[test]
     fn pinned_qpa_projective_path_vectors_fixture_matches() {
         let expected: Value = serde_json::from_str(include_str!(
@@ -1099,5 +1625,35 @@ mod tests {
             left_division(&first.zero(), &first_vector),
             Err(ProjectivePathModuleError::ZeroVectorDivision)
         ));
+        assert!(matches!(
+            first.submodule(vec![second_vector.clone()]),
+            Err(ProjectivePathModuleError::ForeignSubmoduleGenerator)
+        ));
+        assert!(matches!(
+            first.submodule(Vec::new()),
+            Err(ProjectivePathModuleError::EmptySubmoduleGenerators)
+        ));
+        let whole_basis = first.right_groebner_basis().unwrap();
+        assert!(whole_basis.is_for_whole_module());
+        assert!(
+            whole_basis
+                .completely_reduce(&first_vector)
+                .unwrap()
+                .is_zero()
+        );
+        assert!(matches!(
+            whole_basis.completely_reduce(&second_vector),
+            Err(ProjectivePathModuleError::DifferentVectorFamilies)
+        ));
+
+        let cyclic = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let cyclic_projective =
+            right_projective_path_algebra_module(&cyclic, &[cyclic.generators()[0].clone()])
+                .unwrap();
+        assert!(cyclic_projective.canonical_basis().unwrap().is_none());
     }
 }

@@ -20591,9 +20591,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 35
 source_end = 35
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::uniform_generators; RightProjectivePathAlgebraSubmodule::uniform_generators"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20604,9 +20604,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 36
 source_end = 36
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::right_groebner_basis; RightProjectivePathAlgebraSubmodule::right_groebner_basis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20630,9 +20630,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20643,9 +20643,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 39
 source_end = 40
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20656,9 +20656,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 41
 source_end = 42
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20695,9 +20695,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 49
 source_end = 49
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis::underlying_projective_module; RightPathAlgebraModuleGroebnerBasis::underlying_submodule"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20708,9 +20708,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gd"
 source_start = 50
 source_end = 51
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21345,9 +21345,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1084
 source_end = 1118
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::submodule"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21397,9 +21397,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1201
 source_end = 1234
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::canonical_basis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21410,9 +21410,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1237
 source_end = 1245
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::canonical_basis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21436,9 +21436,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1286
 source_end = 1308
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::uniform_generators; RightProjectivePathAlgebraSubmodule::uniform_generators"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21449,9 +21449,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1379
 source_end = 1459
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightProjectivePathAlgebraModule::right_groebner_basis; RightProjectivePathAlgebraSubmodule::right_groebner_basis"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -21501,9 +21501,9 @@ source_file = "upstream/qpa/lib/projpathalgmodule.gi"
 source_start = 1523
 source_end = 1562
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightPathAlgebraModuleGroebnerBasis::completely_reduce"
+tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
 
 [[entries]]
