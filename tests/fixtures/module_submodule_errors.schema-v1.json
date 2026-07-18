@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "kind": "module_submodule_errors",
+  "success": {
+    "empty": true,
+    "zero_canonical": true,
+    "zero_conversion": false,
+    "zero_natural": false,
+    "dependent_canonical": false,
+    "zero_space_conversion": false,
+    "zero_space_natural": false,
+    "wrong_parent": false,
+    "quotient_submodule": false
+  }
+}

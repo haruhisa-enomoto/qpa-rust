@@ -9983,10 +9983,10 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "submodule_as_module; PathAlgebraModuleSubmodule::as_module"
+tests = ["tests/fixtures/module_submodules.txt","tests/fixtures/module_submodule_errors.schema-v1.json"]
+deviations = ["MODULE-004"]
 
 [[entries]]
 id = "module:DeclareOperation:BasisOfDomain:1"
@@ -10061,9 +10061,9 @@ source_file = "upstream/qpa/lib/module.gd"
 source_start = 22
 source_end = 22
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "PathAlgebraModuleHomomorphism"
+tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/module_submodules.txt"]
 deviations = []
 
 [[entries]]
@@ -10763,10 +10763,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1016
 source_end = 1060
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "subalgebra_module; PathAlgebraModuleSubmodule"
+tests = ["tests/fixtures/module_submodules.txt","tests/fixtures/module_submodule_errors.schema-v1.json"]
+deviations = ["MODULE-004"]
 
 [[entries]]
 id = "module:InstallMethod:SubmoduleAsModule:1"
@@ -10776,10 +10776,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1070
 source_end = 1128
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "submodule_as_module; PathAlgebraModuleSubmodule::as_module"
+tests = ["tests/fixtures/module_submodules.txt","tests/fixtures/module_submodule_errors.schema-v1.json"]
+deviations = ["MODULE-004"]
 
 [[entries]]
 id = "module:InstallOtherMethod:NaturalHomomorphismBySubAlgebraModule:1"
@@ -10789,10 +10789,10 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 1137
 source_end = 1252
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "natural_homomorphism_by_subalgebra_module; PathAlgebraModuleBasisMapping"
+tests = ["tests/fixtures/module_submodules.txt","tests/fixtures/module_submodule_errors.schema-v1.json"]
+deviations = ["MODULE-004"]
 
 [[entries]]
 id = "module:InstallOtherMethod:Hom:1"

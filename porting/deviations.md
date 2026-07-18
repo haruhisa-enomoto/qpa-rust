@@ -359,6 +359,37 @@ the computations remain translations of the cited source methods.
   `tests/fixtures/module_inferred_constructor_errors.schema-v1.json` pins the
   source NC isolated-vertex failure and unchecked foreign-field acceptance.
 
+## MODULE-004 — Matrix-submodule source failures are typed
+
+- Source: QPA `lib/module.gi`, matrix-module `SubAlgebraModule` at lines
+  1016–1060, `SubmoduleAsModule` at lines 1070–1128, and
+  `NaturalHomomorphismBySubAlgebraModule` at lines 1137–1252.
+- Affected Rust operations: `subalgebra_module`,
+  `PathAlgebraModuleSubmodule::canonical_basis_elements`,
+  `submodule_as_module`, and
+  `natural_homomorphism_by_subalgebra_module`.
+- Difference: QPA's nonempty quotient-module submodule acts by vertices from
+  the original path-algebra family and fails method dispatch; dependent
+  retained uniform generators reach a nonsquare matrix inverse; zero
+  submodule conversion indexes a missing basis vector; zero endpoint
+  dimensions are passed as integer pairs to a positional constructor and
+  misdispatch; and the natural map's zero-submodule subspace check cannot
+  obtain images. Rust returns a distinct `PathAlgebraModuleError` at each
+  corresponding branch.
+- Reason: Rust cannot recreate GAP method-dispatch, unbound-list, or nonsquare
+  inversion interpreter failures as values. The typed errors preserve the
+  pinned public outcome without repairing the source branch. GAP's generic
+  higher-ranking empty-list dispatch and empty canonical basis remain
+  successful in Rust.
+- Compatibility impact: valid path-algebra submodules retain QPA's
+  generator-major vertex splitting, canonical-basis closure order, standalone
+  matrices, quotient dimensions, and basis images. Invalid cases return typed
+  errors instead of the recorded GAP messages.
+- Evidence: `tests/fixtures/module_submodules.txt` pins successful `QQ` and
+  `GF(2)` results, including the natural map's leaked earlier-vertex
+  coordinates; `tests/fixtures/module_submodule_errors.schema-v1.json` pins
+  every listed dispatch and interpreter failure.
+
 ## MODULEHOM-001 — Semisimple block counting uses the split-prime tier
 
 - Source: QPA `lib/modulehom.gi`, `NumberOfNonIsoDirSummands` at lines

@@ -1093,6 +1093,12 @@ compare_text_fixture \
 compare_noisy_catching_fixture \
     "$repo_root/tests/gap-reference/module_inferred_constructor_errors.g" \
     "$repo_root/tests/fixtures/module_inferred_constructor_errors.schema-v1.json"
+compare_text_fixture \
+    "$repo_root/tests/gap-reference/module_submodules.g" \
+    "$repo_root/tests/fixtures/module_submodules.txt"
+compare_noisy_catching_fixture \
+    "$repo_root/tests/gap-reference/module_submodule_errors.g" \
+    "$repo_root/tests/fixtures/module_submodule_errors.schema-v1.json"
 if "$repo_root/scripts/gap-reference" --alwaystrace \
     "$repo_root/tests/gap-reference/module_basis_zero_error.g" \
     >"$actual" 2>&1

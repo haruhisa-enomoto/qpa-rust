@@ -312,6 +312,36 @@ struct DirectSumMetadata<F: Field> {
 #[derive(Clone)]
 pub struct PathAlgebraModule<F: Field>(Arc<PathAlgebraModuleData<F>>);
 
+struct PathAlgebraModuleSubmoduleData<F: Field> {
+    parent: PathAlgebraModule<F>,
+    generators: Box<[PathAlgebraModuleElement<F>]>,
+}
+
+/// QPA's `SubAlgebraModule` object inside a path-algebra matrix module.
+///
+/// QPA stores the nonzero vertex-uniform components of the entered generators
+/// and retains the ambient module as `Parent`. Clones preserve object
+/// identity.
+#[derive(Clone)]
+pub struct PathAlgebraModuleSubmodule<F: Field>(Arc<PathAlgebraModuleSubmoduleData<F>>);
+
+struct PathAlgebraModuleBasisMappingData<F: Field> {
+    source: PathAlgebraModule<F>,
+    range: PathAlgebraModule<F>,
+    basis_images: Box<[PathAlgebraModuleElement<F>]>,
+    surjective: bool,
+}
+
+/// A QPA `LeftModuleHomomorphismByImagesNC` represented by ordered basis
+/// images.
+///
+/// This is deliberately distinct from [`PathAlgebraModuleHomomorphism`]: the
+/// mapping returned by QPA's `NaturalHomomorphismBySubAlgebraModule` can have
+/// basis images that do not preserve vertex support because of a source-list
+/// aliasing bug.
+#[derive(Clone)]
+pub struct PathAlgebraModuleBasisMapping<F: Field>(Arc<PathAlgebraModuleBasisMappingData<F>>);
+
 impl<F: Field> PathAlgebraModule<F> {
     /// Return QPA's `RightActingAlgebra` value.
     #[must_use]
@@ -1810,6 +1840,145 @@ impl<F: Field> PartialEq for PathAlgebraModule<F> {
 }
 
 impl<F: Field> Eq for PathAlgebraModule<F> {}
+
+impl<F: Field> PathAlgebraModuleSubmodule<F> {
+    /// Return QPA's ambient `Parent` module.
+    #[must_use]
+    pub fn parent(&self) -> &PathAlgebraModule<F> {
+        &self.0.parent
+    }
+
+    /// Return QPA's nonzero vertex-uniform `GeneratorsOfAlgebraModule` list.
+    #[must_use]
+    pub fn generators(&self) -> &[PathAlgebraModuleElement<F>] {
+        &self.0.generators
+    }
+
+    /// Return whether two handles denote the identical QPA submodule object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Return QPA's ordered `BasisVectors(CanonicalBasis(N))` as elements of
+    /// the parent module.
+    ///
+    /// # Errors
+    ///
+    /// Returns the empty basis for QPA's generic zero-submodule dispatch,
+    /// preserves its dependent-generator failure, and propagates exact action
+    /// and row-space computations.
+    pub fn canonical_basis_elements(
+        &self,
+    ) -> Result<Vec<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
+        canonical_basis_of_subalgebra_module(self)
+    }
+
+    /// Translate QPA's `SubmoduleAsModule(N)` conversion.
+    ///
+    /// # Errors
+    ///
+    /// Propagates QPA canonical-basis and checked representation construction.
+    pub fn as_module(&self) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+        submodule_as_module(self)
+    }
+}
+
+impl<F: Field> fmt::Debug for PathAlgebraModuleSubmodule<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PathAlgebraModuleSubmodule")
+            .field("parent", self.parent())
+            .field("generators", &self.generators())
+            .finish()
+    }
+}
+
+impl<F: Field> PartialEq for PathAlgebraModuleSubmodule<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.is_identical(other)
+    }
+}
+
+impl<F: Field> Eq for PathAlgebraModuleSubmodule<F> {}
+
+impl<F: Field> PathAlgebraModuleBasisMapping<F> {
+    /// Return QPA's source module.
+    #[must_use]
+    pub fn source(&self) -> &PathAlgebraModule<F> {
+        &self.0.source
+    }
+
+    /// Return QPA's range module.
+    #[must_use]
+    pub fn range(&self) -> &PathAlgebraModule<F> {
+        &self.0.range
+    }
+
+    /// Return the images corresponding to `BasisVectors(Basis(Source(map)))`.
+    #[must_use]
+    pub fn basis_images(&self) -> &[PathAlgebraModuleElement<F>] {
+        &self.0.basis_images
+    }
+
+    /// Return QPA's installed `IsSurjective` value.
+    #[must_use]
+    pub fn is_surjective(&self) -> bool {
+        self.0.surjective
+    }
+
+    /// Return whether two handles denote the identical QPA mapping object.
+    #[must_use]
+    pub fn is_identical(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// Apply the basis-image mapping by QPA's underlying left-module linear
+    /// extension.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a foreign source family and propagates exact element
+    /// arithmetic.
+    pub fn image(
+        &self,
+        element: &PathAlgebraModuleElement<F>,
+    ) -> Result<PathAlgebraModuleElement<F>, PathAlgebraModuleError> {
+        if !self.source().is_identical(element.module()) {
+            return Err(PathAlgebraModuleError::ForeignBasisMappingSourceElement);
+        }
+        let mut image = self.range().zero_element();
+        for (coefficient, basis_image) in
+            element.basis_coefficients().iter().zip(self.basis_images())
+        {
+            image = image.add(&basis_image.scale_left(coefficient))?;
+        }
+        Ok(image)
+    }
+}
+
+impl<F: Field> fmt::Debug for PathAlgebraModuleBasisMapping<F> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PathAlgebraModuleBasisMapping")
+            .field("source", self.source())
+            .field("range", self.range())
+            .field("basis_images", &self.basis_images())
+            .field("surjective", &self.is_surjective())
+            .finish()
+    }
+}
+
+impl<F: Field> PartialEq for PathAlgebraModuleBasisMapping<F> {
+    fn eq(&self, other: &Self) -> bool {
+        self.source() == other.source()
+            && self.range() == other.range()
+            && self.basis_images() == other.basis_images()
+            && self.is_surjective() == other.is_surjective()
+    }
+}
+
+impl<F: Field> Eq for PathAlgebraModuleBasisMapping<F> {}
 
 #[derive(Clone, Debug)]
 pub(crate) struct WeakPathAlgebraModule<F: Field>(Weak<PathAlgebraModuleData<F>>);
@@ -5065,6 +5234,293 @@ fn flatten_matrix<F: Field>(matrix: &DenseMatrix<F>) -> Vec<F::Element> {
         .collect()
 }
 
+/// Translate QPA's matrix-module `SubAlgebraModule(V, generators)` method.
+///
+/// Entered elements are split by vertex idempotents in generator-major,
+/// vertex-major order, and zero components are removed before storage.
+///
+/// An empty entered list follows GAP's higher-ranking generic dispatch and
+/// returns the zero submodule. Nonempty lists use QPA's installed method.
+///
+/// # Errors
+///
+/// Rejects elements outside the identical ambient module family and preserves
+/// QPA's quotient-module action failure.
+pub fn subalgebra_module<F: Field>(
+    parent: PathAlgebraModule<F>,
+    generators: &[PathAlgebraModuleElement<F>],
+) -> Result<PathAlgebraModuleSubmodule<F>, PathAlgebraModuleError> {
+    if generators.is_empty() {
+        return Ok(PathAlgebraModuleSubmodule(Arc::new(
+            PathAlgebraModuleSubmoduleData {
+                parent,
+                generators: Box::new([]),
+            },
+        )));
+    }
+    if !parent.right_acting_algebra().is_path_algebra() {
+        return Err(PathAlgebraModuleError::QuotientSubalgebraModuleFailure);
+    }
+    if generators
+        .iter()
+        .any(|generator| !parent.is_identical(generator.module()))
+    {
+        return Err(PathAlgebraModuleError::ForeignSubalgebraModuleGenerator);
+    }
+    let mut uniform = Vec::new();
+    for generator in generators {
+        for vertex in 0..parent.dimension_vector().len() {
+            let mut component = parent.zero_element();
+            component.coordinates[vertex].clone_from(&generator.coordinates[vertex]);
+            if !component.is_zero() {
+                uniform.push(component);
+            }
+        }
+    }
+    Ok(PathAlgebraModuleSubmodule(Arc::new(
+        PathAlgebraModuleSubmoduleData {
+            parent,
+            generators: uniform.into_boxed_slice(),
+        },
+    )))
+}
+
+fn canonical_basis_of_subalgebra_module<F: Field>(
+    submodule: &PathAlgebraModuleSubmodule<F>,
+) -> Result<Vec<PathAlgebraModuleElement<F>>, PathAlgebraModuleError> {
+    if submodule.generators().is_empty() {
+        return Ok(Vec::new());
+    }
+    let parent = submodule.parent();
+    let field = parent.right_acting_algebra().field().clone();
+    let mut basis = submodule.generators().to_vec();
+    let entered_rows = DenseMatrix::from_rows(
+        basis
+            .iter()
+            .map(PathAlgebraModuleElement::basis_coefficients)
+            .collect(),
+        field.clone(),
+    )?;
+    if entered_rows.canonical_row_space_basis().nrows() != basis.len() {
+        return Err(PathAlgebraModuleError::DependentSubalgebraModuleGenerators);
+    }
+
+    let arrow_elements = parent
+        .right_acting_algebra()
+        .quiver()
+        .arrows()
+        .map(|arrow| quiver_algebra_path_element(parent.right_acting_algebra(), arrow.path()))
+        .collect::<Result<Vec<_>, _>>()?;
+    let mut position = 0;
+    while position < basis.len() {
+        let element = basis[position].clone();
+        for arrow in &arrow_elements {
+            let image = element.act(arrow)?;
+            if image.is_zero() {
+                continue;
+            }
+            let rows = DenseMatrix::from_rows(
+                basis
+                    .iter()
+                    .map(PathAlgebraModuleElement::basis_coefficients)
+                    .collect(),
+                field.clone(),
+            )?;
+            if rows.solution_row(&image.basis_coefficients())?.is_none() {
+                basis.push(image);
+            }
+        }
+        position += 1;
+    }
+    Ok(basis)
+}
+
+fn canonical_vertex_bases_of_submodule<F: Field>(
+    submodule: &PathAlgebraModuleSubmodule<F>,
+) -> Result<Vec<DenseMatrix<F>>, PathAlgebraModuleError> {
+    let parent = submodule.parent();
+    let field = parent.right_acting_algebra().field().clone();
+    let canonical = canonical_basis_of_subalgebra_module(submodule)?;
+    let mut rows = vec![Vec::new(); parent.dimension_vector().len()];
+    for element in canonical {
+        for (vertex, &dimension) in parent.dimension_vector().iter().enumerate() {
+            if element.coordinates[vertex][..dimension]
+                .iter()
+                .any(|entry| !field.is_zero(entry))
+            {
+                rows[vertex].push(element.coordinates[vertex][..dimension].to_vec());
+            }
+        }
+    }
+    rows.into_iter()
+        .zip(parent.dimension_vector())
+        .map(|(rows, &dimension)| {
+            if rows.is_empty() {
+                DenseMatrix::from_flat(0, dimension, Vec::new(), field.clone())
+            } else {
+                Ok(DenseMatrix::from_rows(rows, field.clone())?.canonical_row_space_basis())
+            }
+        })
+        .collect::<Result<Vec<_>, MatrixError>>()
+        .map_err(Into::into)
+}
+
+/// Translate QPA's `SubmoduleAsModule(N)` operation.
+///
+/// The returned representation acts over QPA's stored original path algebra,
+/// including when the ambient module acts over a quotient.
+///
+/// # Errors
+///
+/// Preserves QPA's canonical-basis and two-argument-constructor failures and
+/// propagates exact coordinate solving.
+pub fn submodule_as_module<F: Field>(
+    submodule: &PathAlgebraModuleSubmodule<F>,
+) -> Result<PathAlgebraModule<F>, PathAlgebraModuleError> {
+    if submodule.generators().is_empty() {
+        return Err(PathAlgebraModuleError::ZeroSubmoduleAsModuleFailure);
+    }
+    let parent = submodule.parent();
+    let field = parent.right_acting_algebra().field().clone();
+    let bases = canonical_vertex_bases_of_submodule(submodule)?;
+    let dimensions = bases.iter().map(DenseMatrix::nrows).collect::<Vec<_>>();
+    let original = QuiverAlgebra::Path(
+        parent
+            .right_acting_algebra()
+            .original_path_algebra()
+            .clone(),
+    );
+    if original.quiver().number_of_arrows() == 0 {
+        return Err(PathAlgebraModuleError::ArrowlessSubmoduleAsModuleFailure);
+    }
+    let mut matrices = Vec::with_capacity(original.quiver().number_of_arrows());
+    for arrow in original.quiver().arrows() {
+        let source = arrow.source().index().zero_based();
+        let target = arrow.target().index().zero_based();
+        if dimensions[source] == 0 || dimensions[target] == 0 {
+            return Err(PathAlgebraModuleError::ZeroSpaceSubmoduleAsModuleFailure {
+                arrow: arrow.name().into(),
+            });
+        }
+        let ambient_action = logical_submatrix(
+            &parent.arrow_matrices()[arrow.index().zero_based()],
+            parent.dimension_vector()[source],
+            parent.dimension_vector()[target],
+        )?;
+        let acted = bases[source].multiply(&ambient_action)?;
+        let mut entries = Vec::with_capacity(dimensions[source] * dimensions[target]);
+        for row in 0..acted.nrows() {
+            entries.extend(
+                bases[target]
+                    .solution_row(acted.row(row))?
+                    .ok_or(PathAlgebraModuleError::InternalSubmoduleCoordinates)?,
+            );
+        }
+        matrices.push(DenseMatrix::from_flat(
+            dimensions[source],
+            dimensions[target],
+            entries,
+            field.clone(),
+        )?);
+    }
+    right_module_over_path_algebra_infer_dimension(
+        original,
+        &PathAlgebraModuleArrowActions::Positional(matrices),
+    )?
+    .ok_or(PathAlgebraModuleError::GeneratedModuleRejectedRelations)
+}
+
+/// Translate QPA's `NaturalHomomorphismBySubAlgebraModule(M, N)` method.
+///
+/// Despite its name and comment, QPA returns a basis-image mapping from `M`
+/// to `M/N`. Its mutable `base` list is not restored between basis images, so
+/// coordinates from earlier vertices leak into later images. This function
+/// intentionally preserves that observable mapping.
+///
+/// # Errors
+///
+/// Requires `N` to have the identical entered parent and preserves QPA's
+/// canonical-basis, zero-space positional-constructor, and zero-quotient
+/// failures.
+#[allow(clippy::too_many_lines)]
+pub fn natural_homomorphism_by_subalgebra_module<F: Field>(
+    module: &PathAlgebraModule<F>,
+    submodule: &PathAlgebraModuleSubmodule<F>,
+) -> Result<PathAlgebraModuleBasisMapping<F>, PathAlgebraModuleError> {
+    if !module.is_identical(submodule.parent()) {
+        return Err(PathAlgebraModuleError::SubalgebraModuleNotInEnteredParent);
+    }
+    if submodule.generators().is_empty() {
+        return Err(PathAlgebraModuleError::ZeroNaturalSubmoduleFailure);
+    }
+    let subspace_bases = canonical_vertex_bases_of_submodule(submodule)?;
+    let quotients = subspace_bases
+        .iter()
+        .map(natural_quotient_by_row_space)
+        .collect::<Result<Vec<_>, _>>()?;
+    let quotient_dimensions = quotients
+        .iter()
+        .map(|quotient| quotient.lifts.nrows())
+        .collect::<Vec<_>>();
+    let original = QuiverAlgebra::Path(
+        module
+            .right_acting_algebra()
+            .original_path_algebra()
+            .clone(),
+    );
+    if original.quiver().number_of_arrows() == 0 {
+        return Err(PathAlgebraModuleError::ArrowlessNaturalSubmoduleFailure);
+    }
+    let mut matrices = Vec::with_capacity(original.quiver().number_of_arrows());
+    for arrow in original.quiver().arrows() {
+        let source = arrow.source().index().zero_based();
+        let target = arrow.target().index().zero_based();
+        if quotient_dimensions[source] == 0 || quotient_dimensions[target] == 0 {
+            return Err(PathAlgebraModuleError::ZeroSpaceNaturalSubmoduleFailure {
+                arrow: arrow.name().into(),
+            });
+        }
+        let action = logical_submatrix(
+            &module.arrow_matrices()[arrow.index().zero_based()],
+            module.dimension_vector()[source],
+            module.dimension_vector()[target],
+        )?;
+        matrices.push(
+            quotients[source]
+                .lifts
+                .multiply(&action)?
+                .multiply(&quotients[target].projection)?,
+        );
+    }
+    let quotient = right_module_over_path_algebra_infer_dimension(
+        original,
+        &PathAlgebraModuleArrowActions::Positional(matrices),
+    )?
+    .ok_or(PathAlgebraModuleError::GeneratedModuleRejectedRelations)?;
+    if quotient.dimension() == 0 {
+        return Err(PathAlgebraModuleError::ZeroNaturalSubmoduleQuotientFailure);
+    }
+
+    let mut base = quotient.zero_element();
+    let mut images = Vec::with_capacity(module.dimension());
+    for (vertex, &dimension) in module.dimension_vector().iter().enumerate() {
+        for row in 0..dimension {
+            if quotient_dimensions[vertex] != 0 {
+                base.coordinates[vertex] = quotients[vertex].projection.row(row).to_vec();
+            }
+            images.push(base.clone());
+        }
+    }
+    Ok(PathAlgebraModuleBasisMapping(Arc::new(
+        PathAlgebraModuleBasisMappingData {
+            source: module.clone(),
+            range: quotient,
+            basis_images: images.into_boxed_slice(),
+            surjective: true,
+        },
+    )))
+}
+
 /// Translate QPA's `SubRepresentationInclusion(M, generators)` method.
 ///
 /// QPA first makes every generator vertex-uniform, repeatedly acts by every
@@ -7902,6 +8358,57 @@ pub enum PathAlgebraModuleError {
     /// Every generator of a subrepresentation must belong to the input module.
     #[error("a subrepresentation generator is not an element of the input module")]
     ForeignSubrepresentationGenerator,
+    /// QPA acts by vertices of the stored original path algebra, which do not
+    /// dispatch on outer module elements over a proper quotient.
+    #[error("QPA's SubAlgebraModule method fails for modules over proper path-algebra quotients")]
+    QuotientSubalgebraModuleFailure,
+    /// QPA's identical-family method accepts only ambient module elements.
+    #[error("a SubAlgebraModule generator belongs to a different module family")]
+    ForeignSubalgebraModuleGenerator,
+    /// `SubmoduleAsModule` indexes the first canonical-basis vector of its
+    /// zero submodule.
+    #[error("QPA cannot convert the zero SubAlgebraModule to a standalone module")]
+    ZeroSubmoduleAsModuleFailure,
+    /// QPA's generic module-basis delegate attempts to invert a nonsquare
+    /// matrix when its retained uniform generators are dependent.
+    #[error("QPA cannot construct a canonical basis from dependent SubAlgebraModule generators")]
+    DependentSubalgebraModuleGenerators,
+    /// `SubmoduleAsModule` feeds zero-space dimension pairs into the
+    /// positional two-argument constructor, which QPA misdispatches.
+    #[error("SubmoduleAsModule fails at zero-space arrow {arrow:?}")]
+    ZeroSpaceSubmoduleAsModuleFailure {
+        /// Arrow exposing a zero endpoint dimension.
+        arrow: Box<str>,
+    },
+    /// The empty arrow list does not dispatch QPA's two-argument constructor.
+    #[error("SubmoduleAsModule fails for an arrowless path algebra")]
+    ArrowlessSubmoduleAsModuleFailure,
+    /// A reconstructed submodule arrow image must lie in its target vertex
+    /// subspace.
+    #[error("an internal SubmoduleAsModule arrow image has no target-basis coordinates")]
+    InternalSubmoduleCoordinates,
+    /// The named natural mapping requires the entered submodule of `M`.
+    #[error("the second argument is not a submodule of the first argument")]
+    SubalgebraModuleNotInEnteredParent,
+    /// GAP's generic subspace test cannot obtain images for the zero
+    /// `SubAlgebraModule` in this method.
+    #[error("NaturalHomomorphismBySubAlgebraModule fails for the zero submodule")]
+    ZeroNaturalSubmoduleFailure,
+    /// QPA feeds quotient zero-space pairs into its positional constructor.
+    #[error("NaturalHomomorphismBySubAlgebraModule fails at zero-space arrow {arrow:?}")]
+    ZeroSpaceNaturalSubmoduleFailure {
+        /// Arrow exposing a zero quotient endpoint.
+        arrow: Box<str>,
+    },
+    /// The empty arrow list does not dispatch QPA's quotient constructor.
+    #[error("NaturalHomomorphismBySubAlgebraModule fails for an arrowless path algebra")]
+    ArrowlessNaturalSubmoduleFailure,
+    /// QPA indexes the first basis vector of its zero quotient.
+    #[error("NaturalHomomorphismBySubAlgebraModule cannot construct a zero quotient mapping")]
+    ZeroNaturalSubmoduleQuotientFailure,
+    /// Basis-image mappings accept only their identical source family.
+    #[error("the entered element is outside the basis mapping's source family")]
+    ForeignBasisMappingSourceElement,
     /// QPA's canonical subspace basis must remain vertex-uniform.
     #[error("the canonical generated-submodule basis is not vertex-uniform")]
     NonuniformSubrepresentationBasis,
@@ -8016,16 +8523,17 @@ mod tests {
         left_minimal_version, maximal_common_direct_summand, minimal_generating_set_of_module,
         more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
         morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
-        natural_endomorphism_quotient_by_ideal, number_of_nonisomorphic_direct_summands, pull_back,
-        push_out, radical_of_module_inclusion, reject_of_module,
-        restriction_via_algebra_homomorphism, restriction_via_algebra_homomorphism_map,
-        right_fac_approximation, right_fac_approximation_via_all_basis_images,
-        right_inverse_of_homomorphism, right_minimal_version, right_module_hom_over_algebra,
-        right_module_over_path_algebra, right_module_over_path_algebra_infer_dimension,
+        natural_endomorphism_quotient_by_ideal, natural_homomorphism_by_subalgebra_module,
+        number_of_nonisomorphic_direct_summands, pull_back, push_out, radical_of_module_inclusion,
+        reject_of_module, restriction_via_algebra_homomorphism,
+        restriction_via_algebra_homomorphism_map, right_fac_approximation,
+        right_fac_approximation_via_all_basis_images, right_inverse_of_homomorphism,
+        right_minimal_version, right_module_hom_over_algebra, right_module_over_path_algebra,
+        right_module_over_path_algebra_infer_dimension,
         right_module_over_path_algebra_infer_dimension_nc, socle_of_module,
-        socle_of_module_inclusion, sum_of_submodules, sum_of_submodules_list, top_of_module,
-        top_of_module_homomorphism, top_of_module_projection, trace_of_module, zero_module,
-        zero_module_mapping,
+        socle_of_module_inclusion, subalgebra_module, sum_of_submodules, sum_of_submodules_list,
+        top_of_module, top_of_module_homomorphism, top_of_module_projection, trace_of_module,
+        zero_module, zero_module_mapping,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -8060,6 +8568,29 @@ mod tests {
             "{name}={}|{matrices}\n",
             super::qpa_usize_list(module.dimension_vector())
         )
+    }
+
+    fn qpa_element_list<F: Field>(
+        elements: &[super::PathAlgebraModuleElement<F>],
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> String {
+        super::qpa_list(
+            elements
+                .iter()
+                .map(|element| element.qpa_print_string_with(coefficient)),
+        )
+    }
+
+    fn qpa_module_matrix_list<F: Field>(
+        module: &PathAlgebraModule<F>,
+        coefficient: impl Fn(&F::Element) -> String + Copy,
+    ) -> String {
+        super::qpa_list(module.matrices_of_path_algebra_module().iter().map(
+            |matrix| match matrix {
+                PathAlgebraModuleMatrix::ZeroScalar => "0".to_owned(),
+                PathAlgebraModuleMatrix::Matrix(matrix) => qpa_matrix(matrix, coefficient),
+            },
+        ))
     }
 
     #[test]
@@ -9907,6 +10438,178 @@ mod tests {
         .unwrap()
         .unwrap();
         assert_eq!(unchecked.arrow_matrices()[0], foreign);
+    }
+
+    #[test]
+    fn matrix_submodules_and_natural_basis_mapping_match_qpa_oracle() {
+        fn run<F: Field>(field: F, coefficient: impl Fn(&F::Element) -> String + Copy) -> String {
+            let algebra = QuiverAlgebra::Path(
+                PathAlgebra::new(
+                    field.clone(),
+                    Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")])
+                        .unwrap(),
+                )
+                .unwrap(),
+            );
+            let module = right_module_over_path_algebra(
+                algebra,
+                vec![3, 3],
+                &[NamedArrowMatrix::new("a", DenseMatrix::identity(3, field))],
+            )
+            .unwrap()
+            .unwrap();
+            let basis = module.basis_elements();
+            let generator = basis[0].add(&basis[4]).unwrap();
+            let submodule =
+                subalgebra_module(module.clone(), &[generator, module.zero_element()]).unwrap();
+            let canonical = submodule.canonical_basis_elements().unwrap();
+            let standalone = submodule.as_module().unwrap();
+            let mapping = natural_homomorphism_by_subalgebra_module(&module, &submodule).unwrap();
+            assert!(mapping.is_surjective());
+            for (source_basis, image) in basis.iter().zip(mapping.basis_images()) {
+                assert_eq!(mapping.image(source_basis).unwrap(), *image);
+            }
+            super::qpa_list([
+                qpa_element_list(submodule.generators(), coefficient),
+                qpa_element_list(&canonical, coefficient),
+                super::qpa_usize_list(standalone.dimension_vector()),
+                qpa_module_matrix_list(&standalone, coefficient),
+                super::qpa_usize_list(mapping.range().dimension_vector()),
+                qpa_module_matrix_list(mapping.range(), coefficient),
+                qpa_element_list(mapping.basis_images(), coefficient),
+                mapping.is_surjective().to_string(),
+            ])
+        }
+
+        let rational = run(Q, ToString::to_string);
+        let binary = run(Z2, |entry| {
+            if Z2.is_zero(entry) {
+                "0*Z(2)".to_owned()
+            } else {
+                "Z(2)^0".to_owned()
+            }
+        });
+        let actual = format!("QQ={rational}\nGF2={binary}\n");
+        assert_eq!(
+            actual,
+            include_str!("../../../tests/fixtures/module_submodules.txt")
+        );
+    }
+
+    #[test]
+    #[allow(clippy::too_many_lines)]
+    fn matrix_submodule_failures_match_qpa_dispatch_and_source_bugs() {
+        let algebra = QuiverAlgebra::Path(
+            PathAlgebra::new(
+                Q,
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap(),
+            )
+            .unwrap(),
+        );
+        let module = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![3, 3],
+            &[NamedArrowMatrix::new("a", DenseMatrix::identity(3, Q))],
+        )
+        .unwrap()
+        .unwrap();
+        let empty = subalgebra_module(module.clone(), &[]).unwrap();
+        assert!(empty.generators().is_empty());
+        assert!(empty.canonical_basis_elements().unwrap().is_empty());
+        let zero = subalgebra_module(module.clone(), &[module.zero_element()]).unwrap();
+        assert!(zero.generators().is_empty());
+        assert!(zero.canonical_basis_elements().unwrap().is_empty());
+        assert_eq!(
+            zero.as_module().unwrap_err(),
+            PathAlgebraModuleError::ZeroSubmoduleAsModuleFailure
+        );
+        assert_eq!(
+            natural_homomorphism_by_subalgebra_module(zero.parent(), &zero).unwrap_err(),
+            PathAlgebraModuleError::ZeroNaturalSubmoduleFailure
+        );
+
+        let basis = module.basis_elements();
+        let dependent = subalgebra_module(
+            module,
+            &[basis[0].add(&basis[4]).unwrap(), basis[0].clone()],
+        )
+        .unwrap();
+        assert_eq!(
+            dependent.canonical_basis_elements().unwrap_err(),
+            PathAlgebraModuleError::DependentSubalgebraModuleGenerators
+        );
+
+        let small = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![1, 1],
+            &[NamedArrowMatrix::new("a", DenseMatrix::identity(1, Q))],
+        )
+        .unwrap()
+        .unwrap();
+        let small_basis = small.basis_elements();
+        let target_only = subalgebra_module(small, &[small_basis[1].clone()]).unwrap();
+        assert!(matches!(
+            target_only.as_module(),
+            Err(PathAlgebraModuleError::ZeroSpaceSubmoduleAsModuleFailure { .. })
+        ));
+
+        let medium = right_module_over_path_algebra(
+            algebra.clone(),
+            vec![2, 2],
+            &[NamedArrowMatrix::new("a", DenseMatrix::identity(2, Q))],
+        )
+        .unwrap()
+        .unwrap();
+        let medium_basis = medium.basis_elements();
+        let zero_space = subalgebra_module(
+            medium.clone(),
+            &[medium_basis[0].add(&medium_basis[3]).unwrap()],
+        )
+        .unwrap();
+        assert!(matches!(
+            natural_homomorphism_by_subalgebra_module(&medium, &zero_space),
+            Err(PathAlgebraModuleError::ZeroSpaceNaturalSubmoduleFailure { .. })
+        ));
+        let foreign_parent = right_module_over_path_algebra(
+            algebra,
+            vec![2, 2],
+            &[NamedArrowMatrix::new("a", DenseMatrix::identity(2, Q))],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            natural_homomorphism_by_subalgebra_module(&foreign_parent, &zero_space).unwrap_err(),
+            PathAlgebraModuleError::SubalgebraModuleNotInEnteredParent
+        );
+
+        let loop_parent = PathAlgebra::new(
+            Q,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = loop_parent.generators()[1].clone();
+        let quotient = QuiverAlgebra::Quotient(
+            QuotientPathAlgebra::by_relations_high_level(loop_parent, &[x.pow(2).unwrap()])
+                .unwrap(),
+        );
+        let quotient_module = right_module_over_path_algebra(
+            quotient,
+            vec![2],
+            &[NamedArrowMatrix::new(
+                "x",
+                DenseMatrix::from_rows(vec![vec![q(0), q(1)], vec![q(0), q(0)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(
+            subalgebra_module(
+                quotient_module.clone(),
+                &[quotient_module.basis_elements()[1].clone()],
+            )
+            .unwrap_err(),
+            PathAlgebraModuleError::QuotientSubalgebraModuleFailure
+        );
     }
 
     #[test]
