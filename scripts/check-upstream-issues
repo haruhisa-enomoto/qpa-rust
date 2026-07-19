@@ -1,0 +1,85 @@
+#!/bin/sh
+
+set -eu
+
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+repo_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
+reproducers="$repo_root/porting/upstream-issues/reproducers"
+temporary=$(mktemp -d "${TMPDIR:-/tmp}/qpa-upstream-issues.XXXXXX")
+cleanup() {
+    rm -rf -- "$temporary"
+}
+trap cleanup EXIT HUP INT TERM
+
+expect_failure() {
+    file=$1
+    pattern=$2
+    output="$temporary/$(basename "$file").out"
+    if "$repo_root/scripts/gap-reference" --alwaystrace \
+        "$reproducers/$file" >"$output" 2>&1
+    then
+        echo "error: $file unexpectedly succeeded" >&2
+        exit 1
+    fi
+    grep -Fq "$pattern" "$output" || {
+        echo "error: $file did not contain expected diagnostic: $pattern" >&2
+        exit 1
+    }
+}
+
+expect_output() {
+    file=$1
+    pattern=$2
+    output="$temporary/$(basename "$file").out"
+    "$repo_root/scripts/gap-reference" --alwaystrace \
+        "$reproducers/$file" >"$output" 2>&1
+    grep -Fq "$pattern" "$output" || {
+        echo "error: $file did not contain expected output: $pattern" >&2
+        exit 1
+    }
+}
+
+expect_timeout() {
+    file=$1
+    output="$temporary/$(basename "$file").out"
+    if timeout 2 "$repo_root/scripts/gap-reference" \
+        "$reproducers/$file" >"$output" 2>&1
+    then
+        echo "error: $file unexpectedly terminated" >&2
+        exit 1
+    else
+        status=$?
+    fi
+    if test "$status" -ne 124
+    then
+        echo "error: $file failed with status $status instead of timing out" >&2
+        exit 1
+    fi
+}
+
+expect_output opposite-display-recursion.g \
+    "printing stopped, too many recursion levels"
+expect_failure list-uniformity-dispatch.g \
+    "CoefficientsAndMagmaElements"
+expect_failure quotient-ordered-by-unbound-relators.g \
+    "<rec>.relators"
+expect_failure zero-module-display.g \
+    "PrintArray"
+expect_failure zero-module-canonical-basis.g \
+    "NewBasis"
+expect_failure nc-isolated-vertex.g \
+    "Dimensions of element are incorrect"
+expect_failure zero-submodule-conversion.g \
+    "gens[1]"
+expect_failure generic-end-arrowless.g \
+    "NullspaceMat"
+expect_failure end-quiver-empty-radical.g \
+    "Inner product multiplication of lists: no summands"
+expect_failure iyama-zero-module.g \
+    "not the value 'fail'"
+expect_failure mapping-radical-gf2.g \
+    "IsZero"
+expect_failure natural-projection-stale-record.g \
+    "<rec>.generators"
+expect_timeout winding-different-orbits.g
+expect_timeout first-part-not-spanned.g

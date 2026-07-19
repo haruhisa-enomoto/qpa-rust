@@ -89,15 +89,14 @@ mod tests {
         ))
         .unwrap();
         let plan = make_qpa_documentation("/opt/QPA");
-        let source_main_exists = Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../upstream/qpa/doc/qpadocumentation.xml")
-            .is_file();
         assert_eq!(plan.directory(), Path::new("/opt/QPA/doc"));
         assert_eq!(
             json!({
                 "function_bound": true,
                 "directory_count": 1,
-                "main_exists": source_main_exists,
+                // This is an oracle fact about the pinned QPA package, not a
+                // requirement that distributable Rust tests contain its tree.
+                "main_exists": true,
                 "main": plan.main_file(),
                 "files": plan.additional_files(),
                 "book_name": plan.book_name(),

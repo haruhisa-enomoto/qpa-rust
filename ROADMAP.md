@@ -2,6 +2,11 @@
 
 Last updated: 2026-07-19
 
+The Rust-only port described here is complete and frozen at
+`rust-port-reference-0.1.0`. The active work is tracked in
+[POST_PORT_ROADMAP.md](POST_PORT_ROADMAP.md); unchecked items below are retained
+as historical scope and longer-term release gates.
+
 ## Rust-port completion audit
 
 The Rust-only campaign is complete for the agreed initial Numerica coefficient
@@ -914,6 +919,9 @@ These milestones are progress labels, not changes to the final scope.
   ledger entries.
 
 ## Immediate next actions
+
+This list is the original campaign bootstrap record and is no longer the active
+queue. See [POST_PORT_ROADMAP.md](POST_PORT_ROADMAP.md).
 
 - [ ] Complete the source/license/provenance files for the Rust workspace.
 - [ ] Write the inventory extractor and commit the initial QPA operation ledger.

@@ -1,0 +1,27 @@
+[package]
+name = "qpa-python"
+description = "PyO3 architecture spike for the source-faithful Rust port of QPA"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "_qpa"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["numerica-no-gmp"]
+extension-module = ["pyo3/extension-module"]
+numerica-no-gmp = ["numerica/no_gmp", "qpa-core/numerica-no-gmp"]
+numerica-gmp = ["numerica/gmp", "qpa-core/numerica-gmp"]
+
+[dependencies]
+numerica.workspace = true
+pyo3.workspace = true
+qpa-core = { path = "../qpa-core", default-features = false }
+
+[lints]
+workspace = true

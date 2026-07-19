@@ -4,6 +4,12 @@ This ledger records places where Rust's public boundary intentionally differs
 from the pinned GAP/QPA surface. It does not authorize algorithmic deviations:
 the computations remain translations of the cited source methods.
 
+The cause of every entry is indexed in
+[`compatibility-classification.md`](compatibility-classification.md). Prepared
+minimal upstream issue reproducers and report drafts live in
+[`upstream-issues/`](upstream-issues/README.md); they are local review material,
+not submitted reports.
+
 ## COMBMAP-001 — Invalid winding pairs terminate with a typed error
 
 - Source: QPA `lib/combinatorialmap.gi`, `WindingNumber` at lines 349–395.

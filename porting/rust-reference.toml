@@ -1,0 +1,30 @@
+schema_version = 1
+name = "audited Rust-only QPA reference"
+date = "2026-07-19"
+git_revision = "6d5a973"
+git_tag = "rust-port-reference-0.1.0"
+
+[surface]
+qpa_source_files = 78
+operation_ledger_entries = 1839
+operation_ledger_status = "all verified"
+coefficient_domains = ["QQ", "GF(p) for Numerica-supported prime p"]
+
+[rust_tests]
+command = "cargo test --workspace --all-targets"
+qpa_core_passed = 202
+qpa_gbnp_passed = 206
+qpa_porting_passed = 0
+
+[verification]
+entry_point = "scripts/verify"
+ledger_command = "tests/porting/test-ledger.sh"
+oracle_metadata_command = "tests/gap-reference/test_runner.sh"
+oracle_contract_command = "tests/gap-reference/test_quiver_fixture.sh"
+
+[upstream]
+lock_file = "porting/upstream-lock.toml"
+qpa_revision = "8d5f847258d4853700ce3a5d947db2a1441109f1"
+gbnp_revision = "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+gap_revision = "4efe877859ab0bc0ac041bf635a996fb897ee0c9"
+numerica_version = "2.1.0"

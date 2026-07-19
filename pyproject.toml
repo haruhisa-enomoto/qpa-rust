@@ -1,0 +1,24 @@
+[build-system]
+requires = ["maturin>=1.9.4,<2"]
+build-backend = "maturin"
+
+[project]
+name = "qpa-rust"
+version = "0.1.0"
+description = "Python architecture spike for the source-faithful Rust port of QPA"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-2.0-or-later"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "License :: OSI Approved :: GNU General Public License v2 or later (GPLv2+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[tool.maturin]
+manifest-path = "crates/qpa-python/Cargo.toml"
+python-source = "python"
+module-name = "qpa._qpa"
+features = ["extension-module"]

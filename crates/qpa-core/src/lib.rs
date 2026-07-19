@@ -3,7 +3,12 @@
 //! QPA and the GAP primitives it calls define observable semantics. External
 //! crates provide exact arithmetic and storage primitives, not replacement QPA
 //! algorithms.
+//!
+//! Application code should begin with the supported [`api`] facade. The crate
+//! root retains the complete source-translation surface for compatibility and
+//! source auditing.
 
+pub mod api;
 pub mod centre;
 pub mod coefficient;
 pub mod combinatorial_map;

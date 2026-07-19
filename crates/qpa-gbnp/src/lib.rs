@@ -2,8 +2,13 @@
 //!
 //! The translation is rooted at GBNP's `SGrobner`; no independent Gröbner
 //! algorithm is substituted here.
+//!
+//! Application code should begin with the supported [`api`] facade. The crate
+//! root retains the complete source-translation surface for compatibility and
+//! source auditing.
 
 pub mod algebra_conversion;
+pub mod api;
 pub mod combinatorial_map;
 pub mod combinatorial_rep;
 pub mod complex;

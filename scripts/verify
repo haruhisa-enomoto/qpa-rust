@@ -1,0 +1,72 @@
+#!/bin/sh
+
+set -eu
+
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+repo_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
+cd "$repo_root"
+
+usage() {
+    echo "usage: scripts/verify {rust|gmp|python|oracle|all}" >&2
+}
+
+verify_rust() {
+    cargo fmt --all -- --check
+    cargo test --workspace --all-targets
+    cargo clippy --workspace --all-targets -- -D warnings
+    RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
+    tests/porting/test-ledger.sh
+}
+
+verify_gmp() {
+    cargo test --workspace --all-targets --no-default-features --features numerica-gmp
+    cargo clippy --workspace --all-targets --no-default-features \
+        --features numerica-gmp -- -D warnings
+    RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps \
+        --no-default-features --features numerica-gmp
+}
+
+verify_python() {
+    test -x .venv/bin/maturin || {
+        echo "error: create .venv and install maturin plus pytest; see docs/python-architecture-spike.md" >&2
+        exit 127
+    }
+    .venv/bin/maturin develop
+    .venv/bin/python -m pytest -q python/tests
+}
+
+verify_oracle() {
+    command -v jq >/dev/null 2>&1 || {
+        echo "error: oracle verification requires jq" >&2
+        exit 127
+    }
+    tests/gap-reference/test_runner.sh
+    tests/gap-reference/test_quiver_fixture.sh
+    scripts/check-upstream-issues
+}
+
+mode=${1:-}
+case "$mode" in
+    rust)
+        verify_rust
+        ;;
+    gmp)
+        verify_gmp
+        ;;
+    python)
+        verify_python
+        ;;
+    oracle)
+        verify_oracle
+        ;;
+    all)
+        verify_rust
+        verify_gmp
+        verify_python
+        verify_oracle
+        ;;
+    *)
+        usage
+        exit 2
+        ;;
+esac
