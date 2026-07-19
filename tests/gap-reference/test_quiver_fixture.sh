@@ -184,6 +184,22 @@ compare_pathalg_one_sided_gb_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_final_declared_surface_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw" 2>&1
+    test "$(grep -Fc 'no method found!' "$raw")" -eq 4
+    test "$(grep -Fc "no 1st choice method found for \`LiftIdempotents'" "$raw")" -eq 1
+    test "$(grep -Fc "no 1st choice method found for \`ProjectiveResolutionFpPathAlgebraModule' on 3 arguments" "$raw")" -eq 1
+    test "$(grep -Fc "no 1st choice method found for \`FindNextRProjective'" "$raw")" -eq 1
+    test "$(grep -Fc "no 1st choice method found for \`FindNextSyzygy'" "$raw")" -eq 1
+    grep -E '^\{"schema_version":' "$raw" | tail -n 1 |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_pathalg_eae_fixture() {
     source_script=$1
     fixture=$2
@@ -1239,6 +1255,9 @@ compare_fixture \
 compare_fixture \
     "$repo_root/tests/gap-reference/moduleprojres_resolution.g" \
     "$repo_root/tests/fixtures/moduleprojres_resolution.schema-v1.json"
+compare_final_declared_surface_fixture \
+    "$repo_root/tests/gap-reference/final_declared_surface.g" \
+    "$repo_root/tests/fixtures/final_declared_surface.schema-v1.json"
 "$repo_root/scripts/gap-reference" \
     "$repo_root/tests/gap-reference/moduleprojres_module_resolution.g" >"$raw"
 test "$(grep -Fc "Computing f2's ..." "$raw")" -eq 3

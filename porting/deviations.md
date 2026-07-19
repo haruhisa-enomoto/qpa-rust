@@ -719,3 +719,23 @@ the computations remain translations of the cited source methods.
   both BG4 parity branches, and
   `tests/fixtures/degorderfinitetype_predefined_catalog.txt` pins the exact QPA
   catalog output.
+
+## DOCUMENTATION-001 — Documentation generation is returned as a build plan
+
+- Source: QPA `lib/documentation.gi`, `MakeQPADocumentation` at lines 1–11.
+- Affected Rust operations: `make_qpa_documentation` and
+  `QpaDocumentationPlan`.
+- Difference: QPA immediately invokes GAPDoc in the package `doc` directory
+  and copies HTML style files. Rust returns the identical directory, main XML
+  file, empty auxiliary-file list, book name, renderer, and style-copy choice
+  as typed data without writing files.
+- Reason: GAPDoc is external documentation-build tooling, not a QPA
+  computation. Returning its complete invocation plan avoids hidden
+  process-global filesystem effects and lets a documentation frontend choose
+  the compatible generator.
+- Compatibility impact: a caller that executes the returned plan obtains the
+  same QPA documentation build. Mathematical and library behavior is
+  unaffected.
+- Evidence: `tests/fixtures/final_declared_surface.schema-v1.json` pins the
+  fixed GAPDoc arguments and package-document discovery against QPA; the Rust
+  documentation test pins the same plan and source XML presence.

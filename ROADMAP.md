@@ -1,6 +1,31 @@
 # QPA Rust Port Roadmap
 
-Last updated: 2026-07-15
+Last updated: 2026-07-19
+
+## Rust-port completion audit
+
+The Rust-only campaign is complete for the agreed initial Numerica coefficient
+contract: the rational field and Numerica-backed prime fields. Python bindings
+and finite extension fields remain later campaigns.
+
+- All 78 pinned QPA `.gd`/`.gi` files regenerate to 1,839 ledger entries, and
+  every entry is `verified` with a nonempty Rust-symbol and test mapping.
+- Every `Bind*`, `Declare*`, and `Install*` construct present in those files is
+  recognized by the inventory extractor. Declarations for which pinned QPA
+  installs no method are preserved as typed missing-method boundaries rather
+  than filled with new algorithms.
+- The full pinned GAP/QPA/GBNP oracle harness passes. Rust passes 202
+  `qpa-core` tests and 206 `qpa-gbnp` tests under both Numerica's default exact
+  backend and its GMP backend.
+- Strict clippy and rustdoc checks pass with warnings denied on both backends;
+  the regenerated ledger is stable and all deviation/test cross-references
+  resolve.
+
+Unchecked items later in this historical phase plan may describe broader field
+tiers, Python packaging, cross-platform release engineering, migrated prose
+examples, performance work, or 1.0 publication. They are not missing operations
+from the completed Rust computational ledger; the generated ledger is the
+authoritative operation-level status.
 
 ## Mission
 

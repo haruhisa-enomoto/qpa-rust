@@ -11,11 +11,19 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    Path, PathAlgebraElement, PathAlgebraIdeal, PathAlgebraVector, PathEndpoint,
-    ProjectivePathModuleError, QuotientError, QuotientPathAlgebra, QuotientPathAlgebraElement,
-    RightProjectivePathAlgebraModule, RightProjectivePathAlgebraSubmodule, VertexIndex, first_part,
+    CachedAttribute, Path, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal, PathAlgebraVector,
+    PathEndpoint, ProjectivePathModuleError, QuotientError, QuotientPathAlgebra,
+    QuotientPathAlgebraElement, RightProjectivePathAlgebraModule,
+    RightProjectivePathAlgebraSubmodule, VertexIndex, first_part,
     right_projective_path_algebra_module, x_set_of_path_algebra_vector,
 };
+
+/// Rust logging target corresponding to QPA's projective-resolution info class.
+pub const INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE: &str =
+    "InfoProjectiveResolutionFpPathAlgebraModule";
+
+/// QPA leaves its projective-resolution information class at level zero.
+pub const INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL: usize = 0;
 
 struct RightProjectiveQuotientPathAlgebraModuleData<F: Field> {
     algebra: QuotientPathAlgebra<F>,
@@ -802,6 +810,8 @@ pub struct ProjectiveResolutionFpPathAlgebraModule<F: Field> {
     maps: Vec<Vec<Vec<PathAlgebraElement<F>>>>,
     f_lists: Vec<Vec<PathAlgebraVector<F>>>,
     f_prime_lists: Vec<Vec<PathAlgebraVector<F>>>,
+    r_projectives_vertex_list: CachedAttribute<Vec<Vec<VertexIndex>>>,
+    projectives_f_prime_list: CachedAttribute<Vec<Vec<PathAlgebraVector<F>>>>,
     finite_at_projective: Option<usize>,
 }
 
@@ -858,11 +868,81 @@ impl<F: Field> ProjectiveResolutionFpPathAlgebraModule<F> {
         &self.f_prime_lists
     }
 
+    /// Return the bound state of QPA's mutable `RProjectivesVertexList` attribute.
+    ///
+    /// QPA's constructors never set this separately declared legacy attribute.
+    #[must_use]
+    pub const fn r_projectives_vertex_list(&self) -> &CachedAttribute<Vec<Vec<VertexIndex>>> {
+        &self.r_projectives_vertex_list
+    }
+
+    /// Bind QPA's mutable `RProjectivesVertexList` attribute.
+    pub fn set_r_projectives_vertex_list(&mut self, value: Vec<Vec<VertexIndex>>) {
+        self.r_projectives_vertex_list = CachedAttribute::Value(value);
+    }
+
+    /// Return the bound state of QPA's mutable `ProjectivesFPrimeList` attribute.
+    ///
+    /// This is distinct from the populated second component of
+    /// `ProjectivesFList`; QPA's constructors leave this legacy attribute
+    /// unbound.
+    #[must_use]
+    pub const fn projectives_f_prime_list(
+        &self,
+    ) -> &CachedAttribute<Vec<Vec<PathAlgebraVector<F>>>> {
+        &self.projectives_f_prime_list
+    }
+
+    /// Bind QPA's mutable `ProjectivesFPrimeList` attribute.
+    pub fn set_projectives_f_prime_list(&mut self, value: Vec<Vec<PathAlgebraVector<F>>>) {
+        self.projectives_f_prime_list = CachedAttribute::Value(value);
+    }
+
     /// Return the degree at which QPA prints `finite at projective`, if reached.
     #[must_use]
     pub const fn finite_at_projective(&self) -> Option<usize> {
         self.finite_at_projective
     }
+}
+
+/// Represent QPA's declared but uninstalled three-argument
+/// `ProjectiveResolutionFpPathAlgebraModule(A, I, presentation_map)` overload.
+///
+/// # Errors
+///
+/// Pinned QPA installs only the four-argument overload and therefore always
+/// reaches its missing-method boundary here.
+pub const fn projective_resolution_fp_path_algebra_module_without_term<F: Field>(
+    _algebra: &QuotientPathAlgebra<F>,
+    _ideal: &PathAlgebraIdeal<F>,
+    _presentation_map: &[Vec<QuotientPathAlgebraElement<F>>],
+) -> Result<ProjectiveResolutionFpPathAlgebraModule<F>, ProjectiveResolutionError> {
+    Err(ProjectiveResolutionError::UninstalledThreeArgumentConstructor)
+}
+
+/// Represent QPA's declared but uninstalled `FindNextRProjective` operation.
+///
+/// # Errors
+///
+/// Always returns QPA's explicit missing-method boundary.
+pub const fn find_next_r_projective<F: Field>(
+    _resolution: &ProjectiveResolutionFpPathAlgebraModule<F>,
+    _ring: &PathAlgebra<F>,
+    _term: usize,
+) -> Result<(), ProjectiveResolutionError> {
+    Err(ProjectiveResolutionError::UninstalledFindNextRProjective)
+}
+
+/// Represent QPA's declared but uninstalled `FindNextSyzygy` operation.
+///
+/// # Errors
+///
+/// Always returns QPA's explicit missing-method boundary.
+pub const fn find_next_syzygy<F: Field>(
+    _resolution: &ProjectiveResolutionFpPathAlgebraModule<F>,
+    _term: usize,
+) -> Result<(), ProjectiveResolutionError> {
+    Err(ProjectiveResolutionError::UninstalledFindNextSyzygy)
 }
 
 /// Translate QPA's four-argument explicit-presentation GSZ constructor.
@@ -1097,6 +1177,8 @@ pub fn projective_resolution_fp_path_algebra_module<F: Field>(
         maps,
         f_lists,
         f_prime_lists,
+        r_projectives_vertex_list: CachedAttribute::Unbound,
+        projectives_f_prime_list: CachedAttribute::Unbound,
         finite_at_projective,
     })
 }
@@ -1236,6 +1318,8 @@ pub fn projective_resolution_of_path_algebra_module_from_presentation<F: Field>(
         maps,
         f_lists,
         f_prime_lists,
+        r_projectives_vertex_list: CachedAttribute::Unbound,
+        projectives_f_prime_list: CachedAttribute::Unbound,
         finite_at_projective,
     })
 }
@@ -1383,6 +1467,15 @@ fn next_resolution_step<F: Field>(
 /// Errors from QPA's explicit GSZ projective-resolution constructor.
 #[derive(Clone, Debug, Error, Eq, PartialEq)]
 pub enum ProjectiveResolutionError {
+    /// QPA declares the three-argument overload but installs no method for it.
+    #[error("QPA installs no three-argument ProjectiveResolutionFpPathAlgebraModule method")]
+    UninstalledThreeArgumentConstructor,
+    /// QPA declares `FindNextRProjective` but installs no method for it.
+    #[error("QPA installs no method for FindNextRProjective")]
+    UninstalledFindNextRProjective,
+    /// QPA declares `FindNextSyzygy` but installs no method for it.
+    #[error("QPA installs no method for FindNextSyzygy")]
+    UninstalledFindNextSyzygy,
     /// QPA dispatches the constructor only on a positive integer.
     #[error("the projective-resolution term must be positive")]
     NonpositiveTerm,
@@ -1588,8 +1681,11 @@ mod tests {
     };
 
     use super::{
-        ProjectiveResolutionError, ProjectiveResolutionFpPathAlgebraModule,
+        INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE,
+        INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL, ProjectiveResolutionError,
+        ProjectiveResolutionFpPathAlgebraModule, find_next_r_projective, find_next_syzygy,
         projective_resolution_fp_path_algebra_module,
+        projective_resolution_fp_path_algebra_module_without_term,
         right_projective_quotient_path_algebra_module,
     };
 
@@ -2199,6 +2295,15 @@ mod tests {
         let x = quotient_generators[1].clone();
 
         assert!(matches!(
+            projective_resolution_fp_path_algebra_module_without_term(
+                &algebra,
+                &ideal,
+                &[vec![x.clone()]],
+            ),
+            Err(ProjectiveResolutionError::UninstalledThreeArgumentConstructor)
+        ));
+
+        assert!(matches!(
             projective_resolution_fp_path_algebra_module(&algebra, &ideal, &[vec![x.clone()]], 0),
             Err(ProjectiveResolutionError::NonpositiveTerm)
         ));
@@ -2248,5 +2353,30 @@ mod tests {
             ),
             Err(ProjectiveResolutionError::EmptyResolutionProjective { degree: 2 })
         ));
+
+        let mut resolution =
+            projective_resolution_fp_path_algebra_module(&algebra, &ideal, &[vec![x]], 1).unwrap();
+        assert!(!resolution.r_projectives_vertex_list().is_bound());
+        assert!(!resolution.projectives_f_prime_list().is_bound());
+        assert!(matches!(
+            find_next_r_projective(&resolution, &parent, 1),
+            Err(ProjectiveResolutionError::UninstalledFindNextRProjective)
+        ));
+        assert!(matches!(
+            find_next_syzygy(&resolution, 1),
+            Err(ProjectiveResolutionError::UninstalledFindNextSyzygy)
+        ));
+        resolution.set_r_projectives_vertex_list(vec![vec![vertex(1)]]);
+        resolution.set_projectives_f_prime_list(vec![Vec::new()]);
+        assert!(resolution.r_projectives_vertex_list().is_bound());
+        assert!(resolution.projectives_f_prime_list().is_bound());
+        assert_eq!(
+            INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE,
+            "InfoProjectiveResolutionFpPathAlgebraModule"
+        );
+        assert_eq!(
+            INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL,
+            0
+        );
     }
 }

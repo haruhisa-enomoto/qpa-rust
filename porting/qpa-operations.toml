@@ -4640,10 +4640,10 @@ source_file = "upstream/qpa/lib/documentation.gd"
 source_start = 1
 source_end = 1
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "make_qpa_documentation; QpaDocumentationPlan"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
+deviations = ["DOCUMENTATION-001"]
 
 [[entries]]
 id = "documentation:InstallGlobalFunction:MakeQPADocumentation:1"
@@ -4653,10 +4653,10 @@ source_file = "upstream/qpa/lib/documentation.gi"
 source_start = 1
 source_end = 11
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "make_qpa_documentation; QpaDocumentationPlan"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
+deviations = ["DOCUMENTATION-001"]
 
 [[entries]]
 id = "functors:DeclareAttribute:DualOfModule:1"
@@ -6619,7 +6619,7 @@ classification = "declared_surface"
 status = "verified"
 rust_symbol = "DynamicForest::create"
 tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
-deviations = []
+deviations = ["DT-001"]
 
 [[entries]]
 id = "groebnerdyntree:DeclareOperation:RightRotateDynamicTree:1"
@@ -6697,7 +6697,7 @@ classification = "declared_surface"
 status = "verified"
 rust_symbol = "DynamicTree::link"
 tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
-deviations = []
+deviations = ["DT-001"]
 
 [[entries]]
 id = "groebnerdyntree:DeclareOperation:CutDynamicTree:1"
@@ -6736,7 +6736,7 @@ classification = "installed_implementation"
 status = "verified"
 rust_symbol = "DynamicForest::create"
 tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
-deviations = []
+deviations = ["DT-001"]
 
 [[entries]]
 id = "groebnerdyntree:InstallMethod:RightRotateDynamicTree:1"
@@ -6814,7 +6814,7 @@ classification = "installed_implementation"
 status = "verified"
 rust_symbol = "DynamicTree::link"
 tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
-deviations = []
+deviations = ["DT-001"]
 
 [[entries]]
 id = "groebnerdyntree:InstallMethod:CutDynamicTree:1"
@@ -10698,9 +10698,9 @@ source_file = "upstream/qpa/lib/module.gi"
 source_start = 925
 source_end = 940
 classification = "installed_implementation"
-status = "ported"
+status = "verified"
 rust_symbol = "PathAlgebraModule::eq; PathAlgebraModule::is_identical"
-tests = ["crates/qpa-core/src/path_module.rs"]
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -11803,9 +11803,9 @@ source_file = "upstream/qpa/lib/modulehom.gd"
 source_start = 15
 source_end = 15
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "lift_idempotents"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15235,9 +15235,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 4
 source_end = 4
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE; INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15326,9 +15326,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 12
 source_end = 12
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::r_projectives_vertex_list; ProjectiveResolutionFpPathAlgebraModule::set_r_projectives_vertex_list"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15352,9 +15352,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 14
 source_end = 14
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "ProjectiveResolutionFpPathAlgebraModule::projectives_f_prime_list; ProjectiveResolutionFpPathAlgebraModule::set_projectives_f_prime_list"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15391,9 +15391,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 32
 source_end = 35
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "projective_resolution_fp_path_algebra_module_without_term"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15430,9 +15430,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 48
 source_end = 50
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "find_next_r_projective"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -15443,9 +15443,9 @@ source_file = "upstream/qpa/lib/moduleprojres.gd"
 source_start = 52
 source_end = 54
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "find_next_syzygy"
+tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20305,9 +20305,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 37
 source_end = 37
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightFpPathAlgebraModule::is_path_algebra_module"
+tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -20318,9 +20318,9 @@ source_file = "upstream/qpa/lib/present2.gd"
 source_start = 38
 source_end = 38
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "RightFpPathAlgebraModule::is_fp_path_algebra_module"
+tests = ["tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
 
 [[entries]]

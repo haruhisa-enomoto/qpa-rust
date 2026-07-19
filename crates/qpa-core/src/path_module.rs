@@ -5507,6 +5507,18 @@ pub fn number_of_nonisomorphic_direct_summands<F: QpaCoefficientField>(
     })
 }
 
+/// Represent QPA's declared but uninstalled `LiftIdempotents(M)` operation.
+///
+/// # Errors
+///
+/// Pinned QPA declares this operation for matrix modules but installs no
+/// method, so every ordinary call reaches the missing-method boundary.
+pub const fn lift_idempotents<F: Field>(
+    _module: &PathAlgebraModule<F>,
+) -> Result<(), PathAlgebraModuleError> {
+    Err(PathAlgebraModuleError::UninstalledLiftIdempotents)
+}
+
 /// Translate QPA's `FromHomMMToEndM(f)` block-diagonal embedding.
 ///
 /// # Errors
@@ -8767,6 +8779,9 @@ pub enum RestrictionViaAlgebraHomomorphismError {
 /// Failure in QPA's checked right-module constructor.
 #[derive(Clone, Debug, Eq, Error, PartialEq)]
 pub enum PathAlgebraModuleError {
+    /// QPA declares `LiftIdempotents` but installs no method for it.
+    #[error("QPA installs no method for LiftIdempotents")]
+    UninstalledLiftIdempotents,
     /// QPA's `Display(M)` passes the integer zero to `PrintArray` for a zero
     /// module over an arrowful quiver and therefore aborts.
     #[error("module Display encountered QPA's scalar-zero arrow matrix")]
@@ -9398,9 +9413,9 @@ mod tests {
         inverse_of_isomorphism, is_direct_summand, is_in_additive_closure, is_in_full_matrix_ring,
         is_left_minimal, is_right_minimal, is_split_epimorphism, is_split_monomorphism,
         isomorphic_modules, isomorphism_of_modules, kernel_inclusion, left_inverse_of_homomorphism,
-        left_minimal_version, maximal_common_direct_summand, minimal_generating_set_of_module,
-        more_left_minimal_version, more_right_minimal_version, morphism_on_cokernel,
-        morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
+        left_minimal_version, lift_idempotents, maximal_common_direct_summand,
+        minimal_generating_set_of_module, more_left_minimal_version, more_right_minimal_version,
+        morphism_on_cokernel, morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
         natural_endomorphism_quotient_by_ideal, natural_homomorphism_by_subalgebra_module,
         number_of_nonisomorphic_direct_summands, pull_back, push_out, radical_of_module_inclusion,
         reject_of_module, restriction_via_algebra_homomorphism,
@@ -12165,6 +12180,15 @@ mod tests {
 
     #[test]
     fn clones_are_identical_but_reconstruction_is_only_equal() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/final_declared_surface.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(
+            fixture["module_equality"],
+            json!([true, true, true, false, false, false, false])
+        );
+
         let quiver =
             Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
         let algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, quiver).unwrap());
@@ -12172,13 +12196,34 @@ mod tests {
             .unwrap()
             .unwrap();
         let clone = first.clone();
-        let second = right_module_over_path_algebra(algebra, vec![1, 1], &[])
+        let second = right_module_over_path_algebra(algebra.clone(), vec![1, 1], &[])
+            .unwrap()
+            .unwrap();
+        let different_dimension = right_module_over_path_algebra(algebra.clone(), vec![2, 1], &[])
+            .unwrap()
+            .unwrap();
+        let different_matrix = right_module_over_path_algebra(
+            algebra,
+            vec![1, 1],
+            &[NamedArrowMatrix::new(
+                "a",
+                DenseMatrix::from_rows(vec![vec![q(1)]], Q).unwrap(),
+            )],
+        )
+        .unwrap()
+        .unwrap();
+        let other_quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let other_algebra = QuiverAlgebra::Path(PathAlgebra::new(Q, other_quiver).unwrap());
+        let different_algebra = right_module_over_path_algebra(other_algebra, vec![1], &[])
             .unwrap()
             .unwrap();
 
         assert!(first.is_identical(&clone));
         assert!(!first.is_identical(&second));
         assert_eq!(first, second);
+        assert_ne!(first, different_dimension);
+        assert_ne!(first, different_matrix);
+        assert_ne!(first, different_algebra);
     }
 
     #[test]
@@ -13359,5 +13404,24 @@ mod tests {
                 .iter()
                 .all(|matrix| natural.image(matrix).unwrap().is_zero())
         );
+    }
+
+    #[test]
+    fn lift_idempotents_preserves_qpa_missing_method_boundary() {
+        let fixture: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/final_declared_surface.schema-v1.json"
+        ))
+        .unwrap();
+        assert_eq!(fixture["uninstalled_success"][0], false);
+
+        let quiver = Quiver::from_indexed(1, Vec::<ArrowSpec>::new()).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(Z2, quiver).unwrap());
+        let module = right_module_over_path_algebra(algebra, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            lift_idempotents(&module),
+            Err(PathAlgebraModuleError::UninstalledLiftIdempotents)
+        ));
     }
 }

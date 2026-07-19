@@ -7,6 +7,7 @@
 pub mod centre;
 pub mod coefficient;
 pub mod combinatorial_map;
+pub mod documentation;
 pub mod dynamic_tree;
 pub mod element_inverse;
 pub mod element_utilities;
@@ -98,6 +99,7 @@ pub use combinatorial_map::{
     CombinatorialMap, CombinatorialMapError, CutJoinCurveResult, CutNonSeparatingResult,
     HomologyCurvePair, Permutation, PermutationError,
 };
+pub use documentation::{QpaDocumentationPlan, make_qpa_documentation};
 pub use dynamic_tree::{DynamicForest, DynamicTree, DynamicTreeError};
 pub use element_inverse::ElementInverseError;
 pub use element_utilities::{
@@ -177,12 +179,13 @@ pub use path_module::{
     is_right_minimal, is_semisimple_module, is_simple_qpa_module, is_split_epimorphism,
     is_split_monomorphism, isomorphic_modules, isomorphism_of_modules, kernel_inclusion,
     kernel_of_module_homomorphism, left_inverse_of_homomorphism, left_minimal_version,
-    lifting_inclusion_morphisms, loewy_length_of_module, maximal_common_direct_summand,
-    minimal_generating_set_of_module, minimal_right_fac_m_approximation, more_left_minimal_version,
-    more_right_minimal_version, morphism_on_cokernel, morphism_on_image, morphism_on_kernel,
-    multiply_lists_of_maps, natural_endomorphism_quotient_by_ideal,
-    natural_homomorphism_by_subalgebra_module, number_of_nonisomorphic_direct_summands, pull_back,
-    push_out, radical_of_module, radical_of_module_inclusion, radical_series, reject_of_module,
+    lift_idempotents, lifting_inclusion_morphisms, loewy_length_of_module,
+    maximal_common_direct_summand, minimal_generating_set_of_module,
+    minimal_right_fac_m_approximation, more_left_minimal_version, more_right_minimal_version,
+    morphism_on_cokernel, morphism_on_image, morphism_on_kernel, multiply_lists_of_maps,
+    natural_endomorphism_quotient_by_ideal, natural_homomorphism_by_subalgebra_module,
+    number_of_nonisomorphic_direct_summands, pull_back, push_out, radical_of_module,
+    radical_of_module_inclusion, radical_series, reject_of_module,
     restriction_via_algebra_homomorphism, restriction_via_algebra_homomorphism_map,
     right_algebra_module_to_path_algebra_mat_module, right_fac_approximation,
     right_fac_m_approximation, right_inverse_of_homomorphism, right_minimal_version,
@@ -207,9 +210,13 @@ pub use projective_path_module::{
 };
 pub use projective_presentation::{ProjectivePresentation, ProjectivePresentationError};
 pub use projective_resolution::{
+    INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE,
+    INFO_PROJECTIVE_RESOLUTION_FP_PATH_ALGEBRA_MODULE_DEFAULT_LEVEL,
     LiftedProjectivePathAlgebraModule, ProjectiveResolutionError,
     ProjectiveResolutionFpPathAlgebraModule, QuotientPathAlgebraVector,
-    RightProjectiveQuotientPathAlgebraModule, projective_resolution_fp_path_algebra_module,
+    RightProjectiveQuotientPathAlgebraModule, find_next_r_projective, find_next_syzygy,
+    projective_resolution_fp_path_algebra_module,
+    projective_resolution_fp_path_algebra_module_without_term,
     projective_resolution_of_path_algebra_module_from_presentation,
     right_projective_quotient_path_algebra_module,
 };
