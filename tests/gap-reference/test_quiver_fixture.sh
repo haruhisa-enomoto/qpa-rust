@@ -158,6 +158,19 @@ compare_pathalg_mapping_ordering_fixture() {
     diff --unified "$expected" "$actual"
 }
 
+compare_pathalg_units_fixture() {
+    source_script=$1
+    fixture=$2
+
+    "$repo_root/scripts/gap-reference" -T "$source_script" >"$raw" 2>&1
+    test "$(grep -Fc 'The entered algebra is not a finite dimensional algebra.' "$raw")" -eq 1
+    test "$(grep -Fc 'The algebra is not over a finite field.' "$raw")" -eq 1
+    grep -E '^\{"schema_version":' "$raw" | tail -n 1 |
+        jq --sort-keys . >"$actual"
+    jq --sort-keys . "$fixture" >"$expected"
+    diff --unified "$expected" "$actual"
+}
+
 compare_fixture \
     "$repo_root/tests/gap-reference/quiver_paths.g" \
     "$repo_root/tests/fixtures/quiver_paths.schema-v1.json"
@@ -703,6 +716,9 @@ compare_pathalg_surface_fixture \
 compare_pathalg_mapping_ordering_fixture \
     "$repo_root/tests/gap-reference/pathalg_mapping_ordering.g" \
     "$repo_root/tests/fixtures/pathalg_mapping_ordering.schema-v1.json"
+compare_pathalg_units_fixture \
+    "$repo_root/tests/gap-reference/pathalg_units.g" \
+    "$repo_root/tests/fixtures/pathalg_units.schema-v1.json"
 compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_foundational.g" \
     "$repo_root/tests/fixtures/pathalg_foundational.schema-v1.json"

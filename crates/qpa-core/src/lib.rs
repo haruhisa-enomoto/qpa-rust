@@ -34,6 +34,7 @@ pub mod tensor;
 pub mod triangular_reduced;
 pub mod uniform_projective;
 pub mod unit_form;
+pub mod unit_group;
 pub mod util;
 pub mod vector_reduction;
 
@@ -249,5 +250,6 @@ pub use uniform_projective::{
     right_uniform_path_algebra_module,
 };
 pub use unit_form::{UnitForm, UnitFormError, tits_unit_form_of_path_algebra};
+pub use unit_group::{QuiverAlgebraUnitGroup, QuiverAlgebraUnitGroupError};
 pub use util::{null_list, positions_nonzero, positions_nonzero_in_field};
 pub use vector_reduction::{VectorCoefficients, VectorReductionError, VectorTip};

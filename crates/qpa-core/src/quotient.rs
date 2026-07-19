@@ -480,6 +480,7 @@ struct QuotientPathAlgebraData<F: Field> {
     frobenius_form: OnceLock<Option<DenseMatrix<F>>>,
     frobenius_linear_functional: OnceLock<Option<Vec<F::Element>>>,
     order_of_nakayama_automorphism: OnceLock<Option<CachedNakayamaAutomorphismOrder>>,
+    elements_of_units: OnceLock<Vec<Vec<F::Element>>>,
     opposite_weak: RwLock<Option<Weak<QuotientPathAlgebraData<F>>>>,
     opposite_strong: OnceLock<QuotientPathAlgebra<F>>,
     enveloping_weak: RwLock<Option<WeakTensorProductAlgebra<F>>>,
@@ -611,6 +612,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             frobenius_form: OnceLock::new(),
             frobenius_linear_functional: OnceLock::new(),
             order_of_nakayama_automorphism: OnceLock::new(),
+            elements_of_units: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -670,6 +672,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             frobenius_form: OnceLock::new(),
             frobenius_linear_functional: OnceLock::new(),
             order_of_nakayama_automorphism: OnceLock::new(),
+            elements_of_units: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),
@@ -697,6 +700,20 @@ impl<F: Field> QuotientPathAlgebra<F> {
     #[must_use]
     pub fn original_path_algebra(&self) -> &PathAlgebra<F> {
         &self.0.parent
+    }
+
+    pub(crate) fn cached_elements_of_units_coordinates(&self) -> Option<&[Vec<F::Element>]> {
+        self.0.elements_of_units.get().map(Vec::as_slice)
+    }
+
+    pub(crate) fn cache_elements_of_units_coordinates(
+        &self,
+        coordinates: Vec<Vec<F::Element>>,
+    ) -> &[Vec<F::Element>] {
+        self.0
+            .elements_of_units
+            .get_or_init(|| coordinates)
+            .as_slice()
     }
 
     /// Return QPA's `QuiverOfPathAlgebra` value for this quotient.
@@ -1750,6 +1767,7 @@ impl<F: Field> QuotientPathAlgebra<F> {
             frobenius_form: OnceLock::new(),
             frobenius_linear_functional: OnceLock::new(),
             order_of_nakayama_automorphism: OnceLock::new(),
+            elements_of_units: OnceLock::new(),
             opposite_weak: RwLock::new(None),
             opposite_strong: OnceLock::new(),
             enveloping_weak: RwLock::new(None),

@@ -265,6 +265,35 @@ the computations remain translations of the cited source methods.
   `tests/fixtures/pathalg_mapping_ordering.schema-v1.json` pins assigned names
   and algebra elements in source order.
 
+## PATHALG-006 — GAP's unit group is an explicit Rust table group
+
+- Source: QPA `lib/pathalg.gd`, `ElementsOfUnits` at line 107, and
+  `lib/pathalg.gi`, `Units` at lines 3518–3557.
+- Affected Rust operations: `units`, `QuiverAlgebra::units`,
+  `QuiverAlgebra::has_elements_of_units`,
+  `QuiverAlgebra::elements_of_units`, and `QuiverAlgebraUnitGroup`.
+- Difference: QPA passes its multiplication table through GAP's
+  `MagmaByMultiplicationTable` and `AsGroup`, while Rust retains an explicit
+  table-group object with the ordered algebra elements, their canonical-basis
+  coordinates, the same one-based table, and zero-based product/inverse
+  helpers. The cached `ElementsOfUnits` payload is stored as coordinate rows
+  to avoid a self-owning algebra/element reference cycle. Before `Units` binds
+  the attribute, Rust returns the typed `UnboundElementsOfUnits` error instead
+  of GAP's missing-method diagnostic.
+- Reason: Numerica and Rust have no GAP table-magma/group object model. The
+  explicit finite table is the complete group law constructed by the source
+  method and keeps each group position tied to the corresponding algebra unit.
+- Compatibility impact: the finite-dimensional check precedes the finite-field
+  check; vertex diagonal enumeration, GAP finite-field order, sorted radical
+  `Elements`, stable `Unique`, cached unit order, group order, products, and
+  inverses agree exactly. Supported coefficient fields remain the agreed
+  Numerica prime-field tier; no extension-field behavior is claimed.
+- Evidence: `tests/gap-reference/pathalg_units.g` and
+  `tests/fixtures/pathalg_units.schema-v1.json` pin path and quotient examples
+  over `GF(2)`, `GF(3)`, and `GF(5)`, full multiplication tables, cache state,
+  and both source error branches. The `qpa-gbnp` test additionally exercises
+  the configured default Gröbner adapter.
+
 ## ORDERING-001 — Quiver-ordering ownership is checked at construction
 
 - Source: QPA `lib/groebnerordering.gi`, all ordering constructors,

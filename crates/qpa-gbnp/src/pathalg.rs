@@ -6,8 +6,9 @@
 use numerica::domains::Field;
 use qpa_core::{
     AlgebraDimension, Arrow, CentreError, ElementInverseError, GroebnerBasis, PathAlgebra,
-    PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, Quiver, QuiverAlgebra, QuiverError,
-    QuotientError, QuotientPathAlgebra, QuotientPathAlgebraCentre, QuotientPathAlgebraElement,
+    PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, QpaCoefficientField, Quiver,
+    QuiverAlgebra, QuiverAlgebraUnitGroup, QuiverAlgebraUnitGroupError, QuiverError, QuotientError,
+    QuotientPathAlgebra, QuotientPathAlgebraCentre, QuotientPathAlgebraElement,
     TriangularReducedError, VertexQuotientPresentation,
 };
 use thiserror::Error;
@@ -113,6 +114,26 @@ pub fn quotient_is_finite_dimensional<F: Field>(
 ) -> Result<bool, PathalgGbnpError> {
     ensure_quotient_groebner_basis(quotient)?;
     Ok(quotient.is_finite_dimensional()?)
+}
+
+/// Translate QPA's `Units(A)` through its configured lazy GBNP basis backend.
+///
+/// Path algebras delegate immediately. Quotients first run the same default
+/// Gröbner-basis adapter used by `IsFiniteDimensional`, then the core method
+/// follows QPA's canonical-basis, radical, enumeration, and table-group
+/// construction.
+///
+/// # Errors
+///
+/// Propagates default GBNP construction and the exact finite-dimensional,
+/// finite-field, radical, and multiplication-table failures.
+pub fn units<F: QpaCoefficientField>(
+    algebra: &QuiverAlgebra<F>,
+) -> Result<QuiverAlgebraUnitGroup<F>, PathalgGbnpError> {
+    if let QuiverAlgebra::Quotient(quotient) = algebra {
+        ensure_quotient_groebner_basis(quotient)?;
+    }
+    Ok(algebra.units()?)
 }
 
 /// Translate QPA's lazy default `Dimension` method.
@@ -663,6 +684,9 @@ pub enum PathalgGbnpError {
     /// QPA's finite-dimensional inverse polynomial failed.
     #[error(transparent)]
     ElementInverse(#[from] ElementInverseError),
+    /// QPA's finite unit-group construction failed.
+    #[error(transparent)]
+    UnitGroup(#[from] QuiverAlgebraUnitGroupError),
     /// QPA's triangular-reduced subset computation failed.
     #[error(transparent)]
     TriangularReduced(#[from] TriangularReducedError),
@@ -687,7 +711,7 @@ pub enum PathalgGbnpError {
 mod tests {
     use numerica::domains::{
         Field, Ring,
-        finite_field::Z2,
+        finite_field::{FiniteFieldCore, Z2, Zp},
         integer::Integer,
         rational::{Q, RationalField},
     };
@@ -709,7 +733,7 @@ mod tests {
         quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
         quotient_dimension, quotient_is_admissible, quotient_is_finite_dimensional,
         quotient_is_gentle, quotient_is_monomial, quotient_is_special_biserial, quotient_is_string,
-        quotient_is_triangular_reduced, truncated_path_algebra,
+        quotient_is_triangular_reduced, truncated_path_algebra, units,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -772,6 +796,45 @@ mod tests {
                 })
                 .collect(),
         )
+    }
+
+    #[test]
+    fn units_adapter_uses_qpa_default_gbnp_quotient_basis() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_units.schema-v1.json"
+        ))
+        .unwrap();
+        let field = Zp::new(3);
+        let parent = PathAlgebra::new(
+            field.clone(),
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap(),
+        )
+        .unwrap();
+        let x = parent.generators()[1].clone();
+        let algebra =
+            QuiverAlgebra::Quotient(quotient_by_relations(parent, &[x.pow(2).unwrap()]).unwrap());
+        let group = units(&algebra).unwrap();
+        let coordinates = group
+            .coordinates()
+            .iter()
+            .map(|row| {
+                row.iter()
+                    .map(|coefficient| {
+                        field
+                            .to_integer(coefficient)
+                            .to_string()
+                            .parse::<i64>()
+                            .unwrap()
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            json!(coordinates),
+            expected["ternary_dual_numbers"]["elements"]
+        );
+        assert_eq!(group.order(), 6);
+        assert!(algebra.has_elements_of_units());
     }
 
     fn quiver_json(quiver: &Quiver) -> Value {

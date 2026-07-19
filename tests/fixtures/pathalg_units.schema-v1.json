@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_units",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "binary_a2": {
+    "had_elements": false,
+    "has_elements": true,
+    "is_group": true,
+    "size": 2,
+    "elements": [[1, 1, 0], [1, 1, 1]],
+    "table": [[1, 2], [2, 1]]
+  },
+  "ternary_dual_numbers": {
+    "is_group": true,
+    "size": 6,
+    "elements": [[1, 0], [2, 0], [1, 1], [2, 1], [1, 2], [2, 2]],
+    "table": [
+      [1, 2, 3, 4, 5, 6],
+      [2, 1, 6, 5, 4, 3],
+      [3, 6, 5, 2, 1, 4],
+      [4, 5, 2, 3, 6, 1],
+      [5, 4, 1, 6, 3, 2],
+      [6, 3, 4, 1, 2, 5]
+    ]
+  },
+  "binary_cubic_numbers": {
+    "is_group": true,
+    "size": 4,
+    "elements": [[1, 0, 0], [1, 1, 0], [1, 0, 1], [1, 1, 1]],
+    "table": [[1, 2, 3, 4], [2, 3, 4, 1], [3, 4, 1, 2], [4, 1, 2, 3]]
+  },
+  "ternary_semisimple": {
+    "is_group": true,
+    "size": 4,
+    "elements": [[1, 1], [1, 2], [2, 1], [2, 2]],
+    "table": [[1, 2, 3, 4], [2, 1, 4, 3], [3, 4, 1, 2], [4, 3, 2, 1]]
+  },
+  "quinary_a1": {
+    "is_group": true,
+    "size": 4,
+    "elements": [[1], [2], [4], [3]],
+    "table": [[1, 2, 3, 4], [2, 3, 4, 1], [3, 4, 1, 2], [4, 1, 2, 3]]
+  },
+  "errors": {
+    "infinite_success": false,
+    "rational_success": false
+  }
+}

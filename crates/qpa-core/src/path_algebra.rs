@@ -54,6 +54,7 @@ struct PathAlgebraData<F: Field> {
     nakayama_permutation: OnceLock<Option<Vec<usize>>>,
     nakayama_automorphism: OnceLock<Option<DenseMatrix<F>>>,
     order_of_nakayama_automorphism: OnceLock<Option<CachedNakayamaAutomorphismOrder>>,
+    elements_of_units: OnceLock<Vec<Vec<F::Element>>>,
     trivial_extension_level: OnceLock<usize>,
     trivial_extension_weak: RwLock<Option<WeakQuotientPathAlgebra<F>>>,
     trivial_extension_bound: OnceLock<()>,
@@ -174,6 +175,7 @@ impl<F: Field> PathAlgebra<F> {
             nakayama_permutation: OnceLock::new(),
             nakayama_automorphism: OnceLock::new(),
             order_of_nakayama_automorphism: OnceLock::new(),
+            elements_of_units: OnceLock::new(),
             trivial_extension_level: OnceLock::new(),
             trivial_extension_weak: RwLock::new(None),
             trivial_extension_bound: OnceLock::new(),
@@ -191,6 +193,20 @@ impl<F: Field> PathAlgebra<F> {
     #[must_use]
     pub fn quiver(&self) -> &Quiver {
         &self.0.quiver
+    }
+
+    pub(crate) fn cached_elements_of_units_coordinates(&self) -> Option<&[Vec<F::Element>]> {
+        self.0.elements_of_units.get().map(Vec::as_slice)
+    }
+
+    pub(crate) fn cache_elements_of_units_coordinates(
+        &self,
+        coordinates: Vec<Vec<F::Element>>,
+    ) -> &[Vec<F::Element>] {
+        self.0
+            .elements_of_units
+            .get_or_init(|| coordinates)
+            .as_slice()
     }
 
     /// Return the QPA `IsPathRing` category value.

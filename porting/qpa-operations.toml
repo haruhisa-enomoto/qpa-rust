@@ -16899,10 +16899,10 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 107
 source_end = 107
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "QuiverAlgebra::has_elements_of_units; QuiverAlgebra::elements_of_units"
+tests = ["tests/fixtures/pathalg_units.schema-v1.json"]
+deviations = ["PATHALG-006"]
 
 [[entries]]
 id = "pathalg:InstallMethod:IsPathRing:1"
@@ -18524,10 +18524,10 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3518
 source_end = 3557
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
-deviations = []
+status = "verified"
+rust_symbol = "units; QuiverAlgebra::units; QuiverAlgebraUnitGroup"
+tests = ["tests/fixtures/pathalg_units.schema-v1.json"]
+deviations = ["PATHALG-006"]
 
 [[entries]]
 id = "pathalgideal:DeclareProperty:IsIdealInPathAlgebra:1"

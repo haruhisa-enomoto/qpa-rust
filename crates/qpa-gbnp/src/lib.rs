@@ -171,7 +171,7 @@ pub use pathalg::{
     quotient_by_relations, quotient_centre, quotient_dimension, quotient_is_admissible,
     quotient_is_finite_dimensional, quotient_is_gentle, quotient_is_monomial,
     quotient_is_special_biserial, quotient_is_string, quotient_is_triangular_reduced,
-    truncated_path_algebra,
+    truncated_path_algebra, units,
 };
 pub use persistence::{
     LoadedQpaAlgebra, QpaPersistenceError, QpaTextField, parse_qpa_algebra_text, qpa_algebra_text,
