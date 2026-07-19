@@ -16145,9 +16145,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 30
 source_end = 30
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "groebner_basis_of_left_ideal"
+tests = ["tests/fixtures/pathalg_one_sided_gb.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16158,9 +16158,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 31
 source_end = 31
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "groebner_basis_of_right_ideal"
+tests = ["tests/fixtures/pathalg_one_sided_gb.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -16847,9 +16847,9 @@ source_file = "upstream/qpa/lib/pathalg.gd"
 source_start = 103
 source_end = 103
 classification = "declared_surface"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quiver_algebra_of_eae"
+tests = ["tests/fixtures/pathalg_eae.schema-v1.json"]
 deviations = []
 
 [[entries]]
@@ -18433,9 +18433,9 @@ source_file = "upstream/qpa/lib/pathalg.gi"
 source_start = 3201
 source_end = 3374
 classification = "installed_implementation"
-status = "inventory"
-rust_symbol = ""
-tests = []
+status = "verified"
+rust_symbol = "quiver_algebra_of_eae"
+tests = ["tests/fixtures/pathalg_eae.schema-v1.json"]
 deviations = []
 
 [[entries]]

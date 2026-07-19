@@ -1884,7 +1884,17 @@ fn multiply_row_matrix<F: Field>(row: &[F::Element], matrix: &DenseMatrix<F>) ->
 }
 
 impl<F: Field> StructureConstantsSubalgebra<F> {
-    pub(crate) fn from_basis(
+    /// Construct the subalgebra spanned by entered ambient-coordinate rows.
+    ///
+    /// This is the checked structure-constant counterpart of GAP's
+    /// `FLMLORByGenerators` followed by `Basis`: the rows must be independent
+    /// and their span must be closed under multiplication.
+    ///
+    /// # Errors
+    ///
+    /// Rejects a basis with the wrong width, dependent rows, or a span that
+    /// is not closed under ambient multiplication.
+    pub fn from_basis(
         ambient: StructureConstantsAlgebra<F>,
         basis: DenseMatrix<F>,
     ) -> Result<Self, StructureConstantsError> {

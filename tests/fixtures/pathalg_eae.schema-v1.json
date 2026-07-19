@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "kind": "pathalg_eae",
+  "oracle": {
+    "gap_version": "4.17dev",
+    "gap_revision": "4efe877859ab0bc0ac041bf635a996fb897ee0c9",
+    "qpa_version": "1.37",
+    "qpa_revision": "8d5f847258d4853700ce3a5d947db2a1441109f1",
+    "gbnp_version": "1.1.0",
+    "gbnp_revision": "e0b46c1aac16f3fbabe743e3169dc6bd86bdc654"
+  },
+  "binary": {
+    "corner12": {
+      "is_path": true,
+      "dimension": 3,
+      "adjacency": [[0, 0], [1, 0]],
+      "relations": []
+    },
+    "corner13": {
+      "is_path": true,
+      "dimension": 2,
+      "adjacency": [[0, 0], [0, 0]],
+      "relations": []
+    },
+    "conjugate": {
+      "is_path": true,
+      "dimension": 1,
+      "adjacency": [[0]],
+      "relations": []
+    },
+    "whole": {
+      "is_path": false,
+      "dimension": 5,
+      "adjacency": [[0, 0, 0], [1, 0, 0], [0, 1, 0]],
+      "relations": [[{"path": "a2*a1", "coefficient": 1}]]
+    },
+    "minimal": {
+      "is_path": false,
+      "dimension": 8,
+      "adjacency": [[0, 0, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]],
+      "relations": [[{"path": "a3*a2", "coefficient": 1}]]
+    }
+  },
+  "rational": {
+    "success": true,
+    "corner12": {
+      "is_path": true,
+      "dimension": 3,
+      "adjacency": [[0, 0], [1, 0]],
+      "relations": []
+    }
+  },
+  "errors": {
+    "path_success": false,
+    "foreign_success": false,
+    "nonidempotent_success": false,
+    "zero_success": false
+  }
+}

@@ -5,10 +5,11 @@
 
 use numerica::domains::Field;
 use qpa_core::{
-    AlgebraDimension, Arrow, CentreError, ElementInverseError, GroebnerBasis, PathAlgebra,
-    PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, QpaCoefficientField, Quiver,
-    QuiverAlgebra, QuiverAlgebraUnitGroup, QuiverAlgebraUnitGroupError, QuiverError, QuotientError,
-    QuotientPathAlgebra, QuotientPathAlgebraCentre, QuotientPathAlgebraElement,
+    AlgebraDimension, Arrow, CentreError, ElementInverseError, GroebnerBasis, MatrixError,
+    PathAlgebra, PathAlgebraElement, PathAlgebraError, PathAlgebraIdeal, QpaCoefficientField,
+    Quiver, QuiverAlgebra, QuiverAlgebraElementError, QuiverAlgebraUnitGroup,
+    QuiverAlgebraUnitGroupError, QuiverError, QuotientError, QuotientPathAlgebra,
+    QuotientPathAlgebraCentre, QuotientPathAlgebraElement, StructureConstantsError,
     TriangularReducedError, VertexQuotientPresentation,
 };
 use thiserror::Error;
@@ -102,6 +103,38 @@ pub fn ensure_quotient_groebner_basis<F: Field>(
         .ideal()
         .groebner_basis()
         .ok_or(PathalgGbnpError::MissingAttachedBasis)
+}
+
+/// Represent QPA's declared but uninstalled `GroebnerBasisOfLeftIdeal`
+/// attribute.
+///
+/// Pinned QPA declares this attribute for rings but installs no method that
+/// computes it. A Rust call therefore preserves the same missing-method
+/// boundary explicitly.
+///
+/// # Errors
+///
+/// Always returns [`PathalgGbnpError::UninstalledGroebnerBasisOfLeftIdeal`].
+pub const fn groebner_basis_of_left_ideal<F: Field>(
+    _ideal: &PathAlgebraIdeal<F>,
+) -> Result<GroebnerBasis<F>, PathalgGbnpError> {
+    Err(PathalgGbnpError::UninstalledGroebnerBasisOfLeftIdeal)
+}
+
+/// Represent QPA's declared but uninstalled `GroebnerBasisOfRightIdeal`
+/// attribute.
+///
+/// Pinned QPA declares this attribute for rings but installs no method that
+/// computes it. A Rust call therefore preserves the same missing-method
+/// boundary explicitly.
+///
+/// # Errors
+///
+/// Always returns [`PathalgGbnpError::UninstalledGroebnerBasisOfRightIdeal`].
+pub const fn groebner_basis_of_right_ideal<F: Field>(
+    _ideal: &PathAlgebraIdeal<F>,
+) -> Result<GroebnerBasis<F>, PathalgGbnpError> {
+    Err(PathalgGbnpError::UninstalledGroebnerBasisOfRightIdeal)
 }
 
 /// Translate QPA's lazy default `IsFiniteDimensional` method.
@@ -665,6 +698,12 @@ pub enum PathalgGbnpError {
     /// An attached basis disappeared after the identity-preserving update.
     #[error("the quotient ideal did not retain its computed Groebner basis")]
     MissingAttachedBasis,
+    /// Pinned QPA declares this attribute but installs no computation method.
+    #[error("QPA installs no method for GroebnerBasisOfLeftIdeal")]
+    UninstalledGroebnerBasisOfLeftIdeal,
+    /// Pinned QPA declares this attribute but installs no computation method.
+    #[error("QPA installs no method for GroebnerBasisOfRightIdeal")]
+    UninstalledGroebnerBasisOfRightIdeal,
     /// `AssociatedGradedAlgebra` rejects an infinite-dimensional algebra.
     #[error("the entered algebra is not finite dimensional")]
     InfiniteDimensionalAssociatedAlgebra,
@@ -678,6 +717,54 @@ pub enum PathalgGbnpError {
     /// A gentle-algebra-only true-method implication received another algebra.
     #[error("the algebra is not a gentle algebra")]
     NonGentleAlgebraProperty,
+    /// `QuiverAlgebraOfeAe` has no applicable source method for this algebra.
+    #[error("the entered algebra is not an admissible quotient of a path algebra")]
+    NonAdmissibleCornerAlgebra,
+    /// The entered corner element is not in the identical quotient family.
+    #[error("the entered element is not an element in the entered algebra")]
+    CornerElementOutsideAlgebra,
+    /// The entered corner element failed QPA's idempotence test.
+    #[error("the entered element is not an idempotent")]
+    CornerElementNotIdempotent,
+    /// QPA reaches `FLMLORByGenerators(K, [])` for the zero corner.
+    #[error("the zero corner has no nonzero algebra generators")]
+    ZeroCornerHasNoGenerators,
+    /// The admissible quotient did not expose its finite canonical basis.
+    #[error("the admissible quotient has no finite canonical basis")]
+    MissingCornerCanonicalBasis,
+    /// The constructed corner identity was not in the corner basis span.
+    #[error("the corner identity lies outside the constructed corner basis")]
+    CornerIdentityOutsideBasis,
+    /// A sandwiched radical basis vector was not in the corner basis span.
+    #[error("a corner radical vector lies outside the constructed corner basis")]
+    CornerRadicalOutsideBasis,
+    /// A sandwiched vertex basis vector was not in the corner basis span.
+    #[error("a corner vertex vector lies outside the constructed corner basis")]
+    CornerVertexOutsideBasis,
+    /// The terminal-zero radical series did not fit in the target exponent.
+    #[error("the corner radical-series length overflows")]
+    CornerLoewyLengthOverflow,
+    /// The radical ideal computed exactly as QPA's arrow ideal was not nilpotent.
+    #[error("the computed corner radical is not nilpotent")]
+    CornerRadicalNotNilpotent,
+    /// `KQ/J^(t+1)` did not expose the finite basis QPA requires.
+    #[error("the truncated corner path algebra has no finite canonical basis")]
+    MissingCornerTruncatedBasis,
+    /// A distinguished zero path occurred in the truncated canonical basis.
+    #[error("the truncated corner basis contains the distinguished zero path")]
+    ZeroPathInCornerBasis,
+    /// A length-zero basis path did not carry a vertex endpoint.
+    #[error("a truncated corner vertex path has an invalid endpoint")]
+    InvalidCornerVertexPath,
+    /// The path-evaluation map lacked an image for a source generator.
+    #[error("the corner presentation map is missing a generator image")]
+    MissingCornerGeneratorImage,
+    /// A truncated product could not be expressed in the canonical basis.
+    #[error("a corner kernel product lies outside the truncated canonical basis")]
+    CornerProductOutsideTruncatedBasis,
+    /// `J ker(f) + ker(f) J` was not contained in `ker(f)`.
+    #[error("a radical-kernel product lies outside the presentation kernel")]
+    CornerKernelProductOutsideKernel,
     /// QPA's source-translated center construction failed.
     #[error(transparent)]
     Centre(#[from] CentreError),
@@ -690,6 +777,15 @@ pub enum PathalgGbnpError {
     /// QPA's triangular-reduced subset computation failed.
     #[error(transparent)]
     TriangularReduced(#[from] TriangularReducedError),
+    /// Exact quiver-algebra union arithmetic failed.
+    #[error(transparent)]
+    QuiverAlgebraElement(#[from] QuiverAlgebraElementError),
+    /// Exact matrix and subspace construction failed.
+    #[error(transparent)]
+    Matrix(#[from] MatrixError),
+    /// Exact structure-constant corner arithmetic failed.
+    #[error(transparent)]
+    StructureConstants(#[from] StructureConstantsError),
     /// QPA's inverse-length/inverse-lexicographic backend failed.
     #[error(transparent)]
     InvLenLex(#[from] InvLenLexError),
@@ -726,14 +822,15 @@ mod tests {
         admissible_quotient_is_semisimple, associated_graded_path_algebra,
         associated_graded_quotient, associated_monomial_path_algebra, associated_monomial_quotient,
         gentle_algebra_is_gorenstein, gentle_algebra_is_special_biserial,
-        ideal_minimal_generating_set, inverse_quotient_element, is_special_biserial_quiver,
-        opposite_path_algebra, opposite_quotient_element, path_algebra_is_gentle,
-        path_algebra_is_monomial, path_algebra_is_special_biserial, path_algebra_is_string,
-        power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
-        quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre,
-        quotient_dimension, quotient_is_admissible, quotient_is_finite_dimensional,
-        quotient_is_gentle, quotient_is_monomial, quotient_is_special_biserial, quotient_is_string,
-        quotient_is_triangular_reduced, truncated_path_algebra, units,
+        groebner_basis_of_left_ideal, groebner_basis_of_right_ideal, ideal_minimal_generating_set,
+        inverse_quotient_element, is_special_biserial_quiver, opposite_path_algebra,
+        opposite_quotient_element, path_algebra_is_gentle, path_algebra_is_monomial,
+        path_algebra_is_special_biserial, path_algebra_is_string, power_quotient_element,
+        quiver_algebra_of_path_algebra_mod_aea, quiver_algebra_of_quotient_mod_aea,
+        quotient_by_relations, quotient_centre, quotient_dimension, quotient_is_admissible,
+        quotient_is_finite_dimensional, quotient_is_gentle, quotient_is_monomial,
+        quotient_is_special_biserial, quotient_is_string, quotient_is_triangular_reduced,
+        truncated_path_algebra, units,
     };
 
     fn vertex(index: usize) -> VertexIndex {
@@ -796,6 +893,39 @@ mod tests {
                 })
                 .collect(),
         )
+    }
+
+    #[test]
+    fn pinned_qpa_one_sided_groebner_declarations_are_uninstalled() {
+        let expected: Value = serde_json::from_str(include_str!(
+            "../../../tests/fixtures/pathalg_one_sided_gb.schema-v1.json"
+        ))
+        .unwrap();
+        let parent = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "a")]).unwrap(),
+        )
+        .unwrap();
+        let ideal =
+            PathAlgebraIdeal::new(parent.clone(), vec![parent.generators()[1].clone()]).unwrap();
+        assert_eq!(
+            json!({
+                "left_success": groebner_basis_of_left_ideal(&ideal).is_ok(),
+                "right_success": groebner_basis_of_right_ideal(&ideal).is_ok()
+            }),
+            json!({
+                "left_success": expected["left_success"],
+                "right_success": expected["right_success"]
+            })
+        );
+        assert!(matches!(
+            groebner_basis_of_left_ideal(&ideal),
+            Err(PathalgGbnpError::UninstalledGroebnerBasisOfLeftIdeal)
+        ));
+        assert!(matches!(
+            groebner_basis_of_right_ideal(&ideal),
+            Err(PathalgGbnpError::UninstalledGroebnerBasisOfRightIdeal)
+        ));
     }
 
     #[test]

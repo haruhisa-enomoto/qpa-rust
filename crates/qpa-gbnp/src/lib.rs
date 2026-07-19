@@ -7,6 +7,7 @@ pub mod algebra_conversion;
 pub mod combinatorial_map;
 pub mod combinatorial_rep;
 pub mod complex;
+pub mod corner;
 pub mod degeneration;
 pub mod derived_category;
 pub mod heap;
@@ -58,6 +59,7 @@ pub use complex::{
     projective_resolution, projective_resolution_complex, short_exact_sequence, stalk_complex,
     yoneda_product, zero_chain_map, zero_complex,
 };
+pub use corner::quiver_algebra_of_eae;
 pub use degeneration::{
     ArMesh, ArOrbit, ArOrbitPosition, ArQuiverDescription, ArQuiverNumerical,
     CodimensionConjectureReport, DegenerationError, DimensionVectorInput, NumericalMatrix,
@@ -163,15 +165,15 @@ pub use pathalg::{
     PathalgGbnpError, admissible_quotient_is_basic, admissible_quotient_is_elementary,
     admissible_quotient_is_semisimple, associated_graded_path_algebra, associated_graded_quotient,
     associated_monomial_path_algebra, associated_monomial_quotient, ensure_quotient_groebner_basis,
-    gentle_algebra_is_gorenstein, gentle_algebra_is_special_biserial, ideal_minimal_generating_set,
-    inverse_quotient_element, is_special_biserial_quiver, opposite_path_algebra,
-    opposite_quotient_element, path_algebra_is_gentle, path_algebra_is_monomial,
-    path_algebra_is_special_biserial, path_algebra_is_string, power_quotient_element,
-    quiver_algebra_of_path_algebra_mod_aea, quiver_algebra_of_quotient_mod_aea,
-    quotient_by_relations, quotient_centre, quotient_dimension, quotient_is_admissible,
-    quotient_is_finite_dimensional, quotient_is_gentle, quotient_is_monomial,
-    quotient_is_special_biserial, quotient_is_string, quotient_is_triangular_reduced,
-    truncated_path_algebra, units,
+    gentle_algebra_is_gorenstein, gentle_algebra_is_special_biserial, groebner_basis_of_left_ideal,
+    groebner_basis_of_right_ideal, ideal_minimal_generating_set, inverse_quotient_element,
+    is_special_biserial_quiver, opposite_path_algebra, opposite_quotient_element,
+    path_algebra_is_gentle, path_algebra_is_monomial, path_algebra_is_special_biserial,
+    path_algebra_is_string, power_quotient_element, quiver_algebra_of_path_algebra_mod_aea,
+    quiver_algebra_of_quotient_mod_aea, quotient_by_relations, quotient_centre, quotient_dimension,
+    quotient_is_admissible, quotient_is_finite_dimensional, quotient_is_gentle,
+    quotient_is_monomial, quotient_is_special_biserial, quotient_is_string,
+    quotient_is_triangular_reduced, truncated_path_algebra, units,
 };
 pub use persistence::{
     LoadedQpaAlgebra, QpaPersistenceError, QpaTextField, parse_qpa_algebra_text, qpa_algebra_text,
