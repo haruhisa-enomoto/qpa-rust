@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 290
+exposed_or_partial_count = 299
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -266,8 +266,8 @@ python_tests = []
 qpa_name = "AllComplementsOfAlmostCompleteCotiltingModule"
 python_name = "all_complements_of_almost_complete_cotilting_module"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.all_cotilting_complements; qpa.AllComplementsResult"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:AllComplementsOfAlmostCompleteCotiltingModule:1"]
 constructs = ["DeclareSynonym"]
@@ -275,14 +275,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["all_complements_of_almost_complete_cotilting_module"]
 rust_tests = ["tests/fixtures/modulehomalg_all_complements.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "AllComplementsOfAlmostCompleteTiltingModule"
 python_name = "all_complements_of_almost_complete_tilting_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.all_complements; qpa.AllComplementsResult; qpa.AddMResolution; qpa.AddMCoresolution"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:AllComplementsOfAlmostCompleteTiltingModule:1","modulehomalg:InstallMethod:AllComplementsOfAlmostCompleteTiltingModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -290,7 +290,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["all_complements_of_almost_complete_tilting_module; AllComplementsResult"]
 rust_tests = ["tests/fixtures/modulehomalg_all_complements.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "AllIndecModulesOfLengthAtMost"
@@ -2726,8 +2726,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the
 qpa_name = "FaithfulDimension"
 python_name = "faithful_dimension"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.faithful_dimension; qpa.MatrixModule.cached_faithful_dimension"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:FaithfulDimension:1","modulehomalg:InstallMethod:FaithfulDimension:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2735,7 +2735,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["faithful_dimension; FaithfulDimensionResult"]
 rust_tests = ["tests/fixtures/modulehomalg_faithful_dimension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "FindAllMapComponents"
@@ -7451,8 +7451,8 @@ python_tests = []
 qpa_name = "LeftMutationOfCotiltingModuleComplement"
 python_name = "left_mutation_of_cotilting_module_complement"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.left_cotilting_complement_mutation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:LeftMutationOfCotiltingModuleComplement:1"]
 constructs = ["DeclareSynonym"]
@@ -7460,14 +7460,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["left_mutation_of_cotilting_module_complement"]
 rust_tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftMutationOfTiltingModuleComplement"
 python_name = "left_mutation_of_tilting_module_complement"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.left_tilting_complement_mutation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:LeftMutationOfTiltingModuleComplement:1","modulehomalg:InstallMethod:LeftMutationOfTiltingModuleComplement:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7475,7 +7475,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["left_mutation_of_tilting_module_complement"]
 rust_tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftRotateDynamicTree"
@@ -8951,8 +8951,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "NumberOfComplementsOfAlmostCompleteCotiltingModule"
 python_name = "number_of_complements_of_almost_complete_cotilting_module"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.number_of_cotilting_complements"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:NumberOfComplementsOfAlmostCompleteCotiltingModule:1"]
 constructs = ["DeclareSynonym"]
@@ -8960,14 +8960,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["number_of_complements_of_almost_complete_cotilting_module"]
 rust_tests = ["tests/fixtures/modulehomalg_number_complements.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "NumberOfComplementsOfAlmostCompleteTiltingModule"
 python_name = "number_of_complements_of_almost_complete_tilting_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.number_of_tilting_complements"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:NumberOfComplementsOfAlmostCompleteTiltingModule:1","modulehomalg:InstallMethod:NumberOfComplementsOfAlmostCompleteTiltingModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8975,7 +8975,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["number_of_complements_of_almost_complete_tilting_module; NumberOfComplementsResult"]
 rust_tests = ["tests/fixtures/modulehomalg_number_complements.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "NumberOfIndecomposables"
@@ -11276,8 +11276,8 @@ python_tests = []
 qpa_name = "RightMutationOfCotiltingModuleComplement"
 python_name = "right_mutation_of_cotilting_module_complement"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_cotilting_complement_mutation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:RightMutationOfCotiltingModuleComplement:1"]
 constructs = ["DeclareSynonym"]
@@ -11285,14 +11285,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["right_mutation_of_cotilting_module_complement"]
 rust_tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightMutationOfTiltingModuleComplement"
 python_name = "right_mutation_of_tilting_module_complement"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_tilting_complement_mutation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:RightMutationOfTiltingModuleComplement:1","modulehomalg:InstallMethod:RightMutationOfTiltingModuleComplement:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11300,7 +11300,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["right_mutation_of_tilting_module_complement"]
 rust_tests = ["tests/fixtures/modulehomalg_complement_mutations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightProjectiveModule"

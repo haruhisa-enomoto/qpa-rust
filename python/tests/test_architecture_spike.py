@@ -839,3 +839,38 @@ def test_approximation_operations_follow_qpa(field: qpa.Field) -> None:
     t_hat = cotilting.left_approximation_by_add_t_hat(simple)
     assert t_hat.source.dimension_vector == [1, 0]
     assert t_hat.range.dimension_vector == [1, 0]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_complements_and_mutations_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    first_projective, second_projective = algebra.indecomposable_projectives()
+    first_simple = algebra.simple_modules()[0]
+
+    coresolution_side = first_projective.all_complements(second_projective)
+    assert coresolution_side.resolution is None
+    assert coresolution_side.coresolution is not None
+    assert coresolution_side.coresolution.differential(-1).source.dimension_vector == [1, 1]
+    resolution_side = first_projective.all_complements(first_simple)
+    assert resolution_side.resolution is not None
+    assert resolution_side.coresolution is None
+    assert resolution_side.resolution.differential(1).source.dimension_vector == [1, 1]
+    cotilting_alias = first_projective.all_cotilting_complements(second_projective)
+    assert cotilting_alias.resolution is None and cotilting_alias.coresolution is not None
+
+    assert first_projective.cached_faithful_dimension is None
+    assert first_projective.faithful_dimension() == "1"
+    assert first_projective.cached_faithful_dimension == "1"
+    assert first_projective.number_of_tilting_complements() == "2"
+    assert first_projective.number_of_cotilting_complements() == "2"
+    regular = qpa.MatrixModule.direct_sum([first_projective, second_projective])
+    assert regular is not None
+    assert regular.number_of_tilting_complements() == "infinity"
+    assert regular.number_of_cotilting_complements() == "infinity"
+
+    left = first_projective.left_tilting_complement_mutation(second_projective)
+    assert left is not None and left.dimension_vector == [1, 0]
+    assert first_projective.right_tilting_complement_mutation(second_projective) is None
+    left_cotilting = first_projective.left_cotilting_complement_mutation(second_projective)
+    assert left_cotilting is not None and left_cotilting.dimension_vector == [1, 0]
+    assert first_projective.right_cotilting_complement_mutation(second_projective) is None

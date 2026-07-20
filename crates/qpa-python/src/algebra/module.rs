@@ -157,6 +157,20 @@ where
     ))
 }
 
+fn faithful_dimension_result_text(result: qpa_gbnp::FaithfulDimensionResult) -> String {
+    match result {
+        qpa_gbnp::FaithfulDimensionResult::Finite(value) => value.to_string(),
+        qpa_gbnp::FaithfulDimensionResult::Infinite => "infinity".into(),
+    }
+}
+
+fn number_of_complements_result_text(result: qpa_gbnp::NumberOfComplementsResult) -> String {
+    match result {
+        qpa_gbnp::NumberOfComplementsResult::Finite(value) => value.to_string(),
+        qpa_gbnp::NumberOfComplementsResult::Infinite => "infinity".into(),
+    }
+}
+
 fn clone_module_elements(
     py: Python<'_>,
     elements: Vec<Py<PyModuleElement>>,
@@ -778,6 +792,123 @@ impl PyMatrixModule {
                     kind: runtime::Wrap::wrap(result),
                 })
         ))
+    }
+
+    fn all_complements(&self, complement: &Self) -> PyResult<PyAllComplementsResult> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &complement.kind,
+            MatrixModuleKind => AllComplementsResultKind,
+            |module, complement| qpa_gbnp::all_complements_of_almost_complete_tilting_module(
+                module, complement,
+            )
+            .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyAllComplementsResult { kind })
+    }
+
+    fn all_cotilting_complements(&self, complement: &Self) -> PyResult<PyAllComplementsResult> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &complement.kind,
+            MatrixModuleKind => AllComplementsResultKind,
+            |module, complement| qpa_gbnp::all_complements_of_almost_complete_cotilting_module(
+                module, complement,
+            )
+            .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyAllComplementsResult { kind })
+    }
+
+    #[getter]
+    fn cached_faithful_dimension(&self) -> Option<String> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| module
+            .cached_faithful_dimension()
+            .map(
+                |dimension| dimension.map_or_else(|| "infinity".into(), |value| value.to_string())
+            ))
+    }
+
+    fn faithful_dimension(&self) -> PyResult<String> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            faithful_dimension_result_text(qpa_gbnp::faithful_dimension(module).map_err(invalid)?)
+        ))
+    }
+
+    fn number_of_tilting_complements(&self) -> PyResult<String> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            number_of_complements_result_text(
+                qpa_gbnp::number_of_complements_of_almost_complete_tilting_module(module)
+                    .map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn number_of_cotilting_complements(&self) -> PyResult<String> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            number_of_complements_result_text(
+                qpa_gbnp::number_of_complements_of_almost_complete_cotilting_module(module)
+                    .map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn left_tilting_complement_mutation(&self, complement: &Self) -> PyResult<Option<Self>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &complement.kind,
+            MatrixModuleKind,
+            |module, complement| Ok(qpa_gbnp::left_mutation_of_tilting_module_complement(
+                module, complement
+            )
+            .map_err(invalid)?
+            .map(wrap_module)),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn right_tilting_complement_mutation(&self, complement: &Self) -> PyResult<Option<Self>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &complement.kind,
+            MatrixModuleKind,
+            |module, complement| Ok(qpa_gbnp::right_mutation_of_tilting_module_complement(
+                module, complement
+            )
+            .map_err(invalid)?
+            .map(wrap_module)),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn left_cotilting_complement_mutation(&self, complement: &Self) -> PyResult<Option<Self>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &complement.kind,
+            MatrixModuleKind,
+            |module, complement| Ok(qpa_gbnp::left_mutation_of_cotilting_module_complement(
+                module, complement
+            )
+            .map_err(invalid)?
+            .map(wrap_module)),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn right_cotilting_complement_mutation(&self, complement: &Self) -> PyResult<Option<Self>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &complement.kind,
+            MatrixModuleKind,
+            |module, complement| Ok(qpa_gbnp::right_mutation_of_cotilting_module_complement(
+                module, complement
+            )
+            .map_err(invalid)?
+            .map(wrap_module)),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
     }
 
     fn right_approximation_by_add(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {

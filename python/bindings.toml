@@ -1851,3 +1851,59 @@ qpa_name = "RadicalRightApproximationByAddM"
 status = "exposed"
 target = "qpa.MatrixModule.radical_right_approximation_by_add"
 tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+# Complements and mutations
+
+[[bindings]]
+qpa_name = "AllComplementsOfAlmostCompleteTiltingModule"
+status = "exposed"
+target = "qpa.MatrixModule.all_complements; qpa.AllComplementsResult; qpa.AddMResolution; qpa.AddMCoresolution"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "AllComplementsOfAlmostCompleteCotiltingModule"
+status = "exposed"
+target = "qpa.MatrixModule.all_cotilting_complements; qpa.AllComplementsResult"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FaithfulDimension"
+status = "exposed"
+target = "qpa.MatrixModule.faithful_dimension; qpa.MatrixModule.cached_faithful_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NumberOfComplementsOfAlmostCompleteTiltingModule"
+status = "exposed"
+target = "qpa.MatrixModule.number_of_tilting_complements"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NumberOfComplementsOfAlmostCompleteCotiltingModule"
+status = "exposed"
+target = "qpa.MatrixModule.number_of_cotilting_complements"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftMutationOfTiltingModuleComplement"
+status = "exposed"
+target = "qpa.MatrixModule.left_tilting_complement_mutation"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightMutationOfTiltingModuleComplement"
+status = "exposed"
+target = "qpa.MatrixModule.right_tilting_complement_mutation"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftMutationOfCotiltingModuleComplement"
+status = "exposed"
+target = "qpa.MatrixModule.left_cotilting_complement_mutation"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightMutationOfCotiltingModuleComplement"
+status = "exposed"
+target = "qpa.MatrixModule.right_cotilting_complement_mutation"
+tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]

@@ -406,6 +406,34 @@ pub(crate) struct PyCotiltingModuleResult {
     kind: CotiltingModuleResultKind,
 }
 
+#[derive(Clone)]
+enum AddMResolutionKind {
+    Rational(qpa_gbnp::AddMResolution<RationalField>),
+    Binary(qpa_gbnp::AddMResolution<Z2>),
+    Prime(qpa_gbnp::AddMResolution<Zp>),
+}
+
+/// A finite add(M)-resolution returned by QPA's complement computation.
+#[pyclass(name = "AddMResolution", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyAddMResolution {
+    kind: AddMResolutionKind,
+}
+
+#[derive(Clone)]
+enum AllComplementsResultKind {
+    Rational(qpa_gbnp::AllComplementsResult<RationalField>),
+    Binary(qpa_gbnp::AllComplementsResult<Z2>),
+    Prime(qpa_gbnp::AllComplementsResult<Zp>),
+}
+
+/// QPA's possibly empty resolution and coresolution complement pair.
+#[pyclass(name = "AllComplementsResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyAllComplementsResult {
+    kind: AllComplementsResultKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -537,6 +565,18 @@ macro_rules! impl_resolution_runtime {
 
         impl runtime::Wrap<qpa_gbnp::CotiltingModuleResult<$field>> for CotiltingModuleResultKind {
             fn wrap(value: qpa_gbnp::CotiltingModuleResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::AddMResolution<$field>> for AddMResolutionKind {
+            fn wrap(value: qpa_gbnp::AddMResolution<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::AllComplementsResult<$field>> for AllComplementsResultKind {
+            fn wrap(value: qpa_gbnp::AllComplementsResult<$field>) -> Self {
                 Self::$variant(value)
             }
         }

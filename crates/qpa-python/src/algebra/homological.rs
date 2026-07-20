@@ -948,3 +948,61 @@ impl PyCotiltingModuleResult {
             .collect())
     }
 }
+
+#[pymethods]
+impl PyAddMResolution {
+    #[getter]
+    fn differentials(&self) -> Vec<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, AddMResolutionKind, |result| result
+            .differentials()
+            .iter()
+            .cloned()
+            .map(|homomorphism| PyModuleHomomorphism {
+                kind: runtime::Wrap::wrap(homomorphism),
+            })
+            .collect())
+    }
+
+    fn differential(&self, degree: i64) -> PyResult<PyModuleHomomorphism> {
+        let degree = Integer::from(degree);
+        let kind = map_ref!(
+            &self.kind,
+            AddMResolutionKind => ModuleHomomorphismKind,
+            |result| result.differential(&degree).map_err(invalid)?
+        );
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn object(&self, degree: i64) -> PyResult<PyMatrixModule> {
+        let degree = Integer::from(degree);
+        let kind = map_ref!(
+            &self.kind,
+            AddMResolutionKind => MatrixModuleKind,
+            |result| result.object(&degree).map_err(invalid)?
+        );
+        Ok(PyMatrixModule { kind })
+    }
+}
+
+#[pymethods]
+impl PyAllComplementsResult {
+    #[getter]
+    fn resolution(&self) -> Option<PyAddMResolution> {
+        dispatch_ref!(&self.kind, AllComplementsResultKind, |result| result
+            .resolution()
+            .cloned()
+            .map(|resolution| PyAddMResolution {
+                kind: runtime::Wrap::wrap(resolution),
+            }))
+    }
+
+    #[getter]
+    fn coresolution(&self) -> Option<PyAddMCoresolution> {
+        dispatch_ref!(&self.kind, AllComplementsResultKind, |result| result
+            .coresolution()
+            .cloned()
+            .map(|coresolution| PyAddMCoresolution {
+                kind: runtime::Wrap::wrap(coresolution),
+            }))
+    }
+}

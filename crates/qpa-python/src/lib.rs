@@ -9,11 +9,12 @@ mod quiver;
 mod runtime;
 
 use algebra::{
-    PyAddMCoresolution, PyAlgebraElement, PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult,
-    PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution,
-    PyMatrixModule, PyModuleChainMap, PyModuleComplex, PyModuleElement, PyModuleHomomorphism,
-    PyModuleSubmodule, PyPathAlgebra, PyPathAlgebraIdeal, PyProjectiveIsomorphismComponent,
-    PyProjectiveResolution, PyQuotientAlgebra, PyQuotientElement, PyTiltingModuleResult,
+    PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAllComplementsResult,
+    PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
+    PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule,
+    PyModuleChainMap, PyModuleComplex, PyModuleElement, PyModuleHomomorphism, PyModuleSubmodule,
+    PyPathAlgebra, PyPathAlgebraIdeal, PyProjectiveIsomorphismComponent, PyProjectiveResolution,
+    PyQuotientAlgebra, PyQuotientElement, PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{PyPath, PyQuiver};
@@ -69,5 +70,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyFiniteAddMResolutionResult>()?;
     module.add_class::<PyTiltingModuleResult>()?;
     module.add_class::<PyCotiltingModuleResult>()?;
+    module.add_class::<PyAddMResolution>()?;
+    module.add_class::<PyAllComplementsResult>()?;
     Ok(())
 }

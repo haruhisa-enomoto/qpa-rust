@@ -6,7 +6,9 @@ operation ledger record the exact exposed and remaining QPA surface.
 
 from ._qpa import (
     AddMCoresolution,
+    AddMResolution,
     AlgebraElement,
+    AllComplementsResult,
     CotiltingModuleResult,
     ExtAlgebraGeneratorsResult,
     ExtOverAlgebraResult,
@@ -37,7 +39,9 @@ from ._qpa import (
 
 __all__ = [
     "AddMCoresolution",
+    "AddMResolution",
     "AlgebraElement",
+    "AllComplementsResult",
     "CotiltingModuleResult",
     "ExtAlgebraGeneratorsResult",
     "ExtOverAlgebraResult",
