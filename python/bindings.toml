@@ -1,0 +1,634 @@
+schema_version = 1
+
+# This compact manifest records actual Python exposure. The complete generated
+# inventory lives in porting/python-bindings.toml. A status of "partial" means
+# that at least one QPA overload remains to be bound.
+
+[[bindings]]
+qpa_name = "Quiver"
+status = "partial"
+target = "qpa.Quiver"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+notes = "Named, indexed, adjacency-matrix, and Dynkin constructors are exposed; remaining QPA overloads stay partial."
+
+[[bindings]]
+qpa_name = "IsQuiver"
+status = "exposed"
+target = "qpa.Quiver"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsPath"
+status = "exposed"
+target = "qpa.Path"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "PathAlgebra"
+status = "partial"
+target = "qpa.PathAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_path_algebra_uses_exact_rust_operations"]
+notes = "Numerica Q and prime-field constructors are exposed."
+
+[[bindings]]
+qpa_name = "IsPathAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_path_algebra_uses_exact_rust_operations"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "ElementOfPathAlgebra"
+status = "partial"
+target = "qpa.PathAlgebra.term"
+tests = ["python/tests/test_architecture_spike.py::test_path_algebra_uses_exact_rust_operations"]
+notes = "Single path-scalar terms and generator elements are exposed."
+
+[[bindings]]
+qpa_name = "FactorPathAlgebraByRelators"
+status = "exposed"
+target = "qpa.PathAlgebra.quotient"
+tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
+notes = "Delegates to QPA's configured default GBNP quotient construction; quotient_high_level exposes the alternative translated backend."
+
+[[bindings]]
+qpa_name = "IsQuotientOfPathAlgebra"
+status = "exposed"
+target = "qpa.QuotientAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "ElementOfQuotientOfPathAlgebra"
+status = "partial"
+target = "qpa.QuotientAlgebra.generator"
+tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
+notes = "Embedded quiver generators are exposed."
+
+[[bindings]]
+qpa_name = "Dimension"
+status = "partial"
+target = "qpa.QuotientAlgebra.dimension"
+tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
+notes = "Quotient-algebra and matrix-module dimensions are exposed."
+
+[[bindings]]
+qpa_name = "RightModuleOverPathAlgebra"
+status = "partial"
+target = "qpa.PathAlgebra.module_from_integer_matrices"
+tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core"]
+notes = "Explicit dimensions and integer matrices are exposed for path algebras."
+
+[[bindings]]
+qpa_name = "IsPathAlgebraModule"
+status = "exposed"
+target = "qpa.MatrixModule"
+tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "DimensionVector"
+status = "partial"
+target = "qpa.MatrixModule.dimension_vector"
+tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core"]
+notes = "Matrix-module dimension vectors are exposed."
+
+# Quivers and paths
+
+[[bindings]]
+qpa_name = "NumberOfVertices"
+status = "exposed"
+target = "qpa.Quiver.number_of_vertices"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "NumberOfArrows"
+status = "exposed"
+target = "qpa.Quiver.number_of_arrows"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "VerticesOfQuiver"
+status = "exposed"
+target = "qpa.Quiver.vertices"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "ArrowsOfQuiver"
+status = "exposed"
+target = "qpa.Quiver.arrows"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "AdjacencyMatrixOfQuiver"
+status = "exposed"
+target = "qpa.Quiver.adjacency_matrix"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsAcyclicQuiver"
+status = "exposed"
+target = "qpa.Quiver.is_acyclic"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsFinite"
+status = "partial"
+target = "qpa.Quiver.is_finite"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The quiver overload is exposed; other GAP collection overloads remain outside this binding."
+
+[[bindings]]
+qpa_name = "IsConnectedQuiver"
+status = "exposed"
+target = "qpa.Quiver.is_connected"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsUAcyclicQuiver"
+status = "exposed"
+target = "qpa.Quiver.is_unoriented_acyclic"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsTreeQuiver"
+status = "exposed"
+target = "qpa.Quiver.is_tree"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "Size"
+status = "partial"
+target = "qpa.Quiver.cardinality"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The QPA quiver size overload is exposed; the global GAP operation has unrelated overloads."
+
+[[bindings]]
+qpa_name = "IncomingArrowsOfVertex"
+status = "exposed"
+target = "qpa.Quiver.incoming_arrows"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "OutgoingArrowsOfVertex"
+status = "exposed"
+target = "qpa.Quiver.outgoing_arrows"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "NeighborsOfVertex"
+status = "exposed"
+target = "qpa.Quiver.neighbors"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsDynkinQuiver"
+status = "exposed"
+target = "qpa.Quiver.dynkin_type"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "DynkinQuiver"
+status = "partial"
+target = "qpa.Quiver.dynkin"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The family/rank/orientation constructor is exposed; convenience overloads remain."
+
+[[bindings]]
+qpa_name = "FullSubquiver"
+status = "exposed"
+target = "qpa.Quiver.full_subquiver"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "ConnectedComponentsOfQuiver"
+status = "exposed"
+target = "qpa.Quiver.connected_components"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "OppositeQuiver"
+status = "exposed"
+target = "qpa.Quiver.opposite"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "OppositePath"
+status = "exposed"
+target = "qpa.Path.opposite"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "SeparatedQuiver"
+status = "exposed"
+target = "qpa.Quiver.separated"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "DoubleQuiver"
+status = "exposed"
+target = "qpa.Quiver.double"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "PathFromArrowList"
+status = "partial"
+target = "qpa.Quiver.path"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+notes = "Python accepts arrow names; direct wrapped-arrow input remains to be added."
+
+[[bindings]]
+qpa_name = "LengthOfPath"
+status = "exposed"
+target = "qpa.Path.length"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+
+[[bindings]]
+qpa_name = "SourceOfPath"
+status = "exposed"
+target = "qpa.Path.source"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+
+[[bindings]]
+qpa_name = "TargetOfPath"
+status = "exposed"
+target = "qpa.Path.target"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+
+[[bindings]]
+qpa_name = "IsArrow"
+status = "partial"
+target = "qpa.Path.is_arrow"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The path predicate is exposed; QPA arrow-object category overloads remain represented by names."
+
+[[bindings]]
+qpa_name = "IsZeroPath"
+status = "exposed"
+target = "qpa.Path.is_zero"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+# Path algebras, elements, ideals, Gröbner bases, and quotients
+
+[[bindings]]
+qpa_name = "GlobalDimension"
+status = "partial"
+target = "qpa.PathAlgebra.global_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The path-algebra constructor value is exposed; homological quotient/module overloads remain."
+
+[[bindings]]
+qpa_name = "RelationsOfAlgebra"
+status = "partial"
+target = "qpa.PathAlgebra.relations"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient algebra relation lists are exposed."
+
+[[bindings]]
+qpa_name = "CanonicalBasis"
+status = "partial"
+target = "qpa.PathAlgebra.canonical_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path-algebra and quotient canonical bases are exposed; other QPA basis families remain."
+
+[[bindings]]
+qpa_name = "OppositePathAlgebra"
+status = "partial"
+target = "qpa.PathAlgebra.opposite"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient opposite constructions are exposed through their classes."
+
+[[bindings]]
+qpa_name = "MakeUniformOnRight"
+status = "partial"
+target = "qpa.PathAlgebra.make_uniform_on_right"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The path-algebra-element list overload is exposed."
+
+[[bindings]]
+qpa_name = "GeneratorsTimesArrowsOnRight"
+status = "partial"
+target = "qpa.PathAlgebra.generators_times_arrows_on_right"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The path-algebra-element list overload is exposed."
+
+[[bindings]]
+qpa_name = "NthPowerOfArrowIdeal"
+status = "exposed"
+target = "qpa.PathAlgebra.nth_power_of_arrow_ideal"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "PathAlgebraElementTerms"
+status = "exposed"
+target = "qpa.AlgebraElement.terms"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "LeadingTerm"
+status = "partial"
+target = "qpa.AlgebraElement.leading_term"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "LeadingCoefficient"
+status = "partial"
+target = "qpa.AlgebraElement.leading_coefficient"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "LeadingMonomial"
+status = "partial"
+target = "qpa.AlgebraElement.leading_monomial"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "IsLeftUniform"
+status = "partial"
+target = "qpa.AlgebraElement.is_left_uniform"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "IsRightUniform"
+status = "partial"
+target = "qpa.AlgebraElement.is_right_uniform"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "IsUniform"
+status = "partial"
+target = "qpa.AlgebraElement.is_uniform"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "VertexPosition"
+status = "partial"
+target = "qpa.AlgebraElement.vertex_position"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "OppositePathAlgebraElement"
+status = "partial"
+target = "qpa.AlgebraElement.opposite"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient element overloads are exposed."
+
+[[bindings]]
+qpa_name = "TwoSidedIdealByGenerators"
+status = "exposed"
+target = "qpa.PathAlgebra.ideal"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsIdealInPathAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebraIdeal"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "GroebnerBasisOfIdeal"
+status = "partial"
+target = "qpa.PathAlgebraIdeal.attached_groebner_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Lazy lookup and high-level attachment are exposed; direct setter semantics remain."
+
+[[bindings]]
+qpa_name = "IsMonomialIdeal"
+status = "exposed"
+target = "qpa.PathAlgebraIdeal.is_monomial"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsAdmissibleIdeal"
+status = "exposed"
+target = "qpa.PathAlgebraIdeal.is_admissible"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "ProductOfIdeals"
+status = "exposed"
+target = "qpa.PathAlgebraIdeal.product"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "MinimalGeneratingSetOfIdeal"
+status = "exposed"
+target = "qpa.PathAlgebraIdeal.minimal_generating_set"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IdealOfQuotient"
+status = "exposed"
+target = "qpa.QuotientAlgebra.ideal"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "GroebnerBasis"
+status = "partial"
+target = "qpa.PathAlgebra.groebner_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Complete two-sided high-level construction is exposed; manually objectified right-basis state remains."
+
+[[bindings]]
+qpa_name = "IsGroebnerBasis"
+status = "exposed"
+target = "qpa.GroebnerBasis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "CompletelyReduce"
+status = "exposed"
+target = "qpa.GroebnerBasis.completely_reduce"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "CompletelyReduceGroebnerBasis"
+status = "exposed"
+target = "qpa.GroebnerBasis.completely_reduced_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "TipReduce"
+status = "partial"
+target = "qpa.GroebnerBasis.tip_reduce"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Reduction by wrapped two-sided and derived right bases is exposed."
+
+[[bindings]]
+qpa_name = "TipReduceGroebnerBasis"
+status = "partial"
+target = "qpa.GroebnerBasis.tip_reduced_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Wrapped complete-basis reduction is exposed."
+
+[[bindings]]
+qpa_name = "IsTipReducedGroebnerBasis"
+status = "exposed"
+target = "qpa.GroebnerBasis.tip_reduced_property"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsCompleteGroebnerBasis"
+status = "exposed"
+target = "qpa.GroebnerBasis.is_complete"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsCompletelyReducedGroebnerBasis"
+status = "exposed"
+target = "qpa.GroebnerBasis.completely_reduced_property"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "Nontips"
+status = "exposed"
+target = "qpa.GroebnerBasis.nontips"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "AdmitsFinitelyManyNontips"
+status = "exposed"
+target = "qpa.GroebnerBasis.admits_finitely_many_nontips"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "NontipSize"
+status = "exposed"
+target = "qpa.GroebnerBasis.nontip_size"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsPrefixOfTipInTipIdeal"
+status = "exposed"
+target = "qpa.GroebnerBasis.is_prefix_of_tip_in_tip_ideal"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "RightGroebnerBasis"
+status = "partial"
+target = "qpa.GroebnerBasis.right_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Basis and ideal entry points are exposed; left/right module variants remain."
+
+[[bindings]]
+qpa_name = "OriginalPathAlgebra"
+status = "exposed"
+target = "qpa.QuotientAlgebra.original_path_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsElementOfQuotientOfPathAlgebra"
+status = "exposed"
+target = "qpa.QuotientElement"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsFiniteDimensional"
+status = "partial"
+target = "qpa.QuotientAlgebra.is_finite_dimensional"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The quotient-algebra overload is exposed."
+
+[[bindings]]
+qpa_name = "IsAdmissibleQuotientOfPathAlgebra"
+status = "exposed"
+target = "qpa.QuotientAlgebra.is_admissible"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "HighLevelGroebnerBasis"
+status = "partial"
+target = "qpa.PathAlgebra.groebner_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The relation-list/path-algebra route is exposed as a typed basis object."
+
+[[bindings]]
+qpa_name = "GBNPGroebnerBasis"
+status = "partial"
+target = "qpa.PathAlgebra.gbnp_groebner_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The checked relation-list overload is exposed; the ideal convenience overload remains indirect."
+
+[[bindings]]
+qpa_name = "IsMonomialAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.is_monomial"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Both path and quotient algebra methods are exposed."
+
+[[bindings]]
+qpa_name = "IsSpecialBiserialQuiver"
+status = "exposed"
+target = "qpa.Quiver.is_special_biserial"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsSpecialBiserialAlgebra"
+status = "partial"
+target = "qpa.PathAlgebra.is_special_biserial"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and quotient methods are exposed; the gentle true-method implication remains internal."
+
+[[bindings]]
+qpa_name = "IsStringAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.is_string"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Both path and quotient algebra methods are exposed."
+
+[[bindings]]
+qpa_name = "IsGentleAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.is_gentle"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Both path and quotient algebra methods are exposed."
+
+[[bindings]]
+qpa_name = "IsTriangularReduced"
+status = "partial"
+target = "qpa.QuotientAlgebra.is_triangular_reduced"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The default GBNP-backed quotient overload is exposed."
+
+[[bindings]]
+qpa_name = "IsSemisimpleAlgebra"
+status = "partial"
+target = "qpa.QuotientAlgebra.is_semisimple"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The admissible-quotient specialized method is exposed."
+
+[[bindings]]
+qpa_name = "IsElementaryAlgebra"
+status = "partial"
+target = "qpa.QuotientAlgebra.is_elementary"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The admissible-quotient true-method is exposed."
+
+[[bindings]]
+qpa_name = "IsBasicAlgebra"
+status = "partial"
+target = "qpa.QuotientAlgebra.is_basic"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The admissible-quotient true-method is exposed."
+
+[[bindings]]
+qpa_name = "TruncatedPathAlgebra"
+status = "exposed"
+target = "qpa.QuotientAlgebra.truncated"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "Inverse"
+status = "partial"
+target = "qpa.QuotientElement.inverse"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The quotient-element overload is exposed, with QPA fail represented by None."

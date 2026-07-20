@@ -45,6 +45,43 @@ def test_quiver_identity_and_left_to_right_paths() -> None:
     assert not quiver.is_identical(reconstructed)
 
 
+def test_extended_quiver_domain_delegates_to_qpa_core() -> None:
+    quiver = qpa.Quiver.indexed(
+        3,
+        [(1, 2, "a"), (2, 3, "b")],
+    )
+    assert quiver.number_of_vertices == 3
+    assert quiver.number_of_arrows == 2
+    assert quiver.adjacency_matrix == [[0, 1, 0], [0, 0, 1], [0, 0, 0]]
+    assert quiver.is_acyclic and quiver.is_finite and quiver.is_connected
+    assert quiver.is_unoriented_acyclic and quiver.is_tree
+    assert quiver.cardinality == "7"
+    assert quiver.topological_order == ["v1", "v2", "v3"]
+    assert quiver.incoming_arrows("v2") == ["a"]
+    assert quiver.outgoing_arrows("v2") == ["b"]
+    assert quiver.neighbors("v2") == ["v3"]
+
+    path = quiver.path(["a", "b"])
+    assert path.quiver.is_identical(quiver)
+    assert path.is_zero is False and path.is_vertex is False and path.is_arrow is False
+    assert quiver.compare_paths(quiver.vertex_path("v1"), path) < 0
+    assert quiver.path_at(6) == path
+    assert quiver.path_from_external_representation([4, 5]) == path
+
+    opposite = quiver.opposite()
+    assert path.opposite().quiver.is_identical(opposite)
+    assert opposite.opposite().is_identical(quiver)
+    assert len(quiver.double().arrows) == 4
+    assert quiver.separated().number_of_vertices == 6
+    assert quiver.full_subquiver(["v1", "v2"]).number_of_arrows == 1
+    assert len(quiver.connected_components()) == 1
+    assert quiver.is_special_biserial
+
+    dynkin = qpa.Quiver.dynkin("A", 3, ["r", "r"])
+    assert dynkin is not None and dynkin.dynkin_type == "A_3"
+    assert qpa.Quiver.from_adjacency([[0, 1], [0, 0]]).is_acyclic
+
+
 def test_path_algebra_uses_exact_rust_operations() -> None:
     quiver = qpa.Quiver(
         ["v1", "v2", "v3"],
@@ -80,6 +117,91 @@ def test_quotient_runs_the_existing_high_level_groebner_route() -> None:
     assert residue.is_normal_form
     assert (residue * residue).is_zero
     assert not quotient.one().is_zero
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v"], [("v", "v", "x")])
+    algebra = qpa.PathAlgebra(field, quiver)
+    vertex, x = algebra.generators
+    x2 = x * x
+
+    assert algebra.global_dimension == 1
+    assert not algebra.has_finite_canonical_basis
+    assert algebra.canonical_basis() is None
+    assert algebra.relations == []
+    assert algebra.is_monomial
+    assert not algebra.is_special_biserial
+    assert not algebra.is_string
+    assert not algebra.is_gentle
+    assert vertex.vertex_position == 1
+    assert x.is_uniform and x.leading_monomial.length == 1
+    assert x2.external_representation[0][0] == [2, 2]
+    assert x2.leading_coefficient == field.element(1)
+    assert x2 - x2 == algebra.zero()
+    assert -(-x) == x
+    unit = field.element(-1)
+    assert x.scale_left(unit).divide_scalar(unit) == x
+    assert algebra.nth_power_of_arrow_ideal(2) == [x2]
+    assert algebra.make_uniform_on_right([x]) == [x]
+    assert algebra.generators_times_arrows_on_right([x]) == [x2]
+
+    ideal = algebra.ideal([x2])
+    assert ideal.algebra.is_identical(algebra)
+    assert ideal.attached_groebner_basis is None
+    assert ideal.generators_are_monomial and ideal.is_monomial()
+    assert ideal.contains(x2)
+    assert ideal.attached_groebner_basis is not None
+    assert ideal.is_admissible()
+    assert ideal.minimal_generating_set() == [x2]
+
+    basis = algebra.groebner_basis([x2]).completely_reduced_basis()
+    gbnp_basis = algebra.gbnp_groebner_basis([x2]).completely_reduced_basis()
+    assert basis.algebra.is_identical(algebra)
+    assert basis.kind == "two-sided" and basis.is_complete
+    assert basis.tip_reduced_property is True
+    assert basis.completely_reduced_property is True
+    assert len(basis) == 1
+    assert gbnp_basis.relations == basis.relations
+    assert basis.admits_finitely_many_nontips
+    assert basis.nontip_size == "2"
+    assert basis.nontips() == [quiver.vertex_path("v"), quiver.arrow_path("x")]
+    assert basis.tip_reduce(x2 * x).is_zero
+    assert basis.completely_reduce(x2 * x).is_zero
+    assert basis.is_prefix_of_tip_in_tip_ideal(x2 * x)
+    assert basis.right_basis().kind == "right"
+    assert ideal.right_groebner_basis().kind == "right"
+    assert ideal.product(ideal).contains(x2.pow(2))
+
+    quotient = ideal.quotient()
+    residue = quotient.generator("x")
+    assert quotient.original_path_algebra.is_identical(algebra)
+    assert quotient.ideal.is_identical(ideal)
+    assert quotient.quiver.is_identical(quiver)
+    assert quotient.has_normal_form_function
+    assert quotient.is_finite_dimensional and quotient.dimension() == "2"
+    assert quotient.is_admissible
+    assert quotient.is_monomial
+    assert quotient.is_special_biserial and quotient.is_string and quotient.is_gentle
+    assert quotient.is_triangular_reduced
+    assert not quotient.is_semisimple
+    assert quotient.is_elementary and quotient.is_basic
+    assert len(quotient.generators) == 2
+    assert len(quotient.canonical_basis() or []) == 2
+    assert residue.representative == x
+    assert residue.leading_monomial == quiver.arrow_path("x")
+    assert residue.is_uniform and (residue * residue).is_zero
+    assert residue.inverse() is None and residue.pow_integer(-1) is None
+    assert quotient.one().inverse() == quotient.one()
+    assert residue.scale_right(field.element(2)) - residue.scale_left(field.element(2)) == quotient.zero()
+    assert residue.opposite().algebra.opposite().is_identical(quotient)
+
+    truncated = qpa.QuotientAlgebra.truncated(field, quiver, 2)
+    assert truncated.dimension() == "2"
+    assert (truncated.generator("x") * truncated.generator("x")).is_zero
+
+    high_level = algebra.quotient_high_level([x2])
+    assert high_level.dimension() == "2"
 
 
 @pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])

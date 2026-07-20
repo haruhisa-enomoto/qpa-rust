@@ -423,6 +423,7 @@ dependencies = [
  "numerica",
  "pyo3",
  "qpa-core",
+ "qpa-gbnp",
 ]
 
 [[package]]

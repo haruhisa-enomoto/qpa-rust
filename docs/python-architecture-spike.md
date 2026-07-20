@@ -1,11 +1,11 @@
-# Python architecture spike
+# Python binding architecture
 
-The `qpa-python` crate is a deliberately small PyO3/maturin vertical slice. It
-calls the existing `qpa-core` operations; it contains no representation-theory
-algorithm of its own. The spike is non-published and its API may change before
-the complete Python operation-ledger campaign.
+The `qpa-python` crate is the PyO3/maturin interface to the source-faithful Rust
+port. It calls existing `qpa-core` and `qpa-gbnp` operations; it contains no
+representation-theory algorithm of its own. The API is still pre-alpha while
+the complete Python operation-ledger campaign proceeds.
 
-## Decisions tested by the spike
+## Architecture decisions
 
 - One Python `Field` runtime descriptor selects a monomorphized Rust backend:
   Numerica `Q`, `Z2`, or `Zp`. This avoids exposing Rust generics to Python.
@@ -19,7 +19,7 @@ the complete Python operation-ledger campaign.
 - Python objects own cloned Rust handles. Those handles contain `Arc`-backed
   QPA identities, so cloning a wrapper preserves object identity and does not
   copy a mathematical object.
-- The spike exposes `is_identical` explicitly. This keeps object identity
+- The binding exposes `is_identical` explicitly. This keeps object identity
   separate from structural/module equality before Python `==` policy is frozen.
 - Quiver paths retain QPA's left-to-right multiplication. User-visible QPA
   vertex/generator positions remain one-based; Python container positions will
@@ -27,8 +27,8 @@ the complete Python operation-ledger campaign.
 - Rust failures become a `QpaError` hierarchy. Entered-data and family errors
   use `InvalidInputError`; QPA's module-constructor `fail` result uses
   `RelationNotSatisfiedError` rather than an unrelated exception.
-- The spike uses Pythonic snake-case methods while keeping QPA nouns. A future
-  generated name map can add migration aliases without changing Rust symbols.
+- The binding uses Pythonic snake-case methods while keeping QPA nouns. The
+  generated binding ledger supplies the complete source-to-Python name map.
 
 ## Development build
 
@@ -39,6 +39,6 @@ python3 -m venv .venv
 .venv/bin/python -m pytest python/tests
 ```
 
-The future release may use Python's stable ABI, but the spike deliberately
-builds against the active interpreter so it can validate all object behavior
-before wheel policy is frozen.
+The future release may use Python's stable ABI. Development builds currently
+target the active interpreter so all object behavior can be validated before
+wheel policy is frozen.

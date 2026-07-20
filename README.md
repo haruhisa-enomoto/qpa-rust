@@ -8,9 +8,10 @@ delegates to them.
 The Rust port is complete for the initial exact coefficient contract. All
 1,839 declarations and installed implementations extracted from the pinned QPA
 source are mapped to verified public Rust behavior, including explicit typed
-boundaries for declarations on which QPA itself installs no method. A small
-PyO3/maturin architecture spike now exercises the foundational vertical slice;
-full Python operation coverage remains a later campaign.
+boundaries for declarations on which QPA itself installs no method. The
+PyO3/maturin binding campaign exposes that port incrementally; its generated
+ledger records all 1,839 source entries and the current Python status of each
+grouped operation.
 
 The initial exact coefficient contract uses Numerica and admits the rational
 field and supported prime fields. Finite extension fields are a later

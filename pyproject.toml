@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "qpa-rust"
 version = "0.1.0"
-description = "Python architecture spike for the source-faithful Rust port of QPA"
+description = "Python bindings for the source-faithful Rust port of QPA"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "GPL-2.0-or-later"

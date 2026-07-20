@@ -1,17 +1,18 @@
-"""Architecture spike for the source-faithful Rust QPA binding.
+"""Python interface to the source-faithful Rust port of QPA.
 
-This package intentionally exposes only a vertical slice. Its job is to prove
-the coefficient, ownership, identity, error, and object-lifetime design before
-the complete Python binding campaign.
+The binding campaign is incremental; ``python/bindings.toml`` and the generated
+operation ledger record the exact exposed and remaining QPA surface.
 """
 
 from ._qpa import (
     AlgebraElement,
     Field,
+    GroebnerBasis,
     InvalidInputError,
     MatrixModule,
     Path,
     PathAlgebra,
+    PathAlgebraIdeal,
     QpaError,
     Quiver,
     QuotientAlgebra,
@@ -23,10 +24,12 @@ from ._qpa import (
 __all__ = [
     "AlgebraElement",
     "Field",
+    "GroebnerBasis",
     "InvalidInputError",
     "MatrixModule",
     "Path",
     "PathAlgebra",
+    "PathAlgebraIdeal",
     "QpaError",
     "Quiver",
     "QuotientAlgebra",

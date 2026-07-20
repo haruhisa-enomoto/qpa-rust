@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -eu
+
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+repo_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
+actual=$(mktemp "${TMPDIR:-/tmp}/qpa-rust-python-ledger.XXXXXX")
+cleanup() {
+    rm -f -- "$actual"
+}
+trap cleanup EXIT HUP INT TERM
+
+cd "$repo_root"
+cargo run --quiet -p qpa-porting --bin qpa-python-ledger -- \
+    porting/qpa-operations.toml python/bindings.toml "$actual"
+diff --unified porting/python-bindings.toml "$actual"
+
+source_entries=$(sed -n 's/^source_entry_count = //p' "$actual")
+accounted_entries=$(sed -n 's/^accounted_entry_count = //p' "$actual")
+operation_count=$(sed -n 's/^operation_count = //p' "$actual")
+
+test "$source_entries" -eq 1839
+test "$accounted_entries" -eq "$source_entries"
+test "$operation_count" -eq 888
+test "$(rg '^python_name = ""$' "$actual" | wc -l)" -eq 0
