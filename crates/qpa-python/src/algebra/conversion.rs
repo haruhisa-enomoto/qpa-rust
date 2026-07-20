@@ -1268,6 +1268,68 @@ impl PyQuiverAlgebra {
         })
     }
 
+    fn string_sigma_epsilon(&self) -> PyResult<super::PyStringSigmaEpsilon> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::validity::sigma_epsilon_for(algebra)
+        })
+    }
+
+    fn is_valid_string(&self, input: &str) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::validity::is_valid_for(algebra, input)
+        })
+    }
+
+    fn string_direct_left(
+        &self,
+        py: Python<'_>,
+        input: &str,
+        signs: &super::PyStringSigmaEpsilon,
+    ) -> PyResult<Py<PyAny>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::validity::direct_left_for(py, algebra, input, signs)
+        })
+    }
+
+    fn string_direct_right(
+        &self,
+        py: Python<'_>,
+        input: &str,
+        signs: &super::PyStringSigmaEpsilon,
+    ) -> PyResult<Py<PyAny>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::validity::direct_right_for(py, algebra, input, signs)
+        })
+    }
+
+    fn string_inverse_left(
+        &self,
+        py: Python<'_>,
+        input: &str,
+        signs: &super::PyStringSigmaEpsilon,
+    ) -> PyResult<Py<PyAny>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::validity::inverse_left_for(py, algebra, input, signs)
+        })
+    }
+
+    fn string_inverse_right(
+        &self,
+        py: Python<'_>,
+        input: &str,
+        signs: &super::PyStringSigmaEpsilon,
+    ) -> PyResult<Py<PyAny>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::validity::inverse_right_for(py, algebra, input, signs)
+        })
+    }
+
+    fn local_ar_quiver(&self, input: &str) -> PyResult<Vec<String>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::validity::local_ar_for(algebra, input)
+        })
+    }
+
     #[getter]
     fn maximal_paths_of_gentle_algebra(&self) -> PyResult<Vec<PyPath>> {
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {

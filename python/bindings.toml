@@ -3975,3 +3975,54 @@ status = "exposed"
 target = "qpa.ArQuiverNumerical.test_codimension_conjecture; qpa.CodimensionConjectureReport"
 tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
 notes = "Returns QPA's accumulated counterexample and count data as a structured result rather than printing a runtime-dependent summary."
+
+# String validity and local Auslander--Reiten moves
+
+[[bindings]]
+qpa_name = "IsValidString"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_valid_string"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LocalARQuiver"
+status = "exposed"
+target = "qpa.QuiverAlgebra.local_ar_quiver"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QPAStringDirectLeft"
+status = "exposed"
+target = "qpa.QuiverAlgebra.string_direct_left"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QPAStringDirectRight"
+status = "exposed"
+target = "qpa.QuiverAlgebra.string_direct_right"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+notes = "Preserves QPA's arrow-list return in the source compatibility branch."
+
+[[bindings]]
+qpa_name = "QPAStringInverseLeft"
+status = "exposed"
+target = "qpa.QuiverAlgebra.string_inverse_left"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QPAStringInverseRight"
+status = "exposed"
+target = "qpa.QuiverAlgebra.string_inverse_right"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QPAStringQuiverRho"
+status = "exposed"
+target = "qpa.string_quiver_rho"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QPAStringSigmaEps"
+status = "exposed"
+target = "qpa.QuiverAlgebra.string_sigma_epsilon; qpa.StringSigmaEpsilon"
+tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]

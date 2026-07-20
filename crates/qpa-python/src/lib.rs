@@ -33,12 +33,12 @@ use algebra::{
     PyQuiverAlgebra, PyQuiverAlgebraElement, PyQuotientAlgebra, PyQuotientElement,
     PyQuotientPathAlgebraVector, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
     PyRightProjectiveModule, PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule,
-    PySimpleEndoProjectiveResolutionResult, PyStructureConstantsAlgebra,
+    PySimpleEndoProjectiveResolutionResult, PyStringSigmaEpsilon, PyStructureConstantsAlgebra,
     PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
     PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult, PyUnitForm,
     py_complex_and_chain_maps, py_compute_lps_array, py_cyclic_permutations_of_band,
     py_format_multiplicity_vector, py_format_multiplicity_vectors, py_predefined_ar_quiver_catalog,
-    py_predefined_ar_quiver_data,
+    py_predefined_ar_quiver_data, py_string_quiver_rho,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -82,6 +82,7 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_predefined_ar_quiver_catalog, module)?)?;
     module.add_function(wrap_pyfunction!(py_format_multiplicity_vector, module)?)?;
     module.add_function(wrap_pyfunction!(py_format_multiplicity_vectors, module)?)?;
+    module.add_function(wrap_pyfunction!(py_string_quiver_rho, module)?)?;
     Ok(())
 }
 
@@ -105,6 +106,7 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyArQuiverNumerical>()?;
     module.add_class::<PyPredefinedArQuiverData>()?;
     module.add_class::<PyCodimensionConjectureReport>()?;
+    module.add_class::<PyStringSigmaEpsilon>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;

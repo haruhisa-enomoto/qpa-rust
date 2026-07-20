@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 631
+exposed_or_partial_count = 639
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -6881,8 +6881,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow
 qpa_name = "IsValidString"
 python_name = "is_valid_string"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_valid_string"
 notes = ""
 entry_ids = ["validity:DeclareOperation:IsValidString:1","validity:InstallMethod:IsValidString:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -6890,7 +6890,7 @@ source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["is_valid_string"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsVectorOrdering"
@@ -7796,8 +7796,8 @@ python_tests = []
 qpa_name = "LocalARQuiver"
 python_name = "local_ar_quiver"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.local_ar_quiver"
 notes = ""
 entry_ids = ["validity:DeclareOperation:LocalARQuiver:1","validity:InstallMethod:LocalARQuiver:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7805,7 +7805,7 @@ source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["local_ar_quiver"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "LoewyLength"
@@ -10316,8 +10316,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_catego
 qpa_name = "QPAStringDirectLeft"
 python_name = "qpa_string_direct_left"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.string_direct_left"
 notes = ""
 entry_ids = ["validity:DeclareGlobalFunction:QPAStringDirectLeft:1","validity:InstallGlobalFunction:QPAStringDirectLeft:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -10325,29 +10325,29 @@ source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["qpa_string_direct_left"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPAStringDirectRight"
 python_name = "qpa_string_direct_right"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.string_direct_right"
+notes = "Preserves QPA's arrow-list return in the source compatibility branch."
 entry_ids = ["validity:DeclareGlobalFunction:QPAStringDirectRight:1","validity:InstallGlobalFunction:QPAStringDirectRight:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["qpa_string_direct_right"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPAStringInverseLeft"
 python_name = "qpa_string_inverse_left"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.string_inverse_left"
 notes = ""
 entry_ids = ["validity:DeclareGlobalFunction:QPAStringInverseLeft:1","validity:InstallGlobalFunction:QPAStringInverseLeft:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -10355,14 +10355,14 @@ source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["qpa_string_inverse_left"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPAStringInverseRight"
 python_name = "qpa_string_inverse_right"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.string_inverse_right"
 notes = ""
 entry_ids = ["validity:DeclareGlobalFunction:QPAStringInverseRight:1","validity:InstallGlobalFunction:QPAStringInverseRight:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -10370,14 +10370,14 @@ source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["qpa_string_inverse_right"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPAStringQuiverRho"
 python_name = "qpa_string_quiver_rho"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.string_quiver_rho"
 notes = ""
 entry_ids = ["validity:DeclareGlobalFunction:QPAStringQuiverRho:1","validity:InstallGlobalFunction:QPAStringQuiverRho:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -10385,14 +10385,14 @@ source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["qpa_string_quiver_rho"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPAStringSigmaEps"
 python_name = "qpa_string_sigma_eps"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.string_sigma_epsilon; qpa.StringSigmaEpsilon"
 notes = ""
 entry_ids = ["validity:DeclareGlobalFunction:QPAStringSigmaEps:1","validity:InstallGlobalFunction:QPAStringSigmaEps:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -10400,7 +10400,7 @@ source_files = ["upstream/qpa/lib/validity.gd","upstream/qpa/lib/validity.gi"]
 rust_symbols = ["qpa_string_sigma_epsilon"]
 rust_tests = ["tests/fixtures/validity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPA_Cohen2Path"

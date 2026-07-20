@@ -3521,6 +3521,62 @@ def test_tits_and_euler_forms_follow_qpa(field: qpa.Field) -> None:
         dual_numbers.tits_unit_form()
 
 
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_string_validity_and_local_ar_follow_qpa(field: qpa.Field) -> None:
+    fixture = json.loads(
+        (FIXTURES / "validity.schema-v1.json").read_text(encoding="utf-8")
+    )
+    expected = fixture["rational" if field.characteristic is None else "binary"]
+    quiver = qpa.Quiver(
+        ["v1", "v2", "v3", "v4"],
+        [
+            ("v1", "v2", "a"),
+            ("v1", "v2", "b"),
+            ("v2", "v3", "c"),
+            ("v3", "v4", "d"),
+            ("v3", "v4", "e"),
+        ],
+    )
+    path_algebra = qpa.PathAlgebra(field, quiver)
+    b = path_algebra.generator("b")
+    c = path_algebra.generator("c")
+    d = path_algebra.generator("d")
+    quotient = qpa.QuiverAlgebra.from_quotient_algebra(
+        path_algebra.quotient([b * c, c * d])
+    )
+
+    rho = qpa.string_quiver_rho(quiver, expected["rho"])
+    assert ["".join(arrow.name for arrow in path.walk) for path in rho] == expected[
+        "rho"
+    ]
+    signs = quotient.string_sigma_epsilon()
+    assert signs.sigma == expected["sigma"]
+    assert signs.epsilon == expected["epsilon"]
+    assert repr(signs).startswith("StringSigmaEpsilon(sigma=")
+    assert [quotient.is_valid_string(word) for word in expected["inputs"]] == expected[
+        "valid"
+    ]
+    assert [
+        quotient.string_direct_left("eca", signs),
+        quotient.string_inverse_left("eca", signs),
+        quotient.string_direct_right("eca", signs),
+        quotient.string_inverse_right("eca", signs),
+    ] == expected["extensions"]
+    assert [
+        quotient.string_direct_left("(1,1)", signs),
+        quotient.string_inverse_left("(2,-1)", signs),
+        quotient.string_direct_right("(4,1)", signs),
+        quotient.string_inverse_right("(3,-1)", signs),
+    ] == expected["zero_extensions"]
+    assert quotient.local_ar_quiver("eca") == expected["local_ar"]
+
+    # QPA returns an arrow list in this branch; preserve that source behavior.
+    source_compatibility_result = quotient.string_direct_right("(3,1)", signs)
+    assert [arrow.name for arrow in source_compatibility_result] == ["c"]
+
+
 def test_finite_type_degeneration_order_follows_qpa() -> None:
     expected = json.loads(
         (FIXTURES / "degorderfinitetype.schema-v1.json").read_text(encoding="utf-8")

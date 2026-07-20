@@ -96,6 +96,7 @@ from ._qpa import (
     StructureConstantsHomomorphism,
     StructureConstantsQuotient,
     StructureConstantsSubalgebra,
+    StringSigmaEpsilon,
     TensorProductAlgebra,
     TiltingModuleResult,
     UnitForm,
@@ -106,6 +107,7 @@ from ._qpa import (
     format_multiplicity_vectors,
     predefined_ar_quiver_catalog,
     predefined_ar_quiver_data,
+    string_quiver_rho,
     unique_quiver_name,
 )
 
@@ -201,6 +203,7 @@ __all__ = [
     "StructureConstantsHomomorphism",
     "StructureConstantsQuotient",
     "StructureConstantsSubalgebra",
+    "StringSigmaEpsilon",
     "TensorProductAlgebra",
     "TiltingModuleResult",
     "UnitForm",
@@ -211,5 +214,6 @@ __all__ = [
     "format_multiplicity_vectors",
     "predefined_ar_quiver_catalog",
     "predefined_ar_quiver_data",
+    "string_quiver_rho",
     "unique_quiver_name",
 ]

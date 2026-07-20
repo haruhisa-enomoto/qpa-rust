@@ -16,6 +16,7 @@ mod quotient;
 mod quotient_projective;
 mod string;
 mod tensor;
+mod validity;
 
 pub(crate) use combinatorial::PyCombinatorialMap;
 pub(crate) use combinatorial_rep::{PyEulerBilinearForm, PyUnitForm};
@@ -52,6 +53,7 @@ pub(crate) use quotient_projective::{
 };
 pub(crate) use string::{py_compute_lps_array, py_cyclic_permutations_of_band};
 pub(crate) use tensor::{PyQuiverAlgebraElement, PyTensorProductAlgebra};
+pub(crate) use validity::{PyStringSigmaEpsilon, py_string_quiver_rho};
 
 use numerica::domains::{
     finite_field::{Z2, Zp},
