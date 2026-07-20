@@ -4718,3 +4718,87 @@ status = "exposed"
 target = "qpa.QuiverPathEnumerator.at; qpa.QuiverPathEnumerator.__getitem__"
 tests = ["python/tests/test_quiver_next_path.py::test_public_next_path_queue_protocol_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 notes = "The QPA-specific declaration is exposed through one-based at(position), while Python __getitem__ uses conventional zero-based indexing."
+
+# Static dictionaries
+
+[[bindings]]
+qpa_name = "InfoStaticDictionary"
+status = "exposed"
+target = "qpa.static_dictionary_info_messages"
+tests = ["python/tests/test_static_dictionaries.py::test_static_dictionary_output_and_info_follow_qpa"]
+notes = "Returns the two exact level-one messages emitted by the pinned QPA implementation."
+
+[[bindings]]
+qpa_name = "IsStaticDictionary"
+status = "exposed"
+target = "qpa.StaticDictionary.is_static_dictionary"
+tests = ["python/tests/test_static_dictionaries.py::test_generic_static_dictionary_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsStaticDictionaryDefaultRep"
+status = "exposed"
+target = "qpa.StaticDictionary.is_default_rep"
+tests = ["python/tests/test_static_dictionaries.py::test_generic_static_dictionary_follows_qpa"]
+
+[[bindings]]
+qpa_name = "Patterns"
+status = "exposed"
+target = "qpa.StaticDictionary.patterns; qpa.QuiverStaticDictionary.patterns"
+tests = ["python/tests/test_static_dictionaries.py::test_generic_static_dictionary_follows_qpa","python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+
+[[bindings]]
+qpa_name = "StaticDictionary"
+status = "exposed"
+target = "qpa.StaticDictionary"
+tests = ["python/tests/test_static_dictionaries.py::test_generic_static_dictionary_follows_qpa","python/tests/test_static_dictionaries.py::test_static_dictionary_error_boundaries_follow_qpa"]
+notes = "Python strings and arbitrary finite Python sequences are adapted to the translated generic QPA automaton using Python equality."
+
+[[bindings]]
+qpa_name = "Search"
+status = "exposed"
+target = "qpa.StaticDictionary.search; qpa.QuiverStaticDictionary.search"
+tests = ["python/tests/test_static_dictionaries.py::test_generic_static_dictionary_follows_qpa","python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa","python/tests/test_static_dictionaries.py::test_static_dictionary_error_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsQuiverStaticDictionary"
+status = "exposed"
+target = "qpa.QuiverStaticDictionary.is_quiver_static_dictionary"
+tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsQuiverStaticDictionaryDefaultRep"
+status = "exposed"
+target = "qpa.QuiverStaticDictionary.is_default_rep"
+tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsFiniteDifference"
+status = "exposed"
+target = "qpa.QuiverStaticDictionary.is_finite_difference"
+tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DifferenceSize"
+status = "exposed"
+target = "qpa.QuiverStaticDictionary.difference_size"
+tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+notes = "QPA's infinity value is represented by the string 'infinity'; finite sizes are arbitrary-precision Python integers."
+
+[[bindings]]
+qpa_name = "DifferenceWords"
+status = "exposed"
+target = "qpa.QuiverStaticDictionary.difference_words"
+tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+notes = "Python None represents QPA fail for an infinite difference language."
+
+[[bindings]]
+qpa_name = "QuiverStaticDictionary"
+status = "exposed"
+target = "qpa.QuiverStaticDictionary"
+tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa","python/tests/test_static_dictionaries.py::test_static_dictionary_error_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PrefixSearch"
+status = "exposed"
+target = "qpa.QuiverStaticDictionary.prefix_search"
+tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]

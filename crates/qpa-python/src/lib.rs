@@ -8,6 +8,7 @@ mod field;
 mod poset;
 mod quiver;
 mod runtime;
+mod static_dictionary;
 mod util;
 
 use algebra::{
@@ -55,6 +56,9 @@ use quiver::{
     PyPath, PyQuiver, PyQuiverArrow, PyQuiverOrdering, PyQuiverPathEnumerator,
     PyQuiverPathIterator, PyQuiverProduct, PyQuiverProductDecomposition, PyQuiverVertex,
     py_unique_quiver_name,
+};
+use static_dictionary::{
+    PyQuiverStaticDictionary, PyStaticDictionary, py_static_dictionary_info_messages,
 };
 
 use poset::{PyPoset, PyPosetOrder};
@@ -113,10 +117,16 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
         module
     )?)?;
     module.add_function(wrap_pyfunction!(py_positions_nonzero, module)?)?;
+    module.add_function(wrap_pyfunction!(
+        py_static_dictionary_info_messages,
+        module
+    )?)?;
     Ok(())
 }
 
 fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add_class::<PyStaticDictionary>()?;
+    module.add_class::<PyQuiverStaticDictionary>()?;
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;
