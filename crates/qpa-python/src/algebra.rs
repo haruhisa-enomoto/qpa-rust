@@ -26,6 +26,7 @@ mod quotient_projective;
 mod string;
 mod tensor;
 mod validity;
+mod vector_reduction;
 
 pub(crate) use brauer::{
     PyBrauerConfiguration, PyBrauerConfigurationAlgebra, PyBrauerConfigurationAlgebraResult,
@@ -80,6 +81,9 @@ pub(crate) use quotient_projective::{
 pub(crate) use string::{py_compute_lps_array, py_cyclic_permutations_of_band};
 pub(crate) use tensor::{PyQuiverAlgebraElement, PyTensorProductAlgebra};
 pub(crate) use validity::{PyStringSigmaEpsilon, py_string_quiver_rho};
+pub(crate) use vector_reduction::{
+    PyPathVectorCoefficientsResult, PyQuotientVectorCoefficientsResult,
+};
 
 use numerica::domains::{
     finite_field::{Z2, Zp},
@@ -2002,6 +2006,46 @@ impl PyPathAlgebra {
                     .generators_times_arrows_on_right(&generators)
                     .map_err(invalid)?,
             ))
+        })
+    }
+
+    fn tip_monomial_and_coefficient_of_vector(
+        &self,
+        py: Python<'_>,
+        vector: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<(usize, PyPath, PyScalar)> {
+        let vector = clone_relations(py, vector);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            vector_reduction::path_tip_for(algebra, vector)
+        })
+    }
+
+    /// Mutate and return the identical outer Python list, matching QPA.
+    fn tip_reduce_vectors(&self, vectors: &Bound<'_, PyList>) -> PyResult<Option<Py<PyList>>> {
+        let vector_kinds = vector_reduction::path_rows(vectors)?;
+        let reduced = dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            vector_reduction::path_reduce_for(algebra, vector_kinds)
+        })?;
+        let Some(reduced) = reduced else {
+            return Ok(None);
+        };
+        vector_reduction::replace_path_rows(vectors, reduced)?;
+        Ok(Some(vectors.clone().unbind()))
+    }
+
+    fn coefficients_of_vectors(
+        &self,
+        py: Python<'_>,
+        basis: Vec<Vec<Py<PyAlgebraElement>>>,
+        vector: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<PyPathVectorCoefficientsResult> {
+        let basis = basis
+            .into_iter()
+            .map(|row| clone_relations(py, row))
+            .collect();
+        let vector = clone_relations(py, vector);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            vector_reduction::path_coefficients_for(algebra, basis, vector)
         })
     }
 

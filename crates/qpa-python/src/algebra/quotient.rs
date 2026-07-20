@@ -172,6 +172,56 @@ impl PyQuotientAlgebra {
         })
     }
 
+    fn tip_monomial_and_coefficient_of_vector(
+        &self,
+        py: Python<'_>,
+        vector: Vec<Py<PyQuotientElement>>,
+    ) -> PyResult<(usize, PyPath, PyScalar)> {
+        let vector = vector
+            .into_iter()
+            .map(|element| element.borrow(py).kind.clone())
+            .collect();
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            vector_reduction::quotient_tip_for(algebra, vector)
+        })
+    }
+
+    /// Mutate and return the identical outer Python list, matching QPA.
+    fn tip_reduce_vectors(&self, vectors: &Bound<'_, PyList>) -> PyResult<Option<Py<PyList>>> {
+        let vector_kinds = vector_reduction::quotient_rows(vectors)?;
+        let reduced = dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            vector_reduction::quotient_reduce_for(algebra, vector_kinds)
+        })?;
+        let Some(reduced) = reduced else {
+            return Ok(None);
+        };
+        vector_reduction::replace_quotient_rows(vectors, reduced)?;
+        Ok(Some(vectors.clone().unbind()))
+    }
+
+    fn coefficients_of_vectors(
+        &self,
+        py: Python<'_>,
+        basis: Vec<Vec<Py<PyQuotientElement>>>,
+        vector: Vec<Py<PyQuotientElement>>,
+    ) -> PyResult<PyQuotientVectorCoefficientsResult> {
+        let basis = basis
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|element| element.borrow(py).kind.clone())
+                    .collect()
+            })
+            .collect();
+        let vector = vector
+            .into_iter()
+            .map(|element| element.borrow(py).kind.clone())
+            .collect();
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            vector_reduction::quotient_coefficients_for(algebra, basis, vector)
+        })
+    }
+
     fn ordered_by(&self, ordering: &PyQuiverOrdering) -> PyResult<Self> {
         let kind = map_ref!(
             &self.kind,

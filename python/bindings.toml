@@ -1161,6 +1161,26 @@ target = "qpa.PathAlgebra.elements_of_units; qpa.QuotientAlgebra.elements_of_uni
 tests = ["python/tests/test_centres_and_units.py::test_finite_unit_groups_follow_qpa"]
 
 [[bindings]]
+qpa_name = "TipMonomialandCoefficientOfVector"
+status = "exposed"
+target = "qpa.PathAlgebra.tip_monomial_and_coefficient_of_vector; qpa.QuotientAlgebra.tip_monomial_and_coefficient_of_vector"
+tests = ["python/tests/test_vector_reduction.py::test_path_vector_reduction_follows_qpa","python/tests/test_vector_reduction.py::test_quotient_and_binary_vector_reduction_follow_qpa","python/tests/test_vector_reduction.py::test_vector_reduction_errors_and_empty_fallthrough_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TipReduceVectors"
+status = "exposed"
+target = "qpa.PathAlgebra.tip_reduce_vectors; qpa.QuotientAlgebra.tip_reduce_vectors"
+tests = ["python/tests/test_vector_reduction.py::test_path_vector_reduction_follows_qpa","python/tests/test_vector_reduction.py::test_quotient_and_binary_vector_reduction_follow_qpa","python/tests/test_vector_reduction.py::test_vector_reduction_errors_and_empty_fallthrough_follow_qpa"]
+notes = "Mutates and returns the identical Python row list; QPA's empty-input fail is None."
+
+[[bindings]]
+qpa_name = "CoefficientsOfVectors"
+status = "exposed"
+target = "qpa.PathAlgebra.coefficients_of_vectors; qpa.PathVectorCoefficientsResult; qpa.QuotientAlgebra.coefficients_of_vectors; qpa.QuotientVectorCoefficientsResult"
+tests = ["python/tests/test_vector_reduction.py::test_path_vector_reduction_follows_qpa","python/tests/test_vector_reduction.py::test_quotient_and_binary_vector_reduction_follow_qpa","python/tests/test_vector_reduction.py::test_vector_reduction_errors_and_empty_fallthrough_follow_qpa"]
+notes = "Typed result objects preserve QPA's exact coefficients or its bug-compatible [basis, vector] non-span witness."
+
+[[bindings]]
 qpa_name = "IsElementOfQuotientOfPathAlgebra"
 status = "exposed"
 target = "qpa.QuotientElement"

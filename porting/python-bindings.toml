@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 699
+exposed_or_partial_count = 702
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1076,16 +1076,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "CoefficientsOfVectors"
 python_name = "coefficients_of_vectors"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.coefficients_of_vectors; qpa.PathVectorCoefficientsResult; qpa.QuotientAlgebra.coefficients_of_vectors; qpa.QuotientVectorCoefficientsResult"
+notes = "Typed result objects preserve QPA's exact coefficients or its bug-compatible [basis, vector] non-span witness."
 entry_ids = ["pathalg:DeclareOperation:CoefficientsOfVectors:1","pathalg:InstallMethod:CoefficientsOfVectors:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::coefficients_of_vectors; QuotientPathAlgebra::coefficients_of_vectors"]
 rust_tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_vector_reduction.py::test_path_vector_reduction_follows_qpa","python/tests/test_vector_reduction.py::test_quotient_and_binary_vector_reduction_follow_qpa","python/tests/test_vector_reduction.py::test_vector_reduction_errors_and_empty_fallthrough_follow_qpa"]
 
 [[operations]]
 qpa_name = "CombinatorialMap"
@@ -12386,8 +12386,8 @@ python_tests = []
 qpa_name = "TipMonomialandCoefficientOfVector"
 python_name = "tip_monomialand_coefficient_of_vector"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.tip_monomial_and_coefficient_of_vector; qpa.QuotientAlgebra.tip_monomial_and_coefficient_of_vector"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:TipMonomialandCoefficientOfVector:1","pathalg:InstallMethod:TipMonomialandCoefficientOfVector:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12395,7 +12395,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::tip_monomial_and_coefficient_of_vector; QuotientPathAlgebra::tip_monomial_and_coefficient_of_vector"]
 rust_tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json","tests/gap-reference/pathalg_vector_empty_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_vector_reduction.py::test_path_vector_reduction_follows_qpa","python/tests/test_vector_reduction.py::test_quotient_and_binary_vector_reduction_follow_qpa","python/tests/test_vector_reduction.py::test_vector_reduction_errors_and_empty_fallthrough_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipReduce"
@@ -12431,16 +12431,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "TipReduceVectors"
 python_name = "tip_reduce_vectors"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.tip_reduce_vectors; qpa.QuotientAlgebra.tip_reduce_vectors"
+notes = "Mutates and returns the identical Python row list; QPA's empty-input fail is None."
 entry_ids = ["pathalg:DeclareOperation:TipReduceVectors:1","pathalg:InstallMethod:TipReduceVectors:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::tip_reduce_vectors; QuotientPathAlgebra::tip_reduce_vectors"]
 rust_tests = ["tests/fixtures/pathalg_vector_reduction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_vector_reduction.py::test_path_vector_reduction_follows_qpa","python/tests/test_vector_reduction.py::test_quotient_and_binary_vector_reduction_follow_qpa","python/tests/test_vector_reduction.py::test_vector_reduction_errors_and_empty_fallthrough_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipReducedList"
