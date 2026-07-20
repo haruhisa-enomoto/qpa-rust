@@ -2025,3 +2025,83 @@ qpa_name = "TraceOfModule"
 status = "exposed"
 target = "qpa.MatrixModule.right_fac_approximation"
 tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+# Hom spaces, categorical maps, and minimal versions
+
+[[bindings]]
+qpa_name = "ZeroMapping"
+status = "exposed"
+target = "qpa.MatrixModule.zero_map_to"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "HomOverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.hom_basis_to"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "HomFactoringThroughProjOverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.hom_factoring_through_projectives_to"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "HomomorphismFromImages"
+status = "exposed"
+target = "qpa.MatrixModule.homomorphism_from_images"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ImagesSet"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.images"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PushOut"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.push_out_with"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PullBack"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.pull_back_with"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LiftingInclusionMorphisms"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.lift_inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LiftingMorphismFromProjective"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.lift_from_projective"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsRightMinimal"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_right_minimal"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsLeftMinimal"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_left_minimal"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightMinimalVersion"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.right_minimal_version"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftMinimalVersion"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.left_minimal_version"
+tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]

@@ -989,3 +989,53 @@ def test_module_decomposition_operations_follow_qpa(field: qpa.Field) -> None:
     assert summand_data.count == 2
     assert summand_data.block_dimensions == [1, 1]
     assert algebra.zero_module().decompose_with_multiplicities() is None
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa(
+    field: qpa.Field,
+) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projective = algebra.indecomposable_projectives()[0]
+    simple = algebra.simple_modules()[0]
+
+    hom_basis = projective.hom_basis_to(simple)
+    assert hom_basis is not None and len(hom_basis) == 1
+    factoring = projective.hom_factoring_through_projectives_to(simple)
+    assert len(factoring) == 1 and factoring[0].range == simple
+    assert projective.zero_map_to(simple).is_zero
+    identity = simple.homomorphism_from_images(simple, simple.basis_elements())
+    assert identity.is_isomorphism
+    assert identity.images(simple.basis_elements()) == simple.basis_elements()
+
+    cover = simple.projective_cover()
+    pushout = cover.push_out_with(projective.identity())
+    assert pushout is not None
+    assert pushout[0].source.dimension_vector == [1, 1]
+    assert pushout[1].source.dimension_vector == [1, 0]
+    pullback = cover.pull_back_with(simple.identity())
+    assert pullback is not None
+    assert pullback[0].range.dimension_vector == [1, 0]
+    assert pullback[1].range.dimension_vector == [1, 1]
+
+    repeated = qpa.MatrixModule.direct_sum([simple, simple])
+    assert repeated is not None
+    inclusions = repeated.direct_sum_inclusions()
+    projections = repeated.direct_sum_projections()
+    inclusion_lift = inclusions[0].lift_inclusion(inclusions[0])
+    assert inclusion_lift is not None and inclusion_lift.is_isomorphism
+    projective_lift = cover.lift_from_projective(cover)
+    assert projective_lift is not None and projective_lift.is_isomorphism
+
+    right_nonminimal = projections[0].add(projections[1])
+    assert not right_nonminimal.is_right_minimal
+    right_minimal, removed_sources = right_nonminimal.right_minimal_version()
+    assert right_minimal.is_right_minimal
+    assert right_minimal.source.dimension_vector == [1, 0]
+    assert len(removed_sources) == 1
+    left_nonminimal = inclusions[0].add(inclusions[1])
+    assert not left_nonminimal.is_left_minimal
+    left_minimal, removed_ranges = left_nonminimal.left_minimal_version()
+    assert left_minimal.is_left_minimal
+    assert left_minimal.range.dimension_vector == [1, 0]
+    assert len(removed_ranges) == 1

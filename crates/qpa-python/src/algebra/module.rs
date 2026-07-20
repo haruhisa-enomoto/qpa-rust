@@ -477,6 +477,64 @@ impl PyMatrixModule {
         Ok(PyModuleHomomorphism { kind })
     }
 
+    fn zero_map_to(&self, range: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &range.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |source, range| qpa_core::zero_module_mapping(source.clone(), range.clone())
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn hom_basis_to(&self, range: &Self) -> PyResult<Option<Vec<PyModuleHomomorphism>>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &range.kind,
+            MatrixModuleKind,
+            |source, range| Ok(qpa_core::hom_over_algebra(source, range)
+                .map_err(invalid)?
+                .map(wrap_module_homomorphisms)),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn hom_factoring_through_projectives_to(
+        &self,
+        range: &Self,
+    ) -> PyResult<Vec<PyModuleHomomorphism>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &range.kind,
+            MatrixModuleKind,
+            |source, range| Ok(wrap_module_homomorphisms(
+                qpa_gbnp::hom_factoring_through_projectives(source, range).map_err(invalid)?,
+            )),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn homomorphism_from_images(
+        &self,
+        py: Python<'_>,
+        range: &Self,
+        images: Vec<Py<PyModuleElement>>,
+    ) -> PyResult<PyModuleHomomorphism> {
+        let images = clone_module_elements(py, images);
+        dispatch_pair_ref!(
+            &self.kind,
+            &range.kind,
+            MatrixModuleKind,
+            |source, range| Ok(wrap_module_homomorphism(
+                qpa_core::homomorphism_from_images(source, range, &runtime::extract_all(images)?,)
+                    .map_err(invalid)?,
+            )),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
     fn homomorphism_to(
         &self,
         py: Python<'_>,
@@ -2030,6 +2088,113 @@ impl PyModuleHomomorphism {
             }
         };
         Ok(PyModuleElement { kind })
+    }
+
+    fn images(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyModuleElement>>,
+    ) -> PyResult<Vec<PyModuleElement>> {
+        let elements = clone_module_elements(py, elements);
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_elements(
+                homomorphism
+                    .images_set(&runtime::extract_all(elements)?)
+                    .map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn push_out_with(&self, second: &Self) -> PyResult<Option<(Self, Self)>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &second.kind,
+            ModuleHomomorphismKind,
+            |first, second| Ok(wrap_module_homomorphism_pair(
+                qpa_core::push_out(first, second).map_err(invalid)?,
+            )),
+            Err(invalid(
+                "homomorphisms belong to different coefficient fields"
+            ))
+        )
+    }
+
+    fn pull_back_with(&self, second: &Self) -> PyResult<Option<(Self, Self)>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &second.kind,
+            ModuleHomomorphismKind,
+            |first, second| Ok(wrap_module_homomorphism_pair(
+                qpa_core::pull_back(first, second).map_err(invalid)?,
+            )),
+            Err(invalid(
+                "homomorphisms belong to different coefficient fields"
+            ))
+        )
+    }
+
+    fn lift_inclusion(&self, second: &Self) -> PyResult<Option<Self>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &second.kind,
+            ModuleHomomorphismKind,
+            |first, second| Ok(qpa_core::lifting_inclusion_morphisms(first, second)
+                .map_err(invalid)?
+                .map(wrap_module_homomorphism)),
+            Err(invalid(
+                "homomorphisms belong to different coefficient fields"
+            ))
+        )
+    }
+
+    fn lift_from_projective(&self, second: &Self) -> PyResult<Option<Self>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &second.kind,
+            ModuleHomomorphismKind,
+            |first, second| Ok(qpa_gbnp::lifting_morphism_from_projective(first, second)
+                .map_err(invalid)?
+                .map(wrap_module_homomorphism)),
+            Err(invalid(
+                "homomorphisms belong to different coefficient fields"
+            ))
+        )
+    }
+
+    #[getter]
+    fn is_right_minimal(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            qpa_core::is_right_minimal(homomorphism).map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_left_minimal(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            qpa_core::is_left_minimal(homomorphism).map_err(invalid)
+        })
+    }
+
+    fn right_minimal_version(&self) -> PyResult<(Self, Vec<PyMatrixModule>)> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            let (minimal, removed) =
+                qpa_core::right_minimal_version(homomorphism).map_err(invalid)?;
+            Ok((
+                wrap_module_homomorphism(minimal),
+                removed.into_iter().map(wrap_module).collect(),
+            ))
+        })
+    }
+
+    fn left_minimal_version(&self) -> PyResult<(Self, Vec<PyMatrixModule>)> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            let (minimal, removed) =
+                qpa_core::left_minimal_version(homomorphism).map_err(invalid)?;
+            Ok((
+                wrap_module_homomorphism(minimal),
+                removed.into_iter().map(wrap_module).collect(),
+            ))
+        })
     }
 
     fn preimage_representative(

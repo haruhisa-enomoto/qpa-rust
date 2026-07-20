@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 318
+exposed_or_partial_count = 331
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -3491,8 +3491,8 @@ python_tests = []
 qpa_name = "HomFactoringThroughProjOverAlgebra"
 python_name = "hom_factoring_through_proj_over_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.hom_factoring_through_projectives_to"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:HomFactoringThroughProjOverAlgebra:1","modulehom:InstallMethod:HomFactoringThroughProjOverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3500,7 +3500,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["hom_factoring_through_projectives"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "HomFromProjective"
@@ -3521,8 +3521,8 @@ python_tests = []
 qpa_name = "HomOverAlgebra"
 python_name = "hom_over_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.hom_basis_to"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:HomOverAlgebra:1","modulehom:InstallMethod:HomOverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3530,7 +3530,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["hom_over_algebra"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "HomOverAlgebraWithBasisFunction"
@@ -3581,8 +3581,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "HomomorphismFromImages"
 python_name = "homomorphism_from_images"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.homomorphism_from_images"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:HomomorphismFromImages:1","modulehom:InstallMethod:HomomorphismFromImages:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3590,7 +3590,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["homomorphism_from_images"]
 rust_tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json","tests/gap-reference/modulehom_images_support_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "IdealOfQuotient"
@@ -3731,8 +3731,8 @@ python_tests = []
 qpa_name = "ImagesSet"
 python_name = "images_set"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.images"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:ImagesSet:1"]
 constructs = ["InstallMethod"]
@@ -3740,7 +3740,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::images_set"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "ImagesSource"
@@ -5411,8 +5411,8 @@ python_tests = []
 qpa_name = "IsLeftMinimal"
 python_name = "is_left_minimal"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.is_left_minimal"
 notes = ""
 entry_ids = ["modulehom:DeclareProperty:IsLeftMinimal:1","modulehom:InstallMethod:IsLeftMinimal:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -5420,7 +5420,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["is_left_minimal; PathAlgebraModuleHomomorphism::cached_is_left_minimal"]
 rust_tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsLeftPathAlgebraModuleGroebnerBasis"
@@ -6311,8 +6311,8 @@ python_tests = []
 qpa_name = "IsRightMinimal"
 python_name = "is_right_minimal"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.is_right_minimal"
 notes = ""
 entry_ids = ["modulehom:DeclareProperty:IsRightMinimal:1","modulehom:InstallMethod:IsRightMinimal:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6320,7 +6320,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["is_right_minimal; PathAlgebraModuleHomomorphism::cached_is_right_minimal"]
 rust_tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsRightPathAlgebraModuleGroebnerBasis"
@@ -7436,8 +7436,8 @@ python_tests = []
 qpa_name = "LeftMinimalVersion"
 python_name = "left_minimal_version"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.left_minimal_version"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:LeftMinimalVersion:1","modulehom:InstallMethod:LeftMinimalVersion:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -7445,7 +7445,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["left_minimal_version"]
 rust_tests = ["tests/fixtures/modulehom_minimal.schema-v1.json","tests/gap-reference/modulehom_minimal_zero_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftMutationOfCotiltingModuleComplement"
@@ -7751,8 +7751,8 @@ python_tests = []
 qpa_name = "LiftingInclusionMorphisms"
 python_name = "lifting_inclusion_morphisms"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.lift_inclusion"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:LiftingInclusionMorphisms:1","modulehom:InstallMethod:LiftingInclusionMorphisms:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7760,14 +7760,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["lifting_inclusion_morphisms"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "LiftingMorphismFromProjective"
 python_name = "lifting_morphism_from_projective"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.lift_from_projective"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:LiftingMorphismFromProjective:1","modulehom:InstallMethod:LiftingMorphismFromProjective:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7775,7 +7775,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["lifting_morphism_from_projective"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "LinkDynamicTrees"
@@ -10286,8 +10286,8 @@ python_tests = []
 qpa_name = "PullBack"
 python_name = "pull_back"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.pull_back_with"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:PullBack:1","modulehomalg:InstallMethod:PullBack:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10295,14 +10295,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["pull_back"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "PushOut"
 python_name = "push_out"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.push_out_with"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:PushOut:1","modulehomalg:InstallMethod:PushOut:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10310,7 +10310,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["push_out"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPAStringDirectLeft"
@@ -11216,8 +11216,8 @@ python_tests = []
 qpa_name = "RightMinimalVersion"
 python_name = "right_minimal_version"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.right_minimal_version"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:RightMinimalVersion:1","modulehom:InstallMethod:RightMinimalVersion:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -11225,7 +11225,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["right_minimal_version"]
 rust_tests = ["tests/fixtures/modulehom_minimal.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightModuleHomOverAlgebra"
@@ -13121,8 +13121,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "ZeroMapping"
 python_name = "zero_mapping"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.zero_map_to"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:ZeroMapping:1"]
 constructs = ["InstallMethod"]
@@ -13130,7 +13130,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["zero_module_mapping"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
 
 [[operations]]
 qpa_name = "ZeroModule"
