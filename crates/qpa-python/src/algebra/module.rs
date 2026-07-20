@@ -6,6 +6,7 @@ mod submodule;
 mod values;
 
 use pyo3::pymethods;
+use qpa_core::{PathAlgebraVector, VertexIndex};
 
 #[allow(clippy::wildcard_imports)]
 // Private runtime enums and helpers form one binding domain.
@@ -37,7 +38,7 @@ enum GszProjectiveResolutionKind {
 }
 
 /// QPA's GSZ `ProjectiveResolutionFpPathAlgebraModule` attribute object.
-#[pyclass(name = "GszProjectiveResolution", frozen, skip_from_py_object)]
+#[pyclass(name = "GszProjectiveResolution", skip_from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyGszProjectiveResolution {
     kind: GszProjectiveResolutionKind,
@@ -66,6 +67,107 @@ macro_rules! impl_projective_presentation_runtime {
 impl_projective_presentation_runtime!(RationalField, Rational);
 impl_projective_presentation_runtime!(Z2, Binary);
 impl_projective_presentation_runtime!(Zp, Prime);
+
+fn clone_quotient_element_matrix(
+    py: Python<'_>,
+    rows: Vec<Vec<Py<PyQuotientElement>>>,
+) -> Vec<Vec<QuotientElementKind>> {
+    rows.into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|element| element.borrow(py).kind.clone())
+                .collect()
+        })
+        .collect()
+}
+
+fn extract_quotient_element_matrix<F: runtime::PythonField>(
+    rows: Vec<Vec<QuotientElementKind>>,
+) -> PyResult<Vec<Vec<QuotientPathAlgebraElement<F>>>>
+where
+    QuotientElementKind: runtime::Extract<QuotientPathAlgebraElement<F>>,
+{
+    rows.into_iter().map(runtime::extract_all).collect()
+}
+
+fn clone_projective_vector_lists(
+    py: Python<'_>,
+    rows: Vec<Vec<Py<PyPathAlgebraVector>>>,
+) -> Vec<Vec<projective::ProjectiveVectorKind>> {
+    rows.into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|vector| vector.borrow(py).kind.clone())
+                .collect()
+        })
+        .collect()
+}
+
+fn extract_projective_vector_lists<F: runtime::PythonField>(
+    rows: Vec<Vec<projective::ProjectiveVectorKind>>,
+) -> PyResult<Vec<Vec<PathAlgebraVector<F>>>>
+where
+    projective::ProjectiveVectorKind: runtime::Extract<PathAlgebraVector<F>>,
+{
+    rows.into_iter().map(runtime::extract_all).collect()
+}
+
+pub(super) fn explicit_gsz_resolution(
+    algebra: &PyQuotientAlgebra,
+    py: Python<'_>,
+    ideal: &PyPathAlgebraIdeal,
+    presentation_map: Vec<Vec<Py<PyQuotientElement>>>,
+    term: Option<usize>,
+) -> PyResult<PyGszProjectiveResolution> {
+    let presentation_map = clone_quotient_element_matrix(py, presentation_map);
+    let kind = match (&algebra.kind, &ideal.kind) {
+        (QuotientKind::Rational(algebra), IdealKind::Rational(ideal)) => {
+            let map = extract_quotient_element_matrix(presentation_map)?;
+            GszProjectiveResolutionKind::Rational(match term {
+                Some(term) => qpa_core::projective_resolution_fp_path_algebra_module(
+                    algebra, ideal, &map, term,
+                )
+                .map_err(invalid)?,
+                None => qpa_core::projective_resolution_fp_path_algebra_module_without_term(
+                    algebra, ideal, &map,
+                )
+                .map_err(invalid)?,
+            })
+        }
+        (QuotientKind::Binary(algebra), IdealKind::Binary(ideal)) => {
+            let map = extract_quotient_element_matrix(presentation_map)?;
+            GszProjectiveResolutionKind::Binary(match term {
+                Some(term) => qpa_core::projective_resolution_fp_path_algebra_module(
+                    algebra, ideal, &map, term,
+                )
+                .map_err(invalid)?,
+                None => qpa_core::projective_resolution_fp_path_algebra_module_without_term(
+                    algebra, ideal, &map,
+                )
+                .map_err(invalid)?,
+            })
+        }
+        (QuotientKind::Prime(algebra), IdealKind::Prime(ideal)) => {
+            let map = extract_quotient_element_matrix(presentation_map)?;
+            GszProjectiveResolutionKind::Prime(match term {
+                Some(term) => qpa_core::projective_resolution_fp_path_algebra_module(
+                    algebra, ideal, &map, term,
+                )
+                .map_err(invalid)?,
+                None => qpa_core::projective_resolution_fp_path_algebra_module_without_term(
+                    algebra, ideal, &map,
+                )
+                .map_err(invalid)?,
+            })
+        }
+        _ => {
+            return Err(invalid(
+                "the quotient algebra and resolution ideal use different coefficient fields",
+            ));
+        }
+    };
+    Ok(PyGszProjectiveResolution { kind })
+}
 
 type InducedMapOperation<F> =
     fn(
@@ -490,6 +592,18 @@ impl PyProjectivePathAlgebraPresentation {
 #[pymethods]
 impl PyGszProjectiveResolution {
     #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_projective_resolution_fp_path_algebra_module(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_default_rep(&self) -> bool {
+        true
+    }
+
+    #[getter]
     fn parent_algebra(&self) -> PyQuotientAlgebra {
         let kind = map_ref!(
             &self.kind,
@@ -573,10 +687,107 @@ impl PyGszProjectiveResolution {
     }
 
     #[getter]
+    fn r_projectives_vertex_list(&self) -> Option<Vec<Vec<usize>>> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| {
+            match value.r_projectives_vertex_list() {
+                qpa_core::CachedAttribute::Value(rows) => Some(
+                    rows.iter()
+                        .map(|row| row.iter().map(|vertex| vertex.get()).collect())
+                        .collect(),
+                ),
+                _ => None,
+            }
+        })
+    }
+
+    fn set_r_projectives_vertex_list(&mut self, rows: Vec<Vec<usize>>) -> PyResult<()> {
+        let rows = rows
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|vertex| {
+                        VertexIndex::new(vertex)
+                            .ok_or_else(|| invalid("vertex indices must be one-based and positive"))
+                    })
+                    .collect()
+            })
+            .collect::<PyResult<Vec<_>>>()?;
+        match &mut self.kind {
+            GszProjectiveResolutionKind::Rational(value) => {
+                value.set_r_projectives_vertex_list(rows);
+            }
+            GszProjectiveResolutionKind::Binary(value) => {
+                value.set_r_projectives_vertex_list(rows);
+            }
+            GszProjectiveResolutionKind::Prime(value) => {
+                value.set_r_projectives_vertex_list(rows);
+            }
+        }
+        Ok(())
+    }
+
+    #[getter]
     fn has_projectives_f_prime_list(&self) -> bool {
         dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
             .projectives_f_prime_list()
             .is_bound())
+    }
+
+    #[getter]
+    fn projectives_f_prime_list(&self) -> Option<Vec<Vec<PyPathAlgebraVector>>> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| {
+            match value.projectives_f_prime_list() {
+                qpa_core::CachedAttribute::Value(rows) => Some(
+                    rows.iter()
+                        .map(|row| projective::wrap_vectors(row.clone()))
+                        .collect(),
+                ),
+                _ => None,
+            }
+        })
+    }
+
+    fn set_projectives_f_prime_list(
+        &mut self,
+        py: Python<'_>,
+        rows: Vec<Vec<Py<PyPathAlgebraVector>>>,
+    ) -> PyResult<()> {
+        let rows = clone_projective_vector_lists(py, rows);
+        match &mut self.kind {
+            GszProjectiveResolutionKind::Rational(value) => {
+                value.set_projectives_f_prime_list(extract_projective_vector_lists(rows)?);
+            }
+            GszProjectiveResolutionKind::Binary(value) => {
+                value.set_projectives_f_prime_list(extract_projective_vector_lists(rows)?);
+            }
+            GszProjectiveResolutionKind::Prime(value) => {
+                value.set_projectives_f_prime_list(extract_projective_vector_lists(rows)?);
+            }
+        }
+        Ok(())
+    }
+
+    fn find_next_r_projective(&self, ring: &PyPathAlgebra, term: usize) -> PyResult<()> {
+        match (&self.kind, &ring.kind) {
+            (GszProjectiveResolutionKind::Rational(resolution), AlgebraKind::Rational(ring)) => {
+                qpa_core::find_next_r_projective(resolution, ring, term).map_err(invalid)
+            }
+            (GszProjectiveResolutionKind::Binary(resolution), AlgebraKind::Binary(ring)) => {
+                qpa_core::find_next_r_projective(resolution, ring, term).map_err(invalid)
+            }
+            (GszProjectiveResolutionKind::Prime(resolution), AlgebraKind::Prime(ring)) => {
+                qpa_core::find_next_r_projective(resolution, ring, term).map_err(invalid)
+            }
+            _ => Err(invalid(
+                "QPA declares FindNextRProjective but installs no method",
+            )),
+        }
+    }
+
+    fn find_next_syzygy(&self, term: usize) -> PyResult<()> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |resolution| {
+            qpa_core::find_next_syzygy(resolution, term).map_err(invalid)
+        })
     }
 
     #[getter]

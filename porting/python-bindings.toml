@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 503
+exposed_or_partial_count = 517
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2771,31 +2771,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structure_constan
 qpa_name = "FindNextRProjective"
 python_name = "find_next_r_projective"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.find_next_r_projective"
+notes = "Preserves QPA's declared-but-uninstalled operation diagnostic."
 entry_ids = ["moduleprojres:DeclareOperation:FindNextRProjective:1"]
 constructs = ["DeclareOperation"]
 source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["find_next_r_projective"]
 rust_tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "FindNextSyzygy"
 python_name = "find_next_syzygy"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.find_next_syzygy"
+notes = "Preserves QPA's declared-but-uninstalled operation diagnostic."
 entry_ids = ["moduleprojres:DeclareOperation:FindNextSyzygy:1"]
 constructs = ["DeclareOperation"]
 source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["find_next_syzygy"]
 rust_tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "FiniteChainMap"
@@ -5951,8 +5951,8 @@ python_tests = []
 qpa_name = "IsProjectiveResolutionFpPathAlgebraModule"
 python_name = "is_projective_resolution_fp_path_algebra_module"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.is_projective_resolution_fp_path_algebra_module"
 notes = ""
 entry_ids = ["moduleprojres:DeclareCategory:IsProjectiveResolutionFpPathAlgebraModule:1"]
 constructs = ["DeclareCategory"]
@@ -5960,14 +5960,14 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsProjectiveResolutionFpPathAlgebraModuleDefaultRep"
 python_name = "is_projective_resolution_fp_path_algebra_module_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.is_default_rep"
 notes = ""
 entry_ids = ["moduleprojres:DeclareRepresentation:IsProjectiveResolutionFpPathAlgebraModuleDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -5975,7 +5975,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsQPAComplex"
@@ -8021,8 +8021,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps
 qpa_name = "Maps"
 python_name = "maps"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.maps"
 notes = ""
 entry_ids = ["moduleprojres:DeclareAttribute:Maps:1"]
 constructs = ["DeclareAttribute"]
@@ -8030,7 +8030,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule::maps"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "MarkedBoundariesOfCombinatorialMap"
@@ -9461,16 +9461,16 @@ python_tests = []
 qpa_name = "ParentAlgebra"
 python_name = "parent_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.GszProjectiveResolution.parent_algebra"
+notes = "The GSZ-resolution attribute is exposed; the present2 presentation-object attribute remains."
 entry_ids = ["moduleprojres:DeclareAttribute:ParentAlgebra:1","present2:DeclareAttribute:ParentAlgebra:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/moduleprojres.gd","upstream/qpa/lib/present2.gd"]
 rust_symbols = ["ProjectivePresentation::parent_algebra","ProjectiveResolutionFpPathAlgebraModule::parent_algebra"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json","tests/fixtures/present2.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "ParentNode"
@@ -10136,23 +10136,23 @@ python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_
 qpa_name = "ProjectiveResolutionFpPathAlgebraModule"
 python_name = "projective_resolution_fp_path_algebra_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuotientAlgebra.projective_resolution_fp_path_algebra_module; qpa.GszProjectiveResolution"
+notes = "The four-argument constructor computes QPA's explicit-presentation GSZ object; omitting term preserves the declared-but-uninstalled three-argument failure."
 entry_ids = ["moduleprojres:DeclareOperation:ProjectiveResolutionFpPathAlgebraModule:1","moduleprojres:DeclareOperation:ProjectiveResolutionFpPathAlgebraModule:2","moduleprojres:InstallMethod:ProjectiveResolutionFpPathAlgebraModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/moduleprojres.gd","upstream/qpa/lib/moduleprojres.gi"]
 rust_symbols = ["projective_resolution_fp_path_algebra_module","projective_resolution_fp_path_algebra_module_without_term"]
 rust_tests = ["tests/fixtures/final_declared_surface.schema-v1.json","tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveResolutionFpPathAlgebraModuleFamily"
 python_name = "projective_resolution_fp_path_algebra_module_family"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution"
 notes = ""
 entry_ids = ["moduleprojres:BindGlobal:ProjectiveResolutionFpPathAlgebraModuleFamily:1"]
 constructs = ["BindGlobal"]
@@ -10160,7 +10160,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveResolutionOfComplex"
@@ -10241,8 +10241,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "Projectives"
 python_name = "projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.projectives"
 notes = ""
 entry_ids = ["moduleprojres:DeclareAttribute:Projectives:1"]
 constructs = ["DeclareAttribute"]
@@ -10250,14 +10250,14 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule::projectives"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "ProjectivesFList"
 python_name = "projectives_f_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.f_lists; qpa.GszProjectiveResolution.f_prime_lists"
 notes = ""
 entry_ids = ["moduleprojres:DeclareAttribute:ProjectivesFList:1"]
 constructs = ["DeclareAttribute"]
@@ -10265,14 +10265,14 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule::f_lists; ProjectiveResolutionFpPathAlgebraModule::f_prime_lists"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "ProjectivesFPrimeList"
 python_name = "projectives_f_prime_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.projectives_f_prime_list; qpa.GszProjectiveResolution.has_projectives_f_prime_list; qpa.GszProjectiveResolution.set_projectives_f_prime_list"
 notes = ""
 entry_ids = ["moduleprojres:DeclareAttribute:ProjectivesFPrimeList:1"]
 constructs = ["DeclareAttribute"]
@@ -10280,7 +10280,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule::projectives_f_prime_list; ProjectiveResolutionFpPathAlgebraModule::set_projectives_f_prime_list"]
 rust_tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "PullBack"
@@ -10646,8 +10646,8 @@ python_tests = []
 qpa_name = "RProjectives"
 python_name = "r_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.r_projectives"
 notes = ""
 entry_ids = ["moduleprojres:DeclareAttribute:RProjectives:1"]
 constructs = ["DeclareAttribute"]
@@ -10655,14 +10655,14 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule::r_projectives"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "RProjectivesVertexList"
 python_name = "r_projectives_vertex_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.r_projectives_vertex_list; qpa.GszProjectiveResolution.has_r_projectives_vertex_list; qpa.GszProjectiveResolution.set_r_projectives_vertex_list"
 notes = ""
 entry_ids = ["moduleprojres:DeclareAttribute:RProjectivesVertexList:1"]
 constructs = ["DeclareAttribute"]
@@ -10670,7 +10670,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule::r_projectives_vertex_list; ProjectiveResolutionFpPathAlgebraModule::set_r_projectives_vertex_list"]
 rust_tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "RadicalOfAlgebra"
@@ -11381,8 +11381,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "RingIdeal"
 python_name = "ring_ideal"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.GszProjectiveResolution.ring_ideal"
 notes = ""
 entry_ids = ["moduleprojres:DeclareAttribute:RingIdeal:1"]
 constructs = ["DeclareAttribute"]
@@ -11390,7 +11390,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd"]
 rust_symbols = ["ProjectiveResolutionFpPathAlgebraModule::ring_ideal"]
 rust_tests = ["tests/fixtures/moduleprojres_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "RootOfDynamicTree"

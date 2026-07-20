@@ -40,6 +40,17 @@ where
 
 #[pymethods]
 impl PyQuotientAlgebra {
+    #[pyo3(signature = (ideal, presentation_map, term=None))]
+    fn projective_resolution_fp_path_algebra_module(
+        &self,
+        py: Python<'_>,
+        ideal: &PyPathAlgebraIdeal,
+        presentation_map: Vec<Vec<Py<PyQuotientElement>>>,
+        term: Option<usize>,
+    ) -> PyResult<PyGszProjectiveResolution> {
+        module::explicit_gsz_resolution(self, py, ideal, presentation_map, term)
+    }
+
     fn right_projective_module(
         &self,
         vertices: Vec<usize>,

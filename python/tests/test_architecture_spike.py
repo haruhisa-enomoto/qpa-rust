@@ -2526,3 +2526,32 @@ def test_gsz_projective_resolution_follows_qpa(field: qpa.Field) -> None:
 
     with pytest.raises(qpa.InvalidInputError):
         simple.projective_resolution_of_path_algebra_module(0)
+
+    _, x = dual_numbers.generators
+    explicit = dual_numbers.projective_resolution_fp_path_algebra_module(
+        dual_numbers.ideal, [[x]], 1
+    )
+    assert explicit.is_projective_resolution_fp_path_algebra_module
+    assert explicit.is_default_rep
+    assert explicit.projectives_attribute_is_bound
+    # QPA computes f2 and the third projective even when term is one.
+    assert len(explicit.projectives) == 3
+    assert len(explicit.r_projectives) == 3
+    assert len(explicit.maps) == 2
+    assert explicit.r_projectives_vertex_list is None
+    assert explicit.projectives_f_prime_list is None
+    explicit.set_r_projectives_vertex_list([[1]])
+    explicit.set_projectives_f_prime_list([[]])
+    assert explicit.has_r_projectives_vertex_list
+    assert explicit.r_projectives_vertex_list == [[1]]
+    assert explicit.has_projectives_f_prime_list
+    assert explicit.projectives_f_prime_list == [[]]
+
+    with pytest.raises(qpa.InvalidInputError, match="three-argument"):
+        dual_numbers.projective_resolution_fp_path_algebra_module(
+            dual_numbers.ideal, [[x]]
+        )
+    with pytest.raises(qpa.InvalidInputError, match="FindNextRProjective"):
+        explicit.find_next_r_projective(dual_numbers.original_path_algebra, 1)
+    with pytest.raises(qpa.InvalidInputError, match="FindNextSyzygy"):
+        explicit.find_next_syzygy(1)

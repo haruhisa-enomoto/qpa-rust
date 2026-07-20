@@ -3171,3 +3171,91 @@ qpa_name = "XSetOfPathAlgebraVector"
 status = "exposed"
 target = "qpa.PathAlgebraVector.x_set; qpa.PathAlgebraVectorXSet"
 tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectiveResolutionFpPathAlgebraModule"
+status = "exposed"
+target = "qpa.QuotientAlgebra.projective_resolution_fp_path_algebra_module; qpa.GszProjectiveResolution"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+notes = "The four-argument constructor computes QPA's explicit-presentation GSZ object; omitting term preserves the declared-but-uninstalled three-argument failure."
+
+[[bindings]]
+qpa_name = "ProjectiveResolutionFpPathAlgebraModuleFamily"
+status = "exposed"
+target = "qpa.GszProjectiveResolution"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsProjectiveResolutionFpPathAlgebraModule"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.is_projective_resolution_fp_path_algebra_module"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsProjectiveResolutionFpPathAlgebraModuleDefaultRep"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.is_default_rep"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ParentAlgebra"
+status = "partial"
+target = "qpa.GszProjectiveResolution.parent_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+notes = "The GSZ-resolution attribute is exposed; the present2 presentation-object attribute remains."
+
+[[bindings]]
+qpa_name = "RingIdeal"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.ring_ideal"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "Maps"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.maps"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "Projectives"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.projectives"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "RProjectives"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.r_projectives"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectivesFList"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.f_lists; qpa.GszProjectiveResolution.f_prime_lists"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "RProjectivesVertexList"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.r_projectives_vertex_list; qpa.GszProjectiveResolution.has_r_projectives_vertex_list; qpa.GszProjectiveResolution.set_r_projectives_vertex_list"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectivesFPrimeList"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.projectives_f_prime_list; qpa.GszProjectiveResolution.has_projectives_f_prime_list; qpa.GszProjectiveResolution.set_projectives_f_prime_list"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+
+[[bindings]]
+qpa_name = "FindNextRProjective"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.find_next_r_projective"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+notes = "Preserves QPA's declared-but-uninstalled operation diagnostic."
+
+[[bindings]]
+qpa_name = "FindNextSyzygy"
+status = "exposed"
+target = "qpa.GszProjectiveResolution.find_next_syzygy"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+notes = "Preserves QPA's declared-but-uninstalled operation diagnostic."
