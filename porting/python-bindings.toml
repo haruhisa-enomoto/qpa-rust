@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 249
+exposed_or_partial_count = 262
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1646,8 +1646,8 @@ python_tests = []
 qpa_name = "DTr"
 python_name = "d_tr"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.d_tr; qpa.ModuleHomomorphism.d_tr"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:DTr:1","functors:DeclareAttribute:DTr:2","functors:InstallMethod:DTr:1","functors:InstallOtherMethod:DTr:1","functors:InstallMethod:DTr:2","functors:InstallOtherMethod:DTr:2"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -1655,7 +1655,7 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["d_tr","d_tr; d_tr_iterated","d_tr_homomorphism","d_tr_homomorphism; d_tr_homomorphism_iterated","d_tr_homomorphism_iterated","d_tr_iterated"]
 rust_tests = ["tests/fixtures/functors_ar_map_iterations.schema-v1.json","tests/fixtures/functors_ar_maps.schema-v1.json","tests/fixtures/functors_iterations.schema-v1.json","tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "DecomposeModule"
@@ -2306,8 +2306,8 @@ python_tests = []
 qpa_name = "DualOfModule"
 python_name = "dual_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.dual"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:DualOfModule:1","functors:InstallMethod:DualOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2315,14 +2315,14 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["dual_of_module","dual_of_module; PathAlgebraModule::cached_dual_module"]
 rust_tests = ["tests/fixtures/module_families_properties.schema-v1.json","tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "DualOfModuleHomomorphism"
 python_name = "dual_of_module_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.dual"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:DualOfModuleHomomorphism:1","modulehom:InstallMethod:DualOfModuleHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2330,7 +2330,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["dual_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "DualOfTranspose"
@@ -2981,8 +2981,8 @@ python_tests = []
 qpa_name = "FromIdentityToDoubleStarHomomorphism"
 python_name = "from_identity_to_double_star_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.identity_to_double_star"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:FromIdentityToDoubleStarHomomorphism:1","modulehom:InstallMethod:FromIdentityToDoubleStarHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2990,7 +2990,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["from_identity_to_double_star_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_double_star.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "FromMatrixToHomomorphismOfProjectives"
@@ -8591,8 +8591,8 @@ python_tests = []
 qpa_name = "NakayamaFunctorOfModule"
 python_name = "nakayama_functor_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.nakayama"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:NakayamaFunctorOfModule:1","functors:InstallMethod:NakayamaFunctorOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -8600,14 +8600,14 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["nakayama_functor_of_module"]
 rust_tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "NakayamaFunctorOfModuleHomomorphism"
 python_name = "nakayama_functor_of_module_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.nakayama"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:NakayamaFunctorOfModuleHomomorphism:1","functors:InstallMethod:NakayamaFunctorOfModuleHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -8615,7 +8615,7 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["nakayama_functor_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "NakayamaPermutation"
@@ -9131,8 +9131,8 @@ python_tests = []
 qpa_name = "OppositeNakayamaFunctorOfModule"
 python_name = "opposite_nakayama_functor_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.opposite_nakayama"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:OppositeNakayamaFunctorOfModule:1","functors:InstallMethod:OppositeNakayamaFunctorOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -9140,14 +9140,14 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["opposite_nakayama_functor_of_module"]
 rust_tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "OppositeNakayamaFunctorOfModuleHomomorphism"
 python_name = "opposite_nakayama_functor_of_module_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.opposite_nakayama"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:OppositeNakayamaFunctorOfModuleHomomorphism:1","functors:InstallMethod:OppositeNakayamaFunctorOfModuleHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -9155,7 +9155,7 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["opposite_nakayama_functor_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "OppositePath"
@@ -11816,8 +11816,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "StarOfModule"
 python_name = "star_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.star"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:StarOfModule:1","functors:InstallMethod:StarOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -11825,14 +11825,14 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["star_of_module"]
 rust_tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "StarOfModuleHomomorphism"
 python_name = "star_of_module_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.star"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:StarOfModuleHomomorphism:1","functors:InstallMethod:StarOfModuleHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -11840,7 +11840,7 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["star_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/functors_star_nakayama.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "StartPosition"
@@ -12551,8 +12551,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "TrD"
 python_name = "tr_d"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.tr_d; qpa.ModuleHomomorphism.tr_d"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:TrD:1","functors:DeclareAttribute:TrD:2","functors:InstallMethod:TrD:1","functors:InstallOtherMethod:TrD:1","functors:InstallMethod:TrD:2","functors:InstallOtherMethod:TrD:2"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -12560,7 +12560,7 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["tr_d","tr_d; tr_d_iterated","tr_d_homomorphism","tr_d_homomorphism; tr_d_homomorphism_iterated","tr_d_homomorphism_iterated","tr_d_iterated"]
 rust_tests = ["tests/fixtures/functors_ar_map_iterations.schema-v1.json","tests/fixtures/functors_ar_maps.schema-v1.json","tests/fixtures/functors_iterations.schema-v1.json","tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "TraceOfModule"
@@ -12596,8 +12596,8 @@ python_tests = []
 qpa_name = "TransposeOfModule"
 python_name = "transpose_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.transpose"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:TransposeOfModule:1","functors:InstallMethod:TransposeOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -12605,14 +12605,14 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["transpose_of_module"]
 rust_tests = ["tests/fixtures/functors_iterations.schema-v1.json","tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "TransposeOfModuleHomomorphism"
 python_name = "transpose_of_module_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.transpose"
 notes = ""
 entry_ids = ["functors:DeclareAttribute:TransposeOfModuleHomomorphism:1","functors:InstallMethod:TransposeOfModuleHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -12620,7 +12620,7 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["transpose_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/functors_ar_maps.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "TrivialExtensionOfQuiverAlgebra"

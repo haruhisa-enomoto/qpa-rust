@@ -646,6 +646,81 @@ impl PyMatrixModule {
         Ok(PyExtAlgebraGeneratorsResult { kind })
     }
 
+    fn dual(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => MatrixModuleKind,
+            |module| qpa_gbnp::dual_of_module(module).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn transpose(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => MatrixModuleKind,
+            |module| qpa_gbnp::transpose_of_module(module).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    #[pyo3(signature = (exponent=1))]
+    fn d_tr(&self, exponent: i64) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => MatrixModuleKind,
+            |module| qpa_gbnp::d_tr_iterated(module, exponent).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    #[pyo3(signature = (exponent=1))]
+    fn tr_d(&self, exponent: i64) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => MatrixModuleKind,
+            |module| qpa_gbnp::tr_d_iterated(module, exponent).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn star(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => MatrixModuleKind,
+            |module| qpa_gbnp::star_of_module(module).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn identity_to_double_star(&self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |module| qpa_gbnp::from_identity_to_double_star_homomorphism(module)
+                .map_err(invalid)?
+        );
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn nakayama(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => MatrixModuleKind,
+            |module| qpa_gbnp::nakayama_functor_of_module(module).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn opposite_nakayama(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => MatrixModuleKind,
+            |module| qpa_gbnp::opposite_nakayama_functor_of_module(module).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
     fn is_identical(&self, other: &Self) -> bool {
         dispatch_pair_ref!(
             &self.kind,
@@ -914,6 +989,65 @@ impl PyModuleHomomorphism {
                 .into_iter()
                 .map(wrap_module_homomorphisms)
                 .collect()
+        ))
+    }
+
+    fn dual(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::dual_of_module_homomorphism(homomorphism).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn transpose(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::transpose_of_module_homomorphism(homomorphism).map_err(invalid)?,
+            )
+        ))
+    }
+
+    #[pyo3(signature = (exponent=1))]
+    fn d_tr(&self, exponent: i64) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::d_tr_homomorphism_iterated(homomorphism, exponent).map_err(invalid)?,
+            )
+        ))
+    }
+
+    #[pyo3(signature = (exponent=1))]
+    fn tr_d(&self, exponent: i64) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::tr_d_homomorphism_iterated(homomorphism, exponent).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn star(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::star_of_module_homomorphism(homomorphism).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn nakayama(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::nakayama_functor_of_module_homomorphism(homomorphism).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn opposite_nakayama(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::opposite_nakayama_functor_of_module_homomorphism(homomorphism)
+                    .map_err(invalid)?,
+            )
         ))
     }
 

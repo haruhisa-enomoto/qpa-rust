@@ -696,3 +696,32 @@ def test_ext_results_and_generators_follow_qpa(field: qpa.Field) -> None:
     assert generators.dimensions == [1, 1, 1, 1]
     assert generators.generator_counts == [1, 1, 0, 0]
     assert [len(degree) for degree in generators.generators] == [1, 1, 0, 0]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_module_dualities_and_stable_functors_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    first_simple, second_simple = algebra.simple_modules()
+    projective = algebra.indecomposable_projectives()[0]
+
+    assert first_simple.dual().dimension_vector == [1, 0]
+    assert first_simple.transpose().dimension_vector == [0, 1]
+    assert first_simple.d_tr().dimension_vector == [0, 1]
+    assert first_simple.tr_d().is_zero
+    assert first_simple.d_tr(0).is_identical(first_simple)
+    assert first_simple.d_tr(-1).is_zero
+    assert first_simple.star().is_zero
+    assert first_simple.nakayama().is_zero
+    assert first_simple.opposite_nakayama().dimension_vector == [1, 1]
+    assert second_simple.identity_to_double_star().is_isomorphism
+
+    identity = projective.identity()
+    assert identity.dual().is_isomorphism
+    assert identity.transpose().is_isomorphism
+    assert identity.d_tr().is_isomorphism
+    assert identity.tr_d().is_isomorphism
+    assert identity.d_tr(0).is_identical(identity)
+    assert identity.d_tr(-1).is_isomorphism
+    assert identity.star().source.dimension_vector == [1, 0]
+    assert identity.nakayama().source.dimension_vector == [1, 0]
+    assert identity.opposite_nakayama().source.dimension_vector == [0, 1]

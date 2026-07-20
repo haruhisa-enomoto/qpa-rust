@@ -1597,3 +1597,83 @@ qpa_name = "ExtOverAlgebra"
 status = "exposed"
 target = "qpa.MatrixModule.ext1; qpa.ExtOverAlgebraResult"
 tests = ["python/tests/test_architecture_spike.py::test_ext_results_and_generators_follow_qpa"]
+
+# Module dualities and stable functors
+
+[[bindings]]
+qpa_name = "DTr"
+status = "exposed"
+target = "qpa.MatrixModule.d_tr; qpa.ModuleHomomorphism.d_tr"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DualOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.dual"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DualOfModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.dual"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FromIdentityToDoubleStarHomomorphism"
+status = "exposed"
+target = "qpa.MatrixModule.identity_to_double_star"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NakayamaFunctorOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.nakayama"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NakayamaFunctorOfModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.nakayama"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "OppositeNakayamaFunctorOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.opposite_nakayama"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "OppositeNakayamaFunctorOfModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.opposite_nakayama"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "StarOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.star"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "StarOfModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.star"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TrD"
+status = "exposed"
+target = "qpa.MatrixModule.tr_d; qpa.ModuleHomomorphism.tr_d"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TransposeOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.transpose"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TransposeOfModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.transpose"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
