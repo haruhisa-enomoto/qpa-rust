@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 639
+exposed_or_partial_count = 650
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -191,8 +191,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "AdmissibleSequenceGenerator"
 python_name = "admissible_sequence_generator"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.admissible_sequence_generator"
 notes = ""
 entry_ids = ["pathalgpredef:DeclareOperation:AdmissibleSequenceGenerator:1","pathalgpredef:InstallMethod:AdmissibleSequenceGenerator:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -200,7 +200,7 @@ source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpre
 rust_symbols = ["admissible_sequence_generator"]
 rust_tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "AdmitsFinitelyManyNontips"
@@ -851,8 +851,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "CanonicalAlgebra"
 python_name = "canonical_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.canonical_algebra; qpa.PredefinedAlgebra"
 notes = ""
 entry_ids = ["pathalgpredef:DeclareOperation:CanonicalAlgebra:1","pathalgpredef:InstallMethod:CanonicalAlgebra:1","pathalgpredef:InstallOtherMethod:CanonicalAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
@@ -860,7 +860,7 @@ source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpre
 rust_symbols = ["canonical_algebra","canonical_algebra_two_weights"]
 rust_tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "CanonicalBasis"
@@ -2831,8 +2831,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "FiniteGlobalDimGreen"
 python_name = "finite_global_dim_green"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.finite_global_dim_green"
 notes = ""
 entry_ids = ["pathalgpredef:DeclareOperation:FiniteGlobalDimGreen:1","pathalgpredef:InstallMethod:FiniteGlobalDimGreen:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2840,14 +2840,14 @@ source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpre
 rust_symbols = ["finite_global_dim_green"]
 rust_tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "FiniteGlobalDimKirkKuz"
 python_name = "finite_global_dim_kirk_kuz"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.finite_global_dim_kirk_kuz"
 notes = ""
 entry_ids = ["pathalgpredef:DeclareOperation:FiniteGlobalDimKirkKuz:1","pathalgpredef:InstallMethod:FiniteGlobalDimKirkKuz:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2855,7 +2855,7 @@ source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpre
 rust_symbols = ["finite_global_dim_kirk_kuz"]
 rust_tests = ["tests/fixtures/pathalg_predefined_remaining.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "FiniteInfList"
@@ -4436,16 +4436,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_an
 qpa_name = "IsCanonicalAlgebra"
 python_name = "is_canonical_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PredefinedAlgebra.is_canonical_algebra"
+notes = "Preserves QPA's constructor-installed filter and returns None when this source block installed no value."
 entry_ids = ["pathalgpredef:DeclareProperty:IsCanonicalAlgebra:1"]
 constructs = ["DeclareProperty"]
 source_files = ["upstream/qpa/lib/pathalgpredef.gd"]
 rust_symbols = ["PredefinedAlgebra::is_canonical_algebra"]
 rust_tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsCat"
@@ -4962,30 +4962,30 @@ qpa_name = "IsFiniteGlobalDimensionAlgebra"
 python_name = "is_finite_global_dimension_algebra"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension"
-notes = "Known-property implications are exposed for structure-constant, path, and quotient algebras; poset/predefined constructor protocols remain."
+python_target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension; qpa.PredefinedAlgebra.is_finite_global_dimension_algebra"
+notes = "Known-property implications are exposed for structure-constant, path, quotient, and tagged predefined algebras; the poset-algebra protocol remains."
 entry_ids = ["algebra:DeclareProperty:IsFiniteGlobalDimensionAlgebra:1","algebra:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","algebra:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:2","pathalg:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","pathalgideal:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","pathalgpredef:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","pathalgpredef:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:2"]
 constructs = ["DeclareProperty","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalgideal.gd","upstream/qpa/lib/pathalgpredef.gd"]
 rust_symbols = ["PosetAlgebra::is_finite_global_dimension_algebra","PredefinedAlgebra::is_finite_global_dimension_algebra","is_finite_global_dimension_from_known_properties","is_finite_global_dimension_from_known_properties; StructureConstantsAlgebra::is_finite_global_dimension_from_known_properties"]
 rust_tests = ["tests/fixtures/algebra_homological_properties.schema-v1.json","tests/fixtures/pathalg_poset_algebra.schema-v1.json","tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsFiniteTypeAlgebra"
 python_name = "is_finite_type_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PredefinedAlgebra.is_finite_type_algebra"
+notes = "The Nakayama-constructor implication is exposed; the general representation-type recognition methods remain."
 entry_ids = ["pathalgpredef:InstallImmediateMethod:IsFiniteTypeAlgebra:1","pathalgreptype:DeclareAttribute:IsFiniteTypeAlgebra:1","pathalgreptype:DeclareAttribute:IsFiniteTypeAlgebra:2","pathalgreptype:InstallMethod:IsFiniteTypeAlgebra:1","pathalgreptype:InstallMethod:IsFiniteTypeAlgebra:2"]
 constructs = ["DeclareAttribute","InstallImmediateMethod","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgpredef.gi","upstream/qpa/lib/pathalgreptype.gd","upstream/qpa/lib/pathalgreptype.gi"]
 rust_symbols = ["PredefinedAlgebra::is_finite_type_algebra","path_algebra_finite_type","quotient_algebra_finite_type; QuotientAlgebraFiniteTypeDecision"]
 rust_tests = ["tests/fixtures/pathalg_predefined.schema-v1.json","tests/fixtures/pathalgreptype_path.txt","tests/fixtures/reptype_quotient.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsFpPathAlgebraElementsSpace"
@@ -5157,15 +5157,15 @@ qpa_name = "IsHereditaryAlgebra"
 python_name = "is_hereditary_algebra"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.PathAlgebra.is_hereditary; qpa.QuotientAlgebra.is_hereditary"
-notes = "Path and admissible-quotient dispatch is exposed; predefined-algebra constructor protocols remain."
+python_target = "qpa.PathAlgebra.is_hereditary; qpa.QuotientAlgebra.is_hereditary; qpa.PredefinedAlgebra.is_hereditary_algebra"
+notes = "Path, admissible-quotient, and tagged predefined-algebra dispatch is exposed; other QPA overloads remain."
 entry_ids = ["algebra:DeclareProperty:IsHereditaryAlgebra:1","modulehomalg:InstallMethod:IsHereditaryAlgebra:1","pathalg:InstallTrueMethod:IsHereditaryAlgebra:1","pathalgpredef:InstallTrueMethod:IsHereditaryAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/modulehomalg.gi","upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalgpredef.gd"]
 rust_symbols = ["PredefinedAlgebra::is_hereditary_algebra","is_hereditary_algebra"]
 rust_tests = ["tests/fixtures/algebra_homological_dispatch.schema-v1.json","tests/fixtures/algebra_homological_properties.schema-v1.json","tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsHomogeneousGroebnerBasis"
@@ -5366,16 +5366,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IsKroneckerAlgebra"
 python_name = "is_kronecker_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PredefinedAlgebra.is_kronecker_algebra"
+notes = "Preserves QPA's constructor-installed filter and returns None when this source block installed no value."
 entry_ids = ["pathalgpredef:DeclareProperty:IsKroneckerAlgebra:1"]
 constructs = ["DeclareProperty"]
 source_files = ["upstream/qpa/lib/pathalgpredef.gd"]
 rust_symbols = ["PredefinedAlgebra::is_kronecker_algebra"]
 rust_tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsLeftDivisible"
@@ -5531,16 +5531,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsNakayamaAlgebra"
 python_name = "is_nakayama_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PredefinedAlgebra.is_nakayama_algebra"
+notes = "Preserves QPA's constructor-installed filter and returns None when this source block installed no value."
 entry_ids = ["pathalgpredef:DeclareProperty:IsNakayamaAlgebra:1"]
 constructs = ["DeclareProperty"]
 source_files = ["upstream/qpa/lib/pathalgpredef.gd"]
 rust_symbols = ["PredefinedAlgebra::is_nakayama_algebra"]
 rust_tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsNegativeRepeating"
@@ -7226,8 +7226,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_projective_genera
 qpa_name = "KroneckerAlgebra"
 python_name = "kronecker_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.kronecker_algebra; qpa.PredefinedAlgebra"
 notes = ""
 entry_ids = ["pathalgpredef:DeclareOperation:KroneckerAlgebra:1","pathalgpredef:InstallMethod:KroneckerAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7235,7 +7235,7 @@ source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpre
 rust_symbols = ["kronecker_algebra"]
 rust_tests = ["tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 
 [[operations]]
 qpa_name = "LabelOfSuffixTreeEdge"
@@ -8561,16 +8561,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicat
 qpa_name = "NakayamaAlgebra"
 python_name = "nakayama_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.nakayama_algebra; qpa.NakayamaAlgebraResult; qpa.PredefinedAlgebra"
+notes = "The result wrapper preserves QPA's successful invalid-sequence return and exact diagnostic instead of converting it to an exception."
 entry_ids = ["pathalgpredef:DeclareOperation:NakayamaAlgebra:1","pathalgpredef:InstallMethod:NakayamaAlgebra:1","pathalgpredef:InstallOtherMethod:NakayamaAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpredef.gi"]
 rust_symbols = ["nakayama_algebra","nakayama_algebra_sequence_first"]
 rust_tests = ["tests/fixtures/pathalg_predefined.schema-v1.json","tests/gap-reference/pathalg_predefined_empty_error.g","tests/gap-reference/pathalg_predefined_invalid.g","tests/gap-reference/pathalg_predefined_nonpositive_singleton_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa","python/tests/test_predefined_algebras.py::test_invalid_nakayama_sequence_preserves_qpa_result"]
 
 [[operations]]
 qpa_name = "NakayamaAutomorphism"
@@ -9926,8 +9926,8 @@ python_tests = []
 qpa_name = "PreprojectiveAlgebra"
 python_name = "preprojective_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.preprojective_algebra"
 notes = ""
 entry_ids = ["pathalgpredef:DeclareOperation:PreprojectiveAlgebra:1","pathalgpredef:InstallMethod:PreprojectiveAlgebra:1","pathalgpredef:InstallOtherMethod:PreprojectiveAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
@@ -9935,7 +9935,7 @@ source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpre
 rust_symbols = ["module_preprojective_algebra","module_preprojective_algebra; preprojective_algebra","preprojective_algebra"]
 rust_tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json","tests/fixtures/pathalg_predefined_remaining.schema-v1.json","tests/gap-reference/pathalg_module_preprojective_bound_error.g","tests/gap-reference/pathalg_module_preprojective_rational_error.g","tests/gap-reference/pathalg_preprojective_cycle_error.g","tests/gap-reference/pathalg_preprojective_isolated_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "PrimitiveIdempotents"

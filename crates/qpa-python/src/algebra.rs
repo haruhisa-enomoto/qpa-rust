@@ -10,6 +10,7 @@ mod groebner;
 mod homological;
 mod ideal;
 mod module;
+mod predefined;
 mod projective;
 mod projective_gsz;
 mod quotient;
@@ -42,6 +43,11 @@ pub(crate) use fp_projective::{
 };
 pub(crate) use homological::py_complex_and_chain_maps;
 pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
+pub(crate) use predefined::{
+    PyNakayamaAlgebraResult, PyPredefinedAlgebra, py_admissible_sequence_generator,
+    py_canonical_algebra, py_finite_global_dim_green, py_finite_global_dim_kirk_kuz,
+    py_kronecker_algebra, py_nakayama_algebra,
+};
 pub(crate) use projective::{
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
     PyPathAlgebraVectorSpace, PyRightProjectiveModule, PyRightProjectiveSubmodule,
@@ -1577,6 +1583,12 @@ impl PyPathAlgebra {
 
     fn right_projective_module(&self, vertices: Vec<usize>) -> PyResult<PyRightProjectiveModule> {
         projective::right_projective_module(self, vertices)
+    }
+
+    fn preprojective_algebra(&self) -> PyResult<PyQuiverAlgebra> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            predefined::preprojective_for(algebra)
+        })
     }
 
     fn complexity(&self, degree: i64) -> PyResult<usize> {

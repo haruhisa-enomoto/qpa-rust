@@ -692,9 +692,9 @@ notes = "Structure-constant known-property dispatch and the path-algebra constru
 [[bindings]]
 qpa_name = "IsFiniteGlobalDimensionAlgebra"
 status = "partial"
-target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension"
-tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Known-property implications are exposed for structure-constant, path, and quotient algebras; poset/predefined constructor protocols remain."
+target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension; qpa.PredefinedAlgebra.is_finite_global_dimension_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+notes = "Known-property implications are exposed for structure-constant, path, quotient, and tagged predefined algebras; the poset-algebra protocol remains."
 
 [[bindings]]
 qpa_name = "IsGorensteinAlgebra"
@@ -705,9 +705,9 @@ tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quoti
 [[bindings]]
 qpa_name = "IsHereditaryAlgebra"
 status = "partial"
-target = "qpa.PathAlgebra.is_hereditary; qpa.QuotientAlgebra.is_hereditary"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Path and admissible-quotient dispatch is exposed; predefined-algebra constructor protocols remain."
+target = "qpa.PathAlgebra.is_hereditary; qpa.QuotientAlgebra.is_hereditary; qpa.PredefinedAlgebra.is_hereditary_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+notes = "Path, admissible-quotient, and tagged predefined-algebra dispatch is exposed; other QPA overloads remain."
 
 [[bindings]]
 qpa_name = "RelationsOfAlgebra"
@@ -4026,3 +4026,76 @@ qpa_name = "QPAStringSigmaEps"
 status = "exposed"
 target = "qpa.QuiverAlgebra.string_sigma_epsilon; qpa.StringSigmaEpsilon"
 tests = ["python/tests/test_architecture_spike.py::test_string_validity_and_local_ar_follow_qpa"]
+
+# Basic predefined algebras
+
+[[bindings]]
+qpa_name = "AdmissibleSequenceGenerator"
+status = "exposed"
+target = "qpa.admissible_sequence_generator"
+tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
+
+[[bindings]]
+qpa_name = "CanonicalAlgebra"
+status = "exposed"
+target = "qpa.canonical_algebra; qpa.PredefinedAlgebra"
+tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FiniteGlobalDimGreen"
+status = "exposed"
+target = "qpa.finite_global_dim_green"
+tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FiniteGlobalDimKirkKuz"
+status = "exposed"
+target = "qpa.finite_global_dim_kirk_kuz"
+tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsCanonicalAlgebra"
+status = "exposed"
+target = "qpa.PredefinedAlgebra.is_canonical_algebra"
+tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+notes = "Preserves QPA's constructor-installed filter and returns None when this source block installed no value."
+
+[[bindings]]
+qpa_name = "IsKroneckerAlgebra"
+status = "exposed"
+target = "qpa.PredefinedAlgebra.is_kronecker_algebra"
+tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+notes = "Preserves QPA's constructor-installed filter and returns None when this source block installed no value."
+
+[[bindings]]
+qpa_name = "IsNakayamaAlgebra"
+status = "exposed"
+target = "qpa.PredefinedAlgebra.is_nakayama_algebra"
+tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+notes = "Preserves QPA's constructor-installed filter and returns None when this source block installed no value."
+
+[[bindings]]
+qpa_name = "KroneckerAlgebra"
+status = "exposed"
+target = "qpa.kronecker_algebra; qpa.PredefinedAlgebra"
+tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NakayamaAlgebra"
+status = "exposed"
+target = "qpa.nakayama_algebra; qpa.NakayamaAlgebraResult; qpa.PredefinedAlgebra"
+tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa","python/tests/test_predefined_algebras.py::test_invalid_nakayama_sequence_preserves_qpa_result"]
+notes = "The result wrapper preserves QPA's successful invalid-sequence return and exact diagnostic instead of converting it to an exception."
+
+[[bindings]]
+qpa_name = "PreprojectiveAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.preprojective_algebra"
+tests = ["python/tests/test_predefined_algebras.py::test_admissible_sequences_and_remaining_predefined_algebras_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsFiniteTypeAlgebra"
+status = "partial"
+target = "qpa.PredefinedAlgebra.is_finite_type_algebra"
+tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
+notes = "The Nakayama-constructor implication is exposed; the general representation-type recognition methods remain."
