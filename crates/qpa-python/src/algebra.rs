@@ -1488,6 +1488,23 @@ impl PyPathAlgebra {
         projective::right_groebner_basis_from_generators(self, py, generators)
     }
 
+    fn vertex_projective_presentation(
+        &self,
+        py: Python<'_>,
+        rows: Vec<Vec<Py<PyAlgebraElement>>>,
+    ) -> PyResult<PyRightFpPathAlgebraModule> {
+        fp_projective::vertex_presentation(self, py, rows)
+    }
+
+    fn vertex_projective_presentation_with_vertices(
+        &self,
+        py: Python<'_>,
+        rows: Vec<Vec<Py<PyAlgebraElement>>>,
+        vertices: Vec<usize>,
+    ) -> PyResult<PyRightFpPathAlgebraModule> {
+        fp_projective::vertex_presentation_with_vertices(self, py, rows, vertices)
+    }
+
     #[getter]
     fn field(&self) -> PyField {
         let kind = dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra

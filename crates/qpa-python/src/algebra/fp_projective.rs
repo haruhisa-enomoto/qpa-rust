@@ -7,8 +7,10 @@ use numerica::domains::{
 };
 use pyo3::{Py, PyResult, Python, prelude::*};
 use qpa_core::{
-    FpPathAlgebraVector, NaturalSubmoduleHomomorphism, RightFpPathAlgebraModule,
-    RightFpPathAlgebraSubmodule, natural_homomorphism_by_projective_submodule,
+    FpPathAlgebraVector, NaturalSubmoduleHomomorphism, PathAlgebra, PathAlgebraElement,
+    RightFpPathAlgebraModule, RightFpPathAlgebraSubmodule,
+    natural_homomorphism_by_projective_submodule, vertex_projective_presentation,
+    vertex_projective_presentation_with_vertices,
 };
 
 use super::projective::{ProjectiveModuleKind, ProjectiveSubmoduleKind, ProjectiveVectorKind};
@@ -130,6 +132,44 @@ fn clone_element_kinds(
         .collect()
 }
 
+fn clone_element_matrix(
+    py: Python<'_>,
+    rows: Vec<Vec<Py<PyAlgebraElement>>>,
+) -> Vec<Vec<AlgebraElementKind>> {
+    rows.into_iter()
+        .map(|row| clone_element_kinds(py, row))
+        .collect()
+}
+
+fn extract_element_matrix<F: Field>(
+    rows: Vec<Vec<AlgebraElementKind>>,
+) -> PyResult<Vec<Vec<PathAlgebraElement<F>>>>
+where
+    AlgebraElementKind: runtime::Extract<PathAlgebraElement<F>>,
+{
+    rows.into_iter().map(runtime::extract_all).collect()
+}
+
+fn embedded_vertices<F: Field>(
+    algebra: &PathAlgebra<F>,
+    vertices: &[usize],
+) -> PyResult<Vec<PathAlgebraElement<F>>> {
+    let count = algebra.quiver().number_of_vertices();
+    let generators = algebra.generators();
+    vertices
+        .iter()
+        .map(|&position| {
+            if position == 0 || position > count {
+                Err(invalid(format!(
+                    "vertex index {position} is outside 1..={count}"
+                )))
+            } else {
+                Ok(generators[position - 1].clone())
+            }
+        })
+        .collect()
+}
+
 fn clone_vector_kinds(
     py: Python<'_>,
     vectors: Vec<Py<PyFpPathAlgebraVector>>,
@@ -167,6 +207,41 @@ pub(super) fn natural_quotient(
         }
     };
     Ok(PyNaturalSubmoduleHomomorphism { kind })
+}
+
+pub(super) fn vertex_presentation(
+    algebra: &PyPathAlgebra,
+    py: Python<'_>,
+    rows: Vec<Vec<Py<PyAlgebraElement>>>,
+) -> PyResult<PyRightFpPathAlgebraModule> {
+    let rows = clone_element_matrix(py, rows);
+    let kind = map_ref!(
+        &algebra.kind,
+        AlgebraKind => FpModuleKind,
+        |algebra| vertex_projective_presentation(algebra, &extract_element_matrix(rows)?)
+            .map_err(invalid)?
+    );
+    Ok(PyRightFpPathAlgebraModule { kind })
+}
+
+pub(super) fn vertex_presentation_with_vertices(
+    algebra: &PyPathAlgebra,
+    py: Python<'_>,
+    rows: Vec<Vec<Py<PyAlgebraElement>>>,
+    vertices: Vec<usize>,
+) -> PyResult<PyRightFpPathAlgebraModule> {
+    let rows = clone_element_matrix(py, rows);
+    let kind = map_ref!(
+        &algebra.kind,
+        AlgebraKind => FpModuleKind,
+        |algebra| vertex_projective_presentation_with_vertices(
+            algebra,
+            &extract_element_matrix(rows)?,
+            &embedded_vertices(algebra, &vertices)?,
+        )
+        .map_err(invalid)?
+    );
+    Ok(PyRightFpPathAlgebraModule { kind })
 }
 
 #[pymethods]

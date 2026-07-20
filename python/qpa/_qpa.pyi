@@ -586,6 +586,12 @@ class PathAlgebra:
     def right_groebner_basis_from_generators(
         self, generators: list[AlgebraElement]
     ) -> PathAlgebraModuleGroebnerBasis: ...
+    def vertex_projective_presentation(
+        self, rows: list[list[AlgebraElement]]
+    ) -> RightFpPathAlgebraModule: ...
+    def vertex_projective_presentation_with_vertices(
+        self, rows: list[list[AlgebraElement]], vertices: list[int]
+    ) -> RightFpPathAlgebraModule: ...
 
 
 class AlgebraElement:

@@ -3119,3 +3119,9 @@ status = "exposed"
 target = "qpa.FpPathAlgebraVector"
 tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "VertexProjectivePresentation"
+status = "exposed"
+target = "qpa.PathAlgebra.vertex_projective_presentation; qpa.PathAlgebra.vertex_projective_presentation_with_vertices"
+tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_presentations_follow_qpa"]

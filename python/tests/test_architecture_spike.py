@@ -2392,3 +2392,32 @@ def test_finitely_presented_path_modules_follow_qpa(field: qpa.Field) -> None:
     relation_quotient = projective.natural_quotient(relation_bottom)
     assert relation_quotient.range.dimension == 2
     assert relation_quotient.image(arrow_vector).is_zero
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_vertex_projective_presentations_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    _, v2, arrow = algebra.generators
+    zero = algebra.zero()
+
+    inferred = algebra.vertex_projective_presentation([[arrow]])
+    assert inferred.dimension == 1
+    assert inferred.parent_projective.vertex_indices == [1]
+    assert inferred.bottom_submodule.generators[0].components == [arrow]
+    assert inferred.vector([arrow]).is_zero
+
+    explicit = algebra.vertex_projective_presentation_with_vertices([[zero]], [1])
+    assert explicit.dimension == 2
+    assert explicit.parent_projective.vertex_indices == [1]
+    assert explicit.bottom_submodule.generators[0].is_zero
+
+    with pytest.raises(qpa.InvalidInputError, match="empty map"):
+        algebra.vertex_projective_presentation([])
+    with pytest.raises(qpa.InvalidInputError, match="only zeroes"):
+        algebra.vertex_projective_presentation([[zero]])
+    with pytest.raises(qpa.InvalidInputError, match="mismatched starting"):
+        algebra.vertex_projective_presentation_with_vertices([[v2]], [1])

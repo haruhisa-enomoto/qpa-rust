@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 495
+exposed_or_partial_count = 496
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -12896,8 +12896,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "VertexProjectivePresentation"
 python_name = "vertex_projective_presentation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.vertex_projective_presentation; qpa.PathAlgebra.vertex_projective_presentation_with_vertices"
 notes = ""
 entry_ids = ["projpathalgmodule:DeclareOperation:VertexProjectivePresentation:1","projpathalgmodule:InstallMethod:VertexProjectivePresentation:1","projpathalgmodule:InstallOtherMethod:VertexProjectivePresentation:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
@@ -12905,7 +12905,7 @@ source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpa
 rust_symbols = ["vertex_projective_presentation","vertex_projective_presentation; vertex_projective_presentation_with_vertices","vertex_projective_presentation_with_vertices"]
 rust_tests = ["tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_presentations_follow_qpa"]
 
 [[operations]]
 qpa_name = "VerticesOfPathAlgebra"
