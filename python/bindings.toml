@@ -83,8 +83,8 @@ notes = "Embedded quiver generators are exposed."
 [[bindings]]
 qpa_name = "Dimension"
 status = "exposed"
-target = "qpa.OppositeStructureConstantsAlgebra.dimension; qpa.MatrixModule.dimension; qpa.QuotientAlgebra.dimension; qpa.RightProjectiveModule.dimension; qpa.RightProjectiveSubmodule.dimension; qpa.RightProjectiveQuotientModule.dimension"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
+target = "qpa.OppositeStructureConstantsAlgebra.dimension; qpa.MatrixModule.dimension; qpa.QuotientAlgebra.dimension; qpa.RightProjectiveModule.dimension; qpa.RightProjectiveSubmodule.dimension; qpa.RightProjectiveQuotientModule.dimension; qpa.RightFpPathAlgebraModule.dimension; qpa.RightFpPathAlgebraSubmodule.dimension"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[bindings]]
 qpa_name = "RightModuleOverPathAlgebra"
@@ -1628,9 +1628,9 @@ tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_a
 [[bindings]]
 qpa_name = "SubAlgebraModule"
 status = "partial"
-target = "qpa.MatrixModule.submodule; qpa.RightProjectiveModule.submodule; qpa.RightProjectiveModule.submodule_with_basis"
-tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
-notes = "Ordinary matrix submodules and both projective path-module constructors are exposed; remaining presentation and finitely presented overloads remain."
+target = "qpa.MatrixModule.submodule; qpa.RightProjectiveModule.submodule; qpa.RightProjectiveModule.submodule_with_basis; qpa.RightFpPathAlgebraModule.submodule"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+notes = "Matrix, projective path-module, and finitely presented path-module submodules are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "SubRepresentation"
@@ -2885,10 +2885,10 @@ tests = ["python/tests/test_architecture_spike.py::test_all_submodules_follow_qp
 
 [[bindings]]
 qpa_name = "NaturalHomomorphismBySubAlgebraModule"
-status = "partial"
-target = "qpa.ModuleSubmodule.natural_quotient_mapping; qpa.ModuleBasisMapping"
-notes = "The ordinary path-algebra matrix-submodule overload is exposed; projective presentation overloads remain."
-tests = ["python/tests/test_architecture_spike.py::test_matrix_submodule_natural_mapping_follows_qpa"]
+status = "exposed"
+target = "qpa.ModuleSubmodule.natural_quotient_mapping; qpa.ModuleBasisMapping; qpa.RightProjectiveModule.natural_quotient; qpa.NaturalSubmoduleHomomorphism"
+notes = "The matrix-submodule route and QPA's vertex-projective P/N construction are exposed."
+tests = ["python/tests/test_architecture_spike.py::test_matrix_submodule_natural_mapping_follows_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[bindings]]
 qpa_name = "RestrictionViaAlgebraHomomorphism"
@@ -2943,17 +2943,15 @@ notes = "The vertex-list overloads over path and quotient-path algebras are expo
 
 [[bindings]]
 qpa_name = "PathAlgebraVector"
-status = "partial"
-target = "qpa.RightProjectiveModule.vector; qpa.RightProjectiveQuotientModule.vector"
-tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
-notes = "Checked path- and quotient-projective vectors are exposed; finitely presented module vectors remain."
+status = "exposed"
+target = "qpa.RightProjectiveModule.vector; qpa.RightProjectiveQuotientModule.vector; qpa.RightFpPathAlgebraModule.vector"
+tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[bindings]]
 qpa_name = "PathAlgebraVectorNC"
-status = "partial"
-target = "qpa.RightProjectiveModule.vector_nc; qpa.RightProjectiveQuotientModule.vector_nc"
-tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
-notes = "Unchecked path- and quotient-projective vectors are exposed; finitely presented module vectors remain."
+status = "exposed"
+target = "qpa.RightProjectiveModule.vector_nc; qpa.RightProjectiveQuotientModule.vector_nc; qpa.RightFpPathAlgebraModule.vector_nc"
+tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[bindings]]
 qpa_name = "Vectorize"
@@ -2985,10 +2983,9 @@ notes = "Whole path- and quotient-projective modules and path-projective submodu
 
 [[bindings]]
 qpa_name = "IsNormalForm"
-status = "partial"
-target = "qpa.PathAlgebraVector.is_normal_form; qpa.QuotientPathAlgebraVector.is_normal_form"
-tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
-notes = "Path- and quotient-projective vector overloads are exposed; finitely presented vectors remain."
+status = "exposed"
+target = "qpa.PathAlgebraVector.is_normal_form; qpa.QuotientPathAlgebraVector.is_normal_form; qpa.FpPathAlgebraVector.is_normal_form"
+tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsLeftDivisible"
@@ -3108,4 +3105,17 @@ qpa_name = "IsBasisOfPathAlgebraVectorSpace"
 status = "exposed"
 target = "qpa.PathAlgebraVectorBasis"
 tests = ["python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsFpPathAlgebraModule"
+status = "exposed"
+target = "qpa.RightFpPathAlgebraModule.is_fp_path_algebra_module"
+tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsFpPathAlgebraVector"
+status = "exposed"
+target = "qpa.FpPathAlgebraVector"
+tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 notes = "Represented by the concrete Python wrapper type."

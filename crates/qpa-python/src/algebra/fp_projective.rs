@@ -1,0 +1,590 @@
+//! Python wrappers for QPA's finitely presented path modules `P/N`.
+
+use numerica::domains::{
+    Field,
+    finite_field::{Z2, Zp},
+    rational::RationalField,
+};
+use pyo3::{Py, PyResult, Python, prelude::*};
+use qpa_core::{
+    FpPathAlgebraVector, NaturalSubmoduleHomomorphism, RightFpPathAlgebraModule,
+    RightFpPathAlgebraSubmodule, natural_homomorphism_by_projective_submodule,
+};
+
+use super::projective::{ProjectiveModuleKind, ProjectiveSubmoduleKind, ProjectiveVectorKind};
+#[allow(clippy::wildcard_imports)]
+use super::*;
+
+#[derive(Clone)]
+enum FpModuleKind {
+    Rational(RightFpPathAlgebraModule<RationalField>),
+    Binary(RightFpPathAlgebraModule<Z2>),
+    Prime(RightFpPathAlgebraModule<Zp>),
+}
+
+#[pyclass(name = "RightFpPathAlgebraModule", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyRightFpPathAlgebraModule {
+    kind: FpModuleKind,
+}
+
+#[derive(Clone)]
+enum FpVectorKind {
+    Rational(FpPathAlgebraVector<RationalField>),
+    Binary(FpPathAlgebraVector<Z2>),
+    Prime(FpPathAlgebraVector<Zp>),
+}
+
+#[pyclass(name = "FpPathAlgebraVector", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyFpPathAlgebraVector {
+    kind: FpVectorKind,
+}
+
+#[derive(Clone)]
+enum FpSubmoduleKind {
+    Rational(RightFpPathAlgebraSubmodule<RationalField>),
+    Binary(RightFpPathAlgebraSubmodule<Z2>),
+    Prime(RightFpPathAlgebraSubmodule<Zp>),
+}
+
+#[pyclass(name = "RightFpPathAlgebraSubmodule", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyRightFpPathAlgebraSubmodule {
+    kind: FpSubmoduleKind,
+}
+
+#[derive(Clone)]
+enum NaturalHomomorphismKind {
+    Rational(NaturalSubmoduleHomomorphism<RationalField>),
+    Binary(NaturalSubmoduleHomomorphism<Z2>),
+    Prime(NaturalSubmoduleHomomorphism<Zp>),
+}
+
+#[pyclass(name = "NaturalSubmoduleHomomorphism", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyNaturalSubmoduleHomomorphism {
+    kind: NaturalHomomorphismKind,
+}
+
+macro_rules! impl_fp_runtime {
+    ($field:ty, $variant:ident) => {
+        impl runtime::Wrap<RightFpPathAlgebraModule<$field>> for FpModuleKind {
+            fn wrap(value: RightFpPathAlgebraModule<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<FpPathAlgebraVector<$field>> for FpVectorKind {
+            fn wrap(value: FpPathAlgebraVector<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Extract<FpPathAlgebraVector<$field>> for FpVectorKind {
+            fn extract(self) -> PyResult<FpPathAlgebraVector<$field>> {
+                match self {
+                    Self::$variant(value) => Ok(value),
+                    _ => Err(invalid(
+                        "finitely presented vector belongs to another coefficient field",
+                    )),
+                }
+            }
+        }
+
+        impl runtime::Wrap<RightFpPathAlgebraSubmodule<$field>> for FpSubmoduleKind {
+            fn wrap(value: RightFpPathAlgebraSubmodule<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<NaturalSubmoduleHomomorphism<$field>> for NaturalHomomorphismKind {
+            fn wrap(value: NaturalSubmoduleHomomorphism<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+    };
+}
+
+impl_fp_runtime!(RationalField, Rational);
+impl_fp_runtime!(Z2, Binary);
+impl_fp_runtime!(Zp, Prime);
+
+fn wrap_vectors<F: Field>(values: Vec<FpPathAlgebraVector<F>>) -> Vec<PyFpPathAlgebraVector>
+where
+    FpVectorKind: runtime::Wrap<FpPathAlgebraVector<F>>,
+{
+    runtime::wrap_all(values)
+        .into_iter()
+        .map(|kind| PyFpPathAlgebraVector { kind })
+        .collect()
+}
+
+fn clone_element_kinds(
+    py: Python<'_>,
+    elements: Vec<Py<PyAlgebraElement>>,
+) -> Vec<AlgebraElementKind> {
+    elements
+        .into_iter()
+        .map(|element| element.borrow(py).kind.clone())
+        .collect()
+}
+
+fn clone_vector_kinds(
+    py: Python<'_>,
+    vectors: Vec<Py<PyFpPathAlgebraVector>>,
+) -> Vec<FpVectorKind> {
+    vectors
+        .into_iter()
+        .map(|vector| vector.borrow(py).kind.clone())
+        .collect()
+}
+
+pub(super) fn natural_quotient(
+    parent: &PyRightProjectiveModule,
+    submodule: &PyRightProjectiveSubmodule,
+) -> PyResult<PyNaturalSubmoduleHomomorphism> {
+    let kind = match (&parent.kind, &submodule.kind) {
+        (ProjectiveModuleKind::Rational(parent), ProjectiveSubmoduleKind::Rational(submodule)) => {
+            NaturalHomomorphismKind::Rational(
+                natural_homomorphism_by_projective_submodule(parent, submodule).map_err(invalid)?,
+            )
+        }
+        (ProjectiveModuleKind::Binary(parent), ProjectiveSubmoduleKind::Binary(submodule)) => {
+            NaturalHomomorphismKind::Binary(
+                natural_homomorphism_by_projective_submodule(parent, submodule).map_err(invalid)?,
+            )
+        }
+        (ProjectiveModuleKind::Prime(parent), ProjectiveSubmoduleKind::Prime(submodule)) => {
+            NaturalHomomorphismKind::Prime(
+                natural_homomorphism_by_projective_submodule(parent, submodule).map_err(invalid)?,
+            )
+        }
+        _ => {
+            return Err(invalid(
+                "the projective module and submodule use different coefficient fields",
+            ));
+        }
+    };
+    Ok(PyNaturalSubmoduleHomomorphism { kind })
+}
+
+#[pymethods]
+impl PyNaturalSubmoduleHomomorphism {
+    #[getter]
+    fn source(&self) -> PyRightProjectiveModule {
+        dispatch_ref!(&self.kind, NaturalHomomorphismKind, |mapping| {
+            projective::wrap_projective_module(mapping.source().clone())
+        })
+    }
+
+    #[getter]
+    fn range(&self) -> PyRightFpPathAlgebraModule {
+        let kind = map_ref!(
+            &self.kind,
+            NaturalHomomorphismKind => FpModuleKind,
+            |mapping| mapping.range().clone()
+        );
+        PyRightFpPathAlgebraModule { kind }
+    }
+
+    #[getter]
+    fn kernel(&self) -> PyRightProjectiveSubmodule {
+        dispatch_ref!(&self.kind, NaturalHomomorphismKind, |mapping| {
+            projective::wrap_projective_submodule(mapping.kernel().clone())
+        })
+    }
+
+    #[getter]
+    fn is_surjective(&self) -> bool {
+        dispatch_ref!(&self.kind, NaturalHomomorphismKind, |mapping| mapping
+            .is_surjective())
+    }
+
+    fn image(&self, vector: &PyPathAlgebraVector) -> PyResult<PyFpPathAlgebraVector> {
+        let kind = match (&self.kind, &vector.kind) {
+            (
+                NaturalHomomorphismKind::Rational(mapping),
+                ProjectiveVectorKind::Rational(vector),
+            ) => FpVectorKind::Rational(mapping.image(vector).map_err(invalid)?),
+            (NaturalHomomorphismKind::Binary(mapping), ProjectiveVectorKind::Binary(vector)) => {
+                FpVectorKind::Binary(mapping.image(vector).map_err(invalid)?)
+            }
+            (NaturalHomomorphismKind::Prime(mapping), ProjectiveVectorKind::Prime(vector)) => {
+                FpVectorKind::Prime(mapping.image(vector).map_err(invalid)?)
+            }
+            _ => {
+                return Err(invalid(
+                    "the mapping and vector use different coefficient fields",
+                ));
+            }
+        };
+        Ok(PyFpPathAlgebraVector { kind })
+    }
+}
+
+#[pymethods]
+impl PyRightFpPathAlgebraModule {
+    #[getter]
+    fn algebra(&self) -> PyPathAlgebra {
+        let kind = map_ref!(&self.kind, FpModuleKind => AlgebraKind, |module| module
+            .algebra()
+            .clone());
+        PyPathAlgebra { kind }
+    }
+
+    #[getter]
+    fn parent_projective(&self) -> PyRightProjectiveModule {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| {
+            projective::wrap_projective_module(module.parent_projective().clone())
+        })
+    }
+
+    #[getter]
+    fn bottom_submodule(&self) -> PyRightProjectiveSubmodule {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| {
+            projective::wrap_projective_submodule(module.bottom_submodule().clone())
+        })
+    }
+
+    fn zero(&self) -> PyFpPathAlgebraVector {
+        let kind = map_ref!(&self.kind, FpModuleKind => FpVectorKind, |module| module
+            .zero());
+        PyFpPathAlgebraVector { kind }
+    }
+
+    #[getter]
+    fn generators(&self) -> PyResult<Vec<PyFpPathAlgebraVector>> {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| Ok(wrap_vectors(
+            module.generators().map_err(invalid)?
+        )))
+    }
+
+    #[getter]
+    fn basis(&self) -> Vec<PyFpPathAlgebraVector> {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| wrap_vectors(
+            module.basis()
+        ))
+    }
+
+    #[getter]
+    fn dimension(&self) -> usize {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| module.dimension())
+    }
+
+    #[getter]
+    fn is_fp_path_algebra_module(&self) -> bool {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| module
+            .is_fp_path_algebra_module())
+    }
+
+    #[getter]
+    fn is_path_algebra_module(&self) -> bool {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| module
+            .is_path_algebra_module())
+    }
+
+    #[getter]
+    fn is_whole_family(&self) -> bool {
+        dispatch_ref!(&self.kind, FpModuleKind, |module| module.is_whole_family())
+    }
+
+    fn vector(
+        &self,
+        py: Python<'_>,
+        components: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<PyFpPathAlgebraVector> {
+        let components = clone_element_kinds(py, components);
+        let kind = map_ref!(
+            &self.kind,
+            FpModuleKind => FpVectorKind,
+            |module| module
+                .vector(runtime::extract_all(components)?)
+                .map_err(invalid)?
+        );
+        Ok(PyFpPathAlgebraVector { kind })
+    }
+
+    fn vector_nc(
+        &self,
+        py: Python<'_>,
+        components: Vec<Py<PyAlgebraElement>>,
+        leading_position: usize,
+        normal: bool,
+    ) -> PyResult<PyFpPathAlgebraVector> {
+        let components = clone_element_kinds(py, components);
+        let kind = map_ref!(
+            &self.kind,
+            FpModuleKind => FpVectorKind,
+            |module| module
+                .vector_nc(
+                    runtime::extract_all(components)?,
+                    leading_position,
+                    normal,
+                )
+                .map_err(invalid)?
+        );
+        Ok(PyFpPathAlgebraVector { kind })
+    }
+
+    fn submodule(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyFpPathAlgebraVector>>,
+    ) -> PyResult<PyRightFpPathAlgebraSubmodule> {
+        let generators = clone_vector_kinds(py, generators);
+        let kind = map_ref!(
+            &self.kind,
+            FpModuleKind => FpSubmoduleKind,
+            |module| module
+                .submodule(runtime::extract_all(generators)?)
+                .map_err(invalid)?
+        );
+        Ok(PyRightFpPathAlgebraSubmodule { kind })
+    }
+
+    fn is_identical(&self, other: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            FpModuleKind,
+            |left, right| left.is_identical(right),
+            false
+        )
+    }
+}
+
+#[pymethods]
+impl PyRightFpPathAlgebraSubmodule {
+    #[getter]
+    fn parent(&self) -> PyRightFpPathAlgebraModule {
+        let kind = map_ref!(&self.kind, FpSubmoduleKind => FpModuleKind, |module| module
+            .parent()
+            .clone());
+        PyRightFpPathAlgebraModule { kind }
+    }
+
+    #[getter]
+    fn generators(&self) -> Vec<PyFpPathAlgebraVector> {
+        dispatch_ref!(&self.kind, FpSubmoduleKind, |module| wrap_vectors(
+            module.generators().to_vec()
+        ))
+    }
+
+    #[getter]
+    fn dimension(&self) -> PyResult<usize> {
+        dispatch_ref!(&self.kind, FpSubmoduleKind, |module| module
+            .dimension()
+            .map_err(invalid))
+    }
+
+    fn is_identical(&self, other: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            FpSubmoduleKind,
+            |left, right| left.is_identical(right),
+            false
+        )
+    }
+}
+
+#[pymethods]
+impl PyFpPathAlgebraVector {
+    #[getter]
+    fn module(&self) -> PyRightFpPathAlgebraModule {
+        let kind = map_ref!(&self.kind, FpVectorKind => FpModuleKind, |vector| vector
+            .module()
+            .clone());
+        PyRightFpPathAlgebraModule { kind }
+    }
+
+    #[getter]
+    fn components(&self) -> Vec<PyAlgebraElement> {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| wrap_algebra_elements(
+            vector.components().to_vec()
+        ))
+    }
+
+    #[getter]
+    fn leading_position(&self) -> usize {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector.leading_position())
+    }
+
+    #[getter]
+    fn is_normal_form(&self) -> bool {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector.is_normal_form())
+    }
+
+    #[getter]
+    fn is_zero(&self) -> bool {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector.is_zero())
+    }
+
+    fn add(&self, right: &Self) -> PyResult<Self> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &right.kind,
+            FpVectorKind => FpVectorKind,
+            |left, right| left.add(right).map_err(invalid)?,
+            invalid("finitely presented vectors use different coefficient fields")
+        )?;
+        Ok(Self { kind })
+    }
+
+    fn subtract(&self, right: &Self) -> PyResult<Self> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &right.kind,
+            FpVectorKind => FpVectorKind,
+            |left, right| left.sub(right).map_err(invalid)?,
+            invalid("finitely presented vectors use different coefficient fields")
+        )?;
+        Ok(Self { kind })
+    }
+
+    fn negate(&self) -> PyResult<Self> {
+        let kind = map_ref!(&self.kind, FpVectorKind => FpVectorKind, |vector| vector
+            .neg()
+            .map_err(invalid)?);
+        Ok(Self { kind })
+    }
+
+    fn scale_left(&self, scalar: &PyScalar) -> PyResult<Self> {
+        let kind = map_ref!(&self.kind, FpVectorKind => FpVectorKind, |vector| vector
+            .scale_left(&scalar.value_for(vector.module().algebra().field())?)
+            .map_err(invalid)?);
+        Ok(Self { kind })
+    }
+
+    fn scale_right(&self, scalar: &PyScalar) -> PyResult<Self> {
+        let kind = map_ref!(&self.kind, FpVectorKind => FpVectorKind, |vector| vector
+            .scale_right(&scalar.value_for(vector.module().algebra().field())?)
+            .map_err(invalid)?);
+        Ok(Self { kind })
+    }
+
+    fn act(&self, element: &PyAlgebraElement) -> PyResult<Self> {
+        let element = element.kind.clone();
+        let kind = map_ref!(
+            &self.kind,
+            FpVectorKind => FpVectorKind,
+            |vector| vector
+                .act(&runtime::Extract::extract(element)?)
+                .map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    #[getter]
+    fn leading_term(&self) -> PyResult<Self> {
+        let kind = map_ref!(&self.kind, FpVectorKind => FpVectorKind, |vector| vector
+            .leading_term()
+            .map_err(invalid)?);
+        Ok(Self { kind })
+    }
+
+    #[getter]
+    fn leading_coefficient(&self) -> PyResult<PyScalar> {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| Ok(vector
+            .module()
+            .algebra()
+            .field()
+            .wrap_scalar(&vector.leading_coefficient().map_err(invalid)?)))
+    }
+
+    #[getter]
+    fn leading_component(&self) -> PyResult<PyAlgebraElement> {
+        let kind = map_ref!(
+            &self.kind,
+            FpVectorKind => AlgebraElementKind,
+            |vector| vector.leading_component().map_err(invalid)?.clone()
+        );
+        Ok(PyAlgebraElement { kind })
+    }
+
+    #[getter]
+    fn target_vertex(&self) -> Option<PyPath> {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector
+            .target_vertex()
+            .map(|inner| PyPath { inner }))
+    }
+
+    #[getter]
+    fn source_vertex(&self) -> Option<PyPath> {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector
+            .source_vertex()
+            .map(|inner| PyPath { inner }))
+    }
+
+    #[getter]
+    fn is_left_uniform(&self) -> bool {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector.is_left_uniform())
+    }
+
+    #[getter]
+    fn is_right_uniform(&self) -> bool {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector.is_right_uniform())
+    }
+
+    #[getter]
+    fn is_uniform(&self) -> bool {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector.is_uniform())
+    }
+
+    fn compare(&self, right: &Self) -> PyResult<i8> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            FpVectorKind,
+            |left, right| Ok(ordering_value(left.compare(right).map_err(invalid)?)),
+            Err(invalid(
+                "finitely presented vectors use different coefficient fields"
+            ))
+        )
+    }
+
+    fn is_left_divisible(&self, divisor: &Self) -> PyResult<bool> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &divisor.kind,
+            FpVectorKind,
+            |vector, divisor| vector.is_left_divisible(divisor).map_err(invalid),
+            Err(invalid(
+                "finitely presented vectors use different coefficient fields"
+            ))
+        )
+    }
+
+    fn __add__(&self, right: &Self) -> PyResult<Self> {
+        self.add(right)
+    }
+
+    fn __sub__(&self, right: &Self) -> PyResult<Self> {
+        self.subtract(right)
+    }
+
+    fn __neg__(&self) -> PyResult<Self> {
+        self.negate()
+    }
+
+    fn __lt__(&self, right: &Self) -> PyResult<bool> {
+        Ok(self.compare(right)? < 0)
+    }
+
+    fn __eq__(&self, right: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            FpVectorKind,
+            |left, right| left == right,
+            false
+        )
+    }
+
+    fn __repr__(&self) -> String {
+        dispatch_ref!(&self.kind, FpVectorKind, |vector| vector.print_obj_with(
+            |value| vector.module().algebra().field().scalar_text(value)
+        ))
+    }
+}

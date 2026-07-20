@@ -1,6 +1,7 @@
 //! Python wrappers for path algebras, ideals, Gröbner bases, and quotients.
 
 mod conversion;
+mod fp_projective;
 mod groebner;
 mod homological;
 mod ideal;
@@ -18,6 +19,10 @@ pub(crate) use conversion::{
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyQuiverAlgebra,
     PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
     PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
+};
+pub(crate) use fp_projective::{
+    PyFpPathAlgebraVector, PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule,
+    PyRightFpPathAlgebraSubmodule,
 };
 pub(crate) use projective::{
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,

@@ -28,11 +28,11 @@ pub(super) enum ProjectiveModuleKind {
 #[pyclass(name = "RightProjectiveModule", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyRightProjectiveModule {
-    kind: ProjectiveModuleKind,
+    pub(super) kind: ProjectiveModuleKind,
 }
 
 #[derive(Clone)]
-enum ProjectiveVectorKind {
+pub(super) enum ProjectiveVectorKind {
     Rational(PathAlgebraVector<RationalField>),
     Binary(PathAlgebraVector<Z2>),
     Prime(PathAlgebraVector<Zp>),
@@ -42,7 +42,7 @@ enum ProjectiveVectorKind {
 #[pyclass(name = "PathAlgebraVector", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyPathAlgebraVector {
-    kind: ProjectiveVectorKind,
+    pub(super) kind: ProjectiveVectorKind,
 }
 
 #[derive(Clone)]
@@ -70,7 +70,7 @@ pub(super) enum ProjectiveSubmoduleKind {
 #[pyclass(name = "RightProjectiveSubmodule", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyRightProjectiveSubmodule {
-    kind: ProjectiveSubmoduleKind,
+    pub(super) kind: ProjectiveSubmoduleKind,
 }
 
 #[derive(Clone)]
@@ -359,6 +359,13 @@ impl PyRightProjectiveModule {
         generators: Vec<Py<PyPathAlgebraVector>>,
     ) -> PyResult<PyRightProjectiveSubmodule> {
         self.submodule_impl(py, generators, true)
+    }
+
+    fn natural_quotient(
+        &self,
+        submodule: &PyRightProjectiveSubmodule,
+    ) -> PyResult<PyNaturalSubmoduleHomomorphism> {
+        fp_projective::natural_quotient(self, submodule)
     }
 
     fn vector_space(

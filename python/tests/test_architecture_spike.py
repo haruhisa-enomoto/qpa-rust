@@ -2335,3 +2335,60 @@ def test_quotient_projective_path_vectors_follow_qpa(field: qpa.Field) -> None:
     assert truncated_lift.is_submodule
     assert truncated_lift.submodule is not None
     assert truncated_lift.submodule.parent.is_identical(truncated_lift.parent_module)
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_finitely_presented_path_modules_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    v1, v2, arrow = algebra.generators
+    zero = algebra.zero()
+    projective = algebra.right_projective_module([1, 2])
+    divisor = projective.vector([v1, zero])
+    arrow_vector = projective.vector([arrow, zero])
+
+    zero_bottom = projective.submodule([projective.zero()])
+    natural = projective.natural_quotient(zero_bottom)
+    module = natural.range
+    assert natural.source.is_identical(projective)
+    assert natural.kernel.is_identical(zero_bottom)
+    assert natural.is_surjective
+    assert module.parent_projective.is_identical(projective)
+    assert module.bottom_submodule.is_identical(zero_bottom)
+    assert module.algebra.is_identical(algebra)
+    assert module.dimension == 3 and len(module.basis) == 3
+    assert module.is_fp_path_algebra_module
+    assert module.is_path_algebra_module and module.is_whole_family
+
+    fp_divisor = natural.image(divisor)
+    fp_arrow = natural.image(arrow_vector)
+    assert fp_arrow == module.vector([arrow, zero])
+    assert fp_arrow.components == [arrow, zero]
+    assert fp_arrow.leading_position == 1 and fp_arrow.is_normal_form
+    assert fp_arrow.leading_term == fp_arrow
+    assert fp_arrow.leading_coefficient == field.element(1)
+    assert fp_arrow.leading_component == arrow
+    assert fp_arrow.source_vertex == v1.leading_monomial
+    assert fp_arrow.target_vertex == v2.leading_monomial
+    assert fp_arrow.is_left_uniform and fp_arrow.is_right_uniform and fp_arrow.is_uniform
+    assert fp_arrow.act(v2) == fp_arrow
+    assert fp_arrow.scale_left(field.element(-1)).add(fp_arrow) == module.zero()
+    assert fp_arrow.scale_right(field.element(1)) == fp_arrow
+    assert fp_arrow.subtract(fp_arrow).is_zero
+    assert fp_arrow.is_left_divisible(fp_divisor)
+    assert fp_divisor < module.vector([arrow, v2])
+
+    fp_submodule = module.submodule([fp_divisor, fp_arrow])
+    assert fp_submodule.parent.is_identical(module)
+    assert fp_submodule.generators == [fp_divisor, fp_arrow]
+    assert fp_submodule.dimension == 2
+    with pytest.raises(qpa.InvalidInputError, match="empty generator list"):
+        module.submodule([])
+
+    relation_bottom = projective.submodule([arrow_vector])
+    relation_quotient = projective.natural_quotient(relation_bottom)
+    assert relation_quotient.range.dimension == 2
+    assert relation_quotient.image(arrow_vector).is_zero
