@@ -177,7 +177,7 @@ type InducedMapOperation<F> =
         &PathAlgebraModuleHomomorphism<F>,
     ) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, qpa_core::PathAlgebraModuleError>;
 
-fn wrap_module<F: runtime::PythonField>(module: PathAlgebraModule<F>) -> PyMatrixModule
+pub(super) fn wrap_module<F: runtime::PythonField>(module: PathAlgebraModule<F>) -> PyMatrixModule
 where
     MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
 {
@@ -404,6 +404,28 @@ where
         qpa_gbnp::radical_right_approximation_by_add_m(&runtime::extract_all(modules)?, index)
             .map_err(invalid)?,
     ))
+}
+
+fn simple_endo_projective_resolution_for<F: runtime::PythonField>(
+    modules: Vec<MatrixModuleKind>,
+    index: &Integer,
+    length: &Integer,
+) -> PyResult<PySimpleEndoProjectiveResolutionResult>
+where
+    MatrixModuleKind: runtime::Extract<PathAlgebraModule<F>>,
+    SimpleEndoProjectiveResolutionKind:
+        runtime::Wrap<qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<F>>,
+{
+    Ok(PySimpleEndoProjectiveResolutionResult {
+        kind: runtime::Wrap::wrap(
+            qpa_gbnp::projective_resolution_of_simple_module_over_endo(
+                &runtime::extract_all(modules)?,
+                index,
+                length,
+            )
+            .map_err(invalid)?,
+        ),
+    })
 }
 
 fn faithful_dimension_result_text(result: qpa_gbnp::FaithfulDimensionResult) -> String {
@@ -2125,6 +2147,32 @@ impl PyMatrixModule {
             // a coefficient field, so any monomorphization preserves QPA's
             // empty-list error instead of inventing a binding-only shortcut.
             None => radical_right_approximation_by_add_for::<RationalField>(modules, &index),
+        }
+    }
+
+    #[staticmethod]
+    fn projective_resolution_of_simple_module_over_endo(
+        py: Python<'_>,
+        modules: Vec<Py<PyMatrixModule>>,
+        one_based_index: i64,
+        length: i64,
+    ) -> PyResult<PySimpleEndoProjectiveResolutionResult> {
+        let modules = modules
+            .into_iter()
+            .map(|module| module.borrow(py).kind.clone())
+            .collect::<Vec<_>>();
+        let index = Integer::from(one_based_index);
+        let length = Integer::from(length);
+        match modules.first() {
+            Some(MatrixModuleKind::Rational(_)) | None => {
+                simple_endo_projective_resolution_for::<RationalField>(modules, &index, &length)
+            }
+            Some(MatrixModuleKind::Binary(_)) => {
+                simple_endo_projective_resolution_for::<Z2>(modules, &index, &length)
+            }
+            Some(MatrixModuleKind::Prime(_)) => {
+                simple_endo_projective_resolution_for::<Zp>(modules, &index, &length)
+            }
         }
     }
 

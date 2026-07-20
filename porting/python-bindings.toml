@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 534
+exposed_or_partial_count = 535
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -10196,16 +10196,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_re
 qpa_name = "ProjectiveResolutionOfSimpleModuleOverEndo"
 python_name = "projective_resolution_of_simple_module_over_endo"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.projective_resolution_of_simple_module_over_endo; qpa.ProjectiveResolutionOfSimpleModuleOverEndoResult"
+notes = "Preserves QPA's integer-or-'projdim > t' first result component and the source's one-based module-index convention."
 entry_ids = ["modulehomalg:DeclareOperation:ProjectiveResolutionOfSimpleModuleOverEndo:1","modulehomalg:InstallMethod:ProjectiveResolutionOfSimpleModuleOverEndo:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomalg.gi"]
 rust_symbols = ["projective_resolution_of_simple_module_over_endo"]
 rust_tests = ["tests/fixtures/modulehomalg_projective_resolution_simple_endo.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_simple_endo_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveToInjectiveComplex"

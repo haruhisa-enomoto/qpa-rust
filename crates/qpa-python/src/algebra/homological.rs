@@ -1,10 +1,28 @@
 //! Lazy projective and injective resolutions.
 
-use pyo3::{PyAny, pyfunction, pymethods};
+use pyo3::{PyAny, pyfunction, pymethods, types::PyString};
 
 #[allow(clippy::wildcard_imports)]
 // Private runtime enums and helpers form one binding domain.
 use super::*;
+
+fn simple_endo_projective_dimension(
+    py: Python<'_>,
+    status: &qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoStatus,
+) -> PyResult<Py<PyAny>> {
+    match status {
+        qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoStatus::Finite(dimension) => Ok(py
+            .import("builtins")?
+            .getattr("int")?
+            .call1((dimension.to_string(),))?
+            .unbind()),
+        qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoStatus::GreaterThanModuleIndex(
+            index,
+        ) => Ok(PyString::new(py, &format!("projdim > {index}"))
+            .into_any()
+            .unbind()),
+    }
+}
 
 #[pyfunction(name = "complex_and_chain_maps")]
 #[pyo3(signature = (source_complexes, range_complexes, base_degree, middle, positive=None, negative=None))]
@@ -75,6 +93,28 @@ impl PyInjectiveResolution {
             |resolution| resolution.object(&degree).map_err(invalid)?
         );
         Ok(PyMatrixModule { kind })
+    }
+}
+
+#[pymethods]
+impl PySimpleEndoProjectiveResolutionResult {
+    #[getter]
+    fn projective_dimension(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        dispatch_ref!(&self.kind, SimpleEndoProjectiveResolutionKind, |result| {
+            simple_endo_projective_dimension(py, result.projective_dimension())
+        })
+    }
+
+    #[getter]
+    fn syzygies(&self) -> Vec<PyMatrixModule> {
+        dispatch_ref!(&self.kind, SimpleEndoProjectiveResolutionKind, |result| {
+            result
+                .syzygies()
+                .iter()
+                .cloned()
+                .map(module::wrap_module)
+                .collect()
+        })
     }
 }
 

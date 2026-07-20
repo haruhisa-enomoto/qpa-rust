@@ -3366,3 +3366,10 @@ status = "exposed"
 target = "qpa.MatrixModule.iyama_generator"
 tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa"]
 notes = "Preserves QPA's failed finite-field zero-module multiplicity-decomposition branch as a typed Python error."
+
+[[bindings]]
+qpa_name = "ProjectiveResolutionOfSimpleModuleOverEndo"
+status = "exposed"
+target = "qpa.MatrixModule.projective_resolution_of_simple_module_over_endo; qpa.ProjectiveResolutionOfSimpleModuleOverEndoResult"
+tests = ["python/tests/test_architecture_spike.py::test_simple_endo_projective_resolution_follows_qpa"]
+notes = "Preserves QPA's integer-or-'projdim > t' first result component and the source's one-based module-index convention."

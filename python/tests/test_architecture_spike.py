@@ -849,6 +849,49 @@ def test_complexity_and_iyama_generators_follow_qpa(field: qpa.Field) -> None:
 
 
 @pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_simple_endo_projective_resolution_follows_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    simples = algebra.simple_modules()
+    projectives = algebra.indecomposable_projectives()
+
+    simple_result = qpa.MatrixModule.projective_resolution_of_simple_module_over_endo(
+        [simples[0]], 1, 3
+    )
+    assert simple_result.projective_dimension == 0
+    assert simple_result.syzygies == []
+
+    projective_result = (
+        qpa.MatrixModule.projective_resolution_of_simple_module_over_endo(
+            projectives, 1, 3
+        )
+    )
+    assert projective_result.projective_dimension == 1
+    assert projective_result.syzygies == []
+
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["w"], [("w", "w", "x")]), 2
+    )
+    dual_regular = dual_numbers.indecomposable_projectives()[0]
+    dual_simple = dual_numbers.simple_modules()[0]
+    mixed_result = qpa.MatrixModule.projective_resolution_of_simple_module_over_endo(
+        [dual_regular, dual_simple], 2, 3
+    )
+    assert mixed_result.projective_dimension == 2
+    assert mixed_result.syzygies == []
+
+    bounded_result = qpa.MatrixModule.projective_resolution_of_simple_module_over_endo(
+        [dual_regular], 1, 4
+    )
+    assert bounded_result.projective_dimension == "projdim > 1"
+    assert [module.dimension_vector for module in bounded_result.syzygies] == [[1], [1]]
+
+    with pytest.raises(qpa.InvalidInputError, match="resolution length is negative"):
+        qpa.MatrixModule.projective_resolution_of_simple_module_over_endo([], 99, -1)
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
 def test_derived_category_foundations_follow_qpa(field: qpa.Field) -> None:
     algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
     projectives = algebra.indecomposable_projectives()

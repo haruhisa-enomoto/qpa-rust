@@ -468,6 +468,24 @@ pub(crate) struct PyInjectiveResolution {
 }
 
 #[derive(Clone)]
+enum SimpleEndoProjectiveResolutionKind {
+    Rational(qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<RationalField>),
+    Binary(qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<Z2>),
+    Prime(qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<Zp>),
+}
+
+/// QPA's projective-dimension status and stripped syzygies over an endomorphism ring.
+#[pyclass(
+    name = "ProjectiveResolutionOfSimpleModuleOverEndoResult",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PySimpleEndoProjectiveResolutionResult {
+    kind: SimpleEndoProjectiveResolutionKind,
+}
+
+#[derive(Clone)]
 enum ModuleComplexKind {
     Rational(qpa_gbnp::ModuleComplex<RationalField>),
     Binary(qpa_gbnp::ModuleComplex<Z2>),
@@ -861,6 +879,16 @@ macro_rules! impl_resolution_runtime {
 
         impl runtime::Wrap<qpa_gbnp::InjectiveResolution<$field>> for InjectiveResolutionKind {
             fn wrap(value: qpa_gbnp::InjectiveResolution<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<$field>>
+            for SimpleEndoProjectiveResolutionKind
+        {
+            fn wrap(
+                value: qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<$field>,
+            ) -> Self {
                 Self::$variant(value)
             }
         }

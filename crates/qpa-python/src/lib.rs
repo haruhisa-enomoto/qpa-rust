@@ -31,9 +31,10 @@ use algebra::{
     PyProjectivePathAlgebraPresentation, PyProjectiveResolution, PyQuiverAlgebra,
     PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector, PyRightFpPathAlgebraModule,
     PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
-    PyRightProjectiveSubmodule, PyStructureConstantsAlgebra, PyStructureConstantsElement,
-    PyStructureConstantsHomomorphism, PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
-    PyTiltingModuleResult, py_complex_and_chain_maps,
+    PyRightProjectiveSubmodule, PySimpleEndoProjectiveResolutionResult,
+    PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
+    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra, PyTiltingModuleResult,
+    py_complex_and_chain_maps,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -128,6 +129,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyModuleSubmodule>()?;
     module.add_class::<PyProjectiveResolution>()?;
     module.add_class::<PyInjectiveResolution>()?;
+    module.add_class::<PySimpleEndoProjectiveResolutionResult>()?;
     module.add_class::<PyModuleComplex>()?;
     module.add_class::<PyModuleCategory>()?;
     module.add_class::<PyModuleMorphismList>()?;
