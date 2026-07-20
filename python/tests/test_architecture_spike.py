@@ -2212,3 +2212,69 @@ def test_vertex_projective_path_vectors_follow_qpa(field: qpa.Field) -> None:
     assert whole_basis.completely_reduced_basis_vectors() == projective.generators
     assert repr(whole_basis).startswith("<Groebner basis of <right-module over <")
     assert whole_basis.completely_reduce(vector).is_zero
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_projective_path_submodules_and_bases_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    v1, _, arrow = algebra.generators
+    zero = algebra.zero()
+    projective = algebra.right_projective_module([1, 2])
+    divisor = projective.vector([v1, zero])
+    generator = projective.vector([arrow, zero])
+
+    submodule = projective.submodule([generator])
+    assert submodule.parent.is_identical(projective)
+    assert submodule.generators == [generator]
+    assert submodule.lift().is_identical(submodule)
+    assert submodule.uniform_generators() == [generator]
+    assert submodule.dimension == 1
+    basis = submodule.basis()
+    assert basis is not None and basis.basis_vectors == [generator]
+    assert basis.underlying_submodule is not None
+    assert basis.underlying_submodule.is_identical(submodule)
+    assert basis.underlying_space is None
+    assert basis.underlying_projective_module is None
+
+    groebner_basis = submodule.right_groebner_basis()
+    assert not groebner_basis.is_for_whole_module
+    assert groebner_basis.underlying_submodule is not None
+    assert groebner_basis.underlying_submodule.is_identical(submodule)
+    assert groebner_basis.completely_reduce(generator).is_zero
+    with pytest.raises(qpa.InvalidInputError, match="delegateBasis"):
+        _ = submodule.is_vertex_projective
+    with pytest.raises(qpa.InvalidInputError, match="does not dispatch"):
+        projective.submodule([])
+    with pytest.raises(qpa.InvalidInputError, match="no two-argument"):
+        algebra.right_groebner_basis_from_generators([arrow])
+
+    # QPA's three-argument "basis" branch trusts the entered list literally,
+    # including a zero vector, and installs its length as the dimension.
+    based = projective.submodule_with_basis([generator, projective.zero()])
+    assert based.dimension == 2
+    based_basis = based.basis()
+    assert based_basis is not None
+    assert based_basis.basis_vectors == [generator, projective.zero()]
+
+    projective_basis = projective.new_basis(projective.generators)
+    assert projective_basis.underlying_projective_module is not None
+    assert projective_basis.underlying_projective_module.is_identical(projective)
+    with pytest.raises(qpa.InvalidInputError, match="no echelon data"):
+        projective_basis.coefficients(generator)
+
+    space = projective.vector_space([divisor, generator, projective.zero()])
+    assert space.module.is_identical(projective)
+    assert space.generators == [divisor, generator, projective.zero()]
+    assert divisor in space and generator in space and projective.zero() in space
+    domain_basis = space.basis_of_domain()
+    assert space.basis().basis_vectors == domain_basis.basis_vectors
+    assert domain_basis.underlying_space is not None
+    coefficients = domain_basis.coefficients(divisor.add(generator))
+    assert coefficients is not None
+    assert coefficients == [field.element(1), field.element(1)]
+    assert space.basis_from_vectors([divisor, generator]) is not None
+    assert space.basis_nc([divisor, divisor]) is None

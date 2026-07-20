@@ -22,9 +22,10 @@ use algebra::{
     PyModuleHomomorphismBasis, PyModuleSubmodule, PyMoreMinimalVersionResult,
     PyNonisomorphicDirectSummandData, PyOppositeStructureConstantsAlgebra,
     PyOppositeStructureConstantsElement, PyPathAlgebra, PyPathAlgebraIdeal,
-    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPredecessorValuation,
-    PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent, PyProjectiveResolution,
-    PyQuiverAlgebra, PyQuotientAlgebra, PyQuotientElement, PyRightProjectiveModule,
+    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
+    PyPathAlgebraVectorSpace, PyPredecessorValuation, PyPredecessorsOfModuleResult,
+    PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuiverAlgebra, PyQuotientAlgebra,
+    PyQuotientElement, PyRightProjectiveModule, PyRightProjectiveSubmodule,
     PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
     PyStructureConstantsQuotient, PyStructureConstantsSubalgebra, PyTiltingModuleResult,
 };
@@ -87,7 +88,10 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyGroebnerBasis>()?;
     module.add_class::<PyGroebnerBasisIterator>()?;
     module.add_class::<PyRightProjectiveModule>()?;
+    module.add_class::<PyRightProjectiveSubmodule>()?;
     module.add_class::<PyPathAlgebraVector>()?;
+    module.add_class::<PyPathAlgebraVectorSpace>()?;
+    module.add_class::<PyPathAlgebraVectorBasis>()?;
     module.add_class::<PyPathAlgebraModuleGroebnerBasis>()?;
     module.add_class::<PyQuotientAlgebra>()?;
     module.add_class::<PyQuotientElement>()?;

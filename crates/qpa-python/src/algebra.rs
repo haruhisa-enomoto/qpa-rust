@@ -19,7 +19,8 @@ pub(crate) use conversion::{
     PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
 };
 pub(crate) use projective::{
-    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyRightProjectiveModule,
+    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
+    PyPathAlgebraVectorSpace, PyRightProjectiveModule, PyRightProjectiveSubmodule,
 };
 
 use numerica::domains::{
@@ -1467,6 +1468,14 @@ impl PyPathAlgebra {
 
     fn right_projective_module(&self, vertices: Vec<usize>) -> PyResult<PyRightProjectiveModule> {
         projective::right_projective_module(self, vertices)
+    }
+
+    fn right_groebner_basis_from_generators(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<PyPathAlgebraModuleGroebnerBasis> {
+        projective::right_groebner_basis_from_generators(self, py, generators)
     }
 
     #[getter]
