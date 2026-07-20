@@ -1,14 +1,28 @@
 //! Python wrappers for QPA quivers and paths.
 
+mod objects;
+
 use std::cmp::Ordering;
 
-use pyo3::prelude::*;
+use pyo3::{Py, PyAny, prelude::*};
 use qpa_core::{
-    ArrowSpec, DynkinOrientation, Generator, NamedArrowSpec, Path, PathEndpoint, Quiver,
-    QuiverCardinality, Vertex, VertexIndex,
+    Arrow, ArrowIndex, ArrowSpec, DynkinOrientation, Generator, NamedArrowSpec, Path, PathEndpoint,
+    Quiver, QuiverCardinality, Vertex, VertexIndex, unique_quiver_name,
 };
 
+pub(crate) use objects::{
+    PyQuiverArrow, PyQuiverPathEnumerator, PyQuiverPathIterator, PyQuiverVertex,
+};
+use objects::{endpoint_to_python, generator_to_python};
+
 use crate::invalid;
+
+/// Allocate the same process-global name produced by QPA's `UniqueQuiverName`.
+#[pyfunction]
+#[pyo3(name = "unique_quiver_name")]
+pub(crate) fn py_unique_quiver_name() -> String {
+    unique_quiver_name()
+}
 
 /// Python-owned handle to a Rust QPA quiver identity.
 #[pyclass(name = "Quiver", frozen, skip_from_py_object)]
@@ -94,6 +108,30 @@ impl PyQuiver {
             .map(|inner| Self { inner }))
     }
 
+    #[staticmethod]
+    fn dynkin_a(rank: usize, orientation: Vec<String>) -> PyResult<Self> {
+        Ok(Self {
+            inner: Quiver::dynkin_a(rank, &parse_dynkin_orientations(&orientation)?)
+                .map_err(invalid)?,
+        })
+    }
+
+    #[staticmethod]
+    fn dynkin_d(rank: usize, orientation: Vec<String>) -> PyResult<Self> {
+        Ok(Self {
+            inner: Quiver::dynkin_d(rank, &parse_dynkin_orientations(&orientation)?)
+                .map_err(invalid)?,
+        })
+    }
+
+    #[staticmethod]
+    fn dynkin_e(rank: usize, orientation: Vec<String>) -> PyResult<Self> {
+        Ok(Self {
+            inner: Quiver::dynkin_e(rank, &parse_dynkin_orientations(&orientation)?)
+                .map_err(invalid)?,
+        })
+    }
+
     #[getter]
     fn vertices(&self) -> Vec<String> {
         self.inner
@@ -114,6 +152,52 @@ impl PyQuiver {
                 )
             })
             .collect()
+    }
+
+    /// Concrete `VerticesOfQuiver` objects in QPA generator order.
+    #[getter]
+    fn vertex_objects(&self) -> Vec<PyQuiverVertex> {
+        self.inner
+            .vertices()
+            .map(PyQuiverVertex::from_inner)
+            .collect()
+    }
+
+    /// Concrete `ArrowsOfQuiver` objects in QPA generator order.
+    #[getter]
+    fn arrow_objects(&self) -> Vec<PyQuiverArrow> {
+        self.inner.arrows().map(PyQuiverArrow::from_inner).collect()
+    }
+
+    /// Vertices followed by arrows, exactly as in `GeneratorsOfQuiver`.
+    #[getter]
+    fn generators(&self, py: Python<'_>) -> PyResult<Vec<Py<PyAny>>> {
+        self.inner
+            .generators()
+            .map(|generator| generator_to_python(py, generator))
+            .collect()
+    }
+
+    fn vertex(&self, name: &str) -> PyResult<PyQuiverVertex> {
+        Ok(PyQuiverVertex::from_inner(self.vertex_by_name(name)?))
+    }
+
+    fn vertex_at(&self, index: usize) -> PyResult<Option<PyQuiverVertex>> {
+        let Some(index) = VertexIndex::new(index) else {
+            return Err(invalid("QPA vertex indices are one-based"));
+        };
+        Ok(self.inner.vertex(index).map(PyQuiverVertex::from_inner))
+    }
+
+    fn arrow(&self, name: &str) -> PyResult<PyQuiverArrow> {
+        Ok(PyQuiverArrow::from_inner(self.arrow_by_name(name)?))
+    }
+
+    fn arrow_at(&self, index: usize) -> PyResult<Option<PyQuiverArrow>> {
+        let Some(index) = ArrowIndex::new(index) else {
+            return Err(invalid("QPA arrow indices are one-based"));
+        };
+        Ok(self.inner.arrow(index).map(PyQuiverArrow::from_inner))
     }
 
     #[getter]
@@ -268,6 +352,14 @@ impl PyQuiver {
         self.inner.path_at(position).map(|inner| PyPath { inner })
     }
 
+    fn iterator(&self) -> PyQuiverPathIterator {
+        PyQuiverPathIterator::from_inner(self.inner.paths())
+    }
+
+    fn enumerator(&self) -> PyQuiverPathEnumerator {
+        PyQuiverPathEnumerator::new(self.inner.clone())
+    }
+
     fn path_from_external_representation(
         &self,
         representation: Vec<usize>,
@@ -305,6 +397,14 @@ impl PyQuiver {
         })
     }
 
+    fn opposite_name(&self, name: &str) -> PyResult<String> {
+        Ok(self
+            .inner
+            .opposite_quiver_name(name)
+            .map_err(invalid)?
+            .into())
+    }
+
     fn separated(&self) -> PyResult<Self> {
         Ok(Self {
             inner: self.inner.separated().map_err(invalid)?,
@@ -335,6 +435,14 @@ impl PyQuiver {
     fn __repr__(&self) -> String {
         self.inner.to_string()
     }
+
+    fn view(&self) -> String {
+        self.inner.view_string()
+    }
+
+    fn __iter__(&self) -> PyQuiverPathIterator {
+        self.iterator()
+    }
 }
 
 impl PyQuiver {
@@ -348,6 +456,20 @@ impl PyQuiver {
             _ => Err(invalid(format!("unknown vertex {name:?}"))),
         }
     }
+
+    fn arrow_by_name(&self, name: &str) -> PyResult<Arrow> {
+        match self.inner.generator_by_name(name) {
+            Some(Generator::Arrow(arrow)) => Ok(arrow),
+            _ => Err(invalid(format!("unknown arrow {name:?}"))),
+        }
+    }
+}
+
+fn parse_dynkin_orientations(symbols: &[String]) -> PyResult<Vec<DynkinOrientation>> {
+    symbols
+        .iter()
+        .map(|symbol| parse_dynkin_orientation(symbol))
+        .collect()
 }
 
 fn parse_dynkin_orientation(symbol: &str) -> PyResult<DynkinOrientation> {
@@ -425,6 +547,44 @@ impl PyPath {
     #[getter]
     fn external_representation(&self) -> Vec<usize> {
         self.inner.external_representation()
+    }
+
+    /// Concrete QPA generators in `WalkOfPath` order.
+    #[getter]
+    fn walk(&self, py: Python<'_>) -> PyResult<Option<Vec<Py<PyAny>>>> {
+        self.inner
+            .generator_walk()
+            .map(|walk| {
+                walk.into_iter()
+                    .map(|generator| generator_to_python(py, generator))
+                    .collect()
+            })
+            .transpose()
+    }
+
+    #[getter]
+    fn source_object(&self) -> Option<PyQuiverVertex> {
+        endpoint_to_python(self.inner.source())
+    }
+
+    #[getter]
+    fn target_object(&self) -> Option<PyQuiverVertex> {
+        endpoint_to_python(self.inner.target())
+    }
+
+    #[getter]
+    fn generator_index(&self) -> PyResult<usize> {
+        if self.inner.is_vertex() || self.inner.is_arrow() {
+            self.inner
+                .external_representation()
+                .first()
+                .copied()
+                .ok_or_else(|| invalid("this path has no generator index"))
+        } else {
+            Err(invalid(
+                "GeneratorIndex is defined only for vertices and arrows",
+            ))
+        }
     }
 
     fn multiply(&self, right: &Self) -> PyResult<Self> {

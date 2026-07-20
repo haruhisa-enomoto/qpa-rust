@@ -61,16 +61,67 @@ def test_extended_quiver_domain_delegates_to_qpa_core() -> None:
     assert quiver.outgoing_arrows("v2") == ["b"]
     assert quiver.neighbors("v2") == ["v3"]
 
+    v1, v2, v3 = quiver.vertex_objects
+    a, b = quiver.arrow_objects
+    assert isinstance(v1, qpa.QuiverVertex)
+    assert isinstance(a, qpa.QuiverArrow)
+    assert (v1.name, v1.index, v1.generator_index) == ("v1", 1, 1)
+    assert (v2.in_degree, v2.out_degree) == (1, 1)
+    assert v2.incoming_arrows == [a]
+    assert v2.outgoing_arrows == [b]
+    assert v2.neighbors == [v3]
+    assert (a.name, a.index, a.generator_index) == ("a", 1, 4)
+    assert a.source == v1 and a.target == v2
+    assert a.quiver.is_identical(quiver) and v1.quiver.is_identical(quiver)
+    assert quiver.vertex("v1") == v1 and quiver.vertex_at(1) == v1
+    assert quiver.arrow("a") == a and quiver.arrow_at(1) == a
+    assert quiver.vertex_at(4) is None and quiver.arrow_at(3) is None
+    assert quiver.generators == [v1, v2, v3, a, b]
+
     path = quiver.path(["a", "b"])
     assert path.quiver.is_identical(quiver)
     assert path.is_zero is False and path.is_vertex is False and path.is_arrow is False
     assert quiver.compare_paths(quiver.vertex_path("v1"), path) < 0
     assert quiver.path_at(6) == path
     assert quiver.path_from_external_representation([4, 5]) == path
+    assert path.walk == [a, b]
+    assert path.source_object == v1 and path.target_object == v3
+    assert v1.path().generator_index == 1
+    assert a.path().generator_index == 4
+    with pytest.raises(qpa.InvalidInputError, match="vertices and arrows"):
+        _ = path.generator_index
+
+    iterator = quiver.iterator()
+    assert iterator.is_done is False
+    assert [next(iterator).external_representation for _ in range(6)] == [
+        [1],
+        [2],
+        [3],
+        [4],
+        [5],
+        [4, 5],
+    ]
+    assert iterator.is_done is True and iterator.next_path() is None
+    assert [candidate.external_representation for candidate in quiver] == [
+        [1],
+        [2],
+        [3],
+        [4],
+        [5],
+        [4, 5],
+    ]
+    enumerator = quiver.enumerator()
+    assert enumerator.quiver.is_identical(quiver)
+    assert enumerator.at(6) == path and enumerator[5] == path
+    with pytest.raises(IndexError):
+        _ = enumerator[-1]
 
     opposite = quiver.opposite()
     assert path.opposite().quiver.is_identical(opposite)
     assert opposite.opposite().is_identical(quiver)
+    assert quiver.opposite_name("a") == "a_op"
+    assert opposite.opposite_name("a_op") == "a"
+    assert quiver.view() == "<quiver with 3 vertices and 2 arrows>"
     assert len(quiver.double().arrows) == 4
     assert quiver.separated().number_of_vertices == 6
     assert quiver.full_subquiver(["v1", "v2"]).number_of_arrows == 1
@@ -79,6 +130,10 @@ def test_extended_quiver_domain_delegates_to_qpa_core() -> None:
 
     dynkin = qpa.Quiver.dynkin("A", 3, ["r", "r"])
     assert dynkin is not None and dynkin.dynkin_type == "A_3"
+    assert qpa.Quiver.dynkin_a(3, ["r", "r"]).arrows == dynkin.arrows
+    assert qpa.Quiver.dynkin_d(4, ["r", "r", "l"]).dynkin_type == "D_4"
+    assert qpa.Quiver.dynkin_e(6, ["r", "r", "r", "r", "d"]).dynkin_type == "E_6"
+    assert qpa.unique_quiver_name().startswith("Quiver_")
     assert qpa.Quiver.from_adjacency([[0, 1], [0, 0]]).is_acyclic
 
 

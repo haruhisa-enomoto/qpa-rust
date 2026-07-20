@@ -51,7 +51,11 @@ from ._qpa import (
     ProjectiveIsomorphismComponent,
     QpaError,
     Quiver,
+    QuiverArrow,
     QuiverAlgebra,
+    QuiverPathEnumerator,
+    QuiverPathIterator,
+    QuiverVertex,
     QuotientAlgebra,
     QuotientElement,
     RelationNotSatisfiedError,
@@ -62,6 +66,7 @@ from ._qpa import (
     StructureConstantsQuotient,
     StructureConstantsSubalgebra,
     TiltingModuleResult,
+    unique_quiver_name,
 )
 
 __all__ = [
@@ -111,7 +116,11 @@ __all__ = [
     "ProjectiveResolution",
     "QpaError",
     "Quiver",
+    "QuiverArrow",
     "QuiverAlgebra",
+    "QuiverPathEnumerator",
+    "QuiverPathIterator",
+    "QuiverVertex",
     "QuotientAlgebra",
     "QuotientElement",
     "RelationNotSatisfiedError",
@@ -122,4 +131,5 @@ __all__ = [
     "StructureConstantsQuotient",
     "StructureConstantsSubalgebra",
     "TiltingModuleResult",
+    "unique_quiver_name",
 ]

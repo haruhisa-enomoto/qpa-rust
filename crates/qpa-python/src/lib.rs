@@ -28,7 +28,10 @@ use algebra::{
     PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
-use quiver::{PyPath, PyQuiver};
+use quiver::{
+    PyPath, PyQuiver, PyQuiverArrow, PyQuiverPathEnumerator, PyQuiverPathIterator, PyQuiverVertex,
+    py_unique_quiver_name,
+};
 
 use pyo3::{
     PyErr, PyResult, create_exception, exceptions::PyException, prelude::*, types::PyModule,
@@ -59,7 +62,12 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyField>()?;
     module.add_class::<PyScalar>()?;
     module.add_class::<PyQuiver>()?;
+    module.add_class::<PyQuiverVertex>()?;
+    module.add_class::<PyQuiverArrow>()?;
+    module.add_class::<PyQuiverPathIterator>()?;
+    module.add_class::<PyQuiverPathEnumerator>()?;
     module.add_class::<PyPath>()?;
+    module.add_function(wrap_pyfunction!(py_unique_quiver_name, module)?)?;
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;

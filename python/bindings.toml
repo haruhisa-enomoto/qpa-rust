@@ -19,6 +19,19 @@ tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left
 notes = "Represented by the concrete Python wrapper type."
 
 [[bindings]]
+qpa_name = "IsQuiverRep"
+status = "exposed"
+target = "qpa.Quiver"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsQuiverSA"
+status = "exposed"
+target = "qpa.Quiver.has_special_arrow_names"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
 qpa_name = "IsPath"
 status = "exposed"
 target = "qpa.Path"
@@ -111,13 +124,13 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "VerticesOfQuiver"
 status = "exposed"
-target = "qpa.Quiver.vertices"
+target = "qpa.Quiver.vertex_objects"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[bindings]]
 qpa_name = "ArrowsOfQuiver"
 status = "exposed"
-target = "qpa.Quiver.arrows"
+target = "qpa.Quiver.arrow_objects"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[bindings]]
@@ -167,19 +180,19 @@ notes = "The QPA quiver size overload is exposed; the global GAP operation has u
 [[bindings]]
 qpa_name = "IncomingArrowsOfVertex"
 status = "exposed"
-target = "qpa.Quiver.incoming_arrows"
+target = "qpa.QuiverVertex.incoming_arrows; qpa.Quiver.incoming_arrows"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[bindings]]
 qpa_name = "OutgoingArrowsOfVertex"
 status = "exposed"
-target = "qpa.Quiver.outgoing_arrows"
+target = "qpa.QuiverVertex.outgoing_arrows; qpa.Quiver.outgoing_arrows"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[bindings]]
 qpa_name = "NeighborsOfVertex"
 status = "exposed"
-target = "qpa.Quiver.neighbors"
+target = "qpa.QuiverVertex.neighbors; qpa.Quiver.neighbors"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[bindings]]
@@ -190,10 +203,27 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 
 [[bindings]]
 qpa_name = "DynkinQuiver"
-status = "partial"
-target = "qpa.Quiver.dynkin"
+status = "exposed"
+target = "qpa.Quiver.dynkin; qpa.Quiver.dynkin_a; qpa.Quiver.dynkin_d; qpa.Quiver.dynkin_e"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The family/rank/orientation constructor is exposed; convenience overloads remain."
+
+[[bindings]]
+qpa_name = "DynkinQuiverAn"
+status = "exposed"
+target = "qpa.Quiver.dynkin_a"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "DynkinQuiverDn"
+status = "exposed"
+target = "qpa.Quiver.dynkin_d"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "DynkinQuiverEn"
+status = "exposed"
+target = "qpa.Quiver.dynkin_e"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[bindings]]
 qpa_name = "FullSubquiver"
@@ -214,6 +244,12 @@ target = "qpa.Quiver.opposite"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[bindings]]
+qpa_name = "OppositeQuiverNameMap"
+status = "exposed"
+target = "qpa.Quiver.opposite_name"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
 qpa_name = "OppositePath"
 status = "exposed"
 target = "qpa.Path.opposite"
@@ -230,6 +266,155 @@ qpa_name = "DoubleQuiver"
 status = "exposed"
 target = "qpa.Quiver.double"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsQuiverVertex"
+status = "exposed"
+target = "qpa.QuiverVertex"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsQuiverVertexRep"
+status = "exposed"
+target = "qpa.QuiverVertex"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsArrow"
+status = "exposed"
+target = "qpa.QuiverArrow; qpa.Path.is_arrow"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsArrowRep"
+status = "exposed"
+target = "qpa.QuiverArrow"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "VertexIndex"
+status = "exposed"
+target = "qpa.QuiverVertex.index"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "ArrowIndex"
+status = "exposed"
+target = "qpa.QuiverArrow.index"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "GeneratorIndex"
+status = "exposed"
+target = "qpa.QuiverVertex.generator_index; qpa.QuiverArrow.generator_index; qpa.Path.generator_index"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "GeneratorsOfQuiver"
+status = "exposed"
+target = "qpa.Quiver.generators"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "InDegreeOfVertex"
+status = "exposed"
+target = "qpa.QuiverVertex.in_degree"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "OutDegreeOfVertex"
+status = "exposed"
+target = "qpa.QuiverVertex.out_degree"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "WalkOfPath"
+status = "exposed"
+target = "qpa.Path.walk"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "QuiverContainingPath"
+status = "exposed"
+target = "qpa.Path.quiver; qpa.QuiverVertex.quiver; qpa.QuiverArrow.quiver"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "IsQuiverIteratorRep"
+status = "exposed"
+target = "qpa.QuiverPathIterator"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsQuiverEnumerator"
+status = "exposed"
+target = "qpa.QuiverPathEnumerator"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "Iterator"
+status = "partial"
+target = "qpa.Quiver.iterator; qpa.Quiver.__iter__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The quiver overload is exposed; the Groebner-basis overload remains."
+
+[[bindings]]
+qpa_name = "Enumerator"
+status = "partial"
+target = "qpa.Quiver.enumerator"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The quiver overload is exposed; the Groebner-basis overload remains."
+
+[[bindings]]
+qpa_name = "IsDoneIterator"
+status = "partial"
+target = "qpa.QuiverPathIterator.is_done"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The quiver-iterator overload is exposed; the Groebner-basis iterator overload remains."
+
+[[bindings]]
+qpa_name = "NextIterator"
+status = "partial"
+target = "qpa.QuiverPathIterator.next_path; qpa.QuiverPathIterator.__next__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The quiver-iterator overload is exposed; the Groebner-basis iterator overload remains."
+
+[[bindings]]
+qpa_name = "UniqueQuiverName"
+status = "exposed"
+target = "qpa.unique_quiver_name"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "Path"
+status = "exposed"
+target = "qpa.QuiverVertex.path; qpa.QuiverArrow.path; qpa.Quiver.path"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "String"
+status = "exposed"
+target = "qpa.QuiverVertex.__str__; qpa.QuiverArrow.__str__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+
+[[bindings]]
+qpa_name = "ViewObj"
+status = "partial"
+target = "qpa.Quiver.view"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The quiver overload is exposed; grouped display overloads remain."
+
+[[bindings]]
+qpa_name = "\\[\\]"
+status = "partial"
+target = "qpa.QuiverPathEnumerator.__getitem__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The quiver-enumerator overload is exposed; suffix-tree and product-decomposition indexing remain."
 
 [[bindings]]
 qpa_name = "PathFromArrowList"
@@ -255,13 +440,6 @@ qpa_name = "TargetOfPath"
 status = "exposed"
 target = "qpa.Path.target"
 tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
-
-[[bindings]]
-qpa_name = "IsArrow"
-status = "partial"
-target = "qpa.Path.is_arrow"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The path predicate is exposed; QPA arrow-object category overloads remain represented by names."
 
 [[bindings]]
 qpa_name = "IsZeroPath"
@@ -737,9 +915,9 @@ tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_const
 [[bindings]]
 qpa_name = "PrintObj"
 status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
-notes = "Exact opposite-algebra printing is exposed through repr; the grouped QPA printing overloads remain incomplete."
+target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Exact opposite-algebra, quiver, vertex, and arrow printing is exposed through repr; grouped QPA printing overloads remain incomplete."
 
 [[bindings]]
 qpa_name = "UnderlyingAlgebra"
