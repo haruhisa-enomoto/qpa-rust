@@ -2245,3 +2245,22 @@ qpa_name = "AllSubmodulesOfModule"
 status = "exposed"
 target = "qpa.MatrixModule.all_submodules; qpa.AllSubmodulesOfModuleResult"
 tests = ["python/tests/test_architecture_spike.py::test_all_submodules_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NaturalHomomorphismBySubAlgebraModule"
+status = "partial"
+target = "qpa.ModuleSubmodule.natural_quotient_mapping; qpa.ModuleBasisMapping"
+notes = "The ordinary path-algebra matrix-submodule overload is exposed; projective presentation overloads remain."
+tests = ["python/tests/test_architecture_spike.py::test_matrix_submodule_natural_mapping_follows_qpa"]
+
+[[bindings]]
+qpa_name = "RestrictionViaAlgebraHomomorphism"
+status = "exposed"
+target = "qpa.AlgebraHomomorphism; qpa.MatrixModule.restrict_scalars"
+tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]
+
+[[bindings]]
+qpa_name = "RestrictionViaAlgebraHomomorphismMap"
+status = "exposed"
+target = "qpa.AlgebraHomomorphism; qpa.ModuleHomomorphism.restrict_scalars"
+tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]

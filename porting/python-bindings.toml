@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 354
+exposed_or_partial_count = 357
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -8651,16 +8651,16 @@ python_tests = []
 qpa_name = "NaturalHomomorphismBySubAlgebraModule"
 python_name = "natural_homomorphism_by_sub_algebra_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleSubmodule.natural_quotient_mapping; qpa.ModuleBasisMapping"
+notes = "The ordinary path-algebra matrix-submodule overload is exposed; projective presentation overloads remain."
 entry_ids = ["module:InstallOtherMethod:NaturalHomomorphismBySubAlgebraModule:1","projpathalgmodule:InstallMethod:NaturalHomomorphismBySubAlgebraModule:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["natural_homomorphism_by_projective_submodule; NaturalSubmoduleHomomorphism; RightFpPathAlgebraModule; FpPathAlgebraVector","natural_homomorphism_by_subalgebra_module; PathAlgebraModuleBasisMapping"]
 rust_tests = ["tests/fixtures/module_submodule_errors.schema-v1.json","tests/fixtures/module_submodules.txt","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = ["MODULE-004"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_matrix_submodule_natural_mapping_follows_qpa"]
 
 [[operations]]
 qpa_name = "NegativeInfinity"
@@ -11021,8 +11021,8 @@ python_tests = []
 qpa_name = "RestrictionViaAlgebraHomomorphism"
 python_name = "restriction_via_algebra_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraHomomorphism; qpa.MatrixModule.restrict_scalars"
 notes = ""
 entry_ids = ["module:DeclareOperation:RestrictionViaAlgebraHomomorphism:1","module:InstallMethod:RestrictionViaAlgebraHomomorphism:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11030,14 +11030,14 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["restriction_via_algebra_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_restriction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]
 
 [[operations]]
 qpa_name = "RestrictionViaAlgebraHomomorphismMap"
 python_name = "restriction_via_algebra_homomorphism_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraHomomorphism; qpa.ModuleHomomorphism.restrict_scalars"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:RestrictionViaAlgebraHomomorphismMap:1","modulehom:InstallMethod:RestrictionViaAlgebraHomomorphismMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11045,7 +11045,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["restriction_via_algebra_homomorphism_map"]
 rust_tests = ["tests/fixtures/modulehom_restriction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]
 
 [[operations]]
 qpa_name = "ReverseOrdering"

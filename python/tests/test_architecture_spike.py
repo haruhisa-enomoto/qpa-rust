@@ -1281,3 +1281,85 @@ def test_all_submodules_follow_qpa(characteristic: int) -> None:
     ).simple_modules()[0]
     with pytest.raises(qpa.InvalidInputError, match="finite field"):
         rational.all_submodules()
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_matrix_submodule_natural_mapping_follows_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    module = algebra.module_from_integer_matrices(
+        [3, 3],
+        [("a", [[1, 0, 0], [0, 1, 0], [0, 0, 1]])],
+    )
+    basis = module.basis_elements()
+    submodule = module.submodule([basis[0].add(basis[4]), module.zero_element()])
+    mapping = submodule.natural_quotient_mapping()
+
+    assert mapping.source == module
+    assert mapping.range.dimension_vector == [2, 1]
+    assert len(mapping.basis_images) == module.dimension
+    assert mapping.is_surjective
+    assert mapping.is_identical(mapping)
+    assert [mapping.image(element) for element in basis] == mapping.basis_images
+    # QPA's mutable `base` object leaks the last nonzero vertex-1 coordinates
+    # into later basis images; retaining this verifies the literal source method.
+    assert (
+        mapping.basis_images[2].external_representation
+        == mapping.basis_images[3].external_representation
+    )
+
+    zero_submodule = module.submodule([])
+    with pytest.raises(qpa.InvalidInputError, match="zero submodule"):
+        zero_submodule.natural_quotient_mapping()
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_restriction_via_algebra_homomorphism_follows_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    quotient = algebra.quotient([])
+    quotient_projection = qpa.AlgebraHomomorphism.path_to_quotient(
+        algebra,
+        quotient,
+        [quotient.element(generator) for generator in algebra.generators],
+    )
+    assert quotient_projection.source_kind == "path"
+    assert quotient_projection.range_kind == "quotient"
+    assert quotient_projection.generator_count == 3
+    assert quotient_projection.uses_generators_with_one
+    assert quotient_projection.source_path_algebra is not None
+    assert quotient_projection.source_path_algebra.is_identical(algebra)
+    assert quotient_projection.range_quotient_algebra is not None
+    assert quotient_projection.range_quotient_algebra.is_identical(quotient)
+
+    quotient_module = quotient.module_from_integer_matrices([1, 1], [("a", [[1]])])
+    expected = algebra.module_from_integer_matrices([1, 1], [("a", [[1]])])
+    restricted = quotient_module.restrict_scalars(quotient_projection)
+    restricted_identity = quotient_module.identity().restrict_scalars(quotient_projection)
+    assert restricted == expected
+    assert restricted_identity == expected.identity()
+    assert restricted_identity.source == restricted
+
+    path_identity = qpa.AlgebraHomomorphism.path_to_path(
+        algebra, algebra, algebra.generators
+    )
+    quotient_identity = qpa.AlgebraHomomorphism.quotient_to_quotient(
+        quotient, quotient, [quotient.one(), *quotient.generators]
+    )
+    quotient_identity_with_one = qpa.AlgebraHomomorphism.quotient_to_quotient(
+        quotient, quotient, quotient.generators, generators_with_one=True
+    )
+    quotient_lift = qpa.AlgebraHomomorphism.quotient_to_path(
+        quotient, algebra, [algebra.one(), *algebra.generators]
+    )
+    assert path_identity.source_kind == path_identity.range_kind == "path"
+    assert quotient_identity.generator_count == 4
+    assert not quotient_identity.uses_generators_with_one
+    assert quotient_identity_with_one.generator_count == 3
+    assert quotient_identity_with_one.uses_generators_with_one
+    assert quotient_lift.source_kind == "quotient"
+    assert quotient_lift.range_kind == "path"
+    assert expected.restrict_scalars(quotient_lift).dimension_vector == [1, 1]
+
+    with pytest.raises(qpa.InvalidInputError, match="3 images for 4"):
+        qpa.AlgebraHomomorphism.quotient_to_quotient(
+            quotient, quotient, quotient.generators
+        )

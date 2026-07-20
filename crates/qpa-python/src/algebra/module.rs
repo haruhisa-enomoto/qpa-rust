@@ -300,6 +300,38 @@ where
         .map(|coefficients| wrap_scalars(basis.field(), &coefficients)))
 }
 
+fn restrict_module_for<F: runtime::PythonField>(
+    module: &PathAlgebraModule<F>,
+    homomorphism: AlgebraHomomorphismKind,
+) -> PyResult<PyMatrixModule>
+where
+    AlgebraHomomorphismKind: runtime::Extract<qpa_core::QuiverAlgebraHomomorphism<F>>,
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    let homomorphism = runtime::Extract::extract(homomorphism)?;
+    Ok(wrap_module(
+        qpa_core::restriction_via_algebra_homomorphism(&homomorphism, module).map_err(invalid)?,
+    ))
+}
+
+fn restrict_module_homomorphism_for<F: runtime::PythonField>(
+    module_homomorphism: &PathAlgebraModuleHomomorphism<F>,
+    algebra_homomorphism: AlgebraHomomorphismKind,
+) -> PyResult<PyModuleHomomorphism>
+where
+    AlgebraHomomorphismKind: runtime::Extract<qpa_core::QuiverAlgebraHomomorphism<F>>,
+    ModuleHomomorphismKind: runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    let algebra_homomorphism = runtime::Extract::extract(algebra_homomorphism)?;
+    Ok(wrap_module_homomorphism(
+        qpa_core::restriction_via_algebra_homomorphism_map(
+            &algebra_homomorphism,
+            module_homomorphism,
+        )
+        .map_err(invalid)?,
+    ))
+}
+
 fn wrap_module_submodule<F: runtime::PythonField>(
     submodule: PathAlgebraModuleSubmodule<F>,
 ) -> PyModuleSubmodule
@@ -709,6 +741,13 @@ impl PyMatrixModule {
             |module| qpa_core::all_submodules_of_module(module).map_err(invalid)?
         );
         Ok(PyAllSubmodulesOfModuleResult { kind })
+    }
+
+    fn restrict_scalars(&self, homomorphism: &PyAlgebraHomomorphism) -> PyResult<PyMatrixModule> {
+        let homomorphism = homomorphism.kind.clone();
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            restrict_module_for(module, homomorphism)
+        })
     }
 
     fn homomorphism_from_images(
@@ -2532,6 +2571,71 @@ impl PyModuleElement {
 }
 
 #[pymethods]
+impl PyModuleBasisMapping {
+    #[getter]
+    fn source(&self) -> PyMatrixModule {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleBasisMappingKind => MatrixModuleKind,
+            |mapping| mapping.source().clone()
+        );
+        PyMatrixModule { kind }
+    }
+
+    #[getter]
+    fn range(&self) -> PyMatrixModule {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleBasisMappingKind => MatrixModuleKind,
+            |mapping| mapping.range().clone()
+        );
+        PyMatrixModule { kind }
+    }
+
+    #[getter]
+    fn basis_images(&self) -> Vec<PyModuleElement> {
+        dispatch_ref!(&self.kind, ModuleBasisMappingKind, |mapping| {
+            wrap_module_elements(mapping.basis_images().to_vec())
+        })
+    }
+
+    #[getter]
+    fn is_surjective(&self) -> bool {
+        dispatch_ref!(&self.kind, ModuleBasisMappingKind, |mapping| mapping
+            .is_surjective())
+    }
+
+    fn image(&self, element: &PyModuleElement) -> PyResult<PyModuleElement> {
+        match (&self.kind, &element.kind) {
+            (ModuleBasisMappingKind::Rational(mapping), ModuleElementKind::Rational(element)) => {
+                Ok(wrap_module_element(
+                    mapping.image(element).map_err(invalid)?,
+                ))
+            }
+            (ModuleBasisMappingKind::Binary(mapping), ModuleElementKind::Binary(element)) => Ok(
+                wrap_module_element(mapping.image(element).map_err(invalid)?),
+            ),
+            (ModuleBasisMappingKind::Prime(mapping), ModuleElementKind::Prime(element)) => Ok(
+                wrap_module_element(mapping.image(element).map_err(invalid)?),
+            ),
+            _ => Err(invalid(
+                "basis mapping and element belong to different coefficient fields",
+            )),
+        }
+    }
+
+    fn is_identical(&self, other: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            ModuleBasisMappingKind,
+            |left, right| left.is_identical(right),
+            false
+        )
+    }
+}
+
+#[pymethods]
 impl PyModuleHomomorphism {
     #[getter]
     fn source(&self) -> PyMatrixModule {
@@ -2584,6 +2688,16 @@ impl PyModuleHomomorphism {
                 .map(wrap_algebra_elements)
                 .collect()
         ))
+    }
+
+    fn restrict_scalars(
+        &self,
+        algebra_homomorphism: &PyAlgebraHomomorphism,
+    ) -> PyResult<PyModuleHomomorphism> {
+        let algebra_homomorphism = algebra_homomorphism.kind.clone();
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |module_homomorphism| {
+            restrict_module_homomorphism_for(module_homomorphism, algebra_homomorphism)
+        })
     }
 
     #[getter]
@@ -3398,6 +3512,19 @@ impl PyModuleSubmodule {
         dispatch_ref!(&self.kind, ModuleSubmoduleKind, |submodule| Ok(
             wrap_module(submodule.as_module().map_err(invalid)?,)
         ))
+    }
+
+    fn natural_quotient_mapping(&self) -> PyResult<PyModuleBasisMapping> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleSubmoduleKind => ModuleBasisMappingKind,
+            |submodule| qpa_core::natural_homomorphism_by_subalgebra_module(
+                submodule.parent(),
+                submodule,
+            )
+            .map_err(invalid)?
+        );
+        Ok(PyModuleBasisMapping { kind })
     }
 
     fn is_identical(&self, right: &Self) -> bool {

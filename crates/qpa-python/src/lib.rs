@@ -9,17 +9,18 @@ mod quiver;
 mod runtime;
 
 use algebra::{
-    PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAllComplementsResult,
-    PyAllSubmodulesOfModuleResult, PyCommonDirectSummandResult, PyCotiltingModuleResult,
-    PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult, PyFiniteAddMResolutionResult,
-    PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule, PyMaximalCommonDirectSummand,
-    PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
-    PyModuleEndomorphismAlgebra, PyModuleEndomorphismQuotientAlgebra,
-    PyModuleEndomorphismQuotientElement, PyModuleEndomorphismQuotientMap, PyModuleHomomorphism,
-    PyModuleHomomorphismBasis, PyModuleSubmodule, PyMoreMinimalVersionResult,
-    PyNonisomorphicDirectSummandData, PyPathAlgebra, PyPathAlgebraIdeal, PyPredecessorValuation,
-    PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent, PyProjectiveResolution,
-    PyQuotientAlgebra, PyQuotientElement, PyTiltingModuleResult,
+    PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAlgebraHomomorphism,
+    PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCommonDirectSummandResult,
+    PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
+    PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule,
+    PyMaximalCommonDirectSummand, PyModuleBasisMapping, PyModuleChainMap, PyModuleComplex,
+    PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleEndomorphismAlgebra,
+    PyModuleEndomorphismQuotientAlgebra, PyModuleEndomorphismQuotientElement,
+    PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
+    PyModuleSubmodule, PyMoreMinimalVersionResult, PyNonisomorphicDirectSummandData, PyPathAlgebra,
+    PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
+    PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuotientAlgebra, PyQuotientElement,
+    PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{PyPath, PyQuiver};
@@ -56,6 +57,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPath>()?;
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
+    module.add_class::<PyAlgebraHomomorphism>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;
     module.add_class::<PyGroebnerBasis>()?;
     module.add_class::<PyQuotientAlgebra>()?;
@@ -63,6 +65,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyMatrixModule>()?;
     module.add_class::<PyModuleElement>()?;
     module.add_class::<PyModuleHomomorphism>()?;
+    module.add_class::<PyModuleBasisMapping>()?;
     module.add_class::<PyModuleHomomorphismBasis>()?;
     module.add_class::<PyModuleEndomorphismAlgebra>()?;
     module.add_class::<PyModuleEndomorphismQuotientAlgebra>()?;

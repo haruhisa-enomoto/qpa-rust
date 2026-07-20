@@ -174,6 +174,61 @@ pub(crate) struct PyQuotientElement {
 }
 
 #[derive(Clone)]
+enum AlgebraHomomorphismKind {
+    Rational(qpa_core::QuiverAlgebraHomomorphism<RationalField>),
+    Binary(qpa_core::QuiverAlgebraHomomorphism<Z2>),
+    Prime(qpa_core::QuiverAlgebraHomomorphism<Zp>),
+}
+
+/// A QPA quiver-algebra homomorphism stored by ordered generator images.
+#[pyclass(name = "AlgebraHomomorphism", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyAlgebraHomomorphism {
+    kind: AlgebraHomomorphismKind,
+}
+
+macro_rules! impl_algebra_runtime {
+    ($field:ty, $variant:ident) => {
+        impl runtime::Wrap<PathAlgebra<$field>> for AlgebraKind {
+            fn wrap(value: PathAlgebra<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<QuotientPathAlgebra<$field>> for QuotientKind {
+            fn wrap(value: QuotientPathAlgebra<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::QuiverAlgebraHomomorphism<$field>>
+            for AlgebraHomomorphismKind
+        {
+            fn wrap(value: qpa_core::QuiverAlgebraHomomorphism<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Extract<qpa_core::QuiverAlgebraHomomorphism<$field>>
+            for AlgebraHomomorphismKind
+        {
+            fn extract(self) -> PyResult<qpa_core::QuiverAlgebraHomomorphism<$field>> {
+                match self {
+                    Self::$variant(value) => Ok(value),
+                    _ => Err(invalid(
+                        "algebra homomorphism belongs to another coefficient field",
+                    )),
+                }
+            }
+        }
+    };
+}
+
+impl_algebra_runtime!(RationalField, Rational);
+impl_algebra_runtime!(Z2, Binary);
+impl_algebra_runtime!(Zp, Prime);
+
+#[derive(Clone)]
 enum MatrixModuleKind {
     Rational(PathAlgebraModule<RationalField>),
     Binary(PathAlgebraModule<Z2>),
@@ -236,6 +291,20 @@ enum ModuleHomomorphismKind {
 #[derive(Clone)]
 pub(crate) struct PyModuleHomomorphism {
     kind: ModuleHomomorphismKind,
+}
+
+#[derive(Clone)]
+enum ModuleBasisMappingKind {
+    Rational(qpa_core::PathAlgebraModuleBasisMapping<RationalField>),
+    Binary(qpa_core::PathAlgebraModuleBasisMapping<Z2>),
+    Prime(qpa_core::PathAlgebraModuleBasisMapping<Zp>),
+}
+
+/// QPA's basis-image mapping returned for a quotient by a subalgebra module.
+#[pyclass(name = "ModuleBasisMapping", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleBasisMapping {
+    kind: ModuleBasisMappingKind,
 }
 
 #[derive(Clone)]
@@ -656,6 +725,14 @@ macro_rules! impl_module_value_runtime {
             }
         }
 
+        impl runtime::Wrap<qpa_core::PathAlgebraModuleBasisMapping<$field>>
+            for ModuleBasisMappingKind
+        {
+            fn wrap(value: qpa_core::PathAlgebraModuleBasisMapping<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
         impl runtime::Wrap<qpa_core::PathAlgebraModuleHomomorphismBasis<$field>>
             for ModuleHomomorphismBasisKind
         {
@@ -970,6 +1047,59 @@ where
     })
 }
 
+fn build_algebra_homomorphism<F: runtime::PythonField>(
+    source: QuiverAlgebra<F>,
+    range: QuiverAlgebra<F>,
+    generator_images: Vec<QuiverAlgebraElement<F>>,
+    generators_with_one: bool,
+) -> PyResult<PyAlgebraHomomorphism>
+where
+    AlgebraHomomorphismKind: runtime::Wrap<qpa_core::QuiverAlgebraHomomorphism<F>>,
+{
+    if source.field() != range.field() {
+        return Err(invalid(
+            "source and range algebras have different coefficient fields",
+        ));
+    }
+    let homomorphism = if generators_with_one {
+        qpa_core::QuiverAlgebraHomomorphism::by_generators_with_one_images(
+            source,
+            range,
+            generator_images,
+        )
+    } else {
+        qpa_core::QuiverAlgebraHomomorphism::by_generator_images(source, range, generator_images)
+    }
+    .map_err(invalid)?;
+    Ok(PyAlgebraHomomorphism {
+        kind: runtime::Wrap::wrap(homomorphism),
+    })
+}
+
+fn path_generator_images<F: runtime::PythonField>(
+    images: Vec<AlgebraElementKind>,
+) -> PyResult<Vec<QuiverAlgebraElement<F>>>
+where
+    AlgebraElementKind: runtime::Extract<PathAlgebraElement<F>>,
+{
+    Ok(runtime::extract_all(images)?
+        .into_iter()
+        .map(QuiverAlgebraElement::Path)
+        .collect())
+}
+
+fn quotient_generator_images<F: runtime::PythonField>(
+    images: Vec<QuotientElementKind>,
+) -> PyResult<Vec<QuiverAlgebraElement<F>>>
+where
+    QuotientElementKind: runtime::Extract<QuotientPathAlgebraElement<F>>,
+{
+    Ok(runtime::extract_all(images)?
+        .into_iter()
+        .map(QuiverAlgebraElement::Quotient)
+        .collect())
+}
+
 fn build_ideal<F: runtime::PythonField>(
     algebra: &PathAlgebra<F>,
     generators: Vec<AlgebraElementKind>,
@@ -988,6 +1118,237 @@ where
     AlgebraElementKind: runtime::Extract<PathAlgebraElement<F>>,
 {
     GroebnerBasis::high_level(algebra, &runtime::extract_all(relations)?).map_err(invalid)
+}
+
+#[pymethods]
+impl PyAlgebraHomomorphism {
+    #[staticmethod]
+    #[pyo3(signature = (source, range, generator_images, generators_with_one=false))]
+    fn path_to_path(
+        py: Python<'_>,
+        source: &PyPathAlgebra,
+        range: &PyPathAlgebra,
+        generator_images: Vec<Py<PyAlgebraElement>>,
+        generators_with_one: bool,
+    ) -> PyResult<Self> {
+        let generator_images = clone_relations(py, generator_images);
+        dispatch_pair_ref!(
+            &source.kind,
+            &range.kind,
+            AlgebraKind,
+            |source, range| build_algebra_homomorphism(
+                QuiverAlgebra::Path(source.clone()),
+                QuiverAlgebra::Path(range.clone()),
+                path_generator_images(generator_images)?,
+                generators_with_one,
+            ),
+            Err(invalid(
+                "source and range algebras have different coefficient fields"
+            ))
+        )
+    }
+
+    #[staticmethod]
+    #[pyo3(signature = (source, range, generator_images, generators_with_one=false))]
+    fn path_to_quotient(
+        py: Python<'_>,
+        source: &PyPathAlgebra,
+        range: &PyQuotientAlgebra,
+        generator_images: Vec<Py<PyQuotientElement>>,
+        generators_with_one: bool,
+    ) -> PyResult<Self> {
+        let generator_images = generator_images
+            .into_iter()
+            .map(|element| element.borrow(py).kind.clone())
+            .collect();
+        match (&source.kind, &range.kind) {
+            (AlgebraKind::Rational(source), QuotientKind::Rational(range)) => {
+                build_algebra_homomorphism(
+                    QuiverAlgebra::Path(source.clone()),
+                    QuiverAlgebra::Quotient(range.clone()),
+                    quotient_generator_images(generator_images)?,
+                    generators_with_one,
+                )
+            }
+            (AlgebraKind::Binary(source), QuotientKind::Binary(range)) => {
+                build_algebra_homomorphism(
+                    QuiverAlgebra::Path(source.clone()),
+                    QuiverAlgebra::Quotient(range.clone()),
+                    quotient_generator_images(generator_images)?,
+                    generators_with_one,
+                )
+            }
+            (AlgebraKind::Prime(source), QuotientKind::Prime(range)) => build_algebra_homomorphism(
+                QuiverAlgebra::Path(source.clone()),
+                QuiverAlgebra::Quotient(range.clone()),
+                quotient_generator_images(generator_images)?,
+                generators_with_one,
+            ),
+            _ => Err(invalid(
+                "source and range algebras have different coefficient fields",
+            )),
+        }
+    }
+
+    #[staticmethod]
+    #[pyo3(signature = (source, range, generator_images, generators_with_one=false))]
+    fn quotient_to_path(
+        py: Python<'_>,
+        source: &PyQuotientAlgebra,
+        range: &PyPathAlgebra,
+        generator_images: Vec<Py<PyAlgebraElement>>,
+        generators_with_one: bool,
+    ) -> PyResult<Self> {
+        let generator_images = clone_relations(py, generator_images);
+        match (&source.kind, &range.kind) {
+            (QuotientKind::Rational(source), AlgebraKind::Rational(range)) => {
+                build_algebra_homomorphism(
+                    QuiverAlgebra::Quotient(source.clone()),
+                    QuiverAlgebra::Path(range.clone()),
+                    path_generator_images(generator_images)?,
+                    generators_with_one,
+                )
+            }
+            (QuotientKind::Binary(source), AlgebraKind::Binary(range)) => {
+                build_algebra_homomorphism(
+                    QuiverAlgebra::Quotient(source.clone()),
+                    QuiverAlgebra::Path(range.clone()),
+                    path_generator_images(generator_images)?,
+                    generators_with_one,
+                )
+            }
+            (QuotientKind::Prime(source), AlgebraKind::Prime(range)) => build_algebra_homomorphism(
+                QuiverAlgebra::Quotient(source.clone()),
+                QuiverAlgebra::Path(range.clone()),
+                path_generator_images(generator_images)?,
+                generators_with_one,
+            ),
+            _ => Err(invalid(
+                "source and range algebras have different coefficient fields",
+            )),
+        }
+    }
+
+    #[staticmethod]
+    #[pyo3(signature = (source, range, generator_images, generators_with_one=false))]
+    fn quotient_to_quotient(
+        py: Python<'_>,
+        source: &PyQuotientAlgebra,
+        range: &PyQuotientAlgebra,
+        generator_images: Vec<Py<PyQuotientElement>>,
+        generators_with_one: bool,
+    ) -> PyResult<Self> {
+        let generator_images = generator_images
+            .into_iter()
+            .map(|element| element.borrow(py).kind.clone())
+            .collect();
+        dispatch_pair_ref!(
+            &source.kind,
+            &range.kind,
+            QuotientKind,
+            |source, range| build_algebra_homomorphism(
+                QuiverAlgebra::Quotient(source.clone()),
+                QuiverAlgebra::Quotient(range.clone()),
+                quotient_generator_images(generator_images)?,
+                generators_with_one,
+            ),
+            Err(invalid(
+                "source and range algebras have different coefficient fields"
+            ))
+        )
+    }
+
+    #[getter]
+    fn source_kind(&self) -> &'static str {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            match homomorphism.source() {
+                QuiverAlgebra::Path(_) => "path",
+                QuiverAlgebra::Quotient(_) => "quotient",
+            }
+        })
+    }
+
+    #[getter]
+    fn range_kind(&self) -> &'static str {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            match homomorphism.range() {
+                QuiverAlgebra::Path(_) => "path",
+                QuiverAlgebra::Quotient(_) => "quotient",
+            }
+        })
+    }
+
+    #[getter]
+    fn source_path_algebra(&self) -> Option<PyPathAlgebra> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            match homomorphism.source() {
+                QuiverAlgebra::Path(algebra) => Some(PyPathAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+                QuiverAlgebra::Quotient(_) => None,
+            }
+        })
+    }
+
+    #[getter]
+    fn source_quotient_algebra(&self) -> Option<PyQuotientAlgebra> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            match homomorphism.source() {
+                QuiverAlgebra::Path(_) => None,
+                QuiverAlgebra::Quotient(algebra) => Some(PyQuotientAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+            }
+        })
+    }
+
+    #[getter]
+    fn range_path_algebra(&self) -> Option<PyPathAlgebra> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            match homomorphism.range() {
+                QuiverAlgebra::Path(algebra) => Some(PyPathAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+                QuiverAlgebra::Quotient(_) => None,
+            }
+        })
+    }
+
+    #[getter]
+    fn range_quotient_algebra(&self) -> Option<PyQuotientAlgebra> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            match homomorphism.range() {
+                QuiverAlgebra::Path(_) => None,
+                QuiverAlgebra::Quotient(algebra) => Some(PyQuotientAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+            }
+        })
+    }
+
+    #[getter]
+    fn generator_count(&self) -> usize {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            homomorphism.generators().len()
+        })
+    }
+
+    #[getter]
+    fn uses_generators_with_one(&self) -> bool {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            homomorphism.uses_generators_with_one()
+        })
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            AlgebraHomomorphismKind,
+            |left, right| left == right,
+            false
+        )
+    }
 }
 
 #[pymethods]
