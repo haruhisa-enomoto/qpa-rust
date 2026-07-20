@@ -6,6 +6,7 @@ mod combinatorial;
 mod combinatorial_rep;
 mod complex_foundation;
 mod conversion;
+mod corner;
 mod degeneration;
 mod element_utilities;
 mod fp_projective;

@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 687
+exposed_or_partial_count = 689
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -10526,8 +10526,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_a
 qpa_name = "QuiverAlgebraOfAmodAeA"
 python_name = "quiver_algebra_of_amod_ae_a"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.quiver_algebra_of_a_mod_aea"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:QuiverAlgebraOfAmodAeA:1","pathalg:InstallMethod:QuiverAlgebraOfAmodAeA:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10535,14 +10535,14 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["quiver_algebra_of_path_algebra_mod_aea; quiver_algebra_of_quotient_mod_aea; PathAlgebra::a_mod_aea_presentation; QuotientPathAlgebra::a_mod_aea_presentation"]
 rust_tests = ["tests/fixtures/pathalg_vertex_quotient.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_corner_algebras.py::test_vertex_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuiverAlgebraOfeAe"
 python_name = "quiver_algebra_ofe_ae"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.quiver_algebra_of_eae"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:QuiverAlgebraOfeAe:1","pathalg:InstallMethod:QuiverAlgebraOfeAe:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10550,7 +10550,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["quiver_algebra_of_eae"]
 rust_tests = ["tests/fixtures/pathalg_eae.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_corner_algebras.py::test_idempotent_corners_follow_qpa","python/tests/test_corner_algebras.py::test_idempotent_corner_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuiverContainingPath"

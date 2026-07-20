@@ -804,6 +804,18 @@ target = "qpa.AlgebraElement.tip_monomial; qpa.QuotientElement.tip_monomial"
 tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follow_qpa"]
 
 [[bindings]]
+qpa_name = "QuiverAlgebraOfAmodAeA"
+status = "exposed"
+target = "qpa.QuiverAlgebra.quiver_algebra_of_a_mod_aea"
+tests = ["python/tests/test_corner_algebras.py::test_vertex_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QuiverAlgebraOfeAe"
+status = "exposed"
+target = "qpa.QuiverAlgebra.quiver_algebra_of_eae"
+tests = ["python/tests/test_corner_algebras.py::test_idempotent_corners_follow_qpa","python/tests/test_corner_algebras.py::test_idempotent_corner_errors_follow_qpa"]
+
+[[bindings]]
 qpa_name = "AssociatedMonomialAlgebra"
 status = "exposed"
 target = "qpa.QuiverAlgebra.associated_monomial_algebra"

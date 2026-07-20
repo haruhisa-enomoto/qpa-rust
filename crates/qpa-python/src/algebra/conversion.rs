@@ -1430,6 +1430,25 @@ impl PyQuiverAlgebra {
         })
     }
 
+    /// Apply QPA's `QuiverAlgebraOfAmodAeA(A, elist)` construction.
+    fn quiver_algebra_of_a_mod_aea(
+        &self,
+        py: Python<'_>,
+        vertex_positions: Vec<Py<PyAny>>,
+    ) -> PyResult<Self> {
+        let positions = super::corner::vertex_positions(py, vertex_positions)?;
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::corner::quotient_by_vertices_for(algebra, &positions)
+        })
+    }
+
+    /// Apply QPA's admissible-quotient `QuiverAlgebraOfeAe(A, e)` method.
+    fn quiver_algebra_of_eae(&self, idempotent: &super::PyQuiverAlgebraElement) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::corner::corner_for(algebra, idempotent.kind.clone())
+        })
+    }
+
     fn cartan_matrix(&self) -> PyResult<Option<Vec<Vec<usize>>>> {
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
             super::invariants::cartan_for(algebra)
