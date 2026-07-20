@@ -2203,3 +2203,39 @@ qpa_name = "FromMatrixToHomomorphismOfProjectives"
 status = "exposed"
 target = "qpa.PathAlgebra.homomorphism_of_projectives_from_matrix; qpa.QuotientAlgebra.homomorphism_of_projectives_from_matrix"
 tests = ["python/tests/test_architecture_spike.py::test_projective_matrix_conversions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "KernelOfWhat"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.kernel_of"
+tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ImageOfWhat"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.image_of"
+tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
+
+[[bindings]]
+qpa_name = "CoKernelOfWhat"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.cokernel_of"
+tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
+
+[[bindings]]
+qpa_name = "HomFromProjective"
+status = "exposed"
+target = "qpa.ModuleElement.hom_from_projective"
+tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RejectOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.reject_of"
+tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
+
+[[bindings]]
+qpa_name = "AllSimpleSubmodulesOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.simple_submodule_inclusions"
+tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]

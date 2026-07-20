@@ -1200,3 +1200,48 @@ def test_projective_matrix_conversions_follow_qpa(field: qpa.Field) -> None:
         quotient_entries, [1, 2], [1, 2]
     )
     assert quotient_roundtrip == quotient_projectives.identity()
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_projective_generators_rejects_and_map_provenance_follow_qpa(
+    field: qpa.Field,
+) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projective = algebra.indecomposable_projectives()[0]
+    first_simple, second_simple = algebra.simple_modules()
+    cover = first_simple.projective_cover()
+
+    kernel = cover.kernel_inclusion()
+    image = cover.image_inclusion()
+    cokernel = cover.cokernel_projection()
+    assert kernel.kernel_of == cover
+    assert image.image_of == cover
+    assert cokernel.cokernel_of == cover
+    assert cover.kernel_of is None
+    assert cover.image_of is None
+    assert cover.cokernel_of is None
+
+    projective_basis = projective.basis_elements()
+    generator_map = projective_basis[0].hom_from_projective()
+    assert generator_map is not None and generator_map.is_isomorphism
+    assert generator_map.source.dimension_vector == [1, 1]
+    assert generator_map.range == projective
+    assert projective_basis[0].add(projective_basis[1]).hom_from_projective() is None
+
+    disjoint_reject = first_simple.reject_of(second_simple)
+    assert disjoint_reject.is_isomorphism
+    projective_reject = projective.reject_of(first_simple)
+    assert projective_reject.source.dimension_vector == [0, 1]
+    assert projective_reject.range == projective
+
+    repeated = qpa.MatrixModule.direct_sum([first_simple, first_simple])
+    assert repeated is not None
+    if field.characteristic is None:
+        with pytest.raises(qpa.InvalidInputError, match="finite field"):
+            repeated.simple_submodule_inclusions()
+    else:
+        expected_count = field.characteristic + 1
+        simple_inclusions = repeated.simple_submodule_inclusions()
+        assert len(simple_inclusions) == expected_count
+        assert all(inclusion.source.dimension_vector == [1, 0] for inclusion in simple_inclusions)
+        assert all(inclusion.range == repeated for inclusion in simple_inclusions)

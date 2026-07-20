@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 347
+exposed_or_partial_count = 353
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -356,8 +356,8 @@ python_tests = []
 qpa_name = "AllSimpleSubmodulesOfModule"
 python_name = "all_simple_submodules_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.simple_submodule_inclusions"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:AllSimpleSubmodulesOfModule:1","modulehom:InstallMethod:AllSimpleSubmodulesOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -365,7 +365,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["all_simple_submodules_of_module"]
 rust_tests = ["tests/fixtures/modulehom_submodules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
 
 [[operations]]
 qpa_name = "AllSubmodulesOfModule"
@@ -1031,8 +1031,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "CoKernelOfWhat"
 python_name = "co_kernel_of_what"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.cokernel_of"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:CoKernelOfWhat:1"]
 constructs = ["DeclareAttribute"]
@@ -1040,7 +1040,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::cokernel_of_what"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
 
 [[operations]]
 qpa_name = "CoKernelProjection"
@@ -3506,8 +3506,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_catego
 qpa_name = "HomFromProjective"
 python_name = "hom_from_projective"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleElement.hom_from_projective"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:HomFromProjective:1","modulehom:InstallMethod:HomFromProjective:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3515,7 +3515,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["hom_from_projective"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
 
 [[operations]]
 qpa_name = "HomOverAlgebra"
@@ -3671,8 +3671,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "ImageOfWhat"
 python_name = "image_of_what"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.image_of"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:ImageOfWhat:1"]
 constructs = ["DeclareAttribute"]
@@ -3680,7 +3680,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::image_of_what"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
 
 [[operations]]
 qpa_name = "ImageProjection"
@@ -7211,8 +7211,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "KernelOfWhat"
 python_name = "kernel_of_what"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.kernel_of"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:KernelOfWhat:1"]
 constructs = ["DeclareAttribute"]
@@ -7220,7 +7220,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::kernel_of_what"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
 
 [[operations]]
 qpa_name = "KroneckerAlgebra"
@@ -10916,8 +10916,8 @@ python_tests = []
 qpa_name = "RejectOfModule"
 python_name = "reject_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.reject_of"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:RejectOfModule:1","modulehom:InstallMethod:RejectOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10925,7 +10925,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["reject_of_module"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
 
 [[operations]]
 qpa_name = "RelationsOfAlgebra"

@@ -682,6 +682,26 @@ impl PyMatrixModule {
         )
     }
 
+    fn reject_of(&self, rejected_by: &Self) -> PyResult<PyModuleHomomorphism> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &rejected_by.kind,
+            MatrixModuleKind,
+            |module, rejected_by| Ok(wrap_module_homomorphism(
+                qpa_core::reject_of_module(module, rejected_by).map_err(invalid)?,
+            )),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn simple_submodule_inclusions(&self) -> PyResult<Vec<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphisms(
+                qpa_core::all_simple_submodules_of_module(module).map_err(invalid)?,
+            )
+        ))
+    }
+
     fn homomorphism_from_images(
         &self,
         py: Python<'_>,
@@ -2299,6 +2319,14 @@ impl PyModuleElement {
         })
     }
 
+    fn hom_from_projective(&self) -> PyResult<Option<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, ModuleElementKind, |element| Ok(
+            qpa_gbnp::hom_from_projective(element, element.module())
+                .map_err(invalid)?
+                .map(wrap_module_homomorphism)
+        ))
+    }
+
     #[getter]
     fn support_vertices(&self) -> Vec<usize> {
         dispatch_ref!(&self.kind, ModuleElementKind, |element| element
@@ -3099,6 +3127,13 @@ impl PyModuleHomomorphism {
         ))
     }
 
+    #[getter]
+    fn kernel_of(&self) -> Option<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            homomorphism.kernel_of_what().map(wrap_module_homomorphism)
+        })
+    }
+
     fn image_projection(&self) -> PyResult<Self> {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
             wrap_module_homomorphism(qpa_core::image_projection(homomorphism).map_err(invalid)?,)
@@ -3109,6 +3144,13 @@ impl PyModuleHomomorphism {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
             wrap_module_homomorphism(qpa_core::image_inclusion(homomorphism).map_err(invalid)?,)
         ))
+    }
+
+    #[getter]
+    fn image_of(&self) -> Option<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            homomorphism.image_of_what().map(wrap_module_homomorphism)
+        })
     }
 
     fn image_projection_inclusion(&self) -> PyResult<(Self, Self)> {
@@ -3126,6 +3168,15 @@ impl PyModuleHomomorphism {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
             wrap_module_homomorphism(qpa_core::cokernel_projection(homomorphism).map_err(invalid)?,)
         ))
+    }
+
+    #[getter]
+    fn cokernel_of(&self) -> Option<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            homomorphism
+                .cokernel_of_what()
+                .map(wrap_module_homomorphism)
+        })
     }
 
     fn top(&self) -> PyResult<Self> {
