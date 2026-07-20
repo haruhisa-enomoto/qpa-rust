@@ -494,7 +494,7 @@ impl PyEndOfModuleAsQuiverAlgebraResult {
         let inner = dispatch_ref!(&self.kind, EndOfModuleAsQuiverAlgebraResultKind, |result| {
             result.quiver_algebra().quiver().clone()
         });
-        PyQuiver { inner }
+        PyQuiver::from_inner(inner)
     }
 
     #[getter]
@@ -580,7 +580,7 @@ impl PyEndOfBasicModuleAsQuiverAlgebraResult {
             EndOfBasicModuleAsQuiverAlgebraResultKind,
             |result| result.algebra().quiver().clone()
         );
-        PyQuiver { inner }
+        PyQuiver::from_inner(inner)
     }
 
     #[getter]

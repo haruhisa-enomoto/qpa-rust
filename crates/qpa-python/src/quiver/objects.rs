@@ -27,9 +27,7 @@ impl PyQuiverVertex {
 impl PyQuiverVertex {
     #[getter]
     fn quiver(&self) -> PyQuiver {
-        PyQuiver {
-            inner: self.inner.quiver().clone(),
-        }
+        PyQuiver::from_inner(self.inner.quiver().clone())
     }
 
     #[getter]
@@ -129,9 +127,7 @@ impl PyQuiverArrow {
 impl PyQuiverArrow {
     #[getter]
     fn quiver(&self) -> PyQuiver {
-        PyQuiver {
-            inner: self.inner.quiver().clone(),
-        }
+        PyQuiver::from_inner(self.inner.quiver().clone())
     }
 
     #[getter]
@@ -243,9 +239,7 @@ impl PyQuiverPathEnumerator {
 impl PyQuiverPathEnumerator {
     #[getter]
     fn quiver(&self) -> PyQuiver {
-        PyQuiver {
-            inner: self.quiver.clone(),
-        }
+        PyQuiver::from_inner(self.quiver.clone())
     }
 
     fn at(&self, position: usize) -> Option<PyPath> {

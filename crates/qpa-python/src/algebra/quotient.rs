@@ -89,7 +89,18 @@ impl PyQuotientAlgebra {
     #[getter]
     fn quiver(&self) -> PyQuiver {
         let inner = dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra.quiver().clone());
-        PyQuiver { inner }
+        let ordering = dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra
+            .ordering()
+            .clone());
+        PyQuiver::from_inner_with_ordering(inner, ordering)
+    }
+
+    #[getter]
+    fn ordering(&self) -> PyQuiverOrdering {
+        let inner = dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra
+            .ordering()
+            .clone());
+        PyQuiverOrdering::from_inner(inner)
     }
 
     fn adr_algebra(&self) -> PyResult<PyAdrAlgebraOfAlgebraResult> {

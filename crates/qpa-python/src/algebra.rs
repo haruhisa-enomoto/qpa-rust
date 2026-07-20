@@ -33,7 +33,7 @@ use qpa_core::{
 
 use crate::{
     FieldKind, PyField, PyScalar, RelationNotSatisfiedError, invalid,
-    quiver::{PyPath, PyQuiver, ordering_value},
+    quiver::{PyPath, PyQuiver, PyQuiverOrdering, ordering_value},
     runtime::{self, PythonField as _, dispatch_pair_ref, dispatch_ref, map_pair_ref, map_ref},
 };
 #[derive(Clone)]
@@ -1426,16 +1426,30 @@ impl PyPathAlgebra {
     #[new]
     fn new(field: PyRef<'_, PyField>, quiver: PyRef<'_, PyQuiver>) -> PyResult<Self> {
         let kind = match field.kind {
-            FieldKind::Rational => AlgebraKind::Rational(
-                PathAlgebra::new(Q, quiver.rust_quiver().clone()).map_err(invalid)?,
-            ),
-            FieldKind::Binary => AlgebraKind::Binary(
-                PathAlgebra::new(Z2, quiver.rust_quiver().clone()).map_err(invalid)?,
-            ),
-            FieldKind::Prime(characteristic) => AlgebraKind::Prime(
-                PathAlgebra::new(Zp::new(characteristic), quiver.rust_quiver().clone())
+            FieldKind::Rational => AlgebraKind::Rational(match quiver.rust_ordering() {
+                Some(ordering) => {
+                    PathAlgebra::with_ordering(Q, quiver.rust_quiver().clone(), ordering.clone())
+                        .map_err(invalid)?
+                }
+                None => PathAlgebra::new(Q, quiver.rust_quiver().clone()).map_err(invalid)?,
+            }),
+            FieldKind::Binary => AlgebraKind::Binary(match quiver.rust_ordering() {
+                Some(ordering) => {
+                    PathAlgebra::with_ordering(Z2, quiver.rust_quiver().clone(), ordering.clone())
+                        .map_err(invalid)?
+                }
+                None => PathAlgebra::new(Z2, quiver.rust_quiver().clone()).map_err(invalid)?,
+            }),
+            FieldKind::Prime(characteristic) => AlgebraKind::Prime(match quiver.rust_ordering() {
+                Some(ordering) => PathAlgebra::with_ordering(
+                    Zp::new(characteristic),
+                    quiver.rust_quiver().clone(),
+                    ordering.clone(),
+                )
+                .map_err(invalid)?,
+                None => PathAlgebra::new(Zp::new(characteristic), quiver.rust_quiver().clone())
                     .map_err(invalid)?,
-            ),
+            }),
         };
         Ok(Self { kind })
     }
@@ -1451,7 +1465,18 @@ impl PyPathAlgebra {
     #[getter]
     fn quiver(&self) -> PyQuiver {
         let inner = dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra.quiver().clone());
-        PyQuiver { inner }
+        let ordering = dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
+            .ordering()
+            .clone());
+        PyQuiver::from_inner_with_ordering(inner, ordering)
+    }
+
+    #[getter]
+    fn ordering(&self) -> PyQuiverOrdering {
+        let inner = dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
+            .ordering()
+            .clone());
+        PyQuiverOrdering::from_inner(inner)
     }
 
     fn adr_algebra(&self) -> PyResult<PyAdrAlgebraOfAlgebraResult> {

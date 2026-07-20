@@ -29,8 +29,8 @@ use algebra::{
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
-    PyPath, PyQuiver, PyQuiverArrow, PyQuiverPathEnumerator, PyQuiverPathIterator, PyQuiverVertex,
-    py_unique_quiver_name,
+    PyPath, PyQuiver, PyQuiverArrow, PyQuiverOrdering, PyQuiverPathEnumerator,
+    PyQuiverPathIterator, PyQuiverVertex, py_unique_quiver_name,
 };
 
 use pyo3::{
@@ -66,6 +66,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyQuiverArrow>()?;
     module.add_class::<PyQuiverPathIterator>()?;
     module.add_class::<PyQuiverPathEnumerator>()?;
+    module.add_class::<PyQuiverOrdering>()?;
     module.add_class::<PyPath>()?;
     module.add_function(wrap_pyfunction!(py_unique_quiver_name, module)?)?;
     module.add_class::<PyPathAlgebra>()?;

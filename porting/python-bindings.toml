@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 421
+exposed_or_partial_count = 460
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -686,8 +686,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposit
 qpa_name = "BlockOrdering"
 python_name = "block_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.block"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:BlockOrdering:1","groebnerordering:InstallGlobalFunction:BlockOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -695,7 +695,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::block"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "BlockSplittingIdempotents"
@@ -971,8 +971,8 @@ python_tests = []
 qpa_name = "CheckBlocksForCycles"
 python_name = "check_blocks_for_cycles"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.check_blocks_for_cycles"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:CheckBlocksForCycles:1","groebnerordering:InstallGlobalFunction:CheckBlocksForCycles:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -980,7 +980,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gi"]
 rust_symbols = ["check_blocks_for_cycles"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "CheckForIsomorphism"
@@ -1001,8 +1001,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "CheckQuiverSubsetForCycles"
 python_name = "check_quiver_subset_for_cycles"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.check_subset_for_cycles"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:CheckQuiverSubsetForCycles:1","groebnerordering:InstallGlobalFunction:CheckQuiverSubsetForCycles:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -1010,7 +1010,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gi"]
 rust_symbols = ["check_quiver_subset_for_cycles"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "CoKernelOfAdditiveGeneralMapping"
@@ -1136,8 +1136,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomo
 qpa_name = "CompareArrowLists"
 python_name = "compare_arrow_lists"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.compare_arrow_lists"
 notes = ""
 entry_ids = ["groebnerordering:DeclareOperation:CompareArrowLists:1","groebnerordering:InstallMethod:CompareArrowLists:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1145,7 +1145,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gi"]
 rust_symbols = ["QuiverOrdering::compare_arrow_lists_value; QuiverOrdering::compare_arrow_lists"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "CompareWithIndecInjective"
@@ -1181,8 +1181,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "ComparisonFunction"
 python_name = "comparison_function"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.comparison_value; qpa.QuiverOrdering.compare"
 notes = ""
 entry_ids = ["groebnerordering:DeclareAttribute:ComparisonFunction:1"]
 constructs = ["DeclareAttribute"]
@@ -1190,7 +1190,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrdering::comparison_value"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "ComparisonLifting"
@@ -4241,8 +4241,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsAdmissibleOrdering"
 python_name = "is_admissible_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_admissible"
 notes = ""
 entry_ids = ["groebnerordering:DeclareProperty:IsAdmissibleOrdering:1","groebnerordering:InstallMethod:IsAdmissibleOrdering:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -4250,7 +4250,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::is_admissible_ordering"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsAdmissibleQuotientOfPathAlgebra"
@@ -4406,8 +4406,8 @@ python_tests = []
 qpa_name = "IsBlockOrdering"
 python_name = "is_block_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_block"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsBlockOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -4415,7 +4415,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::Block"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsBound\\[\\]"
@@ -5396,8 +5396,8 @@ python_tests = []
 qpa_name = "IsLeftLexicographicOrdering"
 python_name = "is_left_lexicographic_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_left_lexicographic"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsLeftLexicographicOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -5405,7 +5405,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::LeftLexicographic"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsLeftMinimal"
@@ -5456,8 +5456,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsLeftVectorOrdering"
 python_name = "is_left_vector_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_left_vector"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsLeftVectorOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -5465,14 +5465,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::LeftVector"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsLengthOrdering"
 python_name = "is_length_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_length"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsLengthOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -5480,14 +5480,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::Length"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsLexicographicOrdering"
 python_name = "is_lexicographic_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_lexicographic"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsLexicographicOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -5495,7 +5495,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::is_lexicographic"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsMonomialAlgebra"
@@ -6086,16 +6086,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IsQuiverOrdering"
 python_name = "is_quiver_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering"
+notes = "Represented by the concrete Python wrapper type."
 entry_ids = ["groebnerordering:DeclareCategory:IsQuiverOrdering:1"]
 constructs = ["DeclareCategory"]
 source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrdering"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsQuiverProductDecomposition"
@@ -6266,8 +6266,8 @@ python_tests = []
 qpa_name = "IsReverseOrdering"
 python_name = "is_reverse_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_reverse"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsReverseOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -6275,7 +6275,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::Reverse"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsRightGroebnerBasis"
@@ -6296,8 +6296,8 @@ python_tests = []
 qpa_name = "IsRightLexicographicOrdering"
 python_name = "is_right_lexicographic_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_right_lexicographic"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsRightLexicographicOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -6305,7 +6305,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::RightLexicographic"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsRightMinimal"
@@ -6356,8 +6356,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsRightVectorOrdering"
 python_name = "is_right_vector_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_right_vector"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsRightVectorOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -6365,7 +6365,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::RightVector"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsRigidModule"
@@ -6761,8 +6761,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsTotalOrdering"
 python_name = "is_total_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_total"
 notes = ""
 entry_ids = ["groebnerordering:DeclareProperty:IsTotalOrdering:1","groebnerordering:InstallMethod:IsTotalOrdering:1","groebnerordering:InstallMethod:IsTotalOrdering:2","groebnerordering:InstallMethod:IsTotalOrdering:3","groebnerordering:InstallMethod:IsTotalOrdering:4","groebnerordering:InstallMethod:IsTotalOrdering:5","groebnerordering:InstallMethod:IsTotalOrdering:6"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6770,14 +6770,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::is_total_ordering"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsTotalSubset"
 python_name = "is_total_subset"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_total_subset"
 notes = ""
 entry_ids = ["groebnerordering:DeclareOperation:IsTotalSubset:1","groebnerordering:InstallMethod:IsTotalSubset:1","groebnerordering:InstallMethod:IsTotalSubset:2","groebnerordering:InstallMethod:IsTotalSubset:3","groebnerordering:InstallMethod:IsTotalSubset:4","groebnerordering:InstallMethod:IsTotalSubset:5","groebnerordering:InstallMethod:IsTotalSubset:6"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -6785,7 +6785,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::is_total_subset"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsTreeQuiver"
@@ -6896,8 +6896,8 @@ python_tests = []
 qpa_name = "IsVectorOrdering"
 python_name = "is_vector_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_vector"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsVectorOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -6905,7 +6905,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::is_vector"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsVertexProjectiveModule"
@@ -6971,8 +6971,8 @@ python_tests = []
 qpa_name = "IsWeightOrdering"
 python_name = "is_weight_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_weight"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsWeightOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -6980,14 +6980,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::Weight"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsWellOrdering"
 python_name = "is_well_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_well"
 notes = ""
 entry_ids = ["groebnerordering:DeclareProperty:IsWellOrdering:1","groebnerordering:InstallMethod:IsWellOrdering:1","groebnerordering:InstallMethod:IsWellOrdering:2","groebnerordering:InstallMethod:IsWellOrdering:3","groebnerordering:InstallMethod:IsWellOrdering:4"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6995,14 +6995,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::is_well_ordering"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsWellReversedOrdering"
 python_name = "is_well_reversed_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_well_reversed"
 notes = ""
 entry_ids = ["groebnerordering:DeclareProperty:IsWellReversedOrdering:1","groebnerordering:InstallMethod:IsWellReversedOrdering:1","groebnerordering:InstallMethod:IsWellReversedOrdering:2","groebnerordering:InstallMethod:IsWellReversedOrdering:3","groebnerordering:InstallMethod:IsWellReversedOrdering:4","groebnerordering:InstallMethod:IsWellReversedOrdering:5"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -7010,14 +7010,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::is_well_reversed_ordering"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsWellReversedSubset"
 python_name = "is_well_reversed_subset"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_well_reversed_subset"
 notes = ""
 entry_ids = ["groebnerordering:DeclareOperation:IsWellReversedSubset:1","groebnerordering:InstallMethod:IsWellReversedSubset:1","groebnerordering:InstallMethod:IsWellReversedSubset:2","groebnerordering:InstallMethod:IsWellReversedSubset:3","groebnerordering:InstallMethod:IsWellReversedSubset:4","groebnerordering:InstallMethod:IsWellReversedSubset:5","groebnerordering:InstallMethod:IsWellReversedSubset:6"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7025,14 +7025,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::is_well_reversed_subset"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsWellSubset"
 python_name = "is_well_subset"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_well_subset"
 notes = ""
 entry_ids = ["groebnerordering:DeclareOperation:IsWellSubset:1","groebnerordering:InstallMethod:IsWellSubset:1","groebnerordering:InstallMethod:IsWellSubset:2","groebnerordering:InstallMethod:IsWellSubset:3","groebnerordering:InstallMethod:IsWellSubset:4","groebnerordering:InstallMethod:IsWellSubset:5","groebnerordering:InstallMethod:IsWellSubset:6"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7040,14 +7040,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::is_well_subset"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_properties.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsWreathOrdering"
 python_name = "is_wreath_ordering"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.is_wreath"
 notes = ""
 entry_ids = ["groebnerordering:DeclareCategory:IsWreathOrdering:1"]
 constructs = ["DeclareCategory"]
@@ -7055,7 +7055,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrderingKind::Wreath"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "IsZero"
@@ -7421,8 +7421,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "LeftLexicographicOrdering"
 python_name = "left_lexicographic_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.left_lexicographic"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:LeftLexicographicOrdering:1","groebnerordering:InstallGlobalFunction:LeftLexicographicOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -7430,7 +7430,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::left_lexicographic"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "LeftMinimalVersion"
@@ -7526,8 +7526,8 @@ python_tests = []
 qpa_name = "LeftVectorOrdering"
 python_name = "left_vector_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.left_vector"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:LeftVectorOrdering:1","groebnerordering:InstallGlobalFunction:LeftVectorOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -7535,7 +7535,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::left_vector"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "LeftmostOccurrence"
@@ -7601,8 +7601,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_a
 qpa_name = "LengthOrdering"
 python_name = "length_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.length"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:LengthOrdering:1","groebnerordering:InstallGlobalFunction:LengthOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -7610,14 +7610,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::length"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "LessThanByOrdering"
 python_name = "less_than_by_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.less_than"
 notes = ""
 entry_ids = ["groebnerordering:DeclareOperation:LessThanByOrdering:1","groebnerordering:InstallMethod:LessThanByOrdering:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7625,14 +7625,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::less_than"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "LexicographicTable"
 python_name = "lexicographic_table"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.lexicographic_table"
 notes = ""
 entry_ids = ["groebnerordering:DeclareAttribute:LexicographicTable:1"]
 constructs = ["DeclareAttribute"]
@@ -7640,7 +7640,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrdering::lexicographic_table; QuiverOrdering::shares_lexicographic_table_with"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "LiftIdempotent"
@@ -8786,8 +8786,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "NextOrdering"
 python_name = "next_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.next_ordering"
 notes = ""
 entry_ids = ["groebnerordering:DeclareAttribute:NextOrdering:1"]
 constructs = ["DeclareAttribute"]
@@ -8795,7 +8795,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrdering::next_ordering"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "NextPath"
@@ -9296,23 +9296,23 @@ python_tests = []
 qpa_name = "OrderedBy"
 python_name = "ordered_by"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.Quiver.ordered_by"
+notes = "The quiver and ordered path-algebra route is exposed; the quotient-path-algebra overload remains."
 entry_ids = ["pathalg:InstallOtherMethod:OrderedBy:1","quiver:DeclareOperation:OrderedBy:1","quiver:InstallMethod:OrderedBy:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/quiver.gd","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Quiver::ordered_by; OrderedQuiver","QuotientPathAlgebra::ordered_by"]
 rust_tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = ["PATHALG-004"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "OrderingName"
 python_name = "ordering_name"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.name"
 notes = ""
 entry_ids = ["groebnerordering:DeclareAttribute:OrderingName:1"]
 constructs = ["DeclareAttribute"]
@@ -9320,14 +9320,14 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd"]
 rust_symbols = ["QuiverOrdering::name"]
 rust_tests = ["tests/fixtures/ordering_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "OrderingOfAlgebra"
 python_name = "ordering_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.ordering; qpa.QuotientAlgebra.ordering"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:OrderingOfAlgebra:1"]
 constructs = ["DeclareAttribute"]
@@ -9335,7 +9335,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["PathAlgebra::ordering; QuotientPathAlgebra::ordering"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
 
 [[operations]]
 qpa_name = "OrderingOfCombinatorialMap"
@@ -9356,8 +9356,8 @@ python_tests = []
 qpa_name = "OrderingOfQuiver"
 python_name = "ordering_of_quiver"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Quiver.ordering"
 notes = ""
 entry_ids = ["quiver:DeclareAttribute:OrderingOfQuiver:1"]
 constructs = ["DeclareAttribute"]
@@ -9365,7 +9365,7 @@ source_files = ["upstream/qpa/lib/quiver.gd"]
 rust_symbols = ["Quiver::ordering; OrderedQuiver::ordering"]
 rust_tests = ["tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "OriginalPathAlgebra"
@@ -9626,16 +9626,16 @@ python_tests = []
 qpa_name = "PathFromArrowList"
 python_name = "path_from_arrow_list"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.Quiver.path"
-notes = "Python accepts arrow names; direct wrapped-arrow input remains to be added."
+status = "exposed"
+python_target = "qpa.Quiver.path_from_generators; qpa.Quiver.path"
+notes = ""
 entry_ids = ["groebnerordering:DeclareOperation:PathFromArrowList:1","groebnerordering:InstallMethod:PathFromArrowList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/groebnerordering.gi"]
 rust_symbols = ["Path::from_generator_list"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "PathModuleElem"
@@ -9987,15 +9987,15 @@ qpa_name = "PrintObj"
 python_name = "print_obj"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__"
-notes = "Exact opposite-algebra, quiver, vertex, and arrow printing is exposed through repr; grouped QPA printing overloads remain incomplete."
+python_target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__"
+notes = "Exact opposite-algebra, quiver, generator, and quiver-ordering printing is exposed through repr; grouped QPA printing overloads remain incomplete."
 entry_ids = ["algebra:InstallMethod:PrintObj:1","algebra:InstallMethod:PrintObj:2","complex:InstallMethod:PrintObj:1","complex:InstallMethod:PrintObj:2","complex:InstallMethod:PrintObj:3","complex:InstallMethod:PrintObj:4","degorderfinitetype:InstallMethod:PrintObj:1","derivedcat:InstallMethod:PrintObj:1","derivedcat:InstallMethod:PrintObj:2","groebner:InstallMethod:PrintObj:1","groebnerordering:InstallMethod:PrintObj:1","module:InstallMethod:PrintObj:1","module:InstallMethod:PrintObj:2","modulehom:InstallMethod:PrintObj:1","pathalg:InstallMethod:PrintObj:1","pathalg:InstallMethod:PrintObj:2","pathalg:InstallMethod:PrintObj:3","pathalgtensor:InstallMethod:PrintObj:1","projpathalgmodule:InstallMethod:PrintObj:1","projpathalgmodule:InstallMethod:PrintObj:2","quiver:InstallMethod:PrintObj:1","quiver:InstallMethod:PrintObj:2","quiver:InstallMethod:PrintObj:3","quiver:InstallMethod:PrintObj:4","quiver:InstallMethod:PrintObj:5"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/derivedcat.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","FpPathAlgebraVector::print_obj_with","GroebnerBasis::print_string_with","OppositeStructureConstantsAlgebra::fmt","OppositeStructureConstantsAlgebraElement::fmt","PathAlgebra::print_obj_with","PathAlgebraModule::qpa_print_string","PathAlgebraModuleElement::qpa_print_string_with; Display for PathAlgebraModuleElement","PathAlgebraModuleHomomorphism::qpa_print_string","PathAlgebraVector::print_obj_with","Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuotientPathAlgebra::print_obj_with; PathAlgebraIdeal::view_obj_with","QuotientPathAlgebraElement::print_obj_with; PathAlgebraElement::print_obj_with","qpa_gbnp::QpaComplex::qpa_string; qpa_gbnp::QpaChainMap::qpa_string","qpa_injective_complex_string","qpa_projective_complex_string"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/derivedcat_foundation_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/gap-reference/algebra_opposite_print.g"]
 deviations = ["ALG-001","DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "ProductOfIdeals"
@@ -11051,8 +11051,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_restriction_via_a
 qpa_name = "ReverseOrdering"
 python_name = "reverse_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.reverse"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:ReverseOrdering:1","groebnerordering:InstallGlobalFunction:ReverseOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -11060,7 +11060,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::reverse"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "ReversePath"
@@ -11201,8 +11201,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "RightLexicographicOrdering"
 python_name = "right_lexicographic_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.right_lexicographic"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:RightLexicographicOrdering:1","groebnerordering:InstallGlobalFunction:RightLexicographicOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -11210,7 +11210,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::right_lexicographic"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "RightMinimalVersion"
@@ -11366,8 +11366,8 @@ python_tests = []
 qpa_name = "RightVectorOrdering"
 python_name = "right_vector_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.right_vector"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:RightVectorOrdering:1","groebnerordering:InstallGlobalFunction:RightVectorOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -11375,7 +11375,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::right_vector"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "RingIdeal"
@@ -12942,15 +12942,15 @@ qpa_name = "ViewObj"
 python_name = "view_obj"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.Quiver.view"
-notes = "The quiver overload is exposed; grouped display overloads remain."
+python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__"
+notes = "The quiver and quiver-ordering overloads are exposed; grouped display overloads remain."
 entry_ids = ["combinatorialrep:InstallMethod:ViewObj:1","complex:InstallMethod:ViewObj:1","degorderfinitetype:InstallMethod:ViewObj:1","groebner:InstallMethod:ViewObj:1","groebnerordering:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:2","groebnerstadict:InstallMethod:ViewObj:3","groebnerstadict:InstallMethod:ViewObj:4","module:InstallMethod:ViewObj:1","modulehom:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:2","pathalgtensor:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:2","qpaposet:InstallMethod:ViewObj:1","quiver:InstallMethod:ViewObj:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/groebnerstadict.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/qpaposet.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","Display for PathAlgebraModule","Display for PathAlgebraModuleHomomorphism","Display for UnitForm","GroebnerBasis::view_string","PathAlgebra::view_obj_with","Poset::fmt","Quiver::view_string","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuiverStaticDictionary::fmt; QuiverStaticDictionary::view_string","QuotientPathAlgebra::view_obj_with; PathAlgebraIdeal::view_obj_with","RightPathAlgebraModuleGroebnerBasis::view_obj_with_basis","RightPathAlgebraModuleGroebnerBasis::view_obj_without_basis","StaticDictionary::fmt","qpa_gbnp::QpaCategory::name"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form_view.txt","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/poset_output.txt","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/static_dictionary_output.txt"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "WalkOfPath"
@@ -12986,8 +12986,8 @@ python_tests = []
 qpa_name = "WeightOrdering"
 python_name = "weight_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.weight"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:WeightOrdering:1","groebnerordering:InstallGlobalFunction:WeightOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -12995,7 +12995,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::weight"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "WidthSearchCombinatorialMap"
@@ -13031,8 +13031,8 @@ python_tests = []
 qpa_name = "WreathOrdering"
 python_name = "wreath_ordering"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverOrdering.wreath"
 notes = ""
 entry_ids = ["groebnerordering:DeclareGlobalFunction:WreathOrdering:1","groebnerordering:InstallGlobalFunction:WreathOrdering:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -13040,7 +13040,7 @@ source_files = ["upstream/qpa/lib/groebnerordering.gd","upstream/qpa/lib/groebne
 rust_symbols = ["QuiverOrdering::wreath"]
 rust_tests = ["tests/fixtures/ordering_dispatch.schema-v1.json","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/orderings.schema-v1.json"]
 deviations = ["ORDERING-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[operations]]
 qpa_name = "XSetOfPathAlgebraVector"

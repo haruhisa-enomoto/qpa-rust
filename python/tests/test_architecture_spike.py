@@ -137,6 +137,115 @@ def test_extended_quiver_domain_delegates_to_qpa_core() -> None:
     assert qpa.Quiver.from_adjacency([[0, 1], [0, 0]]).is_acyclic
 
 
+def test_quiver_orderings_follow_qpa_comparison_closures() -> None:
+    quiver = qpa.Quiver.indexed(
+        2,
+        [(1, 1, "a"), (1, 2, "b")],
+    )
+    a = quiver.arrow_path("a")
+    b = quiver.arrow_path("b")
+    default = quiver.ordering
+    assert repr(qpa.QuiverOrdering.default(quiver)) == repr(default)
+    length = qpa.QuiverOrdering.length(quiver)
+    left_lex = qpa.QuiverOrdering.left_lexicographic(quiver, [4, 3])
+    right_lex = qpa.QuiverOrdering.right_lexicographic(quiver, [4, 3])
+    reverse = qpa.QuiverOrdering.reverse(quiver, default)
+    left_vector = qpa.QuiverOrdering.left_vector(quiver, [4, 3])
+    right_vector = qpa.QuiverOrdering.right_vector(quiver, [4, 3])
+    rationals = qpa.Field.rational()
+    weight = qpa.QuiverOrdering.weight(
+        quiver,
+        [rationals.element(1), rationals.element(5)],
+    )
+    block = qpa.QuiverOrdering.block(quiver, [(weight, [1, 2, 3, 4])])
+    wreath = qpa.QuiverOrdering.wreath(quiver, [(weight, [1, 2, 3, 4])])
+
+    assert [
+        ordering.name
+        for ordering in [
+            length,
+            left_lex,
+            right_lex,
+            reverse,
+            left_vector,
+            right_vector,
+            weight,
+            block,
+            wreath,
+        ]
+    ] == [
+        "length",
+        "left lexicographic",
+        "right lexicographic",
+        "reverse",
+        "left vector",
+        "right vector",
+        "weight",
+        "block",
+        "wreath",
+    ]
+    assert repr(default) == "<length left lexicographic ordering>"
+    assert default.is_length and default.next_ordering is not None
+    assert [generator.name for generator in default.lexicographic_table] == [
+        "v1",
+        "v2",
+        "a",
+        "b",
+    ]
+    assert reverse.next_ordering is not None
+    assert reverse.next_ordering.is_identical(default)
+    assert reverse.shares_lexicographic_table_with(default)
+    assert left_lex.is_lexicographic and left_lex.is_left_lexicographic
+    assert right_lex.is_lexicographic and right_lex.is_right_lexicographic
+    assert reverse.is_reverse
+    assert left_vector.is_vector and left_vector.is_left_vector
+    assert right_vector.is_vector and right_vector.is_right_vector
+    assert weight.is_weight and block.is_block and wreath.is_wreath
+    assert weight.quiver.is_identical(quiver) and weight.kind == "weight"
+    assert weight.comparison_value(a, b) == rationals.element(-4)
+    assert weight.compare(a, b) < 0
+    assert weight.compare_arrow_lists([3, 3], [4]) < 0
+    assert block.comparison_value(a, b) == rationals.element(-4)
+    assert wreath.comparison_value(a, b) == rationals.element(-4)
+    assert weight.less_than(a, b)
+
+    assert quiver.path_from_generators([]).is_zero
+    formal_vertices = quiver.path_from_generators([1, 2])
+    assert formal_vertices.external_representation == [1, 2]
+    assert [generator.name for generator in formal_vertices.walk] == ["v1", "v2"]
+    assert formal_vertices.source == "v1" and formal_vertices.target == "v2"
+    formal_noncomposable = quiver.path_from_generators([4, 3])
+    assert formal_noncomposable.external_representation == [4, 3]
+    assert [generator.name for generator in formal_noncomposable.walk] == ["b", "a"]
+
+    ordered = quiver.ordered_by(weight)
+    assert not ordered.is_identical(quiver)
+    assert ordered.ordering.is_identical(weight)
+    algebra = qpa.PathAlgebra(rationals, ordered)
+    assert algebra.ordering.is_identical(weight)
+    assert algebra.quiver.ordering.is_identical(weight)
+    assert algebra.ordering.comparison_value(
+        ordered.arrow_path("a"), ordered.arrow_path("b")
+    ) == rationals.element(-4)
+
+    cycle = qpa.Quiver.indexed(2, [(1, 2, "x"), (2, 1, "y")])
+    cycle_ordering = qpa.QuiverOrdering.length(cycle)
+    assert cycle_ordering.check_blocks_for_cycles([1, 1, 1, 1])
+    assert not cycle_ordering.check_blocks_for_cycles([1, 1, 1, 2])
+    assert cycle_ordering.check_blocks_for_cycles([0, 0, 1, 2])
+
+    acyclic = qpa.Quiver.indexed(2, [(1, 2, "z")])
+    acyclic_ordering = acyclic.ordering
+    assert acyclic_ordering.is_well
+    assert acyclic_ordering.is_well_reversed
+    assert acyclic_ordering.is_total
+    assert acyclic_ordering.is_admissible
+    assert acyclic_ordering.is_well_subset([1, 2, 3])
+    assert acyclic_ordering.is_well_reversed_subset([1, 2, 3])
+    assert acyclic_ordering.is_total_subset([1, 2, 3])
+    assert acyclic_ordering.check_subset_for_cycles([1, 2, 3])
+
+
 def test_path_algebra_uses_exact_rust_operations() -> None:
     quiver = qpa.Quiver(
         ["v1", "v2", "v3"],
@@ -168,6 +277,7 @@ def test_quotient_runs_the_existing_high_level_groebner_route() -> None:
     quotient = algebra.quotient([x * x])
 
     assert quotient.dimension() == "2"
+    assert quotient.ordering.is_identical(algebra.ordering)
     residue = quotient.generator("x")
     assert residue.is_normal_form
     assert (residue * residue).is_zero

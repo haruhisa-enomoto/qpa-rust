@@ -405,9 +405,9 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "ViewObj"
 status = "partial"
-target = "qpa.Quiver.view"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The quiver overload is exposed; grouped display overloads remain."
+target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+notes = "The quiver and quiver-ordering overloads are exposed; grouped display overloads remain."
 
 [[bindings]]
 qpa_name = "\\[\\]"
@@ -416,12 +416,249 @@ target = "qpa.QuiverPathEnumerator.__getitem__"
 tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 notes = "The quiver-enumerator overload is exposed; suffix-tree and product-decomposition indexing remain."
 
+# Quiver orderings
+
+[[bindings]]
+qpa_name = "IsQuiverOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "LengthOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.length"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "LeftLexicographicOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.left_lexicographic"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "RightLexicographicOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.right_lexicographic"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "ReverseOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.reverse"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "LeftVectorOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.left_vector"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "RightVectorOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.right_vector"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "WeightOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.weight"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "BlockOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.block"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "WreathOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.wreath"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsLengthOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_length"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsLeftLexicographicOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_left_lexicographic"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsRightLexicographicOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_right_lexicographic"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsLexicographicOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_lexicographic"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsReverseOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_reverse"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsLeftVectorOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_left_vector"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsRightVectorOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_right_vector"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsVectorOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_vector"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsWeightOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_weight"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsBlockOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_block"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsWreathOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_wreath"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "OrderingName"
+status = "exposed"
+target = "qpa.QuiverOrdering.name"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "NextOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.next_ordering"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "LexicographicTable"
+status = "exposed"
+target = "qpa.QuiverOrdering.lexicographic_table"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "ComparisonFunction"
+status = "exposed"
+target = "qpa.QuiverOrdering.comparison_value; qpa.QuiverOrdering.compare"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "LessThanByOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.less_than"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "CompareArrowLists"
+status = "exposed"
+target = "qpa.QuiverOrdering.compare_arrow_lists"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsWellOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_well"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsWellReversedOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_well_reversed"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsTotalOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_total"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsAdmissibleOrdering"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_admissible"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsWellSubset"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_well_subset"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsWellReversedSubset"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_well_reversed_subset"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "IsTotalSubset"
+status = "exposed"
+target = "qpa.QuiverOrdering.is_total_subset"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "CheckQuiverSubsetForCycles"
+status = "exposed"
+target = "qpa.QuiverOrdering.check_subset_for_cycles"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "CheckBlocksForCycles"
+status = "exposed"
+target = "qpa.QuiverOrdering.check_blocks_for_cycles"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "OrderingOfQuiver"
+status = "exposed"
+target = "qpa.Quiver.ordering"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+
+[[bindings]]
+qpa_name = "OrderingOfAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.ordering; qpa.QuotientAlgebra.ordering"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
+
+[[bindings]]
+qpa_name = "OrderedBy"
+status = "partial"
+target = "qpa.Quiver.ordered_by"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+notes = "The quiver and ordered path-algebra route is exposed; the quotient-path-algebra overload remains."
+
 [[bindings]]
 qpa_name = "PathFromArrowList"
-status = "partial"
-target = "qpa.Quiver.path"
-tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_and_left_to_right_paths"]
-notes = "Python accepts arrow names; direct wrapped-arrow input remains to be added."
+status = "exposed"
+target = "qpa.Quiver.path_from_generators; qpa.Quiver.path"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
 
 [[bindings]]
 qpa_name = "LengthOfPath"
@@ -915,9 +1152,9 @@ tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_const
 [[bindings]]
 qpa_name = "PrintObj"
 status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "Exact opposite-algebra, quiver, vertex, and arrow printing is exposed through repr; grouped QPA printing overloads remain incomplete."
+target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+notes = "Exact opposite-algebra, quiver, generator, and quiver-ordering printing is exposed through repr; grouped QPA printing overloads remain incomplete."
 
 [[bindings]]
 qpa_name = "UnderlyingAlgebra"

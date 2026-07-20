@@ -1139,7 +1139,7 @@ impl PyQuiverAlgebra {
         let inner = dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
             algebra.quiver().clone()
         });
-        PyQuiver { inner }
+        PyQuiver::from_inner(inner)
     }
 
     #[getter]

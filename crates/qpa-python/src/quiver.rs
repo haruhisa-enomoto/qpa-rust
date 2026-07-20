@@ -1,19 +1,22 @@
 //! Python wrappers for QPA quivers and paths.
 
 mod objects;
+mod ordering;
 
 use std::cmp::Ordering;
 
 use pyo3::{Py, PyAny, prelude::*};
 use qpa_core::{
     Arrow, ArrowIndex, ArrowSpec, DynkinOrientation, Generator, NamedArrowSpec, Path, PathEndpoint,
-    Quiver, QuiverCardinality, Vertex, VertexIndex, unique_quiver_name,
+    Quiver, QuiverCardinality, QuiverOrdering, Vertex, VertexIndex, unique_quiver_name,
 };
 
 pub(crate) use objects::{
     PyQuiverArrow, PyQuiverPathEnumerator, PyQuiverPathIterator, PyQuiverVertex,
 };
 use objects::{endpoint_to_python, generator_to_python};
+pub(crate) use ordering::PyQuiverOrdering;
+use ordering::generators_from_positions;
 
 use crate::invalid;
 
@@ -29,6 +32,7 @@ pub(crate) fn py_unique_quiver_name() -> String {
 #[derive(Clone)]
 pub(crate) struct PyQuiver {
     pub(crate) inner: Quiver,
+    ordering: Option<QuiverOrdering>,
 }
 
 #[pymethods]
@@ -44,7 +48,7 @@ impl PyQuiver {
             arrows,
         )
         .map_err(invalid)?;
-        Ok(Self { inner })
+        Ok(Self::from_inner(inner))
     }
 
     #[staticmethod]
@@ -64,7 +68,7 @@ impl PyQuiver {
             arrows,
         )
         .map_err(invalid)?;
-        Ok(Self { inner })
+        Ok(Self::from_inner(inner))
     }
 
     #[staticmethod]
@@ -85,16 +89,16 @@ impl PyQuiver {
                 ))
             })
             .collect::<PyResult<Vec<_>>>()?;
-        Ok(Self {
-            inner: Quiver::from_indexed(number_of_vertices, arrows).map_err(invalid)?,
-        })
+        Ok(Self::from_inner(
+            Quiver::from_indexed(number_of_vertices, arrows).map_err(invalid)?,
+        ))
     }
 
     #[staticmethod]
     fn from_adjacency(adjacency: Vec<Vec<usize>>) -> PyResult<Self> {
-        Ok(Self {
-            inner: Quiver::from_adjacency(adjacency).map_err(invalid)?,
-        })
+        Ok(Self::from_inner(
+            Quiver::from_adjacency(adjacency).map_err(invalid)?,
+        ))
     }
 
     #[staticmethod]
@@ -105,31 +109,28 @@ impl PyQuiver {
             .collect::<PyResult<Vec<_>>>()?;
         Ok(Quiver::dynkin_from_name(family, rank, &orientation)
             .map_err(invalid)?
-            .map(|inner| Self { inner }))
+            .map(Self::from_inner))
     }
 
     #[staticmethod]
     fn dynkin_a(rank: usize, orientation: Vec<String>) -> PyResult<Self> {
-        Ok(Self {
-            inner: Quiver::dynkin_a(rank, &parse_dynkin_orientations(&orientation)?)
-                .map_err(invalid)?,
-        })
+        Ok(Self::from_inner(
+            Quiver::dynkin_a(rank, &parse_dynkin_orientations(&orientation)?).map_err(invalid)?,
+        ))
     }
 
     #[staticmethod]
     fn dynkin_d(rank: usize, orientation: Vec<String>) -> PyResult<Self> {
-        Ok(Self {
-            inner: Quiver::dynkin_d(rank, &parse_dynkin_orientations(&orientation)?)
-                .map_err(invalid)?,
-        })
+        Ok(Self::from_inner(
+            Quiver::dynkin_d(rank, &parse_dynkin_orientations(&orientation)?).map_err(invalid)?,
+        ))
     }
 
     #[staticmethod]
     fn dynkin_e(rank: usize, orientation: Vec<String>) -> PyResult<Self> {
-        Ok(Self {
-            inner: Quiver::dynkin_e(rank, &parse_dynkin_orientations(&orientation)?)
-                .map_err(invalid)?,
-        })
+        Ok(Self::from_inner(
+            Quiver::dynkin_e(rank, &parse_dynkin_orientations(&orientation)?).map_err(invalid)?,
+        ))
     }
 
     #[getter]
@@ -316,6 +317,26 @@ impl PyQuiver {
         )
     }
 
+    #[getter]
+    fn ordering(&self) -> PyResult<PyQuiverOrdering> {
+        Ok(PyQuiverOrdering::from_inner(match &self.ordering {
+            Some(ordering) => ordering.clone(),
+            None => self.inner.ordering().map_err(invalid)?,
+        }))
+    }
+
+    fn ordered_by(&self, ordering: &PyQuiverOrdering) -> PyResult<Self> {
+        let ordered = self
+            .inner
+            .ordered_by(ordering.inner.clone())
+            .map_err(invalid)?;
+        let (inner, ordering) = ordered.into_parts().map_err(invalid)?;
+        Ok(Self {
+            inner,
+            ordering: Some(ordering),
+        })
+    }
+
     fn vertex_path(&self, name: &str) -> PyResult<PyPath> {
         match self.inner.generator_by_name(name) {
             Some(Generator::Vertex(vertex)) => Ok(PyPath {
@@ -348,6 +369,16 @@ impl PyQuiver {
         Ok(PyPath { inner: path })
     }
 
+    fn path_from_generators(&self, positions: Vec<usize>) -> PyResult<PyPath> {
+        Ok(PyPath {
+            inner: Path::from_generator_list(
+                &self.inner,
+                &generators_from_positions(self, &positions)?,
+            )
+            .map_err(invalid)?,
+        })
+    }
+
     fn path_at(&self, position: usize) -> Option<PyPath> {
         self.inner.path_at(position).map(|inner| PyPath { inner })
     }
@@ -376,9 +407,9 @@ impl PyQuiver {
             .iter()
             .map(|name| self.vertex_by_name(name))
             .collect::<PyResult<Vec<_>>>()?;
-        Ok(Self {
-            inner: self.inner.full_subquiver(&vertices).map_err(invalid)?,
-        })
+        Ok(Self::from_inner(
+            self.inner.full_subquiver(&vertices).map_err(invalid)?,
+        ))
     }
 
     fn connected_components(&self) -> PyResult<Vec<Self>> {
@@ -387,14 +418,12 @@ impl PyQuiver {
             .connected_components()
             .map_err(invalid)?
             .into_iter()
-            .map(|inner| Self { inner })
+            .map(Self::from_inner)
             .collect())
     }
 
     fn opposite(&self) -> PyResult<Self> {
-        Ok(Self {
-            inner: self.inner.opposite().map_err(invalid)?,
-        })
+        Ok(Self::from_inner(self.inner.opposite().map_err(invalid)?))
     }
 
     fn opposite_name(&self, name: &str) -> PyResult<String> {
@@ -406,15 +435,11 @@ impl PyQuiver {
     }
 
     fn separated(&self) -> PyResult<Self> {
-        Ok(Self {
-            inner: self.inner.separated().map_err(invalid)?,
-        })
+        Ok(Self::from_inner(self.inner.separated().map_err(invalid)?))
     }
 
     fn double(&self) -> PyResult<Self> {
-        Ok(Self {
-            inner: self.inner.double().map_err(invalid)?,
-        })
+        Ok(Self::from_inner(self.inner.double().map_err(invalid)?))
     }
 
     #[getter]
@@ -446,8 +471,26 @@ impl PyQuiver {
 }
 
 impl PyQuiver {
+    pub(crate) const fn from_inner(inner: Quiver) -> Self {
+        Self {
+            inner,
+            ordering: None,
+        }
+    }
+
+    pub(crate) const fn from_inner_with_ordering(inner: Quiver, ordering: QuiverOrdering) -> Self {
+        Self {
+            inner,
+            ordering: Some(ordering),
+        }
+    }
+
     pub(crate) const fn rust_quiver(&self) -> &Quiver {
         &self.inner
+    }
+
+    pub(crate) const fn rust_ordering(&self) -> Option<&QuiverOrdering> {
+        self.ordering.as_ref()
     }
 
     fn vertex_by_name(&self, name: &str) -> PyResult<Vertex> {
@@ -509,9 +552,7 @@ fn endpoint_name(endpoint: PathEndpoint) -> Option<String> {
 impl PyPath {
     #[getter]
     fn quiver(&self) -> PyQuiver {
-        PyQuiver {
-            inner: self.inner.quiver().clone(),
-        }
+        PyQuiver::from_inner(self.inner.quiver().clone())
     }
 
     #[getter]
