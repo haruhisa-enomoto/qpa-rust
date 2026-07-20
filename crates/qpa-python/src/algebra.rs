@@ -1,5 +1,6 @@
 //! Python wrappers for path algebras, ideals, Gröbner bases, and quotients.
 
+mod associated;
 mod brauer;
 mod combinatorial;
 mod combinatorial_rep;

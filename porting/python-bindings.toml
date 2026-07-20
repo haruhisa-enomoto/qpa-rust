@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 671
+exposed_or_partial_count = 673
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -491,8 +491,8 @@ python_tests = []
 qpa_name = "AssociatedGradedAlgebra"
 python_name = "associated_graded_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.associated_graded_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:AssociatedGradedAlgebra:1","pathalg:InstallMethod:AssociatedGradedAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -500,14 +500,14 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["associated_graded_path_algebra; associated_graded_quotient"]
 rust_tests = ["tests/fixtures/pathalg_associated.schema-v1.json","tests/gap-reference/pathalg_associated_cached_false.g","tests/gap-reference/pathalg_associated_infinite_error.g","tests/gap-reference/pathalg_associated_nonadmissible_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_associated_algebras.py::test_associated_algebras_follow_qpa","python/tests/test_associated_algebras.py::test_associated_graded_algebra_rejects_qpa_invalid_domains"]
 
 [[operations]]
 qpa_name = "AssociatedMonomialAlgebra"
 python_name = "associated_monomial_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.associated_monomial_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:AssociatedMonomialAlgebra:1","pathalg:InstallMethod:AssociatedMonomialAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -515,7 +515,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["associated_monomial_path_algebra; associated_monomial_quotient"]
 rust_tests = ["tests/fixtures/pathalg_associated.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_associated_algebras.py::test_associated_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "BandRepresentativesLessThan"

@@ -1395,6 +1395,20 @@ impl PyQuiverAlgebra {
         })
     }
 
+    /// Apply QPA's cached `AssociatedMonomialAlgebra` attribute.
+    fn associated_monomial_algebra(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::associated::monomial_for(algebra)
+        })
+    }
+
+    /// Apply QPA's finite-dimensional `AssociatedGradedAlgebra` attribute.
+    fn associated_graded_algebra(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::associated::graded_for(algebra)
+        })
+    }
+
     fn cartan_matrix(&self) -> PyResult<Option<Vec<Vec<usize>>>> {
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
             super::invariants::cartan_for(algebra)

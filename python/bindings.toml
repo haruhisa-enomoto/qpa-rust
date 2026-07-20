@@ -750,6 +750,18 @@ target = "qpa.PathAlgebra.nth_power_of_arrow_ideal"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
+qpa_name = "AssociatedMonomialAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.associated_monomial_algebra"
+tests = ["python/tests/test_associated_algebras.py::test_associated_algebras_follow_qpa"]
+
+[[bindings]]
+qpa_name = "AssociatedGradedAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.associated_graded_algebra"
+tests = ["python/tests/test_associated_algebras.py::test_associated_algebras_follow_qpa","python/tests/test_associated_algebras.py::test_associated_graded_algebra_rejects_qpa_invalid_domains"]
+
+[[bindings]]
 qpa_name = "PathAlgebraElementTerms"
 status = "exposed"
 target = "qpa.AlgebraElement.terms"
