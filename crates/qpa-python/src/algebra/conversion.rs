@@ -11,9 +11,9 @@ use numerica::domains::{
 };
 use pyo3::prelude::*;
 use qpa_core::{
-    OppositeStructureConstantsAlgebra, OppositeStructureConstantsAlgebraElement, PathAlgebraModule,
-    QuiverAlgebra, StructureConstantsAlgebra, StructureConstantsAlgebraElement,
-    StructureConstantsSubalgebra,
+    AlgebraGlobalDimension, OppositeStructureConstantsAlgebra,
+    OppositeStructureConstantsAlgebraElement, PathAlgebraModule, QuiverAlgebra,
+    StructureConstantsAlgebra, StructureConstantsAlgebraElement, StructureConstantsSubalgebra,
 };
 
 #[allow(clippy::wildcard_imports)]
@@ -579,6 +579,35 @@ impl PyStructureConstantsAlgebra {
     fn is_elementary(&self) -> PyResult<Option<bool>> {
         dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
             algebra.is_elementary_algebra().map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn cached_global_dimension(&self) -> Option<String> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            algebra
+                .cached_global_dimension()
+                .map(|dimension| match dimension {
+                    AlgebraGlobalDimension::Finite(dimension) => dimension.to_string(),
+                    AlgebraGlobalDimension::Infinite => "infinity".into(),
+                })
+        })
+    }
+
+    fn global_dimension_from_known_properties(&self) -> Option<String> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            algebra
+                .global_dimension_from_known_properties()
+                .map(|dimension| match dimension {
+                    AlgebraGlobalDimension::Finite(dimension) => dimension.to_string(),
+                    AlgebraGlobalDimension::Infinite => "infinity".into(),
+                })
+        })
+    }
+
+    fn is_finite_global_dimension_from_known_properties(&self) -> Option<bool> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            algebra.is_finite_global_dimension_from_known_properties()
         })
     }
 

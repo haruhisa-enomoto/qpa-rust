@@ -324,6 +324,31 @@ impl PyQuotientAlgebra {
         })
     }
 
+    #[getter]
+    fn is_gorenstein(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            qpa_gbnp::gentle_algebra_is_gorenstein(&QuiverAlgebra::Quotient(algebra.clone()))
+                .map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_hereditary(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            qpa_gbnp::is_hereditary_algebra(&QuiverAlgebra::Quotient(algebra.clone()))
+                .map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_finite_global_dimension(&self) -> Option<bool> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            qpa_gbnp::is_finite_global_dimension_from_known_properties(&QuiverAlgebra::Quotient(
+                algebra.clone(),
+            ))
+        })
+    }
+
     fn opposite(&self) -> PyResult<Self> {
         let kind = map_ref!(
             &self.kind,

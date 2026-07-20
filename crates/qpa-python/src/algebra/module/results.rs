@@ -383,6 +383,18 @@ impl PyModuleEndomorphismAlgebra {
         })
     }
 
+    #[getter]
+    fn radical_basis_matrices(&self) -> PyResult<Vec<Vec<Vec<PyScalar>>>> {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| {
+            Ok(algebra
+                .radical_basis_matrices()
+                .map_err(invalid)?
+                .iter()
+                .map(matrix_rows)
+                .collect())
+        })
+    }
+
     fn coefficients(
         &self,
         py: Python<'_>,

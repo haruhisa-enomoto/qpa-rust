@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 389
+exposed_or_partial_count = 393
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -3132,15 +3132,15 @@ qpa_name = "GlobalDimension"
 python_name = "global_dimension"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.PathAlgebra.global_dimension"
-notes = "The path-algebra constructor value is exposed; homological quotient/module overloads remain."
+python_target = "qpa.StructureConstantsAlgebra.global_dimension_from_known_properties; qpa.PathAlgebra.global_dimension"
+notes = "Structure-constant known-property dispatch and the path-algebra constructor value are exposed; remaining homological overloads stay partial."
 entry_ids = ["algebra:DeclareAttribute:GlobalDimension:1","algebra:InstallImmediateMethod:GlobalDimension:1","algebra:InstallImmediateMethod:GlobalDimension:2"]
 constructs = ["DeclareAttribute","InstallImmediateMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["AlgebraGlobalDimension; global_dimension_from_known_properties; StructureConstantsAlgebra::global_dimension_from_known_properties","global_dimension_from_known_properties; StructureConstantsAlgebra::global_dimension_from_known_properties","global_dimension_from_known_properties; is_selfinjective_algebra"]
 rust_tests = ["tests/fixtures/algebra_homological_properties.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[operations]]
 qpa_name = "GlobalDimensionOfAlgebra"
@@ -4961,16 +4961,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "IsFiniteGlobalDimensionAlgebra"
 python_name = "is_finite_global_dimension_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension"
+notes = "Known-property implications are exposed for structure-constant, path, and quotient algebras; poset/predefined constructor protocols remain."
 entry_ids = ["algebra:DeclareProperty:IsFiniteGlobalDimensionAlgebra:1","algebra:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","algebra:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:2","pathalg:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","pathalgideal:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","pathalgpredef:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:1","pathalgpredef:InstallTrueMethod:IsFiniteGlobalDimensionAlgebra:2"]
 constructs = ["DeclareProperty","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalgideal.gd","upstream/qpa/lib/pathalgpredef.gd"]
 rust_symbols = ["PosetAlgebra::is_finite_global_dimension_algebra","PredefinedAlgebra::is_finite_global_dimension_algebra","is_finite_global_dimension_from_known_properties","is_finite_global_dimension_from_known_properties; StructureConstantsAlgebra::is_finite_global_dimension_from_known_properties"]
 rust_tests = ["tests/fixtures/algebra_homological_properties.schema-v1.json","tests/fixtures/pathalg_poset_algebra.schema-v1.json","tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[operations]]
 qpa_name = "IsFiniteTypeAlgebra"
@@ -5066,8 +5066,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsGorensteinAlgebra"
 python_name = "is_gorenstein_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.is_gorenstein; qpa.QuotientAlgebra.is_gorenstein"
 notes = ""
 entry_ids = ["algebra:DeclareProperty:IsGorensteinAlgebra:1","pathalgideal:InstallTrueMethod:IsGorensteinAlgebra:1"]
 constructs = ["DeclareProperty","InstallTrueMethod"]
@@ -5075,7 +5075,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/pathalgideal.gd"
 rust_symbols = ["gentle_algebra_is_gorenstein","qpa_gbnp::gentle_algebra_is_gorenstein"]
 rust_tests = ["tests/fixtures/pathalg_special_biserial.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[operations]]
 qpa_name = "IsGroebnerBasis"
@@ -5156,16 +5156,16 @@ python_tests = []
 qpa_name = "IsHereditaryAlgebra"
 python_name = "is_hereditary_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebra.is_hereditary; qpa.QuotientAlgebra.is_hereditary"
+notes = "Path and admissible-quotient dispatch is exposed; predefined-algebra constructor protocols remain."
 entry_ids = ["algebra:DeclareProperty:IsHereditaryAlgebra:1","modulehomalg:InstallMethod:IsHereditaryAlgebra:1","pathalg:InstallTrueMethod:IsHereditaryAlgebra:1","pathalgpredef:InstallTrueMethod:IsHereditaryAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/modulehomalg.gi","upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalgpredef.gd"]
 rust_symbols = ["PredefinedAlgebra::is_hereditary_algebra","is_hereditary_algebra"]
 rust_tests = ["tests/fixtures/algebra_homological_dispatch.schema-v1.json","tests/fixtures/algebra_homological_properties.schema-v1.json","tests/fixtures/pathalg_predefined.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[operations]]
 qpa_name = "IsHomogeneousGroebnerBasis"
@@ -10676,8 +10676,8 @@ python_tests = []
 qpa_name = "RadicalOfAlgebra"
 python_name = "radical_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleEndomorphismAlgebra.radical_basis_matrices"
 notes = ""
 entry_ids = ["algebra:InstallMethod:RadicalOfAlgebra:1"]
 constructs = ["InstallMethod"]
@@ -10685,7 +10685,7 @@ source_files = ["upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["ModuleEndomorphismAlgebra::radical_basis_matrices"]
 rust_tests = ["tests/fixtures/algebra_mapping_radical.schema-v1.json","tests/gap-reference/algebra_mapping_radical_f2_error.g"]
 deviations = ["ALG-003"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "RadicalOfModule"

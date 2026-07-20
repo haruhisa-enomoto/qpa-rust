@@ -134,6 +134,10 @@ def test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms(field: qpa.Field
     assert not algebra.is_special_biserial
     assert not algebra.is_string
     assert not algebra.is_gentle
+    assert algebra.is_hereditary is True
+    assert algebra.is_finite_global_dimension is True
+    with pytest.raises(qpa.InvalidInputError, match="gentle"):
+        _ = algebra.is_gorenstein
     assert vertex.vertex_position == 1
     assert x.is_uniform and x.leading_monomial.length == 1
     assert x2.external_representation[0][0] == [2, 2]
@@ -183,6 +187,10 @@ def test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms(field: qpa.Field
     assert quotient.is_admissible
     assert quotient.is_monomial
     assert quotient.is_special_biserial and quotient.is_string and quotient.is_gentle
+    assert quotient.is_finite_global_dimension is None
+    assert quotient.is_gorenstein
+    assert quotient.is_hereditary is False
+    assert quotient.is_finite_global_dimension is None
     assert quotient.is_triangular_reduced
     assert not quotient.is_semisimple
     assert quotient.is_elementary and quotient.is_basic
@@ -1144,6 +1152,14 @@ def test_endomorphism_algebras_and_stable_quotients_follow_qpa(field: qpa.Field)
         [zero, zero],
     ]
 
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["w"], [("w", "w", "x")]), 2
+    )
+    regular = dual_numbers.module_from_integer_matrices([2], [("x", [[0, 1], [0, 0]])])
+    assert regular.endomorphism_algebra().radical_basis_matrices == [
+        [[zero, one], [zero, zero]]
+    ]
+
     natural = module.stable_endomorphism_quotient()
     stable = natural.range
     assert natural.source.is_identical(endomorphisms)
@@ -1346,6 +1362,17 @@ def test_structure_constants_algebra_operations_follow_qpa() -> None:
     )
     assert rational_dual.is_basic is None
     assert rational_dual.is_elementary is None
+
+    semisimple = qpa.StructureConstantsAlgebra(
+        field2, _structure_constants_tensor(field2, 1, [(0, 0, 0)])
+    )
+    assert semisimple.cached_global_dimension is None
+    assert semisimple.global_dimension_from_known_properties() is None
+    assert semisimple.is_finite_global_dimension_from_known_properties() is None
+    assert semisimple.is_semisimple
+    assert semisimple.cached_global_dimension == "0"
+    assert semisimple.global_dimension_from_known_properties() == "0"
+    assert semisimple.is_finite_global_dimension_from_known_properties() is True
 
     field5 = qpa.Field.prime(5)
     shifted_products = _structure_constants_tensor(field5, 3, [])

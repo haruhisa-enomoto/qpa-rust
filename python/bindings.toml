@@ -274,9 +274,29 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "GlobalDimension"
 status = "partial"
-target = "qpa.PathAlgebra.global_dimension"
+target = "qpa.StructureConstantsAlgebra.global_dimension_from_known_properties; qpa.PathAlgebra.global_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Structure-constant known-property dispatch and the path-algebra constructor value are exposed; remaining homological overloads stay partial."
+
+[[bindings]]
+qpa_name = "IsFiniteGlobalDimensionAlgebra"
+status = "partial"
+target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Known-property implications are exposed for structure-constant, path, and quotient algebras; poset/predefined constructor protocols remain."
+
+[[bindings]]
+qpa_name = "IsGorensteinAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.is_gorenstein; qpa.QuotientAlgebra.is_gorenstein"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The path-algebra constructor value is exposed; homological quotient/module overloads remain."
+
+[[bindings]]
+qpa_name = "IsHereditaryAlgebra"
+status = "partial"
+target = "qpa.PathAlgebra.is_hereditary; qpa.QuotientAlgebra.is_hereditary"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Path and admissible-quotient dispatch is exposed; predefined-algebra constructor protocols remain."
 
 [[bindings]]
 qpa_name = "RelationsOfAlgebra"
@@ -762,6 +782,12 @@ qpa_name = "OppositeAlgebraHomomorphism"
 status = "exposed"
 target = "qpa.AlgebraHomomorphism.opposite"
 tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]
+
+[[bindings]]
+qpa_name = "RadicalOfAlgebra"
+status = "exposed"
+target = "qpa.ModuleEndomorphismAlgebra.radical_basis_matrices"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[bindings]]
 qpa_name = "\\."

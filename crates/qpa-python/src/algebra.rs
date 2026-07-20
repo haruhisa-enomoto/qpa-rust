@@ -1542,6 +1542,30 @@ impl PyPathAlgebra {
     }
 
     #[getter]
+    fn is_gorenstein(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_gbnp::gentle_algebra_is_gorenstein(&QuiverAlgebra::Path(algebra.clone()))
+                .map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_hereditary(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_gbnp::is_hereditary_algebra(&QuiverAlgebra::Path(algebra.clone())).map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_finite_global_dimension(&self) -> Option<bool> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_gbnp::is_finite_global_dimension_from_known_properties(&QuiverAlgebra::Path(
+                algebra.clone(),
+            ))
+        })
+    }
+
+    #[getter]
     fn generators(&self) -> Vec<PyAlgebraElement> {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| wrap_algebra_elements(
             algebra.generators()
