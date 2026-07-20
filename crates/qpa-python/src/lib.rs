@@ -37,21 +37,22 @@ use algebra::{
     PyPathAlgebraVectorBasis, PyPathAlgebraVectorSpace, PyPathAlgebraVectorXSet,
     PyPathVectorCoefficientsResult, PyPosetAlgebra, PyPredecessorValuation,
     PyPredecessorsOfModuleResult, PyPredefinedAlgebra, PyPredefinedArQuiverData,
-    PyProjectiveIsomorphismComponent, PyProjectivePathAlgebraPresentation, PyProjectiveResolution,
-    PyQuiverAlgebra, PyQuiverAlgebraElement, PyQuiverAlgebraUnitGroup, PyQuotientAlgebra,
-    PyQuotientElement, PyQuotientNiceBasis, PyQuotientPathAlgebraCentre,
-    PyQuotientPathAlgebraVector, PyQuotientVectorCoefficientsResult, PyRightFpPathAlgebraModule,
-    PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
-    PyRightProjectiveSubmodule, PySimpleEndoProjectiveResolutionResult, PyStringSigmaEpsilon,
-    PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
-    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra, PyTensorProductAlgebra,
-    PyTiltingModuleResult, PyUnitForm, py_admissible_sequence_generator,
-    py_brauer_configuration_algebra, py_canonical_algebra, py_complex_and_chain_maps,
-    py_compute_lps_array, py_cyclic_permutations_of_band, py_finite_global_dim_green,
-    py_finite_global_dim_kirk_kuz, py_format_multiplicity_vector, py_format_multiplicity_vectors,
-    py_kronecker_algebra, py_leftmost_occurrence, py_leftmost_occurrence_inv_len_inv_lex,
-    py_nakayama_algebra, py_opposite_relations, py_poset_algebra, py_predefined_ar_quiver_catalog,
-    py_predefined_ar_quiver_data, py_read_algebra, py_string_quiver_rho,
+    PyProjectiveIsomorphismComponent, PyProjectivePathAlgebraPresentation,
+    PyProjectivePresentation, PyProjectiveResolution, PyQuiverAlgebra, PyQuiverAlgebraElement,
+    PyQuiverAlgebraUnitGroup, PyQuotientAlgebra, PyQuotientElement, PyQuotientNiceBasis,
+    PyQuotientPathAlgebraCentre, PyQuotientPathAlgebraVector, PyQuotientVectorCoefficientsResult,
+    PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule,
+    PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule,
+    PySimpleEndoProjectiveResolutionResult, PyStringSigmaEpsilon, PyStructureConstantsAlgebra,
+    PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
+    PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult, PyUnitForm,
+    py_admissible_sequence_generator, py_brauer_configuration_algebra, py_canonical_algebra,
+    py_complex_and_chain_maps, py_compute_lps_array, py_cyclic_permutations_of_band,
+    py_finite_global_dim_green, py_finite_global_dim_kirk_kuz, py_format_multiplicity_vector,
+    py_format_multiplicity_vectors, py_kronecker_algebra, py_leftmost_occurrence,
+    py_leftmost_occurrence_inv_len_inv_lex, py_nakayama_algebra, py_opposite_relations,
+    py_poset_algebra, py_predefined_ar_quiver_catalog, py_predefined_ar_quiver_data,
+    py_read_algebra, py_string_quiver_rho,
 };
 use dynamic_tree::{PyDynamicForest, PyDynamicTree};
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
@@ -140,6 +141,7 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyStaticDictionary>()?;
     module.add_class::<PyQuiverStaticDictionary>()?;
     module.add_class::<PyPathAlgebra>()?;
+    module.add_class::<PyProjectivePresentation>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;
     module.add_class::<PyNaturalQuotientMap>()?;

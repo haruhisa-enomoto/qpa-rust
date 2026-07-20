@@ -3421,9 +3421,9 @@ tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolutio
 [[bindings]]
 qpa_name = "ParentAlgebra"
 status = "partial"
-target = "qpa.GszProjectiveResolution.parent_algebra"
-tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
-notes = "The GSZ-resolution attribute is exposed; the present2 presentation-object attribute remains."
+target = "qpa.GszProjectiveResolution.parent_algebra; qpa.ProjectivePresentation.parent_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa","python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+notes = "The GSZ-resolution and legacy present2 presentation-object attributes are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "RingIdeal"
@@ -5025,3 +5025,61 @@ qpa_name = "SpliceDynamicTree"
 status = "exposed"
 target = "qpa.DynamicTree.splice"
 tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_rotations_and_splice_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
+
+# Legacy projective presentations (`present2`)
+
+[[bindings]]
+qpa_name = "IsProjectivePresentation"
+status = "exposed"
+target = "qpa.ProjectivePresentation.is_projective_presentation"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsProjectivePresentationDefaultRep"
+status = "exposed"
+target = "qpa.ProjectivePresentation.is_default_rep; qpa.ProjectivePresentation.from_attributes"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MatrixNumCols"
+status = "exposed"
+target = "qpa.ProjectivePresentation.matrix_num_cols"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MatrixNumRows"
+status = "exposed"
+target = "qpa.ProjectivePresentation.matrix_num_rows"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MatrixRepresentation"
+status = "exposed"
+target = "qpa.ProjectivePresentation.matrix_representation"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "P0VertexList"
+status = "exposed"
+target = "qpa.ProjectivePresentation.p0_vertex_list"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "P1VertexList"
+status = "exposed"
+target = "qpa.ProjectivePresentation.p1_vertex_list; qpa.ProjectivePresentation.has_p1_vertex_list"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+notes = "Python None preserves the unbound optional P1VertexList attribute."
+
+[[bindings]]
+qpa_name = "ProjectivePresentation"
+status = "exposed"
+target = "qpa.ProjectivePresentation"
+tests = ["python/tests/test_projective_presentations.py::test_pinned_projective_presentation_constructor_failures"]
+notes = "Preserves the pinned QPA 1.37 constructor defects; from_attributes exposes QPA's reachable ObjectifyWithAttributes representation route."
+
+[[bindings]]
+qpa_name = "ProjectivePresentationFamily"
+status = "exposed"
+target = "qpa.ProjectivePresentation; qpa.ProjectivePresentation.family_name"
+tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]

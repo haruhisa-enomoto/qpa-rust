@@ -22,6 +22,7 @@ mod nice_basis;
 mod predefined;
 mod projective;
 mod projective_gsz;
+mod projective_presentation;
 mod quotient;
 mod quotient_projective;
 mod string;
@@ -76,6 +77,7 @@ pub(crate) use projective::{
     PyPathAlgebraVectorSpace, PyRightProjectiveModule, PyRightProjectiveSubmodule,
 };
 pub(crate) use projective_gsz::PyPathAlgebraVectorXSet;
+pub(crate) use projective_presentation::PyProjectivePresentation;
 pub(crate) use quotient_projective::{
     PyLiftedProjectivePathAlgebraModule, PyQuotientPathAlgebraVector,
     PyRightProjectiveQuotientModule,
