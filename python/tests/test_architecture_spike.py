@@ -215,3 +215,64 @@ def test_checked_matrix_module_calls_qpa_core(field: qpa.Field) -> None:
     assert module.arrow_matrix_shapes == [(1, 1)]
     assert "dimension vector [ 1, 1 ]" in repr(module)
     assert module.is_identical(module)
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_module_elements_homomorphisms_and_structure_follow_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    algebra = qpa.PathAlgebra(field, quiver)
+    module = algebra.module_from_integer_matrices([1, 1], [("a", [[1]])])
+    zero = field.element(0)
+    one = field.element(1)
+
+    assert module.field.characteristic == field.characteristic
+    assert not module.is_zero
+    assert len(module.arrow_matrices) == 1
+    assert module.zero_element().is_zero
+
+    basis = module.basis_elements()
+    assert len(basis) == 2
+    assert basis[0].support_vertices == [1]
+    assert basis[1].support_vertices == [2]
+    assert module.element([[one], [zero]]) == basis[0]
+    assert basis[0].act_by_algebra_element(algebra.generator("a")) == basis[1]
+    assert basis[0] + basis[1] - basis[1] == basis[0]
+    assert basis[0].scale_left(one) == basis[0]
+
+    identity = module.identity()
+    entered_identity = module.homomorphism_to(module, [[[one]], [[one]]])
+    assert identity == entered_identity
+    assert identity.image(basis[0]) == basis[0]
+    assert identity.preimage_representative(basis[1]) == basis[1]
+    assert identity.is_injective and identity.is_surjective and identity.is_isomorphism
+    assert identity.is_split_monomorphism and identity.is_split_epimorphism
+    assert identity.inverse().compose(identity) == identity
+    assert identity.right_inverse() == identity
+    assert identity.left_inverse() == identity
+    assert identity.kernel().is_zero
+    assert identity.image_module() == module
+    assert identity.cokernel().is_zero
+
+    direct_sum = qpa.MatrixModule.direct_sum([module, module])
+    assert direct_sum is not None
+    assert direct_sum.dimension_vector == [2, 2]
+    assert direct_sum.is_direct_sum
+    assert len(direct_sum.direct_sum_summands() or []) == 2
+    assert len(direct_sum.direct_sum_projections()) == 2
+    assert len(direct_sum.direct_sum_inclusions()) == 2
+
+    assert module.radical().dimension_vector == [0, 1]
+    assert module.top().dimension_vector == [1, 0]
+    assert module.socle().dimension_vector == [0, 1]
+    assert not module.is_simple and not module.is_semisimple
+    assert module.loewy_length == 2
+    assert module.minimal_generating_set() == [basis[0]]
+
+    loop = qpa.Quiver(["w"], [("w", "w", "x")])
+    quotient = qpa.QuotientAlgebra.truncated(field, loop, 2)
+    quotient_module = quotient.module_from_integer_matrices([2], [("x", [[0, 1], [0, 0]])])
+    quotient_basis = quotient_module.basis_elements()
+    assert quotient_basis[0].act_by_quotient_element(quotient.generator("x")) == quotient_basis[1]
+    assert quotient_module.radical().dimension_vector == [1]
+    assert quotient_module.top().dimension_vector == [1]
+    assert quotient_module.socle().dimension_vector == [1]

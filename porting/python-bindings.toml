@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 96
+exposed_or_partial_count = 137
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -146,16 +146,16 @@ python_tests = []
 qpa_name = "AdditiveInverseOp"
 python_name = "additive_inverse_op"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleElement.negate"
+notes = "Module-element and module-homomorphism overloads are exposed; projective-vector overloads remain."
 entry_ids = ["module:InstallMethod:AdditiveInverseOp:1","modulehom:InstallMethod:AdditiveInverseOp:1","pathalg:InstallMethod:AdditiveInverseOp:1","projpathalgmodule:InstallMethod:AdditiveInverseOp:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraModuleElement::additive_inverse","PathAlgebraModuleHomomorphism::negate","PathAlgebraVector::neg; QuotientPathAlgebraVector::neg","QuotientPathAlgebraElement::neg"]
 rust_tests = ["tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "AdditiveInverseSameMutability"
@@ -566,16 +566,16 @@ python_tests = []
 qpa_name = "Basis"
 python_name = "basis"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.MatrixModule.basis_elements"
+notes = "The standard matrix-module basis is exposed directly as its ordered basis elements."
 entry_ids = ["algebra:InstallMethod:Basis:1","module:InstallOtherMethod:Basis:1","module:InstallMethod:Basis:1","projpathalgmodule:InstallMethod:Basis:1","projpathalgmodule:InstallMethod:Basis:2","projpathalgmodule:InstallMethod:Basis:3","projpathalgmodule:InstallMethod:Basis:4"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebra::basis_elements","PathAlgebraModuleElementSpace::basis","PathAlgebraModuleElementSpace::basis_from_vectors","PathAlgebraVectorSpace::basis","PathAlgebraVectorSpace::basis_from_vectors","RightProjectivePathAlgebraModule::canonical_basis; RightProjectiveQuotientPathAlgebraModule::canonical_basis; RightUniformPathAlgebraModule::canonical_basis","RightProjectivePathAlgebraSubmodule::basis; RightProjectivePathAlgebraSubmodule::dimension"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_basis.txt","tests/fixtures/projpathalgmodule_basis.schema-v1.json","tests/fixtures/projpathalgmodule_groebner.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "BasisNC"
@@ -626,16 +626,16 @@ python_tests = []
 qpa_name = "BasisVectors"
 python_name = "basis_vectors"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.MatrixModule.basis_elements"
+notes = "BasisVectors(Basis(M)) is exposed as MatrixModule.basis_elements()."
 entry_ids = ["algebra:InstallMethod:BasisVectors:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebra::basis_elements; OppositeStructureConstantsAlgebra::canonical_basis_elements"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "BiggestHomogeneousPartInvLenInvLex"
@@ -1016,8 +1016,8 @@ python_tests = []
 qpa_name = "CoKernelOfAdditiveGeneralMapping"
 python_name = "co_kernel_of_additive_general_mapping"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.cokernel"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:CoKernelOfAdditiveGeneralMapping:1"]
 constructs = ["InstallMethod"]
@@ -1025,7 +1025,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["cokernel_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "CoKernelOfWhat"
@@ -2141,8 +2141,8 @@ python_tests = []
 qpa_name = "DirectSumInclusions"
 python_name = "direct_sum_inclusions"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.direct_sum_inclusions"
 notes = ""
 entry_ids = ["module:DeclareAttribute:DirectSumInclusions:1"]
 constructs = ["DeclareAttribute"]
@@ -2150,7 +2150,7 @@ source_files = ["upstream/qpa/lib/module.gd"]
 rust_symbols = ["direct_sum_inclusions"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "DirectSumMinusSummands"
@@ -2171,8 +2171,8 @@ python_tests = []
 qpa_name = "DirectSumOfQPAModules"
 python_name = "direct_sum_of_qpa_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.direct_sum"
 notes = ""
 entry_ids = ["module:DeclareOperation:DirectSumOfQPAModules:1","module:InstallMethod:DirectSumOfQPAModules:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2180,14 +2180,14 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["direct_sum_of_qpa_modules"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "DirectSumProjections"
 python_name = "direct_sum_projections"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.direct_sum_projections"
 notes = ""
 entry_ids = ["module:DeclareAttribute:DirectSumProjections:1"]
 constructs = ["DeclareAttribute"]
@@ -2195,7 +2195,7 @@ source_files = ["upstream/qpa/lib/module.gd"]
 rust_symbols = ["direct_sum_projections"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "Direction"
@@ -3626,8 +3626,8 @@ python_tests = []
 qpa_name = "IdentityMapping"
 python_name = "identity_mapping"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.identity"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:IdentityMapping:1"]
 constructs = ["InstallMethod"]
@@ -3635,14 +3635,14 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["identity_module_mapping"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "ImageElm"
 python_name = "image_elm"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.image"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:ImageElm:1"]
 constructs = ["InstallMethod"]
@@ -3650,7 +3650,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::image"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "ImageInclusion"
@@ -3746,16 +3746,16 @@ python_tests = []
 qpa_name = "ImagesSource"
 python_name = "images_source"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleHomomorphism.image_module"
+notes = "The path-algebra matrix-module overload is exposed; projective presentation-map overloads remain."
 entry_ids = ["modulehom:InstallMethod:ImagesSource:1","projpathalgmodule:InstallMethod:ImagesSource:1","projpathalgmodule:InstallMethod:ImagesSource:2"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["FpPathAlgebraByImagesHomomorphism::images_source","FpPathAlgebraMatrixHomomorphism::images_source","image_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "InDegreeOfVertex"
@@ -4136,8 +4136,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "InverseOfIsomorphism"
 python_name = "inverse_of_isomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.inverse"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:InverseOfIsomorphism:1","modulehom:InstallMethod:InverseOfIsomorphism:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4145,7 +4145,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["inverse_of_isomorphism"]
 rust_tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json","tests/gap-reference/modulehom_inverse_noniso_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IrreducibleMorphismsEndingIn"
@@ -4676,8 +4676,8 @@ python_tests = []
 qpa_name = "IsDirectSumOfModules"
 python_name = "is_direct_sum_of_modules"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_direct_sum"
 notes = ""
 entry_ids = ["module:DeclareFilter:IsDirectSumOfModules:1"]
 constructs = ["DeclareFilter"]
@@ -4685,7 +4685,7 @@ source_files = ["upstream/qpa/lib/module.gd"]
 rust_symbols = ["PathAlgebraModule::is_direct_sum_of_modules"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsDirectSummand"
@@ -5291,8 +5291,8 @@ python_tests = []
 qpa_name = "IsInjective"
 python_name = "is_injective"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.is_injective"
 notes = ""
 entry_ids = ["modulehom:InstallOtherMethod:IsInjective:1"]
 constructs = ["InstallOtherMethod"]
@@ -5300,7 +5300,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::is_injective"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsInjectiveComplex"
@@ -5351,8 +5351,8 @@ python_tests = []
 qpa_name = "IsIsomorphism"
 python_name = "is_isomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.is_isomorphism"
 notes = ""
 entry_ids = ["modulehom:DeclareProperty:IsIsomorphism:1","modulehom:InstallMethod:IsIsomorphism:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -5360,7 +5360,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::is_isomorphism"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsKroneckerAlgebra"
@@ -5681,8 +5681,8 @@ python_tests = []
 qpa_name = "IsPathAlgebraMatModuleHomomorphism"
 python_name = "is_path_algebra_mat_module_homomorphism"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism"
 notes = ""
 entry_ids = ["modulehom:DeclareCategory:IsPathAlgebraMatModuleHomomorphism:1","modulehom:DeclareCategoryFamily:IsPathAlgebraMatModuleHomomorphism:1","modulehom:DeclareCategoryCollections:IsPathAlgebraMatModuleHomomorphism:1"]
 constructs = ["DeclareCategory","DeclareCategoryCollections","DeclareCategoryFamily"]
@@ -5690,7 +5690,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd"]
 rust_symbols = ["PathAlgebraModuleHomomorphism","Vec<PathAlgebraModuleHomomorphism>"]
 rust_tests = ["tests/fixtures/module_presentation.txt","tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsPathAlgebraMatModuleHomomorphismRep"
@@ -6446,8 +6446,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsSemisimpleModule"
 python_name = "is_semisimple_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_semisimple"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsSemisimpleModule:1","module:InstallTrueMethod:IsSemisimpleModule:1","module:InstallMethod:IsSemisimpleModule:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallTrueMethod"]
@@ -6455,7 +6455,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["PathAlgebraModule::cache_is_simple_qpa_module","is_semisimple_module"]
 rust_tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsShortExactSequence"
@@ -6476,8 +6476,8 @@ python_tests = []
 qpa_name = "IsSimpleQPAModule"
 python_name = "is_simple_qpa_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_simple"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsSimpleQPAModule:1","module:InstallMethod:IsSimpleQPAModule:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6485,7 +6485,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["is_simple_qpa_module"]
 rust_tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSpecialBiserialAlgebra"
@@ -6521,8 +6521,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IsSplitEpimorphism"
 python_name = "is_split_epimorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.is_split_epimorphism"
 notes = ""
 entry_ids = ["modulehom:DeclareProperty:IsSplitEpimorphism:1","modulehom:InstallMethod:IsSplitEpimorphism:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6530,14 +6530,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["is_split_epimorphism"]
 rust_tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSplitMonomorphism"
 python_name = "is_split_monomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.is_split_monomorphism"
 notes = ""
 entry_ids = ["modulehom:DeclareProperty:IsSplitMonomorphism:1","modulehom:InstallMethod:IsSplitMonomorphism:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6545,7 +6545,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["is_split_monomorphism"]
 rust_tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsStaticDictionary"
@@ -6671,8 +6671,8 @@ python_tests = []
 qpa_name = "IsSurjective"
 python_name = "is_surjective"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.is_surjective"
 notes = ""
 entry_ids = ["modulehom:InstallOtherMethod:IsSurjective:1"]
 constructs = ["InstallOtherMethod"]
@@ -6680,7 +6680,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::is_surjective"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSymmetricAlgebra"
@@ -7061,16 +7061,16 @@ python_tests = []
 qpa_name = "IsZero"
 python_name = "is_zero"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_zero"
+notes = "Both QPA overloads in the source ledger, for modules and module homomorphisms, are exposed."
 entry_ids = ["module:InstallOtherMethod:IsZero:1","modulehom:InstallMethod:IsZero:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModule::is_zero","PathAlgebraModuleHomomorphism::is_zero"]
 rust_tests = ["tests/fixtures/module_basis.txt","tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsZeroComplex"
@@ -7181,8 +7181,8 @@ python_tests = []
 qpa_name = "Kernel"
 python_name = "kernel"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.kernel"
 notes = ""
 entry_ids = ["modulehom:InstallOtherMethod:Kernel:1"]
 constructs = ["InstallOtherMethod"]
@@ -7190,7 +7190,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["kernel_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "KernelInclusion"
@@ -7406,8 +7406,8 @@ python_tests = []
 qpa_name = "LeftInverseOfHomomorphism"
 python_name = "left_inverse_of_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.left_inverse"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:LeftInverseOfHomomorphism:1","modulehom:InstallMethod:LeftInverseOfHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -7415,7 +7415,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["left_inverse_of_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftLexicographicOrdering"
@@ -7811,16 +7811,16 @@ python_tests = []
 qpa_name = "LoewyLength"
 python_name = "loewy_length"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.MatrixModule.loewy_length"
+notes = "The path-algebra matrix-module overload is exposed."
 entry_ids = ["module:DeclareAttribute:LoewyLength:1","module:InstallMethod:LoewyLength:1","module:InstallOtherMethod:LoewyLength:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["loewy_length_of_algebra","loewy_length_of_module","loewy_length_of_module; loewy_length_of_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "LowerBound"
@@ -8081,8 +8081,8 @@ python_tests = []
 qpa_name = "MatricesOfPathAlgebraMatModuleHomomorphism"
 python_name = "matrices_of_path_algebra_mat_module_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.vertex_matrices"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MatricesOfPathAlgebraMatModuleHomomorphism:1","modulehom:InstallMethod:MatricesOfPathAlgebraMatModuleHomomorphism:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8090,7 +8090,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::vertex_matrices"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "MatricesOfPathAlgebraModule"
@@ -8276,8 +8276,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "MinimalGeneratingSetOfModule"
 python_name = "minimal_generating_set_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_generating_set"
 notes = ""
 entry_ids = ["module:DeclareAttribute:MinimalGeneratingSetOfModule:1","module:InstallMethod:MinimalGeneratingSetOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -8285,7 +8285,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["minimal_generating_set_of_module"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalLeftAddMApproximation"
@@ -9866,8 +9866,8 @@ python_tests = []
 qpa_name = "PreImagesRepresentativeNC"
 python_name = "pre_images_representative_nc"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.preimage_representative"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:PreImagesRepresentativeNC:1"]
 constructs = ["InstallMethod"]
@@ -9875,7 +9875,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::preimage_representative"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "PredecessorsOfModule"
@@ -10691,8 +10691,8 @@ python_tests = []
 qpa_name = "RadicalOfModule"
 python_name = "radical_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.radical"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:RadicalOfModule:1","modulehom:InstallMethod:RadicalOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10700,7 +10700,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["radical_of_module"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "RadicalOfModuleInclusion"
@@ -10781,8 +10781,8 @@ python_tests = []
 qpa_name = "Range"
 python_name = "range"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.range"
 notes = ""
 entry_ids = ["complex:DeclareAttribute:Range:1"]
 constructs = ["DeclareAttribute"]
@@ -10790,7 +10790,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap::range"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReadAlgebra"
@@ -11186,8 +11186,8 @@ python_tests = []
 qpa_name = "RightInverseOfHomomorphism"
 python_name = "right_inverse_of_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.right_inverse"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:RightInverseOfHomomorphism:1","modulehom:InstallMethod:RightInverseOfHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -11195,7 +11195,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["right_inverse_of_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_split.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightLexicographicOrdering"
@@ -11231,8 +11231,8 @@ python_tests = []
 qpa_name = "RightModuleHomOverAlgebra"
 python_name = "right_module_hom_over_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.homomorphism_to"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:RightModuleHomOverAlgebra:1","modulehom:InstallMethod:RightModuleHomOverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11240,7 +11240,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["right_module_hom_over_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightModuleOverPathAlgebra"
@@ -11248,14 +11248,14 @@ python_name = "right_module_over_path_algebra"
 disposition = "operation"
 status = "partial"
 python_target = "qpa.PathAlgebra.module_from_integer_matrices"
-notes = "Explicit dimensions and integer matrices are exposed for path algebras."
+notes = "Explicit dimensions and integer matrices are exposed for path algebras and quotients."
 entry_ids = ["module:DeclareOperation:RightModuleOverPathAlgebra:1","module:InstallMethod:RightModuleOverPathAlgebra:1","module:InstallOtherMethod:RightModuleOverPathAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["right_module_over_path_algebra","right_module_over_path_algebra_infer_dimension","right_module_over_path_algebra_infer_dimension; PathAlgebraModuleArrowActions"]
 rust_tests = ["crates/qpa-core/src/path_module.rs","tests/fixtures/module_inferred_constructor_errors.schema-v1.json","tests/fixtures/module_inferred_constructors.txt","tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightModuleOverPathAlgebraNC"
@@ -11606,8 +11606,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "SocleOfModule"
 python_name = "socle_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.socle"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:SocleOfModule:1","modulehom:InstallMethod:SocleOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11615,7 +11615,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["socle_of_module"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "SocleOfModuleInclusion"
@@ -11651,16 +11651,16 @@ python_tests = []
 qpa_name = "Source"
 python_name = "source"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleHomomorphism.source"
+notes = "The module-homomorphism overload is exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
 entry_ids = ["complex:DeclareAttribute:Source:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap::source"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "SourceOfArrow"
@@ -11996,8 +11996,8 @@ python_tests = []
 qpa_name = "SupportModuleElement"
 python_name = "support_module_element"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleElement.support_vertices"
 notes = ""
 entry_ids = ["module:DeclareOperation:SupportModuleElement:1","module:InstallMethod:SupportModuleElement:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12005,7 +12005,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["PathAlgebraModuleElement::support_vertices"]
 rust_tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "SupportOfQuiverAlgebraElement"
@@ -12521,16 +12521,16 @@ python_tests = []
 qpa_name = "TopOfModule"
 python_name = "top_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.MatrixModule.top"
+notes = "The module overload is exposed; the induced homomorphism overload remains."
 entry_ids = ["modulehom:DeclareAttribute:TopOfModule:1","modulehom:DeclareAttribute:TopOfModule:2","modulehom:InstallMethod:TopOfModule:1","modulehom:InstallOtherMethod:TopOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["top_of_module","top_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/modulehom_functors.schema-v1.json","tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "TopOfModuleProjection"
@@ -13076,8 +13076,8 @@ python_tests = []
 qpa_name = "Zero"
 python_name = "zero"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.zero"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:Zero:1"]
 constructs = ["InstallMethod"]
@@ -13085,7 +13085,7 @@ source_files = ["upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::zero"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "ZeroChainMap"
@@ -13151,61 +13151,61 @@ python_tests = []
 qpa_name = "ZeroOp"
 python_name = "zero_op"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.MatrixModule.zero_element"
+notes = "The matrix-module element overload is exposed alongside existing quotient-algebra zero; other QPA domains remain."
 entry_ids = ["algebra:InstallMethod:ZeroOp:1","module:InstallMethod:ZeroOp:1","pathalg:InstallMethod:ZeroOp:1","projpathalgmodule:InstallMethod:ZeroOp:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::zero_same_parent","PathAlgebraModule::zero_element","QuotientPathAlgebra::zero","RightProjectivePathAlgebraModule::zero; RightProjectiveQuotientPathAlgebraModule::zero"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\*"
 python_name = "multiply"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleHomomorphism.compose"
+notes = "Module-element scalar actions and module-map composition/scaling are exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\*:1","algebra:InstallMethod:\\*:2","algebra:InstallMethod:\\*:3","module:InstallMethod:\\*:1","module:InstallOtherMethod:\\*:1","modulehom:InstallMethod:\\*:1","modulehom:InstallOtherMethod:\\*:1","modulehom:InstallOtherMethod:\\*:2","pathalg:InstallMethod:\\*:1","pathalg:InstallMethod:\\*:2","pathalg:InstallMethod:\\*:3","pathalg:InstallMethod:\\*:4","pathalg:InstallMethod:\\*:5","pathalg:InstallMethod:\\*:6","pathalg:InstallMethod:\\*:7","projpathalgmodule:InstallOtherMethod:\\*:1","projpathalgmodule:InstallMethod:\\*:1","quiver:InstallMethod:\\*:1","quiver:InstallMethod:\\*:2","quiver:InstallMethod:\\*:3","quiver:InstallMethod:\\*:4","quiver:InstallMethod:\\*:5","quiver:InstallMethod:\\*:6"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::multiply","OppositeStructureConstantsAlgebraElement::scale","Path::multiply","PathAlgebraElement::multiply","PathAlgebraModuleElement::scale_left","PathAlgebraModuleElement::scale_right","PathAlgebraModuleHomomorphism::compose","PathAlgebraModuleHomomorphism::scale","PathAlgebraVector::scale_left; QuotientPathAlgebraVector::scale_left","PathAlgebraVector::scale_left; QuotientPathAlgebraVector::scale_right","QuotientPathAlgebraElement::multiply","QuotientPathAlgebraElement::multiply_path_left","QuotientPathAlgebraElement::multiply_path_right","QuotientPathAlgebraElement::scale_left","QuotientPathAlgebraElement::scale_right"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/path_algebra.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\+"
 python_name = "add"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleElement.add"
+notes = "Matrix-module element and homomorphism addition are exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\+:1","module:InstallMethod:\\+:1","modulehom:InstallMethod:\\+:1","pathalg:InstallMethod:\\+:1","pathalg:InstallMethod:\\+:2","pathalg:InstallMethod:\\+:3","projpathalgmodule:InstallMethod:\\+:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::add","PathAlgebraElement::add","PathAlgebraModuleElement::add","PathAlgebraModuleHomomorphism::add","PathAlgebraVector::add; QuotientPathAlgebraVector::add","QuotientPathAlgebraElement::add"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_element_errors.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/path_algebra.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\-"
 python_name = "subtract"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleElement.subtract"
+notes = "Matrix-module element subtraction and negation are exposed among the grouped QPA overloads."
 entry_ids = ["module:InstallMethod:\\-:1","pathalg:InstallMethod:\\-:1","projpathalgmodule:InstallMethod:\\-:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraModuleElement::subtract","PathAlgebraVector::sub; QuotientPathAlgebraVector::sub","QuotientPathAlgebraElement::sub"]
 rust_tests = ["tests/fixtures/module_element_errors.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\."
@@ -13256,16 +13256,16 @@ python_tests = []
 qpa_name = "\\="
 python_name = "equal"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleElement.__eq__"
+notes = "Structural equality for matrix modules, their elements, and homomorphisms is exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\=:1","complex:InstallMethod:\\=:1","groebnerdyndict:InstallMethod:\\=:1","groebnerdyntree:InstallMethod:\\=:1","module:InstallMethod:\\=:1","module:InstallMethod:\\=:2","modulehom:InstallMethod:\\=:1","pathalg:InstallMethod:\\=:1","projpathalgmodule:InstallMethod:\\=:1","quiver:InstallMethod:\\=:1","quiver:InstallMethod:\\=:2","quiver:InstallMethod:\\=:3","quiver:InstallMethod:\\=:4","quiver:InstallMethod:\\=:5","quiver:InstallMethod:\\=:6"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/groebnerdyndict.gi","upstream/qpa/lib/groebnerdyntree.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["DynamicTree::is_identical; DynamicTree::eq","OppositeStructureConstantsAlgebraElement::eq","PartialEq for PathAlgebraModuleElement","Path::eq","PathAlgebraModule::eq; PathAlgebraModule::is_identical","PathAlgebraModuleHomomorphism::eq","PathAlgebraVector::eq; QuotientPathAlgebraVector::eq","QuotientPathAlgebraElement::eq","SuffixTreeNodeId::eq; SuffixTreeEdgeId::eq","qpa_gbnp::CallbackCategory::eq"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/final_declared_surface.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\[\\]"

@@ -78,8 +78,8 @@ notes = "Quotient-algebra and matrix-module dimensions are exposed."
 qpa_name = "RightModuleOverPathAlgebra"
 status = "partial"
 target = "qpa.PathAlgebra.module_from_integer_matrices"
-tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core"]
-notes = "Explicit dimensions and integer matrices are exposed for path algebras."
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Explicit dimensions and integer matrices are exposed for path algebras and quotients."
 
 [[bindings]]
 qpa_name = "IsPathAlgebraModule"
@@ -632,3 +632,264 @@ status = "partial"
 target = "qpa.QuotientElement.inverse"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 notes = "The quotient-element overload is exposed, with QPA fail represented by None."
+
+# Matrix modules, elements, and homomorphisms
+
+[[bindings]]
+qpa_name = "Basis"
+status = "partial"
+target = "qpa.MatrixModule.basis_elements"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "The standard matrix-module basis is exposed directly as its ordered basis elements."
+
+[[bindings]]
+qpa_name = "BasisVectors"
+status = "partial"
+target = "qpa.MatrixModule.basis_elements"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "BasisVectors(Basis(M)) is exposed as MatrixModule.basis_elements()."
+
+[[bindings]]
+qpa_name = "CoKernelOfAdditiveGeneralMapping"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.cokernel"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DirectSumInclusions"
+status = "exposed"
+target = "qpa.MatrixModule.direct_sum_inclusions"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DirectSumOfQPAModules"
+status = "exposed"
+target = "qpa.MatrixModule.direct_sum"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DirectSumProjections"
+status = "exposed"
+target = "qpa.MatrixModule.direct_sum_projections"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IdentityMapping"
+status = "exposed"
+target = "qpa.MatrixModule.identity"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ImageElm"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.image"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ImagesSource"
+status = "partial"
+target = "qpa.ModuleHomomorphism.image_module"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "The path-algebra matrix-module overload is exposed; projective presentation-map overloads remain."
+
+[[bindings]]
+qpa_name = "InverseOfIsomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.inverse"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsDirectSumOfModules"
+status = "exposed"
+target = "qpa.MatrixModule.is_direct_sum"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsInjective"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_injective"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsIsomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_isomorphism"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsPathAlgebraMatModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsSemisimpleModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_semisimple"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsSimpleQPAModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_simple"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsSplitEpimorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_split_epimorphism"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsSplitMonomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_split_monomorphism"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsSurjective"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_surjective"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsZero"
+status = "exposed"
+target = "qpa.MatrixModule.is_zero"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Both QPA overloads in the source ledger, for modules and module homomorphisms, are exposed."
+
+[[bindings]]
+qpa_name = "Kernel"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.kernel"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftInverseOfHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.left_inverse"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LoewyLength"
+status = "partial"
+target = "qpa.MatrixModule.loewy_length"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "The path-algebra matrix-module overload is exposed."
+
+[[bindings]]
+qpa_name = "MatricesOfPathAlgebraMatModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.vertex_matrices"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalGeneratingSetOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_generating_set"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PreImagesRepresentativeNC"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.preimage_representative"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RadicalOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.radical"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "Range"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.range"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightInverseOfHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.right_inverse"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightModuleHomOverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.homomorphism_to"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SocleOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.socle"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "Source"
+status = "partial"
+target = "qpa.ModuleHomomorphism.source"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "The module-homomorphism overload is exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
+
+[[bindings]]
+qpa_name = "SupportModuleElement"
+status = "exposed"
+target = "qpa.ModuleElement.support_vertices"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TopOfModule"
+status = "partial"
+target = "qpa.MatrixModule.top"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "The module overload is exposed; the induced homomorphism overload remains."
+
+[[bindings]]
+qpa_name = "Zero"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.zero"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ZeroOp"
+status = "partial"
+target = "qpa.MatrixModule.zero_element"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "The matrix-module element overload is exposed alongside existing quotient-algebra zero; other QPA domains remain."
+
+[[bindings]]
+qpa_name = "AdditiveInverseOp"
+status = "partial"
+target = "qpa.ModuleElement.negate"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Module-element and module-homomorphism overloads are exposed; projective-vector overloads remain."
+
+[[bindings]]
+qpa_name = "\\*"
+status = "partial"
+target = "qpa.ModuleHomomorphism.compose"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Module-element scalar actions and module-map composition/scaling are exposed among the grouped QPA overloads."
+
+[[bindings]]
+qpa_name = "\\+"
+status = "partial"
+target = "qpa.ModuleElement.add"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Matrix-module element and homomorphism addition are exposed among the grouped QPA overloads."
+
+[[bindings]]
+qpa_name = "\\-"
+status = "partial"
+target = "qpa.ModuleElement.subtract"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Matrix-module element subtraction and negation are exposed among the grouped QPA overloads."
+
+[[bindings]]
+qpa_name = "\\="
+status = "partial"
+target = "qpa.ModuleElement.__eq__"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Structural equality for matrix modules, their elements, and homomorphisms is exposed among the grouped QPA overloads."
