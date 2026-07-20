@@ -7,6 +7,7 @@ mod combinatorial_rep;
 mod complex_foundation;
 mod conversion;
 mod degeneration;
+mod element_utilities;
 mod fp_projective;
 mod groebner;
 mod homological;
@@ -45,6 +46,7 @@ pub(crate) use degeneration::{
     py_format_multiplicity_vector, py_format_multiplicity_vectors, py_predefined_ar_quiver_catalog,
     py_predefined_ar_quiver_data,
 };
+pub(crate) use element_utilities::py_opposite_relations;
 pub(crate) use fp_projective::{
     PyFpPathAlgebraByImagesHomomorphism, PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector,
     PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
@@ -77,7 +79,7 @@ use numerica::domains::{
     integer::Integer,
     rational::{Q, RationalField},
 };
-use pyo3::{Py, PyRef, PyResult, Python, prelude::*};
+use pyo3::{Py, PyRef, PyResult, Python, prelude::*, types::PyList};
 use qpa_core::{
     AlgebraDimension, DenseMatrix, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix, PathAlgebra,
     PathAlgebraElement, PathAlgebraIdeal, PathAlgebraModule, PathAlgebraModuleElement,
@@ -85,6 +87,7 @@ use qpa_core::{
     QuotientPathAlgebra, QuotientPathAlgebraElement, right_module_over_path_algebra,
 };
 
+use crate::field::parse_python_integer;
 use crate::{
     FieldKind, PyField, PyScalar, RelationNotSatisfiedError, invalid,
     quiver::{PyPath, PyQuiver, PyQuiverOrdering, ordering_value},
@@ -1958,6 +1961,73 @@ impl PyPathAlgebra {
         ))
     }
 
+    fn left_support_of_quiver_algebra_element(
+        &self,
+        element: &PyAlgebraElement,
+    ) -> PyResult<Vec<usize>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(element_utilities::path_support_for(
+                algebra,
+                element.kind.clone(),
+                element_utilities::SupportSide::Left,
+            )?
+            .pop()
+            .unwrap_or_default())
+        })
+    }
+
+    fn right_support_of_quiver_algebra_element(
+        &self,
+        element: &PyAlgebraElement,
+    ) -> PyResult<Vec<usize>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(element_utilities::path_support_for(
+                algebra,
+                element.kind.clone(),
+                element_utilities::SupportSide::Right,
+            )?
+            .pop()
+            .unwrap_or_default())
+        })
+    }
+
+    fn support_of_quiver_algebra_element(
+        &self,
+        element: &PyAlgebraElement,
+    ) -> PyResult<Vec<Vec<usize>>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            element_utilities::path_support_for(
+                algebra,
+                element.kind.clone(),
+                element_utilities::SupportSide::Both,
+            )
+        })
+    }
+
+    /// Mutate and return the identical Python list, as QPA mutates and returns `rels`.
+    fn add_nth_power_to_relations(
+        &self,
+        relations: &Bound<'_, PyList>,
+        exponent: i64,
+    ) -> PyResult<Py<PyList>> {
+        let relation_kinds = relations
+            .iter()
+            .map(|relation| {
+                relation
+                    .extract::<PyRef<'_, PyAlgebraElement>>()
+                    .map(|relation| relation.kind.clone())
+                    .map_err(Into::into)
+            })
+            .collect::<PyResult<Vec<_>>>()?;
+        let appended = dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            element_utilities::add_power_for(algebra, relation_kinds, exponent)
+        })?;
+        for relation in appended {
+            relations.append(Py::new(relations.py(), relation)?)?;
+        }
+        Ok(relations.clone().unbind())
+    }
+
     fn module_from_integer_matrices(
         &self,
         dimension_vector: Vec<usize>,
@@ -2224,6 +2294,34 @@ impl PyAlgebraElement {
         let inner = dispatch_ref!(&self.kind, AlgebraElementKind, |element| element
             .leading_monomial());
         PyPath { inner }
+    }
+
+    #[getter]
+    fn tip(&self) -> Self {
+        self.leading_term()
+    }
+
+    #[getter]
+    fn tip_coefficient(&self) -> PyScalar {
+        self.leading_coefficient()
+    }
+
+    #[getter]
+    fn tip_monomial(&self) -> PyPath {
+        self.leading_monomial()
+    }
+
+    fn path_removal(&self, py: Python<'_>, vertex_positions: Vec<Py<PyAny>>) -> PyResult<Self> {
+        let positions = vertex_positions
+            .into_iter()
+            .map(|position| parse_python_integer(position.bind(py)))
+            .collect::<PyResult<Vec<_>>>()?
+            .into_iter()
+            .filter_map(|position| position.to_string().parse::<usize>().ok())
+            .collect::<Vec<_>>();
+        dispatch_ref!(&self.kind, AlgebraElementKind, |element| {
+            element_utilities::path_removal_for(element, &positions)
+        })
     }
 
     #[getter]

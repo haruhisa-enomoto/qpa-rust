@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 678
+exposed_or_partial_count = 687
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -131,8 +131,8 @@ python_tests = []
 qpa_name = "AddNthPowerToRelations"
 python_name = "add_nth_power_to_relations"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.add_nth_power_to_relations"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:AddNthPowerToRelations:1","pathalg:InstallMethod:AddNthPowerToRelations:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -140,7 +140,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::add_nth_power_to_relations"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_add_nth_power_to_relations_preserves_qpa_mutation"]
 
 [[operations]]
 qpa_name = "AdditiveInverseOp"
@@ -7511,8 +7511,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_approximation_ope
 qpa_name = "LeftSupportOfQuiverAlgebraElement"
 python_name = "left_support_of_quiver_algebra_element"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.left_support_of_quiver_algebra_element; qpa.QuotientAlgebra.left_support_of_quiver_algebra_element"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:LeftSupportOfQuiverAlgebraElement:1","pathalg:InstallMethod:LeftSupportOfQuiverAlgebraElement:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7520,7 +7520,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::left_support_of_quiver_algebra_element; QuotientPathAlgebra::left_support_of_quiver_algebra_element"]
 rust_tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa","python/tests/test_element_utilities.py::test_element_utility_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftVectorOrdering"
@@ -9236,8 +9236,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "OppositeRelations"
 python_name = "opposite_relations"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.opposite_relations"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:OppositeRelations:1","pathalg:InstallMethod:OppositeRelations:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9245,7 +9245,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["qpa_core::opposite_relations"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_opposite_relations_follow_qpa"]
 
 [[operations]]
 qpa_name = "OrbitCodim"
@@ -9656,8 +9656,8 @@ python_tests = []
 qpa_name = "PathRemoval"
 python_name = "path_removal"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.path_removal"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:PathRemoval:1","pathalg:InstallMethod:PathRemoval:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9665,7 +9665,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebraElement::path_removal"]
 rust_tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json","tests/gap-reference/pathalg_path_removal_vertex_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa","python/tests/test_element_utilities.py::test_element_utility_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "PathRing"
@@ -11351,8 +11351,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_approximation_ope
 qpa_name = "RightSupportOfQuiverAlgebraElement"
 python_name = "right_support_of_quiver_algebra_element"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.right_support_of_quiver_algebra_element; qpa.QuotientAlgebra.right_support_of_quiver_algebra_element"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:RightSupportOfQuiverAlgebraElement:1","pathalg:InstallMethod:RightSupportOfQuiverAlgebraElement:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11360,7 +11360,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::right_support_of_quiver_algebra_element; QuotientPathAlgebra::right_support_of_quiver_algebra_element"]
 rust_tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightVectorOrdering"
@@ -12011,8 +12011,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "SupportOfQuiverAlgebraElement"
 python_name = "support_of_quiver_algebra_element"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.support_of_quiver_algebra_element; qpa.QuotientAlgebra.support_of_quiver_algebra_element"
 notes = ""
 entry_ids = ["pathalg:DeclareOperation:SupportOfQuiverAlgebraElement:1","pathalg:InstallMethod:SupportOfQuiverAlgebraElement:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12020,7 +12020,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::support_of_quiver_algebra_element; QuotientPathAlgebra::support_of_quiver_algebra_element"]
 rust_tests = ["tests/fixtures/pathalg_element_utilities.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa"]
 
 [[operations]]
 qpa_name = "SymmetricMatrixOfUnitForm"
@@ -12296,8 +12296,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotil
 qpa_name = "Tip"
 python_name = "tip"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip; qpa.QuotientElement.tip; qpa.PathAlgebraVector.tip; qpa.QuotientPathAlgebraVector.tip"
 notes = ""
 entry_ids = ["pathalg:DeclareSynonym:Tip:1"]
 constructs = ["DeclareSynonym"]
@@ -12305,14 +12305,14 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["PathAlgebraElement::leading_term; QuotientPathAlgebraElement::leading_term"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipCoefficient"
 python_name = "tip_coefficient"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip_coefficient; qpa.QuotientElement.tip_coefficient; qpa.PathAlgebraVector.tip_coefficient; qpa.QuotientPathAlgebraVector.tip_coefficient"
 notes = ""
 entry_ids = ["pathalg:DeclareSynonym:TipCoefficient:1"]
 constructs = ["DeclareSynonym"]
@@ -12320,7 +12320,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["PathAlgebraElement::leading_coefficient; QuotientPathAlgebraElement::leading_coefficient"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipCoefficientInvLenInvLex"
@@ -12356,8 +12356,8 @@ python_tests = []
 qpa_name = "TipMonomial"
 python_name = "tip_monomial"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip_monomial; qpa.QuotientElement.tip_monomial"
 notes = ""
 entry_ids = ["pathalg:DeclareSynonym:TipMonomial:1"]
 constructs = ["DeclareSynonym"]
@@ -12365,7 +12365,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["PathAlgebraElement::leading_monomial; QuotientPathAlgebraElement::leading_monomial"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipMonomialInvLenInvLex"

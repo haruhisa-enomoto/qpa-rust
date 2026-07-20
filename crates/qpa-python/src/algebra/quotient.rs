@@ -66,6 +66,49 @@ impl PyQuotientAlgebra {
         })
     }
 
+    fn left_support_of_quiver_algebra_element(
+        &self,
+        element: &PyQuotientElement,
+    ) -> PyResult<Vec<usize>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            Ok(super::element_utilities::quotient_support_for(
+                algebra,
+                element.kind.clone(),
+                super::element_utilities::SupportSide::Left,
+            )?
+            .pop()
+            .unwrap_or_default())
+        })
+    }
+
+    fn right_support_of_quiver_algebra_element(
+        &self,
+        element: &PyQuotientElement,
+    ) -> PyResult<Vec<usize>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            Ok(super::element_utilities::quotient_support_for(
+                algebra,
+                element.kind.clone(),
+                super::element_utilities::SupportSide::Right,
+            )?
+            .pop()
+            .unwrap_or_default())
+        })
+    }
+
+    fn support_of_quiver_algebra_element(
+        &self,
+        element: &PyQuotientElement,
+    ) -> PyResult<Vec<Vec<usize>>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            super::element_utilities::quotient_support_for(
+                algebra,
+                element.kind.clone(),
+                super::element_utilities::SupportSide::Both,
+            )
+        })
+    }
+
     #[staticmethod]
     fn truncated(
         field: PyRef<'_, PyField>,
@@ -594,6 +637,21 @@ impl PyQuotientElement {
         let inner = dispatch_ref!(&self.kind, QuotientElementKind, |element| element
             .leading_monomial());
         PyPath { inner }
+    }
+
+    #[getter]
+    fn tip(&self) -> Self {
+        self.leading_term()
+    }
+
+    #[getter]
+    fn tip_coefficient(&self) -> PyScalar {
+        self.leading_coefficient()
+    }
+
+    #[getter]
+    fn tip_monomial(&self) -> PyPath {
+        self.leading_monomial()
     }
 
     #[getter]

@@ -750,6 +750,60 @@ target = "qpa.PathAlgebra.nth_power_of_arrow_ideal"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
+qpa_name = "AddNthPowerToRelations"
+status = "exposed"
+target = "qpa.PathAlgebra.add_nth_power_to_relations"
+tests = ["python/tests/test_element_utilities.py::test_add_nth_power_to_relations_preserves_qpa_mutation"]
+
+[[bindings]]
+qpa_name = "OppositeRelations"
+status = "exposed"
+target = "qpa.opposite_relations"
+tests = ["python/tests/test_element_utilities.py::test_opposite_relations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PathRemoval"
+status = "exposed"
+target = "qpa.AlgebraElement.path_removal"
+tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa","python/tests/test_element_utilities.py::test_element_utility_errors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftSupportOfQuiverAlgebraElement"
+status = "exposed"
+target = "qpa.PathAlgebra.left_support_of_quiver_algebra_element; qpa.QuotientAlgebra.left_support_of_quiver_algebra_element"
+tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa","python/tests/test_element_utilities.py::test_element_utility_errors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightSupportOfQuiverAlgebraElement"
+status = "exposed"
+target = "qpa.PathAlgebra.right_support_of_quiver_algebra_element; qpa.QuotientAlgebra.right_support_of_quiver_algebra_element"
+tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SupportOfQuiverAlgebraElement"
+status = "exposed"
+target = "qpa.PathAlgebra.support_of_quiver_algebra_element; qpa.QuotientAlgebra.support_of_quiver_algebra_element"
+tests = ["python/tests/test_element_utilities.py::test_path_removal_and_support_follow_qpa"]
+
+[[bindings]]
+qpa_name = "Tip"
+status = "exposed"
+target = "qpa.AlgebraElement.tip; qpa.QuotientElement.tip; qpa.PathAlgebraVector.tip; qpa.QuotientPathAlgebraVector.tip"
+tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TipCoefficient"
+status = "exposed"
+target = "qpa.AlgebraElement.tip_coefficient; qpa.QuotientElement.tip_coefficient; qpa.PathAlgebraVector.tip_coefficient; qpa.QuotientPathAlgebraVector.tip_coefficient"
+tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TipMonomial"
+status = "exposed"
+target = "qpa.AlgebraElement.tip_monomial; qpa.QuotientElement.tip_monomial"
+tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follow_qpa"]
+
+[[bindings]]
 qpa_name = "AssociatedMonomialAlgebra"
 status = "exposed"
 target = "qpa.QuiverAlgebra.associated_monomial_algebra"

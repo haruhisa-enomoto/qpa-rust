@@ -619,6 +619,16 @@ impl PyPathAlgebraVector {
     }
 
     #[getter]
+    fn tip(&self) -> Self {
+        self.leading_term()
+    }
+
+    #[getter]
+    fn tip_coefficient(&self) -> PyResult<PyScalar> {
+        self.leading_coefficient()
+    }
+
+    #[getter]
     fn leading_component(&self) -> PyResult<PyAlgebraElement> {
         let kind = map_ref!(
             &self.kind,
