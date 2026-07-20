@@ -2153,3 +2153,41 @@ qpa_name = "MultiplyListsOfMaps"
 status = "exposed"
 target = "qpa.ModuleHomomorphism.multiply_lists"
 tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+# Hom-basis coordinates and stable endomorphism algebras
+
+[[bindings]]
+qpa_name = "HomOverAlgebraWithBasisFunction"
+status = "exposed"
+target = "qpa.MatrixModule.hom_basis_with_coefficients_to; qpa.ModuleHomomorphismBasis"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "EndOverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.endomorphism_algebra; qpa.ModuleEndomorphismAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "EndModuloProjOverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.stable_endomorphism_quotient; qpa.ModuleEndomorphismQuotientMap; qpa.ModuleEndomorphismQuotientAlgebra; qpa.ModuleEndomorphismQuotientElement"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FromHomMMToEndM"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.endomorphism_matrix"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FromEndMToHomMM"
+status = "exposed"
+target = "qpa.MatrixModule.endomorphism_from_matrix"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "UnderlyingLinearMap"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.underlying_linear_matrix"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]

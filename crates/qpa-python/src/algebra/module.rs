@@ -112,6 +112,32 @@ fn extract_scalar_rows<F: runtime::PythonField>(
         .collect()
 }
 
+fn extract_matrix<F: runtime::PythonField>(
+    py: Python<'_>,
+    field: &F,
+    rows: Vec<Vec<Py<PyScalar>>>,
+) -> PyResult<DenseMatrix<F>> {
+    DenseMatrix::from_rows(extract_scalar_rows(py, field, rows)?, field.clone()).map_err(invalid)
+}
+
+fn extract_scalars<F: runtime::PythonField>(
+    py: Python<'_>,
+    field: &F,
+    values: Vec<Py<PyScalar>>,
+) -> PyResult<Vec<F::Element>> {
+    values
+        .into_iter()
+        .map(|value| field.scalar_value(&value.borrow(py)))
+        .collect()
+}
+
+fn wrap_scalars<F: runtime::PythonField>(field: &F, values: &[F::Element]) -> Vec<PyScalar> {
+    values
+        .iter()
+        .map(|value| field.wrap_scalar(value))
+        .collect()
+}
+
 fn build_module_element<F: runtime::PythonField>(
     py: Python<'_>,
     module: &PathAlgebraModule<F>,
@@ -258,6 +284,20 @@ where
     Ok(wrap_module_homomorphism(
         qpa_core::multiply_lists_of_maps(&projections, &matrix, &inclusions).map_err(invalid)?,
     ))
+}
+
+fn hom_basis_coefficients_for<F: runtime::PythonField>(
+    basis: &qpa_core::PathAlgebraModuleHomomorphismBasis<F>,
+    homomorphism: ModuleHomomorphismKind,
+) -> PyResult<Option<Vec<PyScalar>>>
+where
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>,
+{
+    let homomorphism = runtime::Extract::extract(homomorphism)?;
+    Ok(basis
+        .coefficients(&homomorphism)
+        .map_err(invalid)?
+        .map(|coefficients| wrap_scalars(basis.field(), &coefficients)))
 }
 
 fn wrap_module_submodule<F: runtime::PythonField>(
@@ -574,6 +614,57 @@ impl PyMatrixModule {
                 .map(wrap_module_homomorphisms)),
             Err(invalid("modules belong to different coefficient fields"))
         )
+    }
+
+    fn hom_basis_with_coefficients_to(
+        &self,
+        range: &Self,
+    ) -> PyResult<Option<PyModuleHomomorphismBasis>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &range.kind,
+            MatrixModuleKind,
+            |source, range| Ok(
+                qpa_core::hom_over_algebra_with_basis_function(source, range)
+                    .map_err(invalid)?
+                    .map(|basis| PyModuleHomomorphismBasis {
+                        kind: runtime::Wrap::wrap(basis),
+                    })
+            ),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn endomorphism_algebra(&self) -> PyResult<PyModuleEndomorphismAlgebra> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleEndomorphismAlgebraKind,
+            |module| qpa_core::end_over_algebra(module).map_err(invalid)?
+        );
+        Ok(PyModuleEndomorphismAlgebra { kind })
+    }
+
+    fn stable_endomorphism_quotient(&self) -> PyResult<PyModuleEndomorphismQuotientMap> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleEndomorphismQuotientMapKind,
+            |module| qpa_gbnp::end_modulo_projectives(module).map_err(invalid)?
+        );
+        Ok(PyModuleEndomorphismQuotientMap { kind })
+    }
+
+    fn endomorphism_from_matrix(
+        &self,
+        py: Python<'_>,
+        matrix: Vec<Vec<Py<PyScalar>>>,
+    ) -> PyResult<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            let field = module.right_acting_algebra().field();
+            Ok(wrap_module_homomorphism(
+                qpa_core::from_end_m_to_hom_mm(module, &extract_matrix(py, field, matrix)?)
+                    .map_err(invalid)?,
+            ))
+        })
     }
 
     fn hom_factoring_through_projectives_to(
@@ -1861,6 +1952,322 @@ impl PyMaximalCommonDirectSummand {
 }
 
 #[pymethods]
+impl PyModuleHomomorphismBasis {
+    #[getter]
+    fn basis(&self) -> Vec<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismBasisKind, |basis| basis
+            .basis()
+            .iter()
+            .cloned()
+            .map(wrap_module_homomorphism)
+            .collect())
+    }
+
+    #[getter]
+    fn dimension(&self) -> usize {
+        dispatch_ref!(&self.kind, ModuleHomomorphismBasisKind, |basis| basis
+            .basis()
+            .len())
+    }
+
+    fn coefficients(&self, homomorphism: &PyModuleHomomorphism) -> PyResult<Option<Vec<PyScalar>>> {
+        let homomorphism = homomorphism.kind.clone();
+        dispatch_ref!(&self.kind, ModuleHomomorphismBasisKind, |basis| {
+            hom_basis_coefficients_for(basis, homomorphism)
+        })
+    }
+}
+
+#[pymethods]
+impl PyModuleEndomorphismAlgebra {
+    #[getter]
+    fn field(&self) -> PyField {
+        let kind = dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| algebra
+            .field()
+            .python_kind());
+        PyField { kind }
+    }
+
+    #[getter]
+    fn dimension(&self) -> usize {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| algebra
+            .dimension())
+    }
+
+    #[getter]
+    fn basis_matrices(&self) -> Vec<Vec<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| algebra
+            .basis_matrices()
+            .iter()
+            .map(matrix_rows)
+            .collect())
+    }
+
+    #[getter]
+    fn one(&self) -> Vec<Vec<PyScalar>> {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| {
+            matrix_rows(algebra.one())
+        })
+    }
+
+    #[getter]
+    fn zero(&self) -> Vec<Vec<PyScalar>> {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| {
+            matrix_rows(&algebra.zero())
+        })
+    }
+
+    fn coefficients(
+        &self,
+        py: Python<'_>,
+        matrix: Vec<Vec<Py<PyScalar>>>,
+    ) -> PyResult<Option<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| {
+            let matrix = extract_matrix(py, algebra.field(), matrix)?;
+            Ok(algebra
+                .coefficients(&matrix)
+                .map_err(invalid)?
+                .map(|values| wrap_scalars(algebra.field(), &values)))
+        })
+    }
+
+    fn matrix_from_coefficients(
+        &self,
+        py: Python<'_>,
+        coefficients: Vec<Py<PyScalar>>,
+    ) -> PyResult<Vec<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| {
+            let coefficients = extract_scalars(py, algebra.field(), coefficients)?;
+            Ok(matrix_rows(
+                &algebra
+                    .matrix_from_coefficients(&coefficients)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn multiply(
+        &self,
+        py: Python<'_>,
+        left: Vec<Vec<Py<PyScalar>>>,
+        right: Vec<Vec<Py<PyScalar>>>,
+    ) -> PyResult<Vec<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, ModuleEndomorphismAlgebraKind, |algebra| {
+            let left = extract_matrix(py, algebra.field(), left)?;
+            let right = extract_matrix(py, algebra.field(), right)?;
+            Ok(matrix_rows(
+                &algebra.multiply(&left, &right).map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn is_identical(&self, other: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            ModuleEndomorphismAlgebraKind,
+            |left, right| left.is_identical(right),
+            false
+        )
+    }
+}
+
+#[pymethods]
+impl PyModuleEndomorphismQuotientMap {
+    #[getter]
+    fn source(&self) -> PyModuleEndomorphismAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientMapKind => ModuleEndomorphismAlgebraKind,
+            |homomorphism| homomorphism.source().clone()
+        );
+        PyModuleEndomorphismAlgebra { kind }
+    }
+
+    #[getter]
+    fn range(&self) -> PyModuleEndomorphismQuotientAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientMapKind => ModuleEndomorphismQuotientAlgebraKind,
+            |homomorphism| homomorphism.range().clone()
+        );
+        PyModuleEndomorphismQuotientAlgebra { kind }
+    }
+
+    #[getter]
+    fn kernel_basis_matrices(&self) -> Vec<Vec<Vec<PyScalar>>> {
+        dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientMapKind,
+            |homomorphism| homomorphism
+                .kernel_basis_matrices()
+                .iter()
+                .map(matrix_rows)
+                .collect()
+        )
+    }
+
+    fn image(
+        &self,
+        py: Python<'_>,
+        matrix: Vec<Vec<Py<PyScalar>>>,
+    ) -> PyResult<PyModuleEndomorphismQuotientElement> {
+        dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientMapKind,
+            |homomorphism| {
+                let field = homomorphism.source().field();
+                Ok(PyModuleEndomorphismQuotientElement {
+                    kind: runtime::Wrap::wrap(
+                        homomorphism
+                            .image(&extract_matrix(py, field, matrix)?)
+                            .map_err(invalid)?,
+                    ),
+                })
+            }
+        )
+    }
+}
+
+#[pymethods]
+impl PyModuleEndomorphismQuotientAlgebra {
+    #[getter]
+    fn field(&self) -> PyField {
+        let kind = dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientAlgebraKind,
+            |algebra| algebra.field().python_kind()
+        );
+        PyField { kind }
+    }
+
+    #[getter]
+    fn dimension(&self) -> usize {
+        dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientAlgebraKind,
+            |algebra| algebra.dimension()
+        )
+    }
+
+    #[getter]
+    fn basis_elements(&self) -> Vec<PyModuleEndomorphismQuotientElement> {
+        dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientAlgebraKind,
+            |algebra| algebra
+                .basis_elements()
+                .into_iter()
+                .map(|element| PyModuleEndomorphismQuotientElement {
+                    kind: runtime::Wrap::wrap(element),
+                })
+                .collect()
+        )
+    }
+
+    fn zero(&self) -> PyModuleEndomorphismQuotientElement {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientAlgebraKind => ModuleEndomorphismQuotientElementKind,
+            |algebra| algebra.zero()
+        );
+        PyModuleEndomorphismQuotientElement { kind }
+    }
+
+    fn one(&self) -> PyResult<Option<PyModuleEndomorphismQuotientElement>> {
+        dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientAlgebraKind,
+            |algebra| Ok(algebra.one().map_err(invalid)?.map(|element| {
+                PyModuleEndomorphismQuotientElement {
+                    kind: runtime::Wrap::wrap(element),
+                }
+            }))
+        )
+    }
+
+    fn multiply(
+        &self,
+        left: &PyModuleEndomorphismQuotientElement,
+        right: &PyModuleEndomorphismQuotientElement,
+    ) -> PyResult<PyModuleEndomorphismQuotientElement> {
+        match (&self.kind, &left.kind, &right.kind) {
+            (
+                ModuleEndomorphismQuotientAlgebraKind::Rational(algebra),
+                ModuleEndomorphismQuotientElementKind::Rational(left),
+                ModuleEndomorphismQuotientElementKind::Rational(right),
+            ) => Ok(PyModuleEndomorphismQuotientElement {
+                kind: ModuleEndomorphismQuotientElementKind::Rational(
+                    algebra.multiply(left, right).map_err(invalid)?,
+                ),
+            }),
+            (
+                ModuleEndomorphismQuotientAlgebraKind::Binary(algebra),
+                ModuleEndomorphismQuotientElementKind::Binary(left),
+                ModuleEndomorphismQuotientElementKind::Binary(right),
+            ) => Ok(PyModuleEndomorphismQuotientElement {
+                kind: ModuleEndomorphismQuotientElementKind::Binary(
+                    algebra.multiply(left, right).map_err(invalid)?,
+                ),
+            }),
+            (
+                ModuleEndomorphismQuotientAlgebraKind::Prime(algebra),
+                ModuleEndomorphismQuotientElementKind::Prime(left),
+                ModuleEndomorphismQuotientElementKind::Prime(right),
+            ) => Ok(PyModuleEndomorphismQuotientElement {
+                kind: ModuleEndomorphismQuotientElementKind::Prime(
+                    algebra.multiply(left, right).map_err(invalid)?,
+                ),
+            }),
+            _ => Err(invalid(
+                "quotient algebra and elements belong to different coefficient fields",
+            )),
+        }
+    }
+
+    fn is_identical(&self, other: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            ModuleEndomorphismQuotientAlgebraKind,
+            |left, right| left.is_identical(right),
+            false
+        )
+    }
+}
+
+#[pymethods]
+impl PyModuleEndomorphismQuotientElement {
+    #[getter]
+    fn algebra(&self) -> PyModuleEndomorphismQuotientAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientElementKind => ModuleEndomorphismQuotientAlgebraKind,
+            |element| element.algebra().clone()
+        );
+        PyModuleEndomorphismQuotientAlgebra { kind }
+    }
+
+    #[getter]
+    fn coordinates(&self) -> Vec<PyScalar> {
+        dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientElementKind,
+            |element| wrap_scalars(element.algebra().field(), element.coordinates())
+        )
+    }
+
+    #[getter]
+    fn is_zero(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            ModuleEndomorphismQuotientElementKind,
+            |element| element.is_zero()
+        )
+    }
+}
+
+#[pymethods]
 impl PyModuleElement {
     #[getter]
     fn module(&self) -> PyMatrixModule {
@@ -2083,6 +2490,18 @@ impl PyModuleHomomorphism {
                 .map(matrix_rows)
                 .collect()
         })
+    }
+
+    fn endomorphism_matrix(&self) -> PyResult<Vec<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            matrix_rows(&qpa_core::from_hom_mm_to_end_m(homomorphism).map_err(invalid)?,)
+        ))
+    }
+
+    fn underlying_linear_matrix(&self) -> PyResult<Vec<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            matrix_rows(&qpa_core::underlying_linear_map(homomorphism).map_err(invalid)?,)
+        ))
     }
 
     #[getter]

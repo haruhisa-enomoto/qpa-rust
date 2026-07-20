@@ -364,6 +364,12 @@ impl<F: Field> PathAlgebraModuleHomomorphismBasis<F> {
         &self.basis
     }
 
+    /// Return the exact common coefficient field of the represented Hom space.
+    #[must_use]
+    pub fn field(&self) -> &F {
+        &self.field
+    }
+
     /// Express a map in QPA's returned Hom basis.
     ///
     /// `Ok(None)` means the flattened map is not in the basis span. For an
@@ -681,6 +687,12 @@ impl<F: Field> ModuleEndomorphismQuotientAlgebra<F> {
     #[must_use]
     pub fn dimension(&self) -> usize {
         self.0.lifts.nrows()
+    }
+
+    /// Return the exact coefficient field inherited from `End(M)`.
+    #[must_use]
+    pub fn field(&self) -> &F {
+        self.0.parent.field()
     }
 
     /// Return GAP's ordered basis of the kernel ideal as parent matrices.

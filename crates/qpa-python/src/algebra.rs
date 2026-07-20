@@ -239,6 +239,84 @@ pub(crate) struct PyModuleHomomorphism {
 }
 
 #[derive(Clone)]
+enum ModuleHomomorphismBasisKind {
+    Rational(qpa_core::PathAlgebraModuleHomomorphismBasis<RationalField>),
+    Binary(qpa_core::PathAlgebraModuleHomomorphismBasis<Z2>),
+    Prime(qpa_core::PathAlgebraModuleHomomorphismBasis<Zp>),
+}
+
+/// QPA's ordered Hom basis together with its coefficient function.
+#[pyclass(name = "ModuleHomomorphismBasis", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleHomomorphismBasis {
+    kind: ModuleHomomorphismBasisKind,
+}
+
+#[derive(Clone)]
+enum ModuleEndomorphismAlgebraKind {
+    Rational(qpa_core::ModuleEndomorphismAlgebra<RationalField>),
+    Binary(qpa_core::ModuleEndomorphismAlgebra<Z2>),
+    Prime(qpa_core::ModuleEndomorphismAlgebra<Zp>),
+}
+
+/// QPA's matrix-algebra realization of a module endomorphism algebra.
+#[pyclass(name = "ModuleEndomorphismAlgebra", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleEndomorphismAlgebra {
+    kind: ModuleEndomorphismAlgebraKind,
+}
+
+#[derive(Clone)]
+enum ModuleEndomorphismQuotientAlgebraKind {
+    Rational(qpa_core::ModuleEndomorphismQuotientAlgebra<RationalField>),
+    Binary(qpa_core::ModuleEndomorphismQuotientAlgebra<Z2>),
+    Prime(qpa_core::ModuleEndomorphismQuotientAlgebra<Zp>),
+}
+
+/// QPA's stable endomorphism algebra in natural-quotient coordinates.
+#[pyclass(
+    name = "ModuleEndomorphismQuotientAlgebra",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyModuleEndomorphismQuotientAlgebra {
+    kind: ModuleEndomorphismQuotientAlgebraKind,
+}
+
+#[derive(Clone)]
+enum ModuleEndomorphismQuotientElementKind {
+    Rational(qpa_core::ModuleEndomorphismQuotientElement<RationalField>),
+    Binary(qpa_core::ModuleEndomorphismQuotientElement<Z2>),
+    Prime(qpa_core::ModuleEndomorphismQuotientElement<Zp>),
+}
+
+/// One exact element of a stable endomorphism quotient algebra.
+#[pyclass(
+    name = "ModuleEndomorphismQuotientElement",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyModuleEndomorphismQuotientElement {
+    kind: ModuleEndomorphismQuotientElementKind,
+}
+
+#[derive(Clone)]
+enum ModuleEndomorphismQuotientMapKind {
+    Rational(qpa_core::ModuleEndomorphismQuotientHomomorphism<RationalField>),
+    Binary(qpa_core::ModuleEndomorphismQuotientHomomorphism<Z2>),
+    Prime(qpa_core::ModuleEndomorphismQuotientHomomorphism<Zp>),
+}
+
+/// QPA's natural map from `End(M)` to its quotient modulo projectives.
+#[pyclass(name = "ModuleEndomorphismQuotientMap", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleEndomorphismQuotientMap {
+    kind: ModuleEndomorphismQuotientMapKind,
+}
+
+#[derive(Clone)]
 enum ModuleSubmoduleKind {
     Rational(PathAlgebraModuleSubmodule<RationalField>),
     Binary(PathAlgebraModuleSubmodule<Z2>),
@@ -560,6 +638,46 @@ macro_rules! impl_module_value_runtime {
 
         impl runtime::Wrap<PathAlgebraModuleSubmodule<$field>> for ModuleSubmoduleKind {
             fn wrap(value: PathAlgebraModuleSubmodule<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::PathAlgebraModuleHomomorphismBasis<$field>>
+            for ModuleHomomorphismBasisKind
+        {
+            fn wrap(value: qpa_core::PathAlgebraModuleHomomorphismBasis<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::ModuleEndomorphismAlgebra<$field>>
+            for ModuleEndomorphismAlgebraKind
+        {
+            fn wrap(value: qpa_core::ModuleEndomorphismAlgebra<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::ModuleEndomorphismQuotientAlgebra<$field>>
+            for ModuleEndomorphismQuotientAlgebraKind
+        {
+            fn wrap(value: qpa_core::ModuleEndomorphismQuotientAlgebra<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::ModuleEndomorphismQuotientElement<$field>>
+            for ModuleEndomorphismQuotientElementKind
+        {
+            fn wrap(value: qpa_core::ModuleEndomorphismQuotientElement<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::ModuleEndomorphismQuotientHomomorphism<$field>>
+            for ModuleEndomorphismQuotientMapKind
+        {
+            fn wrap(value: qpa_core::ModuleEndomorphismQuotientHomomorphism<$field>) -> Self {
                 Self::$variant(value)
             }
         }

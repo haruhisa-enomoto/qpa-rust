@@ -1099,3 +1099,73 @@ def test_structured_homomorphism_operations_follow_qpa(field: qpa.Field) -> None
         projections, [[identity, zero], [zero, identity]], inclusions
     )
     assert block_identity == repeated.identity()
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_endomorphism_algebras_and_stable_quotients_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projective = algebra.indecomposable_projectives()[0]
+    first_simple, second_simple = algebra.simple_modules()
+    zero = field.element(0)
+    one = field.element(1)
+
+    hom = projective.hom_basis_with_coefficients_to(first_simple)
+    assert hom is not None and hom.dimension == 1
+    assert hom.coefficients(hom.basis[0]) == [one]
+    zero_hom = first_simple.hom_basis_with_coefficients_to(second_simple)
+    assert zero_hom is not None and zero_hom.dimension == 0
+    assert zero_hom.coefficients(first_simple.zero_map_to(second_simple)) == [zero]
+
+    module = algebra.module_from_integer_matrices(
+        [2, 2], [("a", [[1, 0], [0, 0]])]
+    )
+    endomorphisms = module.endomorphism_algebra()
+    assert endomorphisms.field.characteristic == field.characteristic
+    assert endomorphisms.dimension == 5
+    assert len(endomorphisms.basis_matrices) == 5
+    assert endomorphisms.is_identical(module.endomorphism_algebra())
+    one_coordinates = endomorphisms.coefficients(endomorphisms.one)
+    assert one_coordinates is not None and len(one_coordinates) == 5
+    assert endomorphisms.matrix_from_coefficients(one_coordinates) == endomorphisms.one
+    assert (
+        endomorphisms.multiply(endomorphisms.one, endomorphisms.basis_matrices[0])
+        == endomorphisms.basis_matrices[0]
+    )
+    assert all(
+        module.endomorphism_from_matrix(matrix).endomorphism_matrix() == matrix
+        for matrix in endomorphisms.basis_matrices
+    )
+    assert first_simple.identity().endomorphism_matrix() == [[one]]
+    assert first_simple.identity().underlying_linear_matrix() == [
+        [one, zero],
+        [zero, zero],
+    ]
+
+    natural = module.stable_endomorphism_quotient()
+    stable = natural.range
+    assert natural.source.is_identical(endomorphisms)
+    assert stable.field.characteristic == field.characteristic
+    assert stable.dimension == 1
+    assert len(natural.kernel_basis_matrices) == 4
+    assert [natural.image(matrix).coordinates for matrix in endomorphisms.basis_matrices] == [
+        [zero],
+        [one],
+        [zero],
+        [zero],
+        [zero],
+    ]
+    stable_one = stable.one()
+    assert stable_one is not None
+    assert stable_one.algebra.is_identical(stable)
+    assert stable.multiply(stable_one, stable_one).coordinates == [one]
+    assert stable.zero().is_zero
+
+    projective_stable = second_simple.stable_endomorphism_quotient().range
+    assert projective_stable.dimension == 0
+    assert projective_stable.basis_elements == []
+    assert projective_stable.one() is None
+
+    with pytest.raises(qpa.InvalidInputError, match="direct sum"):
+        algebra.zero_module().endomorphism_algebra()
+    with pytest.raises(qpa.InvalidInputError, match="zero module"):
+        algebra.zero_module().stable_endomorphism_quotient()

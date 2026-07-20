@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 339
+exposed_or_partial_count = 345
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2531,8 +2531,8 @@ python_tests = []
 qpa_name = "EndModuloProjOverAlgebra"
 python_name = "end_modulo_proj_over_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.stable_endomorphism_quotient; qpa.ModuleEndomorphismQuotientMap; qpa.ModuleEndomorphismQuotientAlgebra; qpa.ModuleEndomorphismQuotientElement"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:EndModuloProjOverAlgebra:1","modulehom:InstallMethod:EndModuloProjOverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2540,7 +2540,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["end_modulo_projectives"]
 rust_tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "EndOfBasicModuleAsQuiverAlgebra"
@@ -2576,8 +2576,8 @@ python_tests = []
 qpa_name = "EndOverAlgebra"
 python_name = "end_over_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.endomorphism_algebra; qpa.ModuleEndomorphismAlgebra"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:EndOverAlgebra:1","modulehom:InstallMethod:EndOverAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2585,7 +2585,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["end_over_algebra; ModuleEndomorphismAlgebra"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/gap-reference/modulehom_end_zero_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "Enumerator"
@@ -2951,8 +2951,8 @@ python_tests = []
 qpa_name = "FromEndMToHomMM"
 python_name = "from_end_m_to_hom_mm"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.endomorphism_from_matrix"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:FromEndMToHomMM:1","modulehom:InstallMethod:FromEndMToHomMM:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2960,14 +2960,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["from_end_m_to_hom_mm"]
 rust_tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "FromHomMMToEndM"
 python_name = "from_hom_mm_to_end_m"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.endomorphism_matrix"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:FromHomMMToEndM:1","modulehom:InstallMethod:FromHomMMToEndM:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2975,7 +2975,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["from_hom_mm_to_end_m"]
 rust_tests = ["tests/fixtures/modulehom_stable.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "FromIdentityToDoubleStarHomomorphism"
@@ -3536,8 +3536,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_catego
 qpa_name = "HomOverAlgebraWithBasisFunction"
 python_name = "hom_over_algebra_with_basis_function"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.hom_basis_with_coefficients_to; qpa.ModuleHomomorphismBasis"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:HomOverAlgebraWithBasisFunction:1","modulehom:InstallMethod:HomOverAlgebraWithBasisFunction:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3545,7 +3545,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["hom_over_algebra_with_basis_function; PathAlgebraModuleHomomorphismBasis"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "HomologyBasisOfCombinatorialMap"
@@ -12731,8 +12731,8 @@ python_tests = []
 qpa_name = "UnderlyingLinearMap"
 python_name = "underlying_linear_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.underlying_linear_matrix"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:UnderlyingLinearMap:1","modulehom:InstallMethod:UnderlyingLinearMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12740,7 +12740,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["underlying_linear_map"]
 rust_tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
 
 [[operations]]
 qpa_name = "UnderlyingModule"
