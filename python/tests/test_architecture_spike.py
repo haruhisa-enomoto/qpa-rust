@@ -2153,3 +2153,62 @@ def test_restriction_via_algebra_homomorphism_follows_qpa(field: qpa.Field) -> N
         qpa.AlgebraHomomorphism.quotient_to_quotient(
             quotient, quotient, quotient.generators
         )
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_vertex_projective_path_vectors_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    v1, v2, arrow = algebra.generators
+    projective = algebra.right_projective_module([1, 2])
+
+    assert projective.vertex_indices == [1, 2]
+    assert projective.dimension == 3
+    assert projective.is_vertex_projective
+    assert repr(projective) == (
+        f"<right-module over <{field}[<quiver with 2 vertices and 1 arrows>]>>"
+    )
+    assert projective.is_identical(projective)
+    assert not projective.is_identical(
+        qpa.RightProjectiveModule.from_vertices(algebra, [1, 2])
+    )
+    assert projective.lift().is_identical(projective)
+    assert projective.uniform_generators() == projective.generators
+    assert projective.canonical_basis() is not None
+    assert len(projective.canonical_basis() or []) == 3
+
+    vector = projective.vector([arrow, v2])
+    checked_zero = projective.vector([algebra.zero(), algebra.zero()])
+    assert vector.components == [arrow, v2]
+    assert vector.leading_position == 1
+    assert vector.leading_term == projective.vector([arrow, algebra.zero()])
+    assert vector.leading_coefficient == field.element(1)
+    assert vector.leading_component == arrow
+    assert vector.source_vertex == v1.leading_monomial
+    assert vector.target_vertex == v2.leading_monomial
+    assert not vector.is_left_uniform
+    assert vector.is_right_uniform
+    assert not vector.is_uniform
+    assert repr(vector) == "[ (1)*a, (1)*v2 ]"
+    assert vector.act(v2) == vector
+    assert vector.scale_left(field.element(-1)).add(vector) == projective.zero()
+    assert vector.subtract(vector) == checked_zero
+    assert projective.zero().leading_position == 3
+    assert checked_zero.leading_position == 1
+
+    divisor = projective.vector([v1, algebra.zero()])
+    dividend = projective.vector([arrow, algebra.zero()])
+    assert dividend.is_left_divisible(divisor)
+    assert divisor < vector
+
+    whole_basis = projective.right_groebner_basis()
+    assert whole_basis.parent_module.is_identical(projective)
+    assert whole_basis.is_for_whole_module
+    assert whole_basis.is_right and not whole_basis.is_left
+    assert whole_basis.basis_vectors == projective.generators
+    assert whole_basis.completely_reduced_basis_vectors() == projective.generators
+    assert repr(whole_basis).startswith("<Groebner basis of <right-module over <")
+    assert whole_basis.completely_reduce(vector).is_zero

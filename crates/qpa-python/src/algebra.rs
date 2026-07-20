@@ -5,6 +5,7 @@ mod groebner;
 mod homological;
 mod ideal;
 mod module;
+mod projective;
 mod quotient;
 
 use conversion::{
@@ -16,6 +17,9 @@ pub(crate) use conversion::{
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyQuiverAlgebra,
     PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
     PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
+};
+pub(crate) use projective::{
+    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyRightProjectiveModule,
 };
 
 use numerica::domains::{
@@ -1459,6 +1463,10 @@ impl PyPathAlgebra {
             }),
         };
         Ok(Self { kind })
+    }
+
+    fn right_projective_module(&self, vertices: Vec<usize>) -> PyResult<PyRightProjectiveModule> {
+        projective::right_projective_module(self, vertices)
     }
 
     #[getter]

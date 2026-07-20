@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 466
+exposed_or_partial_count = 489
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -147,15 +147,15 @@ qpa_name = "AdditiveInverseOp"
 python_name = "additive_inverse_op"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.ModuleElement.negate"
-notes = "Module-element and module-homomorphism overloads are exposed; projective-vector overloads remain."
+python_target = "qpa.ModuleElement.negate; qpa.PathAlgebraVector.negate"
+notes = "Module-element, module-homomorphism, and projective path-vector overloads are exposed; grouped overloads remain."
 entry_ids = ["module:InstallMethod:AdditiveInverseOp:1","modulehom:InstallMethod:AdditiveInverseOp:1","pathalg:InstallMethod:AdditiveInverseOp:1","projpathalgmodule:InstallMethod:AdditiveInverseOp:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraModuleElement::additive_inverse","PathAlgebraModuleHomomorphism::negate","PathAlgebraVector::neg; QuotientPathAlgebraVector::neg","QuotientPathAlgebraElement::neg"]
 rust_tests = ["tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "AdditiveInverseSameMutability"
@@ -627,7 +627,7 @@ qpa_name = "BasisVectors"
 python_name = "basis_vectors"
 disposition = "operation"
 status = "exposed"
-python_target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements"
+python_target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.PathAlgebraModuleGroebnerBasis.basis_vectors"
 notes = ""
 entry_ids = ["algebra:InstallMethod:BasisVectors:1"]
 constructs = ["InstallMethod"]
@@ -635,7 +635,7 @@ source_files = ["upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebra::basis_elements; OppositeStructureConstantsAlgebra::canonical_basis_elements"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "BiggestHomogeneousPartInvLenInvLex"
@@ -867,15 +867,15 @@ qpa_name = "CanonicalBasis"
 python_name = "canonical_basis"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.PathAlgebra.canonical_basis"
-notes = "Opposite-, path-, and quotient-algebra canonical bases are exposed; module and projective-module basis families remain."
+python_target = "qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.PathAlgebra.canonical_basis; qpa.RightProjectiveModule.canonical_basis"
+notes = "Opposite-, path-, quotient-, and vertex-projective path-algebra canonical bases are exposed; remaining module and projective-module families remain."
 entry_ids = ["algebra:InstallMethod:CanonicalBasis:1","module:InstallMethod:CanonicalBasis:1","pathalg:InstallMethod:CanonicalBasis:1","pathalg:InstallMethod:CanonicalBasis:2","projpathalgmodule:InstallMethod:CanonicalBasis:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebra::canonical_basis_elements","PathAlgebra::canonical_basis","PathAlgebraModuleElementBasis::canonical_for_module","QuotientPathAlgebra::canonical_basis_object","RightProjectivePathAlgebraModule::canonical_basis; RightProjectiveQuotientPathAlgebraModule::canonical_basis; RightProjectiveQuotientPathAlgebraModule::dimension; RightUniformPathAlgebraModule::canonical_basis"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_basis.txt","tests/fixtures/path_algebra.schema-v1.json","tests/fixtures/pathalg_conversion.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_groebner.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json","tests/gap-reference/module_basis_zero_error.g"]
 deviations = ["MODULE-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "CartanMatrix"
@@ -1241,16 +1241,16 @@ python_tests = []
 qpa_name = "CompletelyReduce"
 python_name = "completely_reduce"
 disposition = "operation"
-status = "exposed"
-python_target = "qpa.GroebnerBasis.completely_reduce"
-notes = ""
+status = "partial"
+python_target = "qpa.GroebnerBasis.completely_reduce; qpa.PathAlgebraModuleGroebnerBasis.completely_reduce"
+notes = "Algebra Groebner-basis and projective path-vector overloads are exposed; the packed module-element overload remains."
 entry_ids = ["groebner:DeclareOperation:CompletelyReduce:1","groebner:InstallMethod:CompletelyReduce:1","projpathalgmodule:InstallOtherMethod:CompletelyReduce:1","projpathalgmodule:InstallOtherMethod:CompletelyReduce:2"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/groebner.gd","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["GroebnerBasis::completely_reduce","RightPathAlgebraModuleGroebnerBasis::completely_reduce"]
 rust_tests = ["tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "CompletelyReduceGroebnerBasis"
@@ -1271,8 +1271,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "CompletelyReduceGroebnerBasisForModule"
 python_name = "completely_reduce_groebner_basis_for_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraModuleGroebnerBasis.completely_reduced_basis_vectors"
 notes = ""
 entry_ids = ["projpathalgmodule:DeclareOperation:CompletelyReduceGroebnerBasisForModule:1","projpathalgmodule:InstallMethod:CompletelyReduceGroebnerBasisForModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1280,7 +1280,7 @@ source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpa
 rust_symbols = ["qpa_core::completely_reduce_path_algebra_module_groebner_basis"]
 rust_tests = ["tests/fixtures/projpathalgmodule_presentation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "Complex"
@@ -2097,7 +2097,7 @@ qpa_name = "Dimension"
 python_name = "dimension"
 disposition = "operation"
 status = "exposed"
-python_target = "qpa.OppositeStructureConstantsAlgebra.dimension; qpa.MatrixModule.dimension; qpa.QuotientAlgebra.dimension"
+python_target = "qpa.OppositeStructureConstantsAlgebra.dimension; qpa.MatrixModule.dimension; qpa.QuotientAlgebra.dimension; qpa.RightProjectiveModule.dimension"
 notes = ""
 entry_ids = ["algebra:InstallMethod:Dimension:1","module:InstallOtherMethod:Dimension:1","pathalg:InstallMethod:Dimension:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
@@ -2105,7 +2105,7 @@ source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upst
 rust_symbols = ["OppositeStructureConstantsAlgebra::dimension","PathAlgebraModule::dimension","qpa_gbnp::quotient_dimension"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_series.schema-v1.json","tests/fixtures/pathalg_conversion.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "DimensionVector"
@@ -4286,16 +4286,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "IsAlgebraModule"
 python_name = "is_algebra_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule"
+notes = "The vertex-projective path-module category is represented by a concrete Python type; other projective path-module families remain."
 entry_ids = ["module:InstallTrueMethod:IsAlgebraModule:1","projpathalgmodule:InstallTrueMethod:IsAlgebraModule:1","projpathalgmodule:InstallTrueMethod:IsAlgebraModule:2"]
 constructs = ["InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["PathAlgebraModule","RightFpPathAlgebraModule","RightProjectivePathAlgebraModule"]
 rust_tests = ["tests/fixtures/module_elements.txt","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsAlgebraModuleHomomorphism"
@@ -5381,16 +5381,16 @@ python_tests = []
 qpa_name = "IsLeftDivisible"
 python_name = "is_left_divisible"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector.is_left_divisible"
+notes = "The vertex-projective path-vector overload is exposed; quotient vector overloads remain."
 entry_ids = ["projpathalgmodule:DeclareOperation:IsLeftDivisible:1","projpathalgmodule:InstallMethod:IsLeftDivisible:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraVector::is_left_divisible; QuotientPathAlgebraVector::is_left_divisible"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsLeftLexicographicOrdering"
@@ -5426,8 +5426,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_catego
 qpa_name = "IsLeftPathAlgebraModuleGroebnerBasis"
 python_name = "is_left_path_algebra_module_groebner_basis"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraModuleGroebnerBasis.is_left"
 notes = ""
 entry_ids = ["projpathalgmodule:DeclareProperty:IsLeftPathAlgebraModuleGroebnerBasis:1"]
 constructs = ["DeclareProperty"]
@@ -5435,22 +5435,22 @@ source_files = ["upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["PathAlgebraModuleGroebnerBasisSide::Left; PathAlgebraModuleGroebnerBasisSide::is_left"]
 rust_tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsLeftUniform"
 python_name = "is_left_uniform"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.AlgebraElement.is_left_uniform"
-notes = "Path and quotient element overloads are exposed."
+python_target = "qpa.AlgebraElement.is_left_uniform; qpa.PathAlgebraVector.is_left_uniform"
+notes = "Path, quotient, and projective path-vector overloads are exposed."
 entry_ids = ["pathalg:DeclareOperation:IsLeftUniform:1","pathalg:DeclareOperation:IsLeftUniform:2","pathalg:InstallMethod:IsLeftUniform:1","pathalg:InstallMethod:IsLeftUniform:2","pathalg:InstallMethod:IsLeftUniform:3","projpathalgmodule:InstallOtherMethod:IsLeftUniform:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebra::is_left_uniform_list_at_path","PathAlgebraElement::is_left_uniform","PathAlgebraElement::is_left_uniform; QuotientPathAlgebraElement::is_left_uniform","PathAlgebraVector::is_left_uniform; QuotientPathAlgebraVector::is_left_uniform","QuotientPathAlgebraElement::is_left_uniform"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = ["PATHALG-003"]
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsLeftVectorOrdering"
@@ -5561,16 +5561,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "IsNormalForm"
 python_name = "is_normal_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector.is_normal_form"
+notes = "The vertex-projective path-vector overload is exposed; quotient vector overloads remain."
 entry_ids = ["pathalg:InstallMethod:IsNormalForm:1","projpathalgmodule:InstallMethod:IsNormalForm:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraVector::is_normal_form; QuotientPathAlgebraVector::is_normal_form","QuotientPathAlgebraElement::is_normal_form"]
 rust_tests = ["tests/fixtures/pathalg_conversion.schema-v1.json","tests/fixtures/projpathalgmodule_basis.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsNthSyzygy"
@@ -5726,61 +5726,61 @@ python_tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_mo
 qpa_name = "IsPathAlgebraModuleGroebnerBasis"
 python_name = "is_path_algebra_module_groebner_basis"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraModuleGroebnerBasis"
+notes = "Represented by the concrete Python wrapper type."
 entry_ids = ["projpathalgmodule:DeclareCategory:IsPathAlgebraModuleGroebnerBasis:1","projpathalgmodule:InstallTrueMethod:IsPathAlgebraModuleGroebnerBasis:1","projpathalgmodule:InstallTrueMethod:IsPathAlgebraModuleGroebnerBasis:2"]
 constructs = ["DeclareCategory","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["PathAlgebraModuleGroebnerBasisSide::is_path_algebra_module_groebner_basis","RightPathAlgebraModuleGroebnerBasis"]
 rust_tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsPathAlgebraModuleGroebnerBasisDefaultRep"
 python_name = "is_path_algebra_module_groebner_basis_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraModuleGroebnerBasis"
+notes = "Represented by the concrete Python wrapper type."
 entry_ids = ["projpathalgmodule:DeclareRepresentation:IsPathAlgebraModuleGroebnerBasisDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["RightPathAlgebraModuleGroebnerBasis"]
 rust_tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsPathAlgebraVector"
 python_name = "is_path_algebra_vector"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector"
+notes = "Represented by the concrete vertex-projective Python wrapper; quotient, uniform, and finitely presented variants remain."
 entry_ids = ["projpathalgmodule:DeclareCategory:IsPathAlgebraVector:1","projpathalgmodule:DeclareCategoryCollections:IsPathAlgebraVector:1","projpathalgmodule:DeclareCategoryFamily:IsPathAlgebraVector:1"]
 constructs = ["DeclareCategory","DeclareCategoryCollections","DeclareCategoryFamily"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["PathAlgebraVector; QuotientPathAlgebraVector; RightUniformPathAlgebraVector; FpPathAlgebraVector","RightProjectivePathAlgebraModule; PathAlgebraVector; RightProjectiveQuotientPathAlgebraModule; QuotientPathAlgebraVector; RightUniformPathAlgebraModule; RightUniformPathAlgebraVector; RightFpPathAlgebraModule; FpPathAlgebraVector"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsPathAlgebraVectorDefaultRep"
 python_name = "is_path_algebra_vector_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector"
+notes = "The vertex-projective positional representation is exposed; remaining vector families remain."
 entry_ids = ["projpathalgmodule:DeclareRepresentation:IsPathAlgebraVectorDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["PathAlgebraVector; QuotientPathAlgebraVector; RightUniformPathAlgebraVector; FpPathAlgebraVector"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsPathModuleElem"
@@ -6326,8 +6326,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_catego
 qpa_name = "IsRightPathAlgebraModuleGroebnerBasis"
 python_name = "is_right_path_algebra_module_groebner_basis"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraModuleGroebnerBasis.is_right"
 notes = ""
 entry_ids = ["projpathalgmodule:DeclareProperty:IsRightPathAlgebraModuleGroebnerBasis:1"]
 constructs = ["DeclareProperty"]
@@ -6335,22 +6335,22 @@ source_files = ["upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["RightPathAlgebraModuleGroebnerBasis"]
 rust_tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsRightUniform"
 python_name = "is_right_uniform"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.AlgebraElement.is_right_uniform"
-notes = "Path and quotient element overloads are exposed."
+python_target = "qpa.AlgebraElement.is_right_uniform; qpa.PathAlgebraVector.is_right_uniform"
+notes = "Path, quotient, and projective path-vector overloads are exposed."
 entry_ids = ["pathalg:DeclareOperation:IsRightUniform:1","pathalg:DeclareOperation:IsRightUniform:2","pathalg:InstallMethod:IsRightUniform:1","pathalg:InstallMethod:IsRightUniform:2","pathalg:InstallMethod:IsRightUniform:3","projpathalgmodule:InstallOtherMethod:IsRightUniform:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebra::is_right_uniform_list_at_path","PathAlgebraElement::is_right_uniform","PathAlgebraElement::is_right_uniform; QuotientPathAlgebraElement::is_right_uniform","PathAlgebraVector::is_right_uniform; QuotientPathAlgebraVector::is_right_uniform","QuotientPathAlgebraElement::is_right_uniform"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = ["PATHALG-003"]
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsRightVectorOrdering"
@@ -6837,15 +6837,15 @@ qpa_name = "IsUniform"
 python_name = "is_uniform"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.AlgebraElement.is_uniform"
-notes = "Path and quotient element overloads are exposed."
+python_target = "qpa.AlgebraElement.is_uniform; qpa.PathAlgebraVector.is_uniform"
+notes = "Path, quotient, and projective path-vector overloads are exposed."
 entry_ids = ["pathalg:DeclareOperation:IsUniform:1","pathalg:InstallMethod:IsUniform:1","pathalg:InstallMethod:IsUniform:2","projpathalgmodule:InstallOtherMethod:IsUniform:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraElement::is_uniform","PathAlgebraElement::is_uniform; QuotientPathAlgebraElement::is_uniform","PathAlgebraVector::is_uniform; QuotientPathAlgebraVector::is_uniform","QuotientPathAlgebraElement::is_uniform"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsUnitForm"
@@ -6911,16 +6911,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "IsVertexProjectiveModule"
 python_name = "is_vertex_projective_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule.is_vertex_projective"
+notes = "The whole vertex-projective path-module overload is exposed; submodule, quotient, and uniform-element overloads remain."
 entry_ids = ["projpathalgmodule:DeclareProperty:IsVertexProjectiveModule:1","projpathalgmodule:InstallMethod:IsVertexProjectiveModule:1"]
 constructs = ["DeclareProperty","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightProjectivePathAlgebraModule::is_vertex_projective_module; RightProjectivePathAlgebraSubmodule::is_vertex_projective_module; RightProjectiveQuotientPathAlgebraModule::is_vertex_projective_module; RightUniformPathAlgebraModule::is_vertex_projective_module"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_projective_error.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsWeaklyNonnegativeUnitForm"
@@ -7272,30 +7272,30 @@ qpa_name = "LeadingCoefficient"
 python_name = "leading_coefficient"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.AlgebraElement.leading_coefficient"
-notes = "Path and quotient element overloads are exposed."
+python_target = "qpa.AlgebraElement.leading_coefficient; qpa.PathAlgebraVector.leading_coefficient"
+notes = "Path, quotient, and projective path-vector overloads are exposed."
 entry_ids = ["pathalg:InstallOtherMethod:LeadingCoefficient:1","pathalg:InstallOtherMethod:LeadingCoefficient:2","projpathalgmodule:InstallOtherMethod:LeadingCoefficient:1"]
 constructs = ["InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraElement::leading_coefficient","PathAlgebraVector::leading_coefficient; QuotientPathAlgebraVector::leading_coefficient","QuotientPathAlgebraElement::leading_coefficient"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeadingComponent"
 python_name = "leading_component"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector.leading_component"
+notes = "The vertex-projective path-vector overload is exposed; quotient vector overloads remain."
 entry_ids = ["projpathalgmodule:DeclareAttribute:LeadingComponent:1","projpathalgmodule:InstallMethod:LeadingComponent:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraVector::leading_component; QuotientPathAlgebraVector::leading_component"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeadingMonomial"
@@ -7316,31 +7316,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "LeadingPosition"
 python_name = "leading_position"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector.leading_position"
+notes = "The vertex-projective path-vector overload is exposed; quotient vector overloads remain."
 entry_ids = ["projpathalgmodule:DeclareAttribute:LeadingPosition:1","projpathalgmodule:InstallMethod:LeadingPosition:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraVector::leading_position; QuotientPathAlgebraVector::leading_position"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeadingTerm"
 python_name = "leading_term"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.AlgebraElement.leading_term"
-notes = "Path and quotient element overloads are exposed."
+python_target = "qpa.AlgebraElement.leading_term; qpa.PathAlgebraVector.leading_term"
+notes = "Path, quotient, and projective path-vector overloads are exposed."
 entry_ids = ["pathalg:DeclareOperation:LeadingTerm:1","pathalg:InstallOtherMethod:LeadingTerm:1","pathalg:InstallMethod:LeadingTerm:1","projpathalgmodule:InstallOtherMethod:LeadingTerm:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraElement::leading_term","PathAlgebraElement::leading_term; QuotientPathAlgebraElement::leading_term","PathAlgebraVector::leading_term; QuotientPathAlgebraVector::leading_term","QuotientPathAlgebraElement::leading_term"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftApproximationByAddM"
@@ -7691,16 +7691,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structure_constan
 qpa_name = "LiftPathAlgebraModule"
 python_name = "lift_path_algebra_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule.lift"
+notes = "QPA's pure path-algebra early return is exposed; submodule and quotient-projective lifts remain."
 entry_ids = ["projpathalgmodule:DeclareOperation:LiftPathAlgebraModule:1","projpathalgmodule:InstallMethod:LiftPathAlgebraModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightProjectivePathAlgebraModule::lift_path_algebra_module; RightProjectivePathAlgebraSubmodule::lift_path_algebra_module; RightProjectiveQuotientPathAlgebraModule::lift_path_algebra_module"]
 rust_tests = ["tests/fixtures/projpathalgmodule_lift.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "LiftTwoOrthogonalIdempotents"
@@ -9596,31 +9596,31 @@ python_tests = []
 qpa_name = "PathAlgebraVector"
 python_name = "path_algebra_vector"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule.vector"
+notes = "Checked vertex-projective path vectors are exposed; quotient-projective and finitely presented module vectors remain."
 entry_ids = ["projpathalgmodule:DeclareOperation:PathAlgebraVector:1","projpathalgmodule:InstallMethod:PathAlgebraVector:1","projpathalgmodule:InstallOtherMethod:PathAlgebraVector:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightFpPathAlgebraModule::vector","RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector","RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector; RightFpPathAlgebraModule::vector"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "PathAlgebraVectorNC"
 python_name = "path_algebra_vector_nc"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule.vector_nc"
+notes = "Unchecked vertex-projective path vectors are exposed; quotient-projective and finitely presented module vectors remain."
 entry_ids = ["projpathalgmodule:DeclareOperation:PathAlgebraVectorNC:1","projpathalgmodule:InstallMethod:PathAlgebraVectorNC:1","projpathalgmodule:InstallMethod:PathAlgebraVectorNC:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightFpPathAlgebraModule::vector_nc","RightProjectivePathAlgebraModule::vector_nc; RightProjectiveQuotientPathAlgebraModule::vector_nc","RightProjectivePathAlgebraModule::vector_nc; RightProjectiveQuotientPathAlgebraModule::vector_nc; RightFpPathAlgebraModule::vector_nc"]
 rust_tests = ["tests/fixtures/projpathalgmodule_basis.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "PathFromArrowList"
@@ -9987,15 +9987,15 @@ qpa_name = "PrintObj"
 python_name = "print_obj"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.print"
-notes = "Exact opposite-algebra, quiver, generator, quiver-ordering, and Groebner-basis printing is exposed; grouped QPA printing overloads remain incomplete."
+python_target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.print; qpa.RightProjectiveModule.__repr__; qpa.PathAlgebraVector.__repr__"
+notes = "Exact opposite-algebra, quiver, generator, quiver-ordering, Groebner-basis, vertex-projective, and projective-vector printing is exposed; grouped QPA printing overloads remain incomplete."
 entry_ids = ["algebra:InstallMethod:PrintObj:1","algebra:InstallMethod:PrintObj:2","complex:InstallMethod:PrintObj:1","complex:InstallMethod:PrintObj:2","complex:InstallMethod:PrintObj:3","complex:InstallMethod:PrintObj:4","degorderfinitetype:InstallMethod:PrintObj:1","derivedcat:InstallMethod:PrintObj:1","derivedcat:InstallMethod:PrintObj:2","groebner:InstallMethod:PrintObj:1","groebnerordering:InstallMethod:PrintObj:1","module:InstallMethod:PrintObj:1","module:InstallMethod:PrintObj:2","modulehom:InstallMethod:PrintObj:1","pathalg:InstallMethod:PrintObj:1","pathalg:InstallMethod:PrintObj:2","pathalg:InstallMethod:PrintObj:3","pathalgtensor:InstallMethod:PrintObj:1","projpathalgmodule:InstallMethod:PrintObj:1","projpathalgmodule:InstallMethod:PrintObj:2","quiver:InstallMethod:PrintObj:1","quiver:InstallMethod:PrintObj:2","quiver:InstallMethod:PrintObj:3","quiver:InstallMethod:PrintObj:4","quiver:InstallMethod:PrintObj:5"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/derivedcat.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","FpPathAlgebraVector::print_obj_with","GroebnerBasis::print_string_with","OppositeStructureConstantsAlgebra::fmt","OppositeStructureConstantsAlgebraElement::fmt","PathAlgebra::print_obj_with","PathAlgebraModule::qpa_print_string","PathAlgebraModuleElement::qpa_print_string_with; Display for PathAlgebraModuleElement","PathAlgebraModuleHomomorphism::qpa_print_string","PathAlgebraVector::print_obj_with","Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuotientPathAlgebra::print_obj_with; PathAlgebraIdeal::view_obj_with","QuotientPathAlgebraElement::print_obj_with; PathAlgebraElement::print_obj_with","qpa_gbnp::QpaComplex::qpa_string; qpa_gbnp::QpaChainMap::qpa_string","qpa_injective_complex_string","qpa_projective_complex_string"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/derivedcat_foundation_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/gap-reference/algebra_opposite_print.g"]
 deviations = ["ALG-001","DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProductOfIdeals"
@@ -11171,16 +11171,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "RightGroebnerBasisOfModule"
 python_name = "right_groebner_basis_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule.right_groebner_basis"
+notes = "The whole vertex-projective attribute overload is exposed; submodules and the ring-plus-generator operation remain."
 entry_ids = ["projpathalgmodule:DeclareAttribute:RightGroebnerBasisOfModule:1","projpathalgmodule:DeclareOperation:RightGroebnerBasisOfModule:1","projpathalgmodule:InstallMethod:RightGroebnerBasisOfModule:1"]
 constructs = ["DeclareAttribute","DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightProjectivePathAlgebraModule::right_groebner_basis; RightProjectivePathAlgebraSubmodule::right_groebner_basis","right_groebner_basis_of_module_from_generators"]
 rust_tests = ["tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightInverseOfHomomorphism"
@@ -11306,16 +11306,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_m
 qpa_name = "RightProjectiveModule"
 python_name = "right_projective_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebra.right_projective_module; qpa.RightProjectiveModule.from_vertices"
+notes = "The vertex-list overload over path algebras is exposed; uniform-element and quotient-path-algebra overloads remain."
 entry_ids = ["projpathalgmodule:DeclareOperation:RightProjectiveModule:1","projpathalgmodule:InstallMethod:RightProjectiveModule:1","projpathalgmodule:InstallMethod:RightProjectiveModule:2","projpathalgmodule:InstallMethod:RightProjectiveModule:3"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["right_projective_path_algebra_module","right_projective_path_algebra_module; right_projective_quotient_path_algebra_module; right_uniform_path_algebra_module","right_projective_quotient_path_algebra_module; RightProjectiveQuotientPathAlgebraModule; QuotientPathAlgebraVector","right_uniform_path_algebra_module; RightUniformPathAlgebraModule; RightUniformPathAlgebraVector"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightRotateDynamicTree"
@@ -11696,16 +11696,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_a
 qpa_name = "SourceVertex"
 python_name = "source_vertex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector.source_vertex"
+notes = "The vertex-projective path-vector synonym is exposed; quotient vector overloads remain."
 entry_ids = ["projpathalgmodule:DeclareSynonym:SourceVertex:1","projpathalgmodule:InstallOtherMethod:SourceVertex:1"]
 constructs = ["DeclareSynonym","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraVector::source_vertex; QuotientPathAlgebraVector::source_vertex"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "SplayDynamicTree"
@@ -12101,16 +12101,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_a
 qpa_name = "TargetVertex"
 python_name = "target_vertex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebraVector.target_vertex"
+notes = "The vertex-projective path-vector synonym is exposed; quotient vector overloads remain."
 entry_ids = ["projpathalgmodule:DeclareSynonym:TargetVertex:1","projpathalgmodule:InstallOtherMethod:TargetVertex:1"]
 constructs = ["DeclareSynonym","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraVector::target_vertex; QuotientPathAlgebraVector::target_vertex"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "TauOfComplex"
@@ -12746,8 +12746,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_alge
 qpa_name = "UnderlyingModule"
 python_name = "underlying_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraModuleGroebnerBasis.parent_module"
 notes = ""
 entry_ids = ["projpathalgmodule:DeclareAttribute:UnderlyingModule:1"]
 constructs = ["DeclareAttribute"]
@@ -12755,7 +12755,7 @@ source_files = ["upstream/qpa/lib/projpathalgmodule.gd"]
 rust_symbols = ["RightPathAlgebraModuleGroebnerBasis::underlying_projective_module; RightPathAlgebraModuleGroebnerBasis::underlying_submodule"]
 rust_tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "UnderlyingSet"
@@ -12776,16 +12776,16 @@ python_tests = []
 qpa_name = "UniformGeneratorsOfModule"
 python_name = "uniform_generators_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule.uniform_generators"
+notes = "Whole vertex-projective modules are exposed; projective submodules remain."
 entry_ids = ["projpathalgmodule:DeclareAttribute:UniformGeneratorsOfModule:1","projpathalgmodule:InstallMethod:UniformGeneratorsOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightProjectivePathAlgebraModule::uniform_generators; RightProjectivePathAlgebraSubmodule::uniform_generators","RightProjectivePathAlgebraModule::uniform_generators; RightProjectivePathAlgebraSubmodule::uniform_generators; RightUniformPathAlgebraModule::uniform_generators"]
 rust_tests = ["tests/fixtures/projpathalgmodule_groebner.schema-v1.json","tests/fixtures/projpathalgmodule_uniform_projective.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "UniqueQuiverName"
@@ -12851,16 +12851,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "Vectorize"
 python_name = "vectorize"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.RightProjectiveModule.vector"
+notes = "Vectorization into a vertex-projective path-vector family is exposed; remaining vector-collection families remain."
 entry_ids = ["projpathalgmodule:DeclareOperation:Vectorize:1","projpathalgmodule:InstallOtherMethod:Vectorize:1","projpathalgmodule:InstallOtherMethod:Vectorize:2"]
 constructs = ["DeclareOperation","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/projpathalgmodule.gd","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightFpPathAlgebraModule::vector","RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector","RightProjectivePathAlgebraModule::vector; RightProjectiveQuotientPathAlgebraModule::vector; RightFpPathAlgebraModule::vector"]
 rust_tests = ["tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vertex_presentation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "VertexIndex"
@@ -12942,15 +12942,15 @@ qpa_name = "ViewObj"
 python_name = "view_obj"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__"
-notes = "The quiver, quiver-ordering, and Groebner-basis overloads are exposed; grouped display overloads remain."
+python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__"
+notes = "The quiver, quiver-ordering, algebra Groebner-basis, and projective-module Groebner-basis overloads are exposed; grouped display overloads remain."
 entry_ids = ["combinatorialrep:InstallMethod:ViewObj:1","complex:InstallMethod:ViewObj:1","degorderfinitetype:InstallMethod:ViewObj:1","groebner:InstallMethod:ViewObj:1","groebnerordering:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:2","groebnerstadict:InstallMethod:ViewObj:3","groebnerstadict:InstallMethod:ViewObj:4","module:InstallMethod:ViewObj:1","modulehom:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:2","pathalgtensor:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:2","qpaposet:InstallMethod:ViewObj:1","quiver:InstallMethod:ViewObj:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/groebnerstadict.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/qpaposet.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","Display for PathAlgebraModule","Display for PathAlgebraModuleHomomorphism","Display for UnitForm","GroebnerBasis::view_string","PathAlgebra::view_obj_with","Poset::fmt","Quiver::view_string","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuiverStaticDictionary::fmt; QuiverStaticDictionary::view_string","QuotientPathAlgebra::view_obj_with; PathAlgebraIdeal::view_obj_with","RightPathAlgebraModuleGroebnerBasis::view_obj_with_basis","RightPathAlgebraModuleGroebnerBasis::view_obj_without_basis","StaticDictionary::fmt","qpa_gbnp::QpaCategory::name"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form_view.txt","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/poset_output.txt","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/static_dictionary_output.txt"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "WalkOfPath"
@@ -13152,60 +13152,60 @@ qpa_name = "ZeroOp"
 python_name = "zero_op"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsElement.zero_same_parent; qpa.MatrixModule.zero_element"
-notes = "Opposite- and matrix-module element overloads are exposed alongside quotient-algebra zero; projective-module domains remain."
+python_target = "qpa.OppositeStructureConstantsElement.zero_same_parent; qpa.MatrixModule.zero_element; qpa.RightProjectiveModule.zero"
+notes = "Opposite-, matrix-module-, and vertex-projective zero overloads are exposed alongside quotient-algebra zero; remaining projective-module domains remain."
 entry_ids = ["algebra:InstallMethod:ZeroOp:1","module:InstallMethod:ZeroOp:1","pathalg:InstallMethod:ZeroOp:1","projpathalgmodule:InstallMethod:ZeroOp:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::zero_same_parent","PathAlgebraModule::zero_element","QuotientPathAlgebra::zero","RightProjectivePathAlgebraModule::zero; RightProjectiveQuotientPathAlgebraModule::zero"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\*"
 python_name = "multiply"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsElement.multiply; qpa.OppositeStructureConstantsElement.scale; qpa.ModuleHomomorphism.compose"
-notes = "Opposite-element multiplication/scaling, module-element scalar actions, and module-map composition/scaling are exposed among the grouped QPA overloads."
+python_target = "qpa.OppositeStructureConstantsElement.multiply; qpa.OppositeStructureConstantsElement.scale; qpa.ModuleHomomorphism.compose; qpa.PathAlgebraVector.scale_left; qpa.PathAlgebraVector.act"
+notes = "Opposite-element multiplication/scaling, module-element scalar actions, module-map composition/scaling, and projective-vector actions are exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\*:1","algebra:InstallMethod:\\*:2","algebra:InstallMethod:\\*:3","module:InstallMethod:\\*:1","module:InstallOtherMethod:\\*:1","modulehom:InstallMethod:\\*:1","modulehom:InstallOtherMethod:\\*:1","modulehom:InstallOtherMethod:\\*:2","pathalg:InstallMethod:\\*:1","pathalg:InstallMethod:\\*:2","pathalg:InstallMethod:\\*:3","pathalg:InstallMethod:\\*:4","pathalg:InstallMethod:\\*:5","pathalg:InstallMethod:\\*:6","pathalg:InstallMethod:\\*:7","projpathalgmodule:InstallOtherMethod:\\*:1","projpathalgmodule:InstallMethod:\\*:1","quiver:InstallMethod:\\*:1","quiver:InstallMethod:\\*:2","quiver:InstallMethod:\\*:3","quiver:InstallMethod:\\*:4","quiver:InstallMethod:\\*:5","quiver:InstallMethod:\\*:6"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::multiply","OppositeStructureConstantsAlgebraElement::scale","Path::multiply","PathAlgebraElement::multiply","PathAlgebraModuleElement::scale_left","PathAlgebraModuleElement::scale_right","PathAlgebraModuleHomomorphism::compose","PathAlgebraModuleHomomorphism::scale","PathAlgebraVector::scale_left; QuotientPathAlgebraVector::scale_left","PathAlgebraVector::scale_left; QuotientPathAlgebraVector::scale_right","QuotientPathAlgebraElement::multiply","QuotientPathAlgebraElement::multiply_path_left","QuotientPathAlgebraElement::multiply_path_right","QuotientPathAlgebraElement::scale_left","QuotientPathAlgebraElement::scale_right"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/path_algebra.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\+"
 python_name = "add"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsElement.add; qpa.ModuleElement.add"
-notes = "Opposite-, matrix-module-element, and homomorphism addition are exposed among the grouped QPA overloads."
+python_target = "qpa.OppositeStructureConstantsElement.add; qpa.ModuleElement.add; qpa.PathAlgebraVector.add"
+notes = "Opposite-, matrix-module-element, homomorphism, and projective-vector addition are exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\+:1","module:InstallMethod:\\+:1","modulehom:InstallMethod:\\+:1","pathalg:InstallMethod:\\+:1","pathalg:InstallMethod:\\+:2","pathalg:InstallMethod:\\+:3","projpathalgmodule:InstallMethod:\\+:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::add","PathAlgebraElement::add","PathAlgebraModuleElement::add","PathAlgebraModuleHomomorphism::add","PathAlgebraVector::add; QuotientPathAlgebraVector::add","QuotientPathAlgebraElement::add"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_element_errors.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/path_algebra.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\-"
 python_name = "subtract"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.ModuleElement.subtract"
-notes = "Matrix-module element subtraction and negation are exposed among the grouped QPA overloads."
+python_target = "qpa.ModuleElement.subtract; qpa.PathAlgebraVector.subtract; qpa.PathAlgebraVector.negate"
+notes = "Matrix-module element and projective-vector subtraction and negation are exposed among the grouped QPA overloads."
 entry_ids = ["module:InstallMethod:\\-:1","pathalg:InstallMethod:\\-:1","projpathalgmodule:InstallMethod:\\-:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["PathAlgebraModuleElement::subtract","PathAlgebraVector::sub; QuotientPathAlgebraVector::sub","QuotientPathAlgebraElement::sub"]
 rust_tests = ["tests/fixtures/module_element_errors.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\."
@@ -13242,30 +13242,30 @@ qpa_name = "\\<"
 python_name = "less_than"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsElement.__lt__; qpa.AlgebraElement.compare; qpa.QuotientElement.compare; qpa.Quiver.compare_paths"
-notes = "Opposite, path, quotient, and quiver comparison routes are exposed; projective-module comparison remains."
+python_target = "qpa.OppositeStructureConstantsElement.__lt__; qpa.AlgebraElement.compare; qpa.QuotientElement.compare; qpa.Quiver.compare_paths; qpa.PathAlgebraVector.compare"
+notes = "Opposite, path, quotient, quiver, and projective path-vector comparison routes are exposed; grouped comparison overloads remain."
 entry_ids = ["algebra:InstallMethod:\\<:1","pathalg:InstallMethod:\\<:1","pathalg:InstallMethod:\\<:2","projpathalgmodule:InstallMethod:\\<:1","quiver:InstallMethod:\\<:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::compare","PathAlgebraElement::compare","PathAlgebraVector::compare; QuotientPathAlgebraVector::compare","Quiver::compare_paths; OrderedQuiver::compare_paths","QuotientPathAlgebraElement::compare"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\="
 python_name = "equal"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__"
-notes = "Opposite-element equality and structural equality for matrix modules, their elements, and homomorphisms are exposed among the grouped QPA overloads."
+python_target = "qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
+notes = "Opposite-element equality and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\=:1","complex:InstallMethod:\\=:1","groebnerdyndict:InstallMethod:\\=:1","groebnerdyntree:InstallMethod:\\=:1","module:InstallMethod:\\=:1","module:InstallMethod:\\=:2","modulehom:InstallMethod:\\=:1","pathalg:InstallMethod:\\=:1","projpathalgmodule:InstallMethod:\\=:1","quiver:InstallMethod:\\=:1","quiver:InstallMethod:\\=:2","quiver:InstallMethod:\\=:3","quiver:InstallMethod:\\=:4","quiver:InstallMethod:\\=:5","quiver:InstallMethod:\\=:6"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/groebnerdyndict.gi","upstream/qpa/lib/groebnerdyntree.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["DynamicTree::is_identical; DynamicTree::eq","OppositeStructureConstantsAlgebraElement::eq","PartialEq for PathAlgebraModuleElement","Path::eq","PathAlgebraModule::eq; PathAlgebraModule::is_identical","PathAlgebraModuleHomomorphism::eq","PathAlgebraVector::eq; QuotientPathAlgebraVector::eq","QuotientPathAlgebraElement::eq","SuffixTreeNodeId::eq; SuffixTreeEdgeId::eq","qpa_gbnp::CallbackCategory::eq"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/final_declared_surface.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\[\\]"

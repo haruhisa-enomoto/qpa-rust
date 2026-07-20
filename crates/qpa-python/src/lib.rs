@@ -21,11 +21,12 @@ use algebra::{
     PyModuleEndomorphismQuotientElement, PyModuleEndomorphismQuotientMap, PyModuleHomomorphism,
     PyModuleHomomorphismBasis, PyModuleSubmodule, PyMoreMinimalVersionResult,
     PyNonisomorphicDirectSummandData, PyOppositeStructureConstantsAlgebra,
-    PyOppositeStructureConstantsElement, PyPathAlgebra, PyPathAlgebraIdeal, PyPredecessorValuation,
+    PyOppositeStructureConstantsElement, PyPathAlgebra, PyPathAlgebraIdeal,
+    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPredecessorValuation,
     PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent, PyProjectiveResolution,
-    PyQuiverAlgebra, PyQuotientAlgebra, PyQuotientElement, PyStructureConstantsAlgebra,
-    PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
-    PyStructureConstantsSubalgebra, PyTiltingModuleResult,
+    PyQuiverAlgebra, PyQuotientAlgebra, PyQuotientElement, PyRightProjectiveModule,
+    PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
+    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra, PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -85,6 +86,9 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPathAlgebraIdeal>()?;
     module.add_class::<PyGroebnerBasis>()?;
     module.add_class::<PyGroebnerBasisIterator>()?;
+    module.add_class::<PyRightProjectiveModule>()?;
+    module.add_class::<PyPathAlgebraVector>()?;
+    module.add_class::<PyPathAlgebraModuleGroebnerBasis>()?;
     module.add_class::<PyQuotientAlgebra>()?;
     module.add_class::<PyQuotientElement>()?;
     module.add_class::<PyMatrixModule>()?;
