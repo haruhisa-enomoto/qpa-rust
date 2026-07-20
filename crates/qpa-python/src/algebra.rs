@@ -144,11 +144,11 @@ use pyo3::{Py, PyRef, PyResult, Python, prelude::*, types::PyList};
 use qpa_core::{
     AlgebraDimension, DenseMatrix, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix, PathAlgebra,
     PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal, PathAlgebraModule,
-    PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule,
-    QuiverAlgebra, QuiverAlgebraElement, QuotientNiceBasis, QuotientPathAlgebra,
-    QuotientPathAlgebraElement, make_uniform, make_uniform_list, qpa_in_arrow_ideal,
-    reduced_list_qpa, remainder_of_division, right_module_over_path_algebra, tip_reduced_list,
-    tip_walk,
+    PathAlgebraModuleElement, PathAlgebraModuleElementBasis, PathAlgebraModuleElementSpace,
+    PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule, QuiverAlgebra, QuiverAlgebraElement,
+    QuotientNiceBasis, QuotientPathAlgebra, QuotientPathAlgebraElement, make_uniform,
+    make_uniform_list, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,
+    right_module_over_path_algebra, tip_reduced_list, tip_walk,
 };
 use qpa_gbnp::CohenPolynomial;
 
@@ -418,6 +418,34 @@ enum ModuleElementKind {
 #[derive(Clone)]
 pub(crate) struct PyModuleElement {
     kind: ModuleElementKind,
+}
+
+#[derive(Clone)]
+enum ModuleElementSpaceKind {
+    Rational(PathAlgebraModuleElementSpace<RationalField>),
+    Binary(PathAlgebraModuleElementSpace<Z2>),
+    Prime(PathAlgebraModuleElementSpace<Zp>),
+}
+
+/// QPA's free left-module space of raw path-module elements.
+#[pyclass(name = "ModuleElementSpace", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleElementSpace {
+    kind: ModuleElementSpaceKind,
+}
+
+#[derive(Clone)]
+enum ModuleElementBasisKind {
+    Rational(PathAlgebraModuleElementBasis<RationalField>),
+    Binary(PathAlgebraModuleElementBasis<Z2>),
+    Prime(PathAlgebraModuleElementBasis<Zp>),
+}
+
+/// QPA's basis of a raw path-module element space.
+#[pyclass(name = "ModuleElementBasis", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleElementBasis {
+    kind: ModuleElementBasisKind,
 }
 
 #[derive(Clone)]
@@ -889,6 +917,18 @@ macro_rules! impl_module_value_runtime {
 
         impl runtime::Wrap<PathAlgebraModuleElement<$field>> for ModuleElementKind {
             fn wrap(value: PathAlgebraModuleElement<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<PathAlgebraModuleElementSpace<$field>> for ModuleElementSpaceKind {
+            fn wrap(value: PathAlgebraModuleElementSpace<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<PathAlgebraModuleElementBasis<$field>> for ModuleElementBasisKind {
+            fn wrap(value: PathAlgebraModuleElementBasis<$field>) -> Self {
                 Self::$variant(value)
             }
         }

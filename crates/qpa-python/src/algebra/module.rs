@@ -846,6 +846,18 @@ impl PyMatrixModule {
     }
 
     #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_algebra_module(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_path_algebra_mat_module(&self) -> bool {
+        true
+    }
+
+    #[getter]
     fn field(&self) -> PyField {
         let kind = dispatch_ref!(&self.kind, MatrixModuleKind, |module| module
             .right_acting_algebra()
@@ -920,6 +932,48 @@ impl PyMatrixModule {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| wrap_module_elements(
             module.basis_elements()
         ))
+    }
+
+    fn element_space(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyModuleElement>>,
+    ) -> PyResult<PyModuleElementSpace> {
+        let generators = clone_module_elements(py, generators);
+        let kind = match &self.kind {
+            MatrixModuleKind::Rational(module) => ModuleElementSpaceKind::Rational(
+                PathAlgebraModuleElementSpace::by_generators(
+                    module.clone(),
+                    runtime::extract_all(generators)?,
+                )
+                .map_err(invalid)?,
+            ),
+            MatrixModuleKind::Binary(module) => ModuleElementSpaceKind::Binary(
+                PathAlgebraModuleElementSpace::by_generators(
+                    module.clone(),
+                    runtime::extract_all(generators)?,
+                )
+                .map_err(invalid)?,
+            ),
+            MatrixModuleKind::Prime(module) => ModuleElementSpaceKind::Prime(
+                PathAlgebraModuleElementSpace::by_generators(
+                    module.clone(),
+                    runtime::extract_all(generators)?,
+                )
+                .map_err(invalid)?,
+            ),
+        };
+        Ok(PyModuleElementSpace { kind })
+    }
+
+    fn canonical_basis(&self) -> PyResult<PyModuleElementBasis> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleElementBasisKind,
+            |module| PathAlgebraModuleElementBasis::canonical_for_module(module)
+                .map_err(invalid)?
+        );
+        Ok(PyModuleElementBasis { kind })
     }
 
     #[staticmethod]

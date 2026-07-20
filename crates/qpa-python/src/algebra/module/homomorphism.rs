@@ -9,6 +9,18 @@ use super::*;
 #[pymethods]
 impl PyModuleHomomorphism {
     #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_algebra_module_homomorphism(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_path_algebra_mat_module_homomorphism_rep(&self) -> bool {
+        true
+    }
+
+    #[getter]
     fn source(&self) -> PyMatrixModule {
         let kind = map_ref!(
             &self.kind,

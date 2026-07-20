@@ -9,6 +9,12 @@ use super::*;
 #[pymethods]
 impl PyModuleElement {
     #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_path_module_element(&self) -> bool {
+        true
+    }
+
+    #[getter]
     fn module(&self) -> PyMatrixModule {
         let kind = map_ref!(
             &self.kind,
@@ -203,6 +209,246 @@ impl PyModuleElement {
             let field = element.module().right_acting_algebra().field();
             element.qpa_print_string_with(|value| field.scalar_text(value))
         })
+    }
+}
+
+fn clone_element_kinds(
+    py: pyo3::Python<'_>,
+    elements: Vec<pyo3::Py<PyModuleElement>>,
+) -> Vec<ModuleElementKind> {
+    elements
+        .into_iter()
+        .map(|element| element.borrow(py).kind.clone())
+        .collect()
+}
+
+#[pymethods]
+impl PyModuleElementSpace {
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_path_module_element_collection(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    fn module(&self) -> PyMatrixModule {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleElementSpaceKind => MatrixModuleKind,
+            |space| space.module().clone()
+        );
+        PyMatrixModule { kind }
+    }
+
+    #[getter]
+    fn generators(&self) -> Vec<PyModuleElement> {
+        dispatch_ref!(&self.kind, ModuleElementSpaceKind, |space| {
+            wrap_module_elements(space.generators().to_vec())
+        })
+    }
+
+    fn new_basis(
+        &self,
+        py: pyo3::Python<'_>,
+        vectors: Vec<pyo3::Py<PyModuleElement>>,
+    ) -> PyResult<PyModuleElementBasis> {
+        let vectors = clone_element_kinds(py, vectors);
+        let kind = match &self.kind {
+            ModuleElementSpaceKind::Rational(space) => ModuleElementBasisKind::Rational(
+                space
+                    .new_basis(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
+            ModuleElementSpaceKind::Binary(space) => ModuleElementBasisKind::Binary(
+                space
+                    .new_basis(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
+            ModuleElementSpaceKind::Prime(space) => ModuleElementBasisKind::Prime(
+                space
+                    .new_basis(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
+        };
+        Ok(PyModuleElementBasis { kind })
+    }
+
+    fn basis_nc(
+        &self,
+        py: pyo3::Python<'_>,
+        vectors: Vec<pyo3::Py<PyModuleElement>>,
+    ) -> PyResult<PyModuleElementBasis> {
+        let vectors = clone_element_kinds(py, vectors);
+        let kind = match &self.kind {
+            ModuleElementSpaceKind::Rational(space) => ModuleElementBasisKind::Rational(
+                space
+                    .basis_nc(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
+            ModuleElementSpaceKind::Binary(space) => ModuleElementBasisKind::Binary(
+                space
+                    .basis_nc(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
+            ModuleElementSpaceKind::Prime(space) => ModuleElementBasisKind::Prime(
+                space
+                    .basis_nc(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
+        };
+        Ok(PyModuleElementBasis { kind })
+    }
+
+    fn basis_from_vectors(
+        &self,
+        py: pyo3::Python<'_>,
+        vectors: Vec<pyo3::Py<PyModuleElement>>,
+    ) -> PyResult<Option<PyModuleElementBasis>> {
+        let vectors = clone_element_kinds(py, vectors);
+        match &self.kind {
+            ModuleElementSpaceKind::Rational(space) => Ok(space
+                .basis_from_vectors(runtime::extract_all(vectors)?)
+                .map_err(invalid)?
+                .map(|basis| PyModuleElementBasis {
+                    kind: ModuleElementBasisKind::Rational(basis),
+                })),
+            ModuleElementSpaceKind::Binary(space) => Ok(space
+                .basis_from_vectors(runtime::extract_all(vectors)?)
+                .map_err(invalid)?
+                .map(|basis| PyModuleElementBasis {
+                    kind: ModuleElementBasisKind::Binary(basis),
+                })),
+            ModuleElementSpaceKind::Prime(space) => Ok(space
+                .basis_from_vectors(runtime::extract_all(vectors)?)
+                .map_err(invalid)?
+                .map(|basis| PyModuleElementBasis {
+                    kind: ModuleElementBasisKind::Prime(basis),
+                })),
+        }
+    }
+
+    fn basis_of_domain(&self) -> PyResult<PyModuleElementBasis> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleElementSpaceKind => ModuleElementBasisKind,
+            |space| space.basis_of_domain().map_err(invalid)?
+        );
+        Ok(PyModuleElementBasis { kind })
+    }
+
+    fn basis(&self) -> PyResult<PyModuleElementBasis> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleElementSpaceKind => ModuleElementBasisKind,
+            |space| space.basis().map_err(invalid)?
+        );
+        Ok(PyModuleElementBasis { kind })
+    }
+
+    fn contains(&self, element: &PyModuleElement) -> PyResult<bool> {
+        match (&self.kind, &element.kind) {
+            (ModuleElementSpaceKind::Rational(space), ModuleElementKind::Rational(element)) => {
+                space.contains(element).map_err(invalid)
+            }
+            (ModuleElementSpaceKind::Binary(space), ModuleElementKind::Binary(element)) => {
+                space.contains(element).map_err(invalid)
+            }
+            (ModuleElementSpaceKind::Prime(space), ModuleElementKind::Prime(element)) => {
+                space.contains(element).map_err(invalid)
+            }
+            _ => Ok(false),
+        }
+    }
+
+    fn __contains__(&self, element: &PyModuleElement) -> PyResult<bool> {
+        self.contains(element)
+    }
+}
+
+#[pymethods]
+impl PyModuleElementBasis {
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_basis_of_path_module_elem_vector_space(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    fn underlying_space(&self) -> PyModuleElementSpace {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleElementBasisKind => ModuleElementSpaceKind,
+            |basis| basis.underlying_space().clone()
+        );
+        PyModuleElementSpace { kind }
+    }
+
+    #[getter]
+    fn basis_vectors(&self) -> Vec<PyModuleElement> {
+        dispatch_ref!(&self.kind, ModuleElementBasisKind, |basis| {
+            wrap_module_elements(basis.basis_vectors().to_vec())
+        })
+    }
+
+    #[getter]
+    fn is_canonical_basis(&self) -> bool {
+        dispatch_ref!(&self.kind, ModuleElementBasisKind, |basis| basis
+            .is_canonical_basis())
+    }
+
+    #[getter]
+    fn is_empty(&self) -> bool {
+        dispatch_ref!(&self.kind, ModuleElementBasisKind, |basis| basis.is_empty())
+    }
+
+    fn coefficients(&self, element: &PyModuleElement) -> PyResult<Option<Vec<PyScalar>>> {
+        match (&self.kind, &element.kind) {
+            (ModuleElementBasisKind::Rational(basis), ModuleElementKind::Rational(element)) => {
+                Ok(basis.coefficients(element).map_err(invalid)?.map(|values| {
+                    wrap_scalars(
+                        basis
+                            .underlying_space()
+                            .module()
+                            .right_acting_algebra()
+                            .field(),
+                        &values,
+                    )
+                }))
+            }
+            (ModuleElementBasisKind::Binary(basis), ModuleElementKind::Binary(element)) => {
+                Ok(basis.coefficients(element).map_err(invalid)?.map(|values| {
+                    wrap_scalars(
+                        basis
+                            .underlying_space()
+                            .module()
+                            .right_acting_algebra()
+                            .field(),
+                        &values,
+                    )
+                }))
+            }
+            (ModuleElementBasisKind::Prime(basis), ModuleElementKind::Prime(element)) => {
+                Ok(basis.coefficients(element).map_err(invalid)?.map(|values| {
+                    wrap_scalars(
+                        basis
+                            .underlying_space()
+                            .module()
+                            .right_acting_algebra()
+                            .field(),
+                        &values,
+                    )
+                }))
+            }
+            _ => Err(invalid(
+                "basis and module element use different coefficient fields",
+            )),
+        }
+    }
+
+    fn __len__(&self) -> usize {
+        dispatch_ref!(&self.kind, ModuleElementBasisKind, |basis| basis
+            .basis_vectors()
+            .len())
     }
 }
 

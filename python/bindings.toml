@@ -760,9 +760,9 @@ tests = ["python/tests/test_external_representations.py::test_external_represent
 [[bindings]]
 qpa_name = "CanonicalBasis"
 status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.PathAlgebra.canonical_basis; qpa.RightProjectiveModule.canonical_basis; qpa.RightProjectiveQuotientModule.canonical_basis"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
-notes = "Opposite-, path-, quotient-, and both vertex-projective algebra canonical bases are exposed; remaining module families remain."
+target = "qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.PathAlgebra.canonical_basis; qpa.MatrixModule.canonical_basis; qpa.RightProjectiveModule.canonical_basis; qpa.RightProjectiveQuotientModule.canonical_basis"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
+notes = "Opposite-, path-, matrix-module-, quotient-, and both vertex-projective algebra canonical bases are exposed; remaining module families remain."
 
 [[bindings]]
 qpa_name = "OppositePathAlgebra"
@@ -1357,9 +1357,9 @@ tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_const
 [[bindings]]
 qpa_name = "Coefficients"
 status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.coefficients; qpa.PathAlgebraVectorBasis.coefficients"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
-notes = "Opposite-algebra and echelon path-vector-basis overloads are exposed; remaining module and path-algebra basis overloads remain."
+target = "qpa.OppositeStructureConstantsAlgebra.coefficients; qpa.ModuleElementBasis.coefficients; qpa.PathAlgebraVectorBasis.coefficients"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
+notes = "Opposite-algebra, matrix-module-element-basis, and echelon path-vector-basis overloads are exposed; remaining path-algebra basis overloads remain."
 
 [[bindings]]
 qpa_name = "ExtRepOfObj"
@@ -1498,15 +1498,15 @@ notes = "QPA fail is represented by None."
 [[bindings]]
 qpa_name = "Basis"
 status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.MatrixModule.basis_elements; qpa.RightProjectiveSubmodule.basis; qpa.PathAlgebraVectorSpace.basis; qpa.PathAlgebraVectorSpace.basis_from_vectors"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
-notes = "Opposite-algebra, matrix-module, projective-submodule, and path-vector-space bases are exposed; remaining projective-module families remain."
+target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.MatrixModule.basis_elements; qpa.ModuleElementSpace.basis; qpa.ModuleElementSpace.basis_from_vectors; qpa.RightProjectiveSubmodule.basis; qpa.PathAlgebraVectorSpace.basis; qpa.PathAlgebraVectorSpace.basis_from_vectors"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
+notes = "Opposite-algebra, matrix-module, raw module-element-space, projective-submodule, and path-vector-space bases are exposed; remaining projective-module families remain."
 
 [[bindings]]
 qpa_name = "BasisVectors"
 status = "exposed"
-target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.PathAlgebraModuleGroebnerBasis.basis_vectors; qpa.PathAlgebraVectorBasis.basis_vectors"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
+target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.ModuleElementBasis.basis_vectors; qpa.PathAlgebraModuleGroebnerBasis.basis_vectors; qpa.PathAlgebraVectorBasis.basis_vectors"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
 
 [[bindings]]
 qpa_name = "CoKernelOfAdditiveGeneralMapping"
@@ -3198,9 +3198,9 @@ notes = "Path- and quotient-projective positional representations are exposed; r
 [[bindings]]
 qpa_name = "IsAlgebraModule"
 status = "partial"
-target = "qpa.RightProjectiveModule; qpa.RightProjectiveSubmodule; qpa.RightProjectiveQuotientModule"
-tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
-notes = "Whole path- and quotient-projective modules and path-projective submodules have concrete Python types; finitely presented families remain."
+target = "qpa.MatrixModule.is_algebra_module; qpa.RightProjectiveModule; qpa.RightProjectiveSubmodule; qpa.RightProjectiveQuotientModule"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
+notes = "Matrix modules, whole path- and quotient-projective modules, and path-projective submodules have concrete Python types; finitely presented families remain."
 
 [[bindings]]
 qpa_name = "IsNormalForm"
@@ -3306,20 +3306,20 @@ tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_v
 [[bindings]]
 qpa_name = "NewBasis"
 status = "exposed"
-target = "qpa.RightProjectiveModule.new_basis; qpa.RightProjectiveSubmodule.new_basis; qpa.PathAlgebraVectorSpace.new_basis"
-tests = ["python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
+target = "qpa.ModuleElementSpace.new_basis; qpa.RightProjectiveModule.new_basis; qpa.RightProjectiveSubmodule.new_basis; qpa.PathAlgebraVectorSpace.new_basis"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
 
 [[bindings]]
 qpa_name = "BasisNC"
 status = "exposed"
-target = "qpa.PathAlgebraVectorSpace.basis_nc"
-tests = ["python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
+target = "qpa.ModuleElementSpace.basis_nc; qpa.PathAlgebraVectorSpace.basis_nc"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
 
 [[bindings]]
 qpa_name = "BasisOfDomain"
 status = "exposed"
-target = "qpa.PathAlgebraVectorSpace.basis_of_domain"
-tests = ["python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
+target = "qpa.ModuleElementSpace.basis_of_domain; qpa.PathAlgebraVectorSpace.basis_of_domain"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle","python/tests/test_architecture_spike.py::test_projective_path_submodules_and_bases_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsBasisOfPathAlgebraVectorSpace"
@@ -5330,3 +5330,75 @@ qpa_name = "StartPosition"
 status = "exposed"
 target = "qpa.HalfInfiniteList.start_position"
 tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+# Metadata, callback categories, and matrix-module runtime categories
+
+[[bindings]]
+qpa_name = "Cat"
+status = "exposed"
+target = "qpa.cat; qpa.CallbackCategory"
+tests = ["python/tests/test_metadata_categories.py::test_generic_cat_delegates_to_qpa_callback_category"]
+notes = "Accepts Python's dict analogue of QPA's properties record and delegates its callbacks through qpa_gbnp::CallbackCategory."
+
+[[bindings]]
+qpa_name = "InfoGroebnerBasis"
+status = "exposed"
+target = "qpa.info_groebner_basis_name"
+tests = ["python/tests/test_metadata_categories.py::test_information_classes_and_documentation_plan_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InfoPathAlgebraModule"
+status = "exposed"
+target = "qpa.info_path_algebra_module_name; qpa.info_path_algebra_module_default_level"
+tests = ["python/tests/test_metadata_categories.py::test_information_classes_and_documentation_plan_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InfoProjectiveResolutionFpPathAlgebraModule"
+status = "exposed"
+target = "qpa.info_projective_resolution_fp_path_algebra_module_name; qpa.info_projective_resolution_fp_path_algebra_module_default_level"
+tests = ["python/tests/test_metadata_categories.py::test_information_classes_and_documentation_plan_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InfoQuiver"
+status = "exposed"
+target = "qpa.info_quiver_name"
+tests = ["python/tests/test_metadata_categories.py::test_information_classes_and_documentation_plan_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MakeQPADocumentation"
+status = "exposed"
+target = "qpa.make_qpa_documentation; qpa.QpaDocumentationPlan"
+tests = ["python/tests/test_metadata_categories.py::test_information_classes_and_documentation_plan_follow_qpa"]
+notes = "Returns the source-faithful documentation plan under deviation DOCUMENTATION-001; the library does not perform GAPDoc's process-global writes."
+
+[[bindings]]
+qpa_name = "IsAlgebraModuleHomomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_algebra_module_homomorphism"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "IsBasisOfPathModuleElemVectorSpace"
+status = "exposed"
+target = "qpa.ModuleElementBasis"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsPathAlgebraMatModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_path_algebra_mat_module"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "IsPathAlgebraMatModuleHomomorphismRep"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.is_path_algebra_mat_module_homomorphism_rep"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "IsPathModuleElem"
+status = "exposed"
+target = "qpa.ModuleElement.is_path_module_element; qpa.ModuleElementSpace.is_path_module_element_collection"
+tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle"]
+notes = "The concrete element and element-space wrappers represent QPA's element, family, and collection categories."

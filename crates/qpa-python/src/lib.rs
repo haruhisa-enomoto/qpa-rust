@@ -4,9 +4,11 @@
 #![allow(missing_docs)] // PyO3 exception structs cannot receive rustdoc attributes.
 
 mod algebra;
+mod callback_category;
 mod dynamic_tree;
 mod field;
 mod infinite_list;
+mod metadata;
 mod poset;
 mod quiver;
 mod runtime;
@@ -28,10 +30,11 @@ use algebra::{
     PyGszProjectiveResolution, PyInjectiveResolution, PyLiftedProjectivePathAlgebraModule,
     PyMatrixModule, PyMaximalCommonDirectSummand, PyModuleBasisMapping, PyModuleCategory,
     PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
-    PyModuleEndomorphismAlgebra, PyModuleEndomorphismQuotientAlgebra,
-    PyModuleEndomorphismQuotientElement, PyModuleEndomorphismQuotientMap, PyModuleHomomorphism,
-    PyModuleHomomorphismBasis, PyModuleMorphismList, PyModuleSubmodule, PyMoreMinimalVersionResult,
-    PyNakayamaAlgebraResult, PyNakayamaAutomorphism, PyNakayamaPermutation, PyNaturalQuotientMap,
+    PyModuleElementBasis, PyModuleElementSpace, PyModuleEndomorphismAlgebra,
+    PyModuleEndomorphismQuotientAlgebra, PyModuleEndomorphismQuotientElement,
+    PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
+    PyModuleMorphismList, PyModuleSubmodule, PyMoreMinimalVersionResult, PyNakayamaAlgebraResult,
+    PyNakayamaAutomorphism, PyNakayamaPermutation, PyNaturalQuotientMap,
     PyNaturalSubmoduleHomomorphism, PyNonisomorphicDirectSummandData,
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
     PyPathAlgebraCentre, PyPathAlgebraIdeal, PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector,
@@ -55,11 +58,17 @@ use algebra::{
     py_poset_algebra, py_predefined_ar_quiver_catalog, py_predefined_ar_quiver_data,
     py_read_algebra, py_string_quiver_rho,
 };
+use callback_category::{PyCallbackCategory, py_cat};
 use dynamic_tree::{PyDynamicForest, PyDynamicTree};
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use infinite_list::{
     PyHalfInfiniteList, PyInfiniteList, PyInfiniteListElementFunction,
     PyInfiniteListNewValueCallback, py_integers_list,
+};
+use metadata::{
+    PyQpaDocumentationPlan, py_info_groebner_basis_name, py_info_path_algebra_module_default_level,
+    py_info_path_algebra_module_name, py_info_projective_resolution_default_level,
+    py_info_projective_resolution_name, py_info_quiver_name, py_make_qpa_documentation,
 };
 use quiver::{
     PyPath, PyQuiver, PyQuiverArrow, PyQuiverOrdering, PyQuiverPathEnumerator,
@@ -99,6 +108,8 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyInfiniteList>()?;
     module.add_class::<PyInfiniteListElementFunction>()?;
     module.add_class::<PyInfiniteListNewValueCallback>()?;
+    module.add_class::<PyQpaDocumentationPlan>()?;
+    module.add_class::<PyCallbackCategory>()?;
     module.add_class::<PySuffixTree>()?;
     module.add_class::<PySuffixTreeNode>()?;
     module.add_class::<PySuffixTreeEdge>()?;
@@ -116,6 +127,7 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPoset>()?;
     module.add_class::<PyPosetOrder>()?;
     module.add_function(wrap_pyfunction!(py_unique_quiver_name, module)?)?;
+    module.add_function(wrap_pyfunction!(py_cat, module)?)?;
     module.add_function(wrap_pyfunction!(py_complex_and_chain_maps, module)?)?;
     module.add_function(wrap_pyfunction!(py_compute_lps_array, module)?)?;
     module.add_function(wrap_pyfunction!(py_cyclic_permutations_of_band, module)?)?;
@@ -142,6 +154,22 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_positions_nonzero, module)?)?;
     module.add_function(wrap_pyfunction!(py_info_dynamic_dictionary_name, module)?)?;
     module.add_function(wrap_pyfunction!(py_integers_list, module)?)?;
+    module.add_function(wrap_pyfunction!(py_make_qpa_documentation, module)?)?;
+    module.add_function(wrap_pyfunction!(py_info_groebner_basis_name, module)?)?;
+    module.add_function(wrap_pyfunction!(py_info_path_algebra_module_name, module)?)?;
+    module.add_function(wrap_pyfunction!(
+        py_info_path_algebra_module_default_level,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        py_info_projective_resolution_name,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        py_info_projective_resolution_default_level,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(py_info_quiver_name, module)?)?;
     module.add_function(wrap_pyfunction!(
         py_static_dictionary_info_messages,
         module
@@ -221,6 +249,8 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
 fn register_modules(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyMatrixModule>()?;
     module.add_class::<PyModuleElement>()?;
+    module.add_class::<PyModuleElementSpace>()?;
+    module.add_class::<PyModuleElementBasis>()?;
     module.add_class::<PyModuleHomomorphism>()?;
     module.add_class::<PyModuleBasisMapping>()?;
     module.add_class::<PyModuleHomomorphismBasis>()?;
