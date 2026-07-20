@@ -1324,10 +1324,10 @@ tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorp
 
 [[bindings]]
 qpa_name = "ImagesSource"
-status = "partial"
-target = "qpa.ModuleHomomorphism.image_module"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "The path-algebra matrix-module overload is exposed; projective presentation-map overloads remain."
+status = "exposed"
+target = "qpa.ModuleHomomorphism.image_module; qpa.FpPathAlgebraByImagesHomomorphism.images_source; qpa.FpPathAlgebraMatrixHomomorphism.images_source"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+notes = "All three installed overloads are exposed, including QPA's pinned missing-genimages failure for ordinary by-images maps."
 
 [[bindings]]
 qpa_name = "InverseOfIsomorphism"
@@ -3138,3 +3138,17 @@ status = "exposed"
 target = "qpa.MatrixModule.projective_resolution_of_path_algebra_module; qpa.GszProjectiveResolution"
 tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 notes = "Returns a distinct GSZ resolution wrapper retaining QPA's quotient/path projective layers, maps, F/F-prime lists, bound-attribute state, and finite-at-projective marker."
+
+[[bindings]]
+qpa_name = "Hom"
+status = "partial"
+target = "qpa.PathAlgebra.hom_of_fp_path_algebra_modules"
+tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
+
+[[bindings]]
+qpa_name = "End"
+status = "partial"
+target = "qpa.PathAlgebra.end_of_fp_path_algebra_module"
+tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."

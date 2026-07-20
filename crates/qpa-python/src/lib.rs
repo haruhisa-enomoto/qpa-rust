@@ -14,24 +14,25 @@ use algebra::{
     PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCommonDirectSummandResult,
     PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
     PyEndOfModuleAsQuiverAlgebraResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
-    PyFiniteAddMResolutionResult, PyFpPathAlgebraVector, PyGroebnerBasis, PyGroebnerBasisIterator,
-    PyGszProjectiveResolution, PyInjectiveResolution, PyLiftedProjectivePathAlgebraModule,
-    PyMatrixModule, PyMaximalCommonDirectSummand, PyModuleBasisMapping, PyModuleChainMap,
-    PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
-    PyModuleEndomorphismAlgebra, PyModuleEndomorphismQuotientAlgebra,
-    PyModuleEndomorphismQuotientElement, PyModuleEndomorphismQuotientMap, PyModuleHomomorphism,
-    PyModuleHomomorphismBasis, PyModuleSubmodule, PyMoreMinimalVersionResult,
-    PyNaturalSubmoduleHomomorphism, PyNonisomorphicDirectSummandData,
-    PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
-    PyPathAlgebraIdeal, PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector,
-    PyPathAlgebraVectorBasis, PyPathAlgebraVectorSpace, PyPredecessorValuation,
-    PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent,
-    PyProjectivePathAlgebraPresentation, PyProjectiveResolution, PyQuiverAlgebra,
-    PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector, PyRightFpPathAlgebraModule,
-    PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
-    PyRightProjectiveSubmodule, PyStructureConstantsAlgebra, PyStructureConstantsElement,
-    PyStructureConstantsHomomorphism, PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
-    PyTiltingModuleResult,
+    PyFiniteAddMResolutionResult, PyFpPathAlgebraByImagesHomomorphism,
+    PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyGroebnerBasis,
+    PyGroebnerBasisIterator, PyGszProjectiveResolution, PyInjectiveResolution,
+    PyLiftedProjectivePathAlgebraModule, PyMatrixModule, PyMaximalCommonDirectSummand,
+    PyModuleBasisMapping, PyModuleChainMap, PyModuleComplex,
+    PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleEndomorphismAlgebra,
+    PyModuleEndomorphismQuotientAlgebra, PyModuleEndomorphismQuotientElement,
+    PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
+    PyModuleSubmodule, PyMoreMinimalVersionResult, PyNaturalSubmoduleHomomorphism,
+    PyNonisomorphicDirectSummandData, PyOppositeStructureConstantsAlgebra,
+    PyOppositeStructureConstantsElement, PyPathAlgebra, PyPathAlgebraIdeal,
+    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
+    PyPathAlgebraVectorSpace, PyPredecessorValuation, PyPredecessorsOfModuleResult,
+    PyProjectiveIsomorphismComponent, PyProjectivePathAlgebraPresentation, PyProjectiveResolution,
+    PyQuiverAlgebra, PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector,
+    PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule,
+    PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule, PyStructureConstantsAlgebra,
+    PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
+    PyStructureConstantsSubalgebra, PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -106,6 +107,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyFpPathAlgebraVector>()?;
     module.add_class::<PyRightFpPathAlgebraSubmodule>()?;
     module.add_class::<PyNaturalSubmoduleHomomorphism>()?;
+    module.add_class::<PyFpPathAlgebraByImagesHomomorphism>()?;
+    module.add_class::<PyFpPathAlgebraMatrixHomomorphism>()?;
     module.add_class::<PyQuotientAlgebra>()?;
     module.add_class::<PyQuotientElement>()?;
     module.add_class::<PyMatrixModule>()?;

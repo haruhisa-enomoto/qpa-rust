@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 498
+exposed_or_partial_count = 500
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2516,16 +2516,16 @@ python_tests = []
 qpa_name = "End"
 python_name = "end"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebra.end_of_fp_path_algebra_module"
+notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
 entry_ids = ["module:InstallOtherMethod:End:1","projpathalgmodule:InstallMethod:End:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["end_of_fp_path_algebra_module; FpPathAlgebraEndomorphismAlgebra","generic_end_over_path_ring; GenericPathAlgebraModuleEndomorphismAlgebra"]
 rust_tests = ["tests/fixtures/module_generic_hom.txt","tests/fixtures/module_generic_hom_errors.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = ["MODULE-005"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "EndModuloProjOverAlgebra"
@@ -3476,16 +3476,16 @@ python_tests = []
 qpa_name = "Hom"
 python_name = "hom"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.PathAlgebra.hom_of_fp_path_algebra_modules"
+notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
 entry_ids = ["module:InstallOtherMethod:Hom:1","projpathalgmodule:InstallMethod:Hom:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["generic_hom_over_path_ring; GenericPathAlgebraModuleHomSpace","hom_of_fp_path_algebra_modules; FpPathAlgebraHomSpace"]
 rust_tests = ["tests/fixtures/module_generic_hom.txt","tests/fixtures/module_generic_hom_errors.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = ["MODULE-005"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "HomFactoringThroughProjOverAlgebra"
@@ -3746,16 +3746,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_catego
 qpa_name = "ImagesSource"
 python_name = "images_source"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.ModuleHomomorphism.image_module"
-notes = "The path-algebra matrix-module overload is exposed; projective presentation-map overloads remain."
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.image_module; qpa.FpPathAlgebraByImagesHomomorphism.images_source; qpa.FpPathAlgebraMatrixHomomorphism.images_source"
+notes = "All three installed overloads are exposed, including QPA's pinned missing-genimages failure for ordinary by-images maps."
 entry_ids = ["modulehom:InstallMethod:ImagesSource:1","projpathalgmodule:InstallMethod:ImagesSource:1","projpathalgmodule:InstallMethod:ImagesSource:2"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["FpPathAlgebraByImagesHomomorphism::images_source","FpPathAlgebraMatrixHomomorphism::images_source","image_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "InDegreeOfVertex"

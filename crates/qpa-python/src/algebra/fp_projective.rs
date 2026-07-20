@@ -7,8 +7,9 @@ use numerica::domains::{
 };
 use pyo3::{Py, PyResult, Python, prelude::*};
 use qpa_core::{
-    FpPathAlgebraVector, NaturalSubmoduleHomomorphism, PathAlgebra, PathAlgebraElement,
-    RightFpPathAlgebraModule, RightFpPathAlgebraSubmodule,
+    FpPathAlgebraByImagesHomomorphism, FpPathAlgebraMatrixHomomorphism, FpPathAlgebraVector,
+    NaturalSubmoduleHomomorphism, PathAlgebra, PathAlgebraElement, RightFpPathAlgebraModule,
+    RightFpPathAlgebraSubmodule, end_of_fp_path_algebra_module, hom_of_fp_path_algebra_modules,
     natural_homomorphism_by_projective_submodule, vertex_projective_presentation,
     vertex_projective_presentation_with_vertices,
 };
@@ -69,6 +70,38 @@ pub(crate) struct PyNaturalSubmoduleHomomorphism {
     kind: NaturalHomomorphismKind,
 }
 
+#[derive(Clone)]
+enum FpByImagesHomomorphismKind {
+    Rational(FpPathAlgebraByImagesHomomorphism<RationalField>),
+    Binary(FpPathAlgebraByImagesHomomorphism<Z2>),
+    Prime(FpPathAlgebraByImagesHomomorphism<Zp>),
+}
+
+/// QPA's by-images representation used by its first `ImagesSource` overload.
+#[pyclass(
+    name = "FpPathAlgebraByImagesHomomorphism",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyFpPathAlgebraByImagesHomomorphism {
+    kind: FpByImagesHomomorphismKind,
+}
+
+#[derive(Clone)]
+enum FpMatrixHomomorphismKind {
+    Rational(FpPathAlgebraMatrixHomomorphism<RationalField>),
+    Binary(FpPathAlgebraMatrixHomomorphism<Z2>),
+    Prime(FpPathAlgebraMatrixHomomorphism<Zp>),
+}
+
+/// QPA's matrix representation used by its second `ImagesSource` overload.
+#[pyclass(name = "FpPathAlgebraMatrixHomomorphism", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyFpPathAlgebraMatrixHomomorphism {
+    kind: FpMatrixHomomorphismKind,
+}
+
 macro_rules! impl_fp_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Wrap<RightFpPathAlgebraModule<$field>> for FpModuleKind {
@@ -102,6 +135,20 @@ macro_rules! impl_fp_runtime {
 
         impl runtime::Wrap<NaturalSubmoduleHomomorphism<$field>> for NaturalHomomorphismKind {
             fn wrap(value: NaturalSubmoduleHomomorphism<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<FpPathAlgebraByImagesHomomorphism<$field>>
+            for FpByImagesHomomorphismKind
+        {
+            fn wrap(value: FpPathAlgebraByImagesHomomorphism<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<FpPathAlgebraMatrixHomomorphism<$field>> for FpMatrixHomomorphismKind {
+            fn wrap(value: FpPathAlgebraMatrixHomomorphism<$field>) -> Self {
                 Self::$variant(value)
             }
         }
@@ -178,6 +225,78 @@ fn clone_vector_kinds(
         .into_iter()
         .map(|vector| vector.borrow(py).kind.clone())
         .collect()
+}
+
+fn scalar_matrix<F: runtime::PythonField>(
+    py: Python<'_>,
+    field: &F,
+    rows: Vec<Vec<Py<PyScalar>>>,
+) -> PyResult<DenseMatrix<F>> {
+    let rows = rows
+        .into_iter()
+        .map(|row| {
+            row.into_iter()
+                .map(|value| field.scalar_value(&value.borrow(py)))
+                .collect()
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    DenseMatrix::from_rows(rows, field.clone()).map_err(invalid)
+}
+
+fn wrap_scalar_matrix<F: runtime::PythonField>(matrix: &DenseMatrix<F>) -> Vec<Vec<PyScalar>> {
+    (0..matrix.nrows())
+        .map(|row| {
+            matrix
+                .row(row)
+                .iter()
+                .map(|value| matrix.field().wrap_scalar(value))
+                .collect()
+        })
+        .collect()
+}
+
+pub(super) fn hom(
+    algebra: &PyPathAlgebra,
+    source: &PyRightFpPathAlgebraModule,
+    range: &PyRightFpPathAlgebraModule,
+) -> PyResult<()> {
+    match (&algebra.kind, &source.kind, &range.kind) {
+        (
+            AlgebraKind::Rational(algebra),
+            FpModuleKind::Rational(source),
+            FpModuleKind::Rational(range),
+        ) => {
+            hom_of_fp_path_algebra_modules(algebra, source, range).map_err(invalid)?;
+        }
+        (
+            AlgebraKind::Binary(algebra),
+            FpModuleKind::Binary(source),
+            FpModuleKind::Binary(range),
+        ) => {
+            hom_of_fp_path_algebra_modules(algebra, source, range).map_err(invalid)?;
+        }
+        (AlgebraKind::Prime(algebra), FpModuleKind::Prime(source), FpModuleKind::Prime(range)) => {
+            hom_of_fp_path_algebra_modules(algebra, source, range).map_err(invalid)?;
+        }
+        _ => return Err(invalid("Hom inputs use different coefficient fields")),
+    }
+    Ok(())
+}
+
+pub(super) fn end(algebra: &PyPathAlgebra, module: &PyRightFpPathAlgebraModule) -> PyResult<()> {
+    match (&algebra.kind, &module.kind) {
+        (AlgebraKind::Rational(algebra), FpModuleKind::Rational(module)) => {
+            end_of_fp_path_algebra_module(algebra, module).map_err(invalid)?;
+        }
+        (AlgebraKind::Binary(algebra), FpModuleKind::Binary(module)) => {
+            end_of_fp_path_algebra_module(algebra, module).map_err(invalid)?;
+        }
+        (AlgebraKind::Prime(algebra), FpModuleKind::Prime(module)) => {
+            end_of_fp_path_algebra_module(algebra, module).map_err(invalid)?;
+        }
+        _ => return Err(invalid("End inputs use different coefficient fields")),
+    }
+    Ok(())
 }
 
 pub(super) fn natural_quotient(
@@ -295,6 +414,123 @@ impl PyNaturalSubmoduleHomomorphism {
             }
         };
         Ok(PyFpPathAlgebraVector { kind })
+    }
+}
+
+#[pymethods]
+impl PyFpPathAlgebraByImagesHomomorphism {
+    #[staticmethod]
+    fn from_images(
+        py: Python<'_>,
+        range: &PyRightFpPathAlgebraModule,
+        images: Vec<Py<PyFpPathAlgebraVector>>,
+    ) -> PyResult<Self> {
+        let images = clone_vector_kinds(py, images);
+        let kind = map_ref!(
+            &range.kind,
+            FpModuleKind => FpByImagesHomomorphismKind,
+            |range| FpPathAlgebraByImagesHomomorphism::new(
+                range,
+                runtime::extract_all(images)?,
+            )
+            .map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    #[getter]
+    fn range(&self) -> PyRightFpPathAlgebraModule {
+        let kind = map_ref!(
+            &self.kind,
+            FpByImagesHomomorphismKind => FpModuleKind,
+            |mapping| mapping.range().clone()
+        );
+        PyRightFpPathAlgebraModule { kind }
+    }
+
+    #[getter]
+    fn images(&self) -> Vec<PyFpPathAlgebraVector> {
+        dispatch_ref!(&self.kind, FpByImagesHomomorphismKind, |mapping| {
+            wrap_vectors(mapping.images().to_vec())
+        })
+    }
+
+    #[getter]
+    fn has_basis_image(&self) -> bool {
+        dispatch_ref!(&self.kind, FpByImagesHomomorphismKind, |mapping| mapping
+            .has_basis_image())
+    }
+
+    fn images_source(&self) -> PyResult<PyRightFpPathAlgebraSubmodule> {
+        let kind = map_ref!(
+            &self.kind,
+            FpByImagesHomomorphismKind => FpSubmoduleKind,
+            |mapping| mapping.images_source().map_err(invalid)?
+        );
+        Ok(PyRightFpPathAlgebraSubmodule { kind })
+    }
+}
+
+#[pymethods]
+impl PyFpPathAlgebraMatrixHomomorphism {
+    #[staticmethod]
+    fn from_matrix(
+        py: Python<'_>,
+        range: &PyRightFpPathAlgebraModule,
+        matrix: Vec<Vec<Py<PyScalar>>>,
+        basis_range: Vec<Py<PyFpPathAlgebraVector>>,
+    ) -> PyResult<Self> {
+        let basis_range = clone_vector_kinds(py, basis_range);
+        let kind = map_ref!(
+            &range.kind,
+            FpModuleKind => FpMatrixHomomorphismKind,
+            |range| FpPathAlgebraMatrixHomomorphism::new(
+                range,
+                scalar_matrix(py, range.algebra().field(), matrix)?,
+                runtime::extract_all(basis_range)?,
+            )
+            .map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    #[getter]
+    fn range(&self) -> PyRightFpPathAlgebraModule {
+        let kind = map_ref!(
+            &self.kind,
+            FpMatrixHomomorphismKind => FpModuleKind,
+            |mapping| mapping.range().clone()
+        );
+        PyRightFpPathAlgebraModule { kind }
+    }
+
+    #[getter]
+    fn matrix(&self) -> Vec<Vec<PyScalar>> {
+        dispatch_ref!(&self.kind, FpMatrixHomomorphismKind, |mapping| {
+            wrap_scalar_matrix(mapping.matrix())
+        })
+    }
+
+    #[getter]
+    fn basis_range(&self) -> Vec<PyFpPathAlgebraVector> {
+        dispatch_ref!(&self.kind, FpMatrixHomomorphismKind, |mapping| {
+            wrap_vectors(mapping.basis_range().to_vec())
+        })
+    }
+
+    #[getter]
+    fn has_basis_image(&self) -> bool {
+        dispatch_ref!(&self.kind, FpMatrixHomomorphismKind, |mapping| mapping
+            .has_basis_image())
+    }
+
+    fn images_source(&self) -> PyResult<PyRightFpPathAlgebraSubmodule> {
+        let kind = map_ref!(
+            &self.kind,
+            FpMatrixHomomorphismKind => FpSubmoduleKind,
+            |mapping| mapping.images_source().map_err(invalid)?
+        );
+        Ok(PyRightFpPathAlgebraSubmodule { kind })
     }
 }
 

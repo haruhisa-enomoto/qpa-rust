@@ -21,8 +21,8 @@ pub(crate) use conversion::{
     PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
 };
 pub(crate) use fp_projective::{
-    PyFpPathAlgebraVector, PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule,
-    PyRightFpPathAlgebraSubmodule,
+    PyFpPathAlgebraByImagesHomomorphism, PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector,
+    PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
 };
 pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
 pub(crate) use projective::{
@@ -1840,6 +1840,18 @@ impl PyPathAlgebra {
             |algebra| build_path_module(algebra, dimension_vector, actions)?
         );
         Ok(PyMatrixModule { kind })
+    }
+
+    fn hom_of_fp_path_algebra_modules(
+        &self,
+        source: &PyRightFpPathAlgebraModule,
+        range: &PyRightFpPathAlgebraModule,
+    ) -> PyResult<()> {
+        fp_projective::hom(self, source, range)
+    }
+
+    fn end_of_fp_path_algebra_module(&self, module: &PyRightFpPathAlgebraModule) -> PyResult<()> {
+        fp_projective::end(self, module)
     }
 
     fn homomorphism_of_projectives_from_matrix(

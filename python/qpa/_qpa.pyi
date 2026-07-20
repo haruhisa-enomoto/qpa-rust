@@ -569,6 +569,14 @@ class PathAlgebra:
         dimension_vector: list[int],
         actions: list[tuple[str, list[list[int]]]],
     ) -> MatrixModule: ...
+    def hom_of_fp_path_algebra_modules(
+        self,
+        source: RightFpPathAlgebraModule,
+        range: RightFpPathAlgebraModule,
+    ) -> None: ...
+    def end_of_fp_path_algebra_module(
+        self, module: RightFpPathAlgebraModule
+    ) -> None: ...
     def homomorphism_of_projectives_from_matrix(
         self,
         matrix: list[list[AlgebraElement]],
@@ -928,6 +936,39 @@ class NaturalSubmoduleHomomorphism:
     @property
     def is_surjective(self) -> bool: ...
     def image(self, vector: PathAlgebraVector) -> FpPathAlgebraVector: ...
+
+
+class FpPathAlgebraByImagesHomomorphism:
+    @staticmethod
+    def from_images(
+        range: RightFpPathAlgebraModule,
+        images: list[FpPathAlgebraVector],
+    ) -> FpPathAlgebraByImagesHomomorphism: ...
+    @property
+    def range(self) -> RightFpPathAlgebraModule: ...
+    @property
+    def images(self) -> list[FpPathAlgebraVector]: ...
+    @property
+    def has_basis_image(self) -> bool: ...
+    def images_source(self) -> RightFpPathAlgebraSubmodule: ...
+
+
+class FpPathAlgebraMatrixHomomorphism:
+    @staticmethod
+    def from_matrix(
+        range: RightFpPathAlgebraModule,
+        matrix: list[list[Scalar]],
+        basis_range: list[FpPathAlgebraVector],
+    ) -> FpPathAlgebraMatrixHomomorphism: ...
+    @property
+    def range(self) -> RightFpPathAlgebraModule: ...
+    @property
+    def matrix(self) -> list[list[Scalar]]: ...
+    @property
+    def basis_range(self) -> list[FpPathAlgebraVector]: ...
+    @property
+    def has_basis_image(self) -> bool: ...
+    def images_source(self) -> RightFpPathAlgebraSubmodule: ...
 
 
 class RightFpPathAlgebraModule:

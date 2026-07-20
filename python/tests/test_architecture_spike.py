@@ -2393,6 +2393,34 @@ def test_finitely_presented_path_modules_follow_qpa(field: qpa.Field) -> None:
     assert relation_quotient.range.dimension == 2
     assert relation_quotient.image(arrow_vector).is_zero
 
+    with pytest.raises(qpa.InvalidInputError, match="no Coefficients method"):
+        algebra.hom_of_fp_path_algebra_modules(module, module)
+    with pytest.raises(qpa.InvalidInputError, match="no Coefficients method"):
+        algebra.end_of_fp_path_algebra_module(module)
+
+    by_images = qpa.FpPathAlgebraByImagesHomomorphism.from_images(module, [fp_arrow])
+    assert by_images.range.is_identical(module)
+    assert by_images.images == [fp_arrow]
+    assert not by_images.has_basis_image
+    with pytest.raises(qpa.InvalidInputError, match="no genimages record component"):
+        by_images.images_source()
+
+    basis = module.basis
+    zero_scalar = field.element(0)
+    one_scalar = field.element(1)
+    identity = [
+        [one_scalar if row == column else zero_scalar for column in range(len(basis))]
+        for row in range(len(basis))
+    ]
+    matrix_map = qpa.FpPathAlgebraMatrixHomomorphism.from_matrix(
+        module, identity, basis
+    )
+    assert matrix_map.range.is_identical(module)
+    assert matrix_map.matrix == identity
+    assert matrix_map.basis_range == basis
+    assert not matrix_map.has_basis_image
+    assert matrix_map.images_source().dimension == module.dimension
+
 
 @pytest.mark.parametrize(
     "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
