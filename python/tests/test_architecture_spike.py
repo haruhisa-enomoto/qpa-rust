@@ -725,3 +725,23 @@ def test_module_dualities_and_stable_functors_follow_qpa(field: qpa.Field) -> No
     assert identity.star().source.dimension_vector == [1, 0]
     assert identity.nakayama().source.dimension_vector == [1, 0]
     assert identity.opposite_nakayama().source.dimension_vector == [0, 1]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_rigidity_predicates_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    simple = algebra.simple_modules()[0]
+    assert simple.is_rigid
+    assert simple.is_tau_rigid
+    assert simple.is_exceptional is True
+    assert simple.is_n_rigid(2)
+
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["v"], [("v", "v", "x")]), 2
+    )
+    periodic_simple = dual_numbers.simple_modules()[0]
+    assert not periodic_simple.is_rigid
+    assert not periodic_simple.is_tau_rigid
+    assert periodic_simple.is_exceptional is False
+    assert periodic_simple.is_n_rigid(0)
+    assert not periodic_simple.is_n_rigid(1)

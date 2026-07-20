@@ -646,6 +646,34 @@ impl PyMatrixModule {
         Ok(PyExtAlgebraGeneratorsResult { kind })
     }
 
+    #[getter]
+    fn is_rigid(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_rigid_module(module).map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_tau_rigid(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_tau_rigid_module(module).map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_exceptional(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_exceptional_module(module).map_err(invalid)
+        })
+    }
+
+    fn is_n_rigid(&self, bound: i64) -> PyResult<bool> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::n_rigid_module(module, &bound).map_err(invalid)
+        })
+    }
+
     fn dual(&self) -> PyResult<Self> {
         let kind = map_ref!(
             &self.kind,

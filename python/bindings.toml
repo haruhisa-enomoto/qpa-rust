@@ -1677,3 +1677,29 @@ qpa_name = "TransposeOfModuleHomomorphism"
 status = "exposed"
 target = "qpa.ModuleHomomorphism.transpose"
 tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+
+# Rigidity predicates
+
+[[bindings]]
+qpa_name = "IsExceptionalModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_exceptional"
+tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsRigidModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_rigid"
+tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsTauRigidModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_tau_rigid"
+tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]
+
+[[bindings]]
+qpa_name = "N_RigidModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_n_rigid"
+tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]

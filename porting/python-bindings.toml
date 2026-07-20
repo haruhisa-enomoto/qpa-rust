@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 262
+exposed_or_partial_count = 266
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -4871,8 +4871,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "IsExceptionalModule"
 python_name = "is_exceptional_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_exceptional"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsExceptionalModule:1","module:InstallTrueMethod:IsExceptionalModule:1","module:InstallMethod:IsExceptionalModule:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallTrueMethod"]
@@ -4880,7 +4880,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["is_exceptional_module"]
 rust_tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsExternalSuffixTreeNode"
@@ -6371,8 +6371,8 @@ python_tests = []
 qpa_name = "IsRigidModule"
 python_name = "is_rigid_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_rigid"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsRigidModule:1","module:InstallMethod:IsRigidModule:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6380,7 +6380,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["is_rigid_module"]
 rust_tests = ["tests/fixtures/modulehom_ext.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSchurianAlgebra"
@@ -6716,8 +6716,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimen
 qpa_name = "IsTauRigidModule"
 python_name = "is_tau_rigid_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_tau_rigid"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsTauRigidModule:1","module:InstallMethod:IsTauRigidModule:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6725,7 +6725,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["is_tau_rigid_module"]
 rust_tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsTiltingModule"
@@ -8546,8 +8546,8 @@ python_tests = []
 qpa_name = "N_RigidModule"
 python_name = "n_rigid_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_n_rigid"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:N_RigidModule:1","modulehomalg:InstallMethod:N_RigidModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8555,7 +8555,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["n_rigid_module"]
 rust_tests = ["tests/fixtures/modulehomalg_n_rigid.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicates_follow_qpa"]
 
 [[operations]]
 qpa_name = "NakayamaAlgebra"
