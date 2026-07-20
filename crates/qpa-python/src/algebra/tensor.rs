@@ -122,6 +122,30 @@ where
         .collect())
 }
 
+pub(super) fn regular_enveloping_module_for<F: runtime::PythonField>(
+    algebra: &QuiverAlgebra<F>,
+) -> PyResult<Option<PyMatrixModule>>
+where
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    Ok(qpa_gbnp::algebra_as_module_over_enveloping_algebra(algebra)
+        .map_err(invalid)?
+        .map(module::wrap_module))
+}
+
+pub(super) fn dual_enveloping_module_for<F: runtime::PythonField>(
+    algebra: &QuiverAlgebra<F>,
+) -> PyResult<Option<PyMatrixModule>>
+where
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    Ok(
+        qpa_gbnp::dual_of_algebra_as_module_over_enveloping_algebra(algebra)
+            .map_err(invalid)?
+            .map(module::wrap_module),
+    )
+}
+
 fn simple_tensor_for<F: runtime::PythonField>(
     tensor: &TensorProductAlgebra<F>,
     left: QuiverAlgebraElementKind,

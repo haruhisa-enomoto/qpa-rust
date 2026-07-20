@@ -1465,10 +1465,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorp
 
 [[bindings]]
 qpa_name = "Source"
-status = "partial"
-target = "qpa.ModuleHomomorphism.source; qpa.ModuleChainMap.source"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
-notes = "The module-homomorphism and chain-map overloads are exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
+status = "exposed"
+target = "qpa.ModuleHomomorphism.source; qpa.ModuleChainMap.source; qpa.MatrixModule.right_acting_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa", "python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
 
 [[bindings]]
 qpa_name = "SupportModuleElement"
@@ -3494,3 +3493,24 @@ status = "exposed"
 target = "qpa.TensorProductAlgebra.simple_tensor; qpa.QuiverAlgebraElement"
 tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
 notes = "Uses QPA's retained tensor-product metadata and source-translated bilinear tip expansion."
+
+[[bindings]]
+qpa_name = "AlgebraAsModuleOverEnvelopingAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.algebra_as_module_over_enveloping_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
+notes = "Returns None for QPA's cached fail value on an infinite-dimensional algebra."
+
+[[bindings]]
+qpa_name = "AlgebraAsModuleOfEnvelopingAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.algebra_as_module_of_enveloping_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
+notes = "Exposes QPA's declared spelling synonym for AlgebraAsModuleOverEnvelopingAlgebra."
+
+[[bindings]]
+qpa_name = "DualOfAlgebraAsModuleOverEnvelopingAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.dual_of_algebra_as_module_over_enveloping_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
+notes = "Returns None for QPA's cached fail value and preserves cached module identity."

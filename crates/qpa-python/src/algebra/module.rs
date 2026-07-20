@@ -855,6 +855,13 @@ impl PyMatrixModule {
     }
 
     #[getter]
+    fn right_acting_algebra(&self) -> PyQuiverAlgebra {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            conversion::wrap_quiver_algebra(module.right_acting_algebra().clone())
+        })
+    }
+
+    #[getter]
     fn dimension_vector(&self) -> Vec<usize> {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| module
             .dimension_vector()

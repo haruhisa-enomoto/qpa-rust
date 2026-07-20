@@ -1176,6 +1176,27 @@ impl PyQuiverAlgebra {
         })
     }
 
+    /// Apply QPA's cached regular-bimodule attribute.
+    fn algebra_as_module_over_enveloping_algebra(&self) -> PyResult<Option<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::tensor::regular_enveloping_module_for(algebra)
+        })
+    }
+
+    /// Expose QPA's spelling synonym for the regular bimodule attribute.
+    fn algebra_as_module_of_enveloping_algebra(&self) -> PyResult<Option<PyMatrixModule>> {
+        self.algebra_as_module_over_enveloping_algebra()
+    }
+
+    /// Apply QPA's cached dual-regular-bimodule attribute.
+    fn dual_of_algebra_as_module_over_enveloping_algebra(
+        &self,
+    ) -> PyResult<Option<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::tensor::dual_enveloping_module_for(algebra)
+        })
+    }
+
     /// Apply QPA's binary `TensorProductOfAlgebras` method.
     fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
         dispatch_pair_ref!(

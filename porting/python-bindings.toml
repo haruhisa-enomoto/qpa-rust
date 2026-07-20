@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 554
+exposed_or_partial_count = 557
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -221,31 +221,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "AlgebraAsModuleOfEnvelopingAlgebra"
 python_name = "algebra_as_module_of_enveloping_algebra"
 disposition = "alias"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.algebra_as_module_of_enveloping_algebra"
+notes = "Exposes QPA's declared spelling synonym for AlgebraAsModuleOverEnvelopingAlgebra."
 entry_ids = ["pathalgtensor:DeclareSynonym:AlgebraAsModuleOfEnvelopingAlgebra:1"]
 constructs = ["DeclareSynonym"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd"]
 rust_symbols = ["algebra_as_module_of_enveloping_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "AlgebraAsModuleOverEnvelopingAlgebra"
 python_name = "algebra_as_module_over_enveloping_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.algebra_as_module_over_enveloping_algebra"
+notes = "Returns None for QPA's cached fail value on an infinite-dimensional algebra."
 entry_ids = ["pathalgtensor:DeclareAttribute:AlgebraAsModuleOverEnvelopingAlgebra:1","pathalgtensor:InstallMethod:AlgebraAsModuleOverEnvelopingAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["algebra_as_module_over_enveloping_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "AlgebraAsQuiverAlgebra"
@@ -2276,16 +2276,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "DualOfAlgebraAsModuleOverEnvelopingAlgebra"
 python_name = "dual_of_algebra_as_module_over_enveloping_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.dual_of_algebra_as_module_over_enveloping_algebra"
+notes = "Returns None for QPA's cached fail value and preserves cached module identity."
 entry_ids = ["pathalgtensor:DeclareAttribute:DualOfAlgebraAsModuleOverEnvelopingAlgebra:1","pathalgtensor:InstallMethod:DualOfAlgebraAsModuleOverEnvelopingAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["dual_of_algebra_as_module_over_enveloping_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_dual_module.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "DualOfCombinatorialMap"
@@ -11651,16 +11651,16 @@ python_tests = []
 qpa_name = "Source"
 python_name = "source"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.ModuleHomomorphism.source; qpa.ModuleChainMap.source"
-notes = "The module-homomorphism and chain-map overloads are exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.source; qpa.ModuleChainMap.source; qpa.MatrixModule.right_acting_algebra"
+notes = ""
 entry_ids = ["complex:DeclareAttribute:Source:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap::source"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa","python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "SourceOfArrow"

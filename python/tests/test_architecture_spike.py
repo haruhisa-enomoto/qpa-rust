@@ -363,6 +363,68 @@ def test_tensor_elements_follow_qpa(field: qpa.Field) -> None:
         tensor.simple_tensor(left_element, foreign)
 
 
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_regular_and_dual_enveloping_modules_follow_qpa(field: qpa.Field) -> None:
+    loop_path = qpa.PathAlgebra(field, qpa.Quiver(["v"], [("v", "v", "x")]))
+    square_zero = loop_path.quotient(
+        [loop_path.generator("x") * loop_path.generator("x")]
+    )
+    algebra = qpa.QuiverAlgebra.from_quotient_algebra(square_zero)
+
+    regular = algebra.algebra_as_module_over_enveloping_algebra()
+    regular_again = algebra.algebra_as_module_over_enveloping_algebra()
+    regular_synonym = algebra.algebra_as_module_of_enveloping_algebra()
+    assert regular is not None
+    assert regular_again is not None
+    assert regular_synonym is not None
+    assert regular.is_identical(regular_again)
+    assert regular.is_identical(regular_synonym)
+    assert regular.dimension_vector == [2]
+    assert regular.dimension == 2
+    assert regular.arrow_matrix_shapes == [(2, 2), (2, 2)]
+    assert regular.right_acting_algebra.is_identical(
+        algebra.enveloping_algebra().algebra
+    )
+
+    dual = algebra.dual_of_algebra_as_module_over_enveloping_algebra()
+    dual_again = algebra.dual_of_algebra_as_module_over_enveloping_algebra()
+    assert dual is not None
+    assert dual_again is not None
+    assert dual.is_identical(dual_again)
+    assert dual.dimension_vector == [2]
+    assert dual.dimension == 2
+    assert dual.right_acting_algebra.is_identical(regular.right_acting_algebra)
+
+    characteristic = field.characteristic
+
+    def integer_matrix(matrix: list[list[qpa.Scalar]]) -> list[list[int]]:
+        return [
+            [
+                int(entry.numerator)
+                if characteristic is None
+                else int(entry.representative)
+                for entry in row
+            ]
+            for row in matrix
+        ]
+
+    assert [integer_matrix(matrix) for matrix in regular.arrow_matrices] == [
+        [[0, 1], [0, 0]],
+        [[0, 1], [0, 0]],
+    ]
+    assert [integer_matrix(matrix) for matrix in dual.arrow_matrices] == [
+        [[0, 0], [1, 0]],
+        [[0, 0], [1, 0]],
+    ]
+
+    infinite = qpa.QuiverAlgebra.from_path_algebra(loop_path)
+    assert infinite.algebra_as_module_over_enveloping_algebra() is None
+    assert infinite.algebra_as_module_of_enveloping_algebra() is None
+    assert infinite.dual_of_algebra_as_module_over_enveloping_algebra() is None
+
+
 def test_quiver_orderings_follow_qpa_comparison_closures() -> None:
     quiver = qpa.Quiver.indexed(
         2,
