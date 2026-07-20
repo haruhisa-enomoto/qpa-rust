@@ -3307,3 +3307,30 @@ qpa_name = "ComplexByDifferentialList"
 status = "exposed"
 target = "qpa.ModuleComplex.from_differential_list"
 tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "Complex"
+status = "partial"
+target = "qpa.ModuleComplex.from_parts"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
+
+[[bindings]]
+qpa_name = "ChainMap"
+status = "partial"
+target = "qpa.ModuleChainMap.from_parts"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
+
+[[bindings]]
+qpa_name = "ForEveryDegree"
+status = "exposed"
+target = "qpa.ModuleComplex.for_every_degree"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "\"\\^\""
+status = "partial"
+target = "qpa.ModuleComplex.differential; qpa.ModuleChainMap.morphism; qpa.ModuleMorphismList.value"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+notes = "Complex, chain-map, and the exposed module-morphism infinite-list indexing surfaces are available; general QPA infinite-list classes remain internal."

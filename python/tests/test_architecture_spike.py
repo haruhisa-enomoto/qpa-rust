@@ -617,6 +617,7 @@ def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
     radical = module.radical_inclusion()
     top = module.top_projection()
     short_exact = module.finite_complex(0, [top, radical])
+    from_parts = qpa.ModuleComplex.from_parts(category, 0, [top, radical])
     checked_short_exact = radical.short_exact_sequence_with(top)
     assert checked_short_exact.is_short_exact_sequence
     assert short_exact.is_short_exact_sequence
@@ -643,6 +644,26 @@ def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
     assert both.object(1).dimension_vector == [0, 1]
     assert short_exact.is_identical(short_exact)
     assert " -> " in repr(short_exact)
+    assert [from_parts.object(i).dimension_vector for i in (-1, 0, 1)] == [
+        short_exact.object(i).dimension_vector for i in (-1, 0, 1)
+    ]
+    assert [from_parts.differential(i) for i in (0, 1)] == [
+        short_exact.differential(i) for i in (0, 1)
+    ]
+    assert from_parts.for_every_degree(lambda _left, _right: True) is True
+    assert from_parts.for_every_degree(lambda _left, _right: False) is False
+
+    simple_zero = first_simple.zero_map_to(first_simple)
+    periodic = qpa.ModuleComplex.from_parts(
+        category,
+        0,
+        [simple_zero],
+        positive=[simple_zero],
+        negative=[simple_zero],
+    )
+    assert not periodic.is_finite
+    assert periodic.object(20).is_identical(first_simple)
+    assert periodic.object(-20).is_identical(first_simple)
 
     projective = first_simple.projective_resolution_complex()
     assert projective.object(-1).is_identical(first_simple)
@@ -672,6 +693,7 @@ def test_module_chain_maps_and_mapping_cones_follow_qpa(field: qpa.Field) -> Non
 
     components = [complex.object(degree).identity() for degree in (-1, 0, 1)]
     identity = complex.finite_chain_map_to(complex, -1, components)
+    from_parts = qpa.ModuleChainMap.from_parts(complex, complex, -1, components)
     assert identity.morphisms.value(0) == identity.morphism(0)
     assert identity.source.is_identical(complex)
     assert identity.range.is_identical(complex)
@@ -680,6 +702,30 @@ def test_module_chain_maps_and_mapping_cones_follow_qpa(field: qpa.Field) -> Non
     assert identity.lowest_known_degree == "-1"
     assert identity.is_identical(identity)
     assert repr(identity) == "<chain map>"
+    assert [from_parts.morphism(i) for i in (-1, 0, 1)] == [
+        identity.morphism(i) for i in (-1, 0, 1)
+    ]
+
+    simple = algebra.simple_modules()[0]
+    simple_zero = simple.zero_map_to(simple)
+    periodic_complex = qpa.ModuleComplex.from_parts(
+        complex.category,
+        0,
+        [simple_zero],
+        positive=[simple_zero],
+        negative=[simple_zero],
+    )
+    simple_identity = simple.identity()
+    periodic_map = qpa.ModuleChainMap.from_parts(
+        periodic_complex,
+        periodic_complex,
+        0,
+        [simple_identity],
+        positive=[simple_identity],
+        negative=[simple_identity],
+    )
+    assert periodic_map.morphism(20).is_isomorphism
+    assert periodic_map.morphism(-20).is_isomorphism
 
     zero = complex.zero_chain_map_to(complex)
     assert zero.morphism(50).is_zero
@@ -694,7 +740,6 @@ def test_module_chain_maps_and_mapping_cones_follow_qpa(field: qpa.Field) -> Non
     assert inclusion.morphism(0).range.is_identical(cone.object(0))
     assert projection.morphism(0).source.is_identical(cone.object(0))
 
-    simple = algebra.simple_modules()[0]
     module_identity = simple.identity()
     projective = simple.projective_resolution_complex()
     lifting = module_identity.comparison_lifting(projective, projective)

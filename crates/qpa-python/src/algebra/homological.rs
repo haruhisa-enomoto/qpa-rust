@@ -1,6 +1,6 @@
 //! Lazy projective and injective resolutions.
 
-use pyo3::pymethods;
+use pyo3::{PyAny, pymethods};
 
 #[allow(clippy::wildcard_imports)]
 // Private runtime enums and helpers form one binding domain.
@@ -96,6 +96,32 @@ where
     ))
 }
 
+fn for_every_degree_for<F>(
+    complex: &qpa_gbnp::ModuleComplex<F>,
+    function: &Bound<'_, PyAny>,
+) -> PyResult<Option<bool>>
+where
+    F: runtime::PythonField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+    ModuleHomomorphismKind: runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    complex
+        .for_every_degree(|left, right| {
+            function
+                .call1((
+                    PyModuleHomomorphism {
+                        kind: runtime::Wrap::wrap(left.clone()),
+                    },
+                    PyModuleHomomorphism {
+                        kind: runtime::Wrap::wrap(right.clone()),
+                    },
+                ))
+                .and_then(|result| result.extract::<bool>())
+                .map_err(|error| qpa_gbnp::ComplexError::CategoryCallback(error.to_string()))
+        })
+        .map_err(invalid)
+}
+
 #[pymethods]
 impl PyModuleComplex {
     #[getter]
@@ -120,6 +146,32 @@ impl PyModuleComplex {
         differentials: &PyModuleMorphismList,
     ) -> PyResult<Self> {
         complex_foundation::complex_by_differential_list(category, differentials)
+    }
+
+    #[staticmethod]
+    #[pyo3(signature = (category, base_degree, middle, positive=None, negative=None))]
+    fn from_parts(
+        category: &PyModuleCategory,
+        py: Python<'_>,
+        base_degree: i64,
+        middle: Vec<Py<PyModuleHomomorphism>>,
+        positive: Option<Vec<Py<PyModuleHomomorphism>>>,
+        negative: Option<Vec<Py<PyModuleHomomorphism>>>,
+    ) -> PyResult<Self> {
+        complex_foundation::complex_from_parts(
+            category,
+            py,
+            base_degree,
+            middle,
+            positive,
+            negative,
+        )
+    }
+
+    fn for_every_degree(&self, function: &Bound<'_, PyAny>) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            for_every_degree_for(complex, function)
+        })
     }
 
     #[getter]
@@ -596,6 +648,28 @@ impl PyModuleComplex {
 
 #[pymethods]
 impl PyModuleChainMap {
+    #[staticmethod]
+    #[pyo3(signature = (source, range, base_degree, middle, positive=None, negative=None))]
+    fn from_parts(
+        source: &PyModuleComplex,
+        range: &PyModuleComplex,
+        py: Python<'_>,
+        base_degree: i64,
+        middle: Vec<Py<PyModuleHomomorphism>>,
+        positive: Option<Vec<Py<PyModuleHomomorphism>>>,
+        negative: Option<Vec<Py<PyModuleHomomorphism>>>,
+    ) -> PyResult<Self> {
+        complex_foundation::chain_map_from_parts(
+            source,
+            range,
+            py,
+            base_degree,
+            middle,
+            positive,
+            negative,
+        )
+    }
+
     #[getter]
     fn morphisms(&self) -> PyModuleMorphismList {
         complex_foundation::morphisms_of_chain_map(self)

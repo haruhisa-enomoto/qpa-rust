@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+
 
 class QpaError(Exception): ...
 class InvalidInputError(QpaError): ...
@@ -1863,6 +1865,18 @@ class ModuleComplex:
     def from_differential_list(
         category: ModuleCategory, differentials: ModuleMorphismList
     ) -> ModuleComplex: ...
+    @staticmethod
+    def from_parts(
+        category: ModuleCategory,
+        base_degree: int,
+        middle: list[ModuleHomomorphism],
+        positive: list[ModuleHomomorphism] | None = ...,
+        negative: list[ModuleHomomorphism] | None = ...,
+    ) -> ModuleComplex: ...
+    def for_every_degree(
+        self,
+        function: Callable[[ModuleHomomorphism, ModuleHomomorphism], bool],
+    ) -> bool | None: ...
     @property
     def is_zero(self) -> bool: ...
     def differential(self, degree: int) -> ModuleHomomorphism: ...
@@ -1934,6 +1948,15 @@ class ModuleComplex:
 
 
 class ModuleChainMap:
+    @staticmethod
+    def from_parts(
+        source: ModuleComplex,
+        range: ModuleComplex,
+        base_degree: int,
+        middle: list[ModuleHomomorphism],
+        positive: list[ModuleHomomorphism] | None = ...,
+        negative: list[ModuleHomomorphism] | None = ...,
+    ) -> ModuleChainMap: ...
     @property
     def source(self) -> ModuleComplex: ...
     @property

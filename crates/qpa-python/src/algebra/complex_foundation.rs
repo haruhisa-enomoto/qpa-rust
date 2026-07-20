@@ -5,12 +5,48 @@ use numerica::domains::{
     integer::Integer,
     rational::RationalField,
 };
-use pyo3::{PyResult, prelude::*};
+use pyo3::{Py, PyResult, Python, prelude::*};
 use qpa_core::{InfiniteList, PathAlgebraModuleHomomorphism, QuiverAlgebra};
 use qpa_gbnp::{ComplexError, QpaCategory, RightModuleCategory};
 
 #[allow(clippy::wildcard_imports)]
 use super::*;
+
+fn clone_homomorphism_kinds(
+    py: Python<'_>,
+    morphisms: Vec<Py<PyModuleHomomorphism>>,
+) -> Vec<ModuleHomomorphismKind> {
+    morphisms
+        .into_iter()
+        .map(|morphism| morphism.borrow(py).kind.clone())
+        .collect()
+}
+
+fn complex_half<F: runtime::PythonField + Send + Sync + 'static>(
+    values: Option<Vec<ModuleHomomorphismKind>>,
+) -> PyResult<qpa_gbnp::ComplexHalf<RightModuleCategory<F>>>
+where
+    F::Element: Send + Sync,
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>,
+{
+    Ok(match values {
+        None => qpa_gbnp::ComplexHalf::Zero,
+        Some(values) => qpa_gbnp::ComplexHalf::Repeat(runtime::extract_all(values)?),
+    })
+}
+
+fn chain_map_half<F: runtime::PythonField + Send + Sync + 'static>(
+    values: Option<Vec<ModuleHomomorphismKind>>,
+) -> PyResult<qpa_gbnp::ChainMapHalf<RightModuleCategory<F>>>
+where
+    F::Element: Send + Sync,
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>,
+{
+    Ok(match values {
+        None => qpa_gbnp::ChainMapHalf::Zero,
+        Some(values) => qpa_gbnp::ChainMapHalf::Repeat(runtime::extract_all(values)?),
+    })
+}
 
 #[derive(Clone)]
 pub(super) enum ModuleCategoryKind {
@@ -120,6 +156,114 @@ pub(super) fn complex_by_differential_list(
         }
     };
     Ok(PyModuleComplex { kind })
+}
+
+fn complex_from_parts_for<F>(
+    category: &RightModuleCategory<F>,
+    base_degree: i64,
+    middle: Vec<ModuleHomomorphismKind>,
+    positive: Option<Vec<ModuleHomomorphismKind>>,
+    negative: Option<Vec<ModuleHomomorphismKind>>,
+) -> PyResult<PyModuleComplex>
+where
+    F: runtime::PythonField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>,
+    ModuleComplexKind: runtime::Wrap<qpa_gbnp::ModuleComplex<F>>,
+{
+    Ok(PyModuleComplex {
+        kind: runtime::Wrap::wrap(
+            qpa_gbnp::complex(
+                category.clone(),
+                Integer::from(base_degree),
+                runtime::extract_all(middle)?,
+                complex_half::<F>(positive)?,
+                complex_half::<F>(negative)?,
+            )
+            .map_err(invalid)?,
+        ),
+    })
+}
+
+pub(super) fn complex_from_parts(
+    category: &PyModuleCategory,
+    py: Python<'_>,
+    base_degree: i64,
+    middle: Vec<Py<PyModuleHomomorphism>>,
+    positive: Option<Vec<Py<PyModuleHomomorphism>>>,
+    negative: Option<Vec<Py<PyModuleHomomorphism>>>,
+) -> PyResult<PyModuleComplex> {
+    let middle = clone_homomorphism_kinds(py, middle);
+    let positive = positive.map(|values| clone_homomorphism_kinds(py, values));
+    let negative = negative.map(|values| clone_homomorphism_kinds(py, values));
+    match &category.kind {
+        ModuleCategoryKind::Rational(category) => {
+            complex_from_parts_for(category, base_degree, middle, positive, negative)
+        }
+        ModuleCategoryKind::Binary(category) => {
+            complex_from_parts_for(category, base_degree, middle, positive, negative)
+        }
+        ModuleCategoryKind::Prime(category) => {
+            complex_from_parts_for(category, base_degree, middle, positive, negative)
+        }
+    }
+}
+
+fn chain_map_from_parts_for<F>(
+    source: &qpa_gbnp::ModuleComplex<F>,
+    range: &qpa_gbnp::ModuleComplex<F>,
+    base_degree: i64,
+    middle: Vec<ModuleHomomorphismKind>,
+    positive: Option<Vec<ModuleHomomorphismKind>>,
+    negative: Option<Vec<ModuleHomomorphismKind>>,
+) -> PyResult<PyModuleChainMap>
+where
+    F: runtime::PythonField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>,
+    ModuleChainMapKind: runtime::Wrap<qpa_gbnp::ModuleChainMap<F>>,
+{
+    Ok(PyModuleChainMap {
+        kind: runtime::Wrap::wrap(
+            qpa_gbnp::chain_map(
+                source.clone(),
+                range.clone(),
+                Integer::from(base_degree),
+                runtime::extract_all(middle)?,
+                chain_map_half::<F>(positive)?,
+                chain_map_half::<F>(negative)?,
+            )
+            .map_err(invalid)?,
+        ),
+    })
+}
+
+pub(super) fn chain_map_from_parts(
+    source: &PyModuleComplex,
+    range: &PyModuleComplex,
+    py: Python<'_>,
+    base_degree: i64,
+    middle: Vec<Py<PyModuleHomomorphism>>,
+    positive: Option<Vec<Py<PyModuleHomomorphism>>>,
+    negative: Option<Vec<Py<PyModuleHomomorphism>>>,
+) -> PyResult<PyModuleChainMap> {
+    let middle = clone_homomorphism_kinds(py, middle);
+    let positive = positive.map(|values| clone_homomorphism_kinds(py, values));
+    let negative = negative.map(|values| clone_homomorphism_kinds(py, values));
+    match (&source.kind, &range.kind) {
+        (ModuleComplexKind::Rational(source), ModuleComplexKind::Rational(range)) => {
+            chain_map_from_parts_for(source, range, base_degree, middle, positive, negative)
+        }
+        (ModuleComplexKind::Binary(source), ModuleComplexKind::Binary(range)) => {
+            chain_map_from_parts_for(source, range, base_degree, middle, positive, negative)
+        }
+        (ModuleComplexKind::Prime(source), ModuleComplexKind::Prime(range)) => {
+            chain_map_from_parts_for(source, range, base_degree, middle, positive, negative)
+        }
+        _ => Err(invalid(
+            "source and range complexes use different coefficient fields",
+        )),
+    }
 }
 
 pub(super) fn morphisms_of_chain_map(map: &PyModuleChainMap) -> PyModuleMorphismList {

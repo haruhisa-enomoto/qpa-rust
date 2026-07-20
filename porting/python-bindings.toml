@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 525
+exposed_or_partial_count = 529
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -26,16 +26,16 @@ python_tests = []
 qpa_name = "\"\\^\""
 python_name = "power"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.differential; qpa.ModuleChainMap.morphism; qpa.ModuleMorphismList.value"
+notes = "Complex, chain-map, and the exposed module-morphism infinite-list indexing surfaces are available; general QPA infinite-list classes remain internal."
 entry_ids = ["complex:DeclareOperation:\"\\^\":1","complex:DeclareOperation:\"\\^\":2","inflist:DeclareOperation:\"\\^\":1","inflist:DeclareOperation:\"\\^\":2"]
 constructs = ["DeclareOperation"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["InfiniteList; HalfInfiniteList","qpa_gbnp::complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "1stSyzygy"
@@ -956,16 +956,16 @@ python_tests = []
 qpa_name = "ChainMap"
 python_name = "chain_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleChainMap.from_parts"
+notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
 entry_ids = ["complex:DeclareOperation:ChainMap:1","complex:InstallMethod:ChainMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::chain_map"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "CheckBlocksForCycles"
@@ -1286,16 +1286,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective
 qpa_name = "Complex"
 python_name = "complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.from_parts"
+notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
 entry_ids = ["complex:DeclareGlobalFunction:Complex:1","complex:InstallGlobalFunction:Complex:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "ComplexAndChainMaps"
@@ -2906,8 +2906,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective
 qpa_name = "ForEveryDegree"
 python_name = "for_every_degree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.for_every_degree"
 notes = ""
 entry_ids = ["complex:DeclareOperation:ForEveryDegree:1","complex:InstallMethod:ForEveryDegree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2915,7 +2915,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::for_every_degree"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "FrobeniusForm"
