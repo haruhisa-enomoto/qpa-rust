@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 530
+exposed_or_partial_count = 534
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1331,8 +1331,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "ComplexityOfAlgebra"
 python_name = "complexity_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.complexity; qpa.QuotientAlgebra.complexity; qpa.QuiverAlgebra.complexity"
 notes = ""
 entry_ids = ["module:DeclareOperation:ComplexityOfAlgebra:1","module:InstallMethod:ComplexityOfAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1340,14 +1340,14 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["complexity_of_algebra"]
 rust_tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa","python/tests/test_architecture_spike.py::test_algebra_as_quiver_algebra_follows_qpa"]
 
 [[operations]]
 qpa_name = "ComplexityOfModule"
 python_name = "complexity_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.complexity"
 notes = ""
 entry_ids = ["module:DeclareOperation:ComplexityOfModule:1","module:InstallMethod:ComplexityOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1355,7 +1355,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["complexity_of_module"]
 rust_tests = ["tests/fixtures/module_complexity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa"]
 
 [[operations]]
 qpa_name = "ConnectedComponentsOfQuiver"
@@ -7151,16 +7151,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IyamaGenerator"
 python_name = "iyama_generator"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.iyama_generator"
+notes = "Preserves QPA's failed finite-field zero-module multiplicity-decomposition branch as a typed Python error."
 entry_ids = ["modulehomalg:DeclareOperation:IyamaGenerator:1","modulehomalg:InstallMethod:IyamaGenerator:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomalg.gi"]
 rust_symbols = ["iyama_generator"]
 rust_tests = ["tests/fixtures/modulehomalg_iyama.schema-v1.json","tests/gap-reference/modulehomalg_iyama_zero_error.g"]
 deviations = ["MODULEHOMALG-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa"]
 
 [[operations]]
 qpa_name = "JoinCurveCombinatorialMap"
@@ -9491,8 +9491,8 @@ python_tests = []
 qpa_name = "PartialIyamaGenerator"
 python_name = "partial_iyama_generator"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.partial_iyama_generator"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:PartialIyamaGenerator:1","modulehomalg:InstallMethod:PartialIyamaGenerator:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9500,7 +9500,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["partial_iyama_generator"]
 rust_tests = ["tests/fixtures/modulehomalg_iyama.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa"]
 
 [[operations]]
 qpa_name = "PartialOrderOfPoset"

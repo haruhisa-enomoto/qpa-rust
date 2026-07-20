@@ -3341,3 +3341,28 @@ status = "partial"
 target = "qpa.complex_and_chain_maps"
 tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 notes = "QPA's zero and repeating combined half-list specifications are exposed with the flattened GAP result separated into the complex, incoming maps, and outgoing maps; callback-based next, next/repeat, and position specifications remain."
+
+[[bindings]]
+qpa_name = "ComplexityOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.complexity"
+tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ComplexityOfAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.complexity; qpa.QuotientAlgebra.complexity; qpa.QuiverAlgebra.complexity"
+tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa", "python/tests/test_architecture_spike.py::test_algebra_as_quiver_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "PartialIyamaGenerator"
+status = "exposed"
+target = "qpa.MatrixModule.partial_iyama_generator"
+tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IyamaGenerator"
+status = "exposed"
+target = "qpa.MatrixModule.iyama_generator"
+tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iyama_generators_follow_qpa"]
+notes = "Preserves QPA's failed finite-field zero-module multiplicity-decomposition branch as a typed Python error."

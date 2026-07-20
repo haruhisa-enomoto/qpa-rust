@@ -1672,6 +1672,25 @@ impl PyMatrixModule {
         Ok(PyExtAlgebraGeneratorsResult { kind })
     }
 
+    fn partial_iyama_generator(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(wrap_module(
+            qpa_gbnp::partial_iyama_generator(module).map_err(invalid)?,
+        )))
+    }
+
+    fn iyama_generator(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(wrap_module(
+            qpa_gbnp::iyama_generator(module).map_err(invalid)?,
+        )))
+    }
+
+    fn complexity(&self, degree: i64) -> PyResult<usize> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::complexity_of_module(module, &degree).map_err(invalid)
+        })
+    }
+
     #[getter]
     fn is_rigid(&self) -> PyResult<bool> {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| {

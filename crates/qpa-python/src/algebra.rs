@@ -1495,6 +1495,14 @@ impl PyPathAlgebra {
         projective::right_projective_module(self, vertices)
     }
 
+    fn complexity(&self, degree: i64) -> PyResult<usize> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_gbnp::complexity_of_algebra(&QuiverAlgebra::Path(algebra.clone()), &degree)
+                .map_err(invalid)
+        })
+    }
+
     fn right_groebner_basis_from_generators(
         &self,
         py: Python<'_>,

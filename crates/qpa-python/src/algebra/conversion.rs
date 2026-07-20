@@ -1126,6 +1126,13 @@ impl PyStructureConstantsSubalgebra {
 
 #[pymethods]
 impl PyQuiverAlgebra {
+    fn complexity(&self, degree: i64) -> PyResult<usize> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            qpa_gbnp::complexity_of_algebra(algebra, &degree).map_err(invalid)
+        })
+    }
+
     #[getter]
     fn field(&self) -> PyField {
         let kind = dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {

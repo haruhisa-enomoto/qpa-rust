@@ -58,6 +58,14 @@ impl PyQuotientAlgebra {
         quotient_projective::right_projective_module(self, vertices)
     }
 
+    fn complexity(&self, degree: i64) -> PyResult<usize> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            qpa_gbnp::complexity_of_algebra(&QuiverAlgebra::Quotient(algebra.clone()), &degree)
+                .map_err(invalid)
+        })
+    }
+
     #[staticmethod]
     fn truncated(
         field: PyRef<'_, PyField>,

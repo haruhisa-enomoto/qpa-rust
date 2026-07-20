@@ -816,6 +816,39 @@ def test_yoneda_product_follows_qpa_splicing_convention(field: qpa.Field) -> Non
 
 
 @pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_complexity_and_iyama_generators_follow_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    algebra = qpa.PathAlgebra(field, quiver)
+    module = algebra.module_from_integer_matrices(
+        [2, 1], [("a", [[1], [0]])]
+    )
+
+    assert module.partial_iyama_generator().dimension_vector == [1, 0]
+    assert module.iyama_generator().dimension_vector == (
+        [2, 1] if field.is_finite else [3, 1]
+    )
+    assert algebra.simple_modules()[0].complexity(2) == 0
+    assert algebra.complexity(2) == 0
+
+    loop = qpa.Quiver(["w"], [("w", "w", "x")])
+    dual_numbers = qpa.QuotientAlgebra.truncated(field, loop, 2)
+    dual_simple = dual_numbers.simple_modules()[0]
+    assert dual_simple.complexity(2) == 2
+    assert dual_simple.complexity(3) == 2
+    assert dual_simple.complexity(10) == 1
+    assert dual_numbers.complexity(2) == 2
+    assert dual_numbers.complexity(10) == 1
+
+    zero = algebra.zero_module()
+    assert zero.partial_iyama_generator().is_identical(zero)
+    if field.is_finite:
+        with pytest.raises(qpa.InvalidInputError, match="multiplicity decomposition"):
+            zero.iyama_generator()
+    else:
+        assert zero.iyama_generator().is_zero
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
 def test_derived_category_foundations_follow_qpa(field: qpa.Field) -> None:
     algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
     projectives = algebra.indecomposable_projectives()
@@ -1952,6 +1985,7 @@ def test_algebra_as_quiver_algebra_follows_qpa() -> None:
     assert not converted.algebra.is_quotient
     assert converted.algebra.quotient_algebra is None
     assert converted.algebra.path_algebra is not None
+    assert converted.algebra.complexity(2) == 0
     assert len(converted.algebra.path_algebra.canonical_basis()) == 3
     assert [
         [coefficient.representative for coefficient in row]
