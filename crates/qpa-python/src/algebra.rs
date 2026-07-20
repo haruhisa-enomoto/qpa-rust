@@ -87,6 +87,52 @@ pub(crate) use vector_reduction::{
     PyPathVectorCoefficientsResult, PyQuotientVectorCoefficientsResult,
 };
 
+fn leftmost_python_occurrence(
+    py: Python<'_>,
+    sequence: &[Py<PyAny>],
+    pattern: &[Py<PyAny>],
+) -> PyResult<Option<(usize, usize)>> {
+    if pattern.len() > sequence.len() {
+        return Ok(None);
+    }
+    for start in 0..=sequence.len() - pattern.len() {
+        let mut equal = true;
+        for (left, right) in sequence[start..start + pattern.len()].iter().zip(pattern) {
+            if !left.bind(py).eq(right.bind(py))? {
+                equal = false;
+                break;
+            }
+        }
+        if equal {
+            return Ok(Some((start, start + pattern.len())));
+        }
+    }
+    Ok(None)
+}
+
+/// Translate QPA's generic `LeftmostOccurrence` list operation.
+///
+/// Python uses zero-based half-open endpoints, so QPA's `[1, 2]` result is
+/// represented by `(0, 2)`.
+#[pyfunction(name = "leftmost_occurrence")]
+pub(crate) fn py_leftmost_occurrence(
+    py: Python<'_>,
+    sequence: Vec<Py<PyAny>>,
+    pattern: Vec<Py<PyAny>>,
+) -> PyResult<Option<(usize, usize)>> {
+    leftmost_python_occurrence(py, &sequence, &pattern)
+}
+
+/// Translate QPA's duplicate inverse-length/inverse-lex occurrence operation.
+#[pyfunction(name = "leftmost_occurrence_inv_len_inv_lex")]
+pub(crate) fn py_leftmost_occurrence_inv_len_inv_lex(
+    py: Python<'_>,
+    sequence: Vec<Py<PyAny>>,
+    pattern: Vec<Py<PyAny>>,
+) -> PyResult<Option<(usize, usize)>> {
+    leftmost_python_occurrence(py, &sequence, &pattern)
+}
+
 use numerica::domains::{
     finite_field::{Z2, Zp},
     integer::Integer,
@@ -98,13 +144,15 @@ use qpa_core::{
     PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal, PathAlgebraModule,
     PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule,
     QuiverAlgebra, QuiverAlgebraElement, QuotientNiceBasis, QuotientPathAlgebra,
-    QuotientPathAlgebraElement, right_module_over_path_algebra,
+    QuotientPathAlgebraElement, make_uniform, make_uniform_list, qpa_in_arrow_ideal,
+    reduced_list_qpa, remainder_of_division, right_module_over_path_algebra, tip_reduced_list,
+    tip_walk,
 };
 
 use crate::field::parse_python_integer;
 use crate::{
     FieldKind, PyField, PyScalar, RelationNotSatisfiedError, invalid,
-    quiver::{PyPath, PyQuiver, PyQuiverOrdering, ordering_value},
+    quiver::{PyPath, PyQuiver, PyQuiverArrow, PyQuiverOrdering, ordering_value},
     runtime::{self, PythonField as _, dispatch_pair_ref, dispatch_ref, map_pair_ref, map_ref},
 };
 #[derive(Clone)]
@@ -1157,6 +1205,20 @@ where
         .collect()
 }
 
+fn biggest_homogeneous_parts_for<F: runtime::PythonField>(
+    _algebra: &PathAlgebra<F>,
+    elements: Vec<AlgebraElementKind>,
+) -> PyResult<Vec<PyAlgebraElement>>
+where
+    AlgebraElementKind:
+        runtime::Extract<PathAlgebraElement<F>> + runtime::Wrap<PathAlgebraElement<F>>,
+{
+    let elements: Vec<PathAlgebraElement<F>> = runtime::extract_all(elements)?;
+    Ok(wrap_algebra_elements(
+        qpa_gbnp::biggest_homogeneous_parts_inv_len_inv_lex(&elements).map_err(invalid)?,
+    ))
+}
+
 fn wrap_groebner_basis<F: runtime::PythonField>(basis: GroebnerBasis<F>) -> PyGroebnerBasis
 where
     GroebnerKind: runtime::Wrap<GroebnerBasis<F>>,
@@ -2024,6 +2086,21 @@ impl PyPathAlgebra {
         Ok(PyGroebnerBasis { kind })
     }
 
+    /// Invoke QPA's unchecked GBNP conversion and return its relation list.
+    fn gbnp_groebner_basis_nc(
+        &self,
+        py: Python<'_>,
+        relations: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let relations = clone_relations(py, relations);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            let relations = runtime::extract_all(relations)?;
+            Ok(wrap_algebra_elements(
+                qpa_gbnp::gbnp_groebner_basis_nc(&relations, algebra).map_err(invalid)?,
+            ))
+        })
+    }
+
     /// Invoke the `GroebnerBasisFunction` selected by QPA's default
     /// `PathAlgebra` constructor, namely `GBNPGroebnerBasis`.
     fn groebner_basis_function(
@@ -2032,6 +2109,165 @@ impl PyPathAlgebra {
         relations: Vec<Py<PyAlgebraElement>>,
     ) -> PyResult<PyGroebnerBasis> {
         self.gbnp_groebner_basis(py, relations)
+    }
+
+    fn make_uniform(&self, element: &PyAlgebraElement) -> PyResult<Vec<PyAlgebraElement>> {
+        let element = element.kind.clone();
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            let element = runtime::Extract::extract(element)?;
+            Ok(wrap_algebra_elements(
+                make_uniform(&element, algebra).map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn make_uniform_list(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            let elements = runtime::extract_all(elements)?;
+            Ok(wrap_algebra_elements(
+                make_uniform_list(&elements, algebra).map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn qpa_in_arrow_ideal(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<bool> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_in_arrow_ideal(&runtime::extract_all(elements)?, algebra).map_err(invalid)
+        })
+    }
+
+    fn remainder_of_division(
+        &self,
+        py: Python<'_>,
+        dividend: &PyAlgebraElement,
+        divisors: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<PyAlgebraElement> {
+        let dividend = dividend.kind.clone();
+        let divisors = clone_relations(py, divisors);
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraKind => AlgebraElementKind,
+            |algebra| remainder_of_division(
+                runtime::Extract::extract(dividend)?,
+                &runtime::extract_all(divisors)?,
+                algebra,
+            )
+            .map_err(invalid)?
+        );
+        Ok(PyAlgebraElement { kind })
+    }
+
+    fn reduced_list_qpa(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(wrap_algebra_elements(
+                reduced_list_qpa(&runtime::extract_all(elements)?, algebra).map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn tip_reduced_list(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(wrap_algebra_elements(
+                tip_reduced_list(&runtime::extract_all(elements)?, algebra).map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn remainder_of_division_inv_len_inv_lex(
+        &self,
+        py: Python<'_>,
+        dividend: &PyAlgebraElement,
+        divisors: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<PyAlgebraElement> {
+        let dividend = dividend.kind.clone();
+        let divisors = clone_relations(py, divisors);
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraKind => AlgebraElementKind,
+            |algebra| qpa_gbnp::remainder_of_division_inv_len_inv_lex(
+                runtime::Extract::extract(dividend)?,
+                &runtime::extract_all(divisors)?,
+                algebra,
+            )
+            .map_err(invalid)?
+        );
+        Ok(PyAlgebraElement { kind })
+    }
+
+    fn reduced_list_inv_len_inv_lex(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(wrap_algebra_elements(
+                qpa_gbnp::reduced_list_inv_len_inv_lex(&runtime::extract_all(elements)?, algebra)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn tip_reduced_list_inv_len_inv_lex(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(wrap_algebra_elements(
+                qpa_gbnp::tip_reduced_list_inv_len_inv_lex(
+                    &runtime::extract_all(elements)?,
+                    algebra,
+                )
+                .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn groebner_basis_inv_len_inv_lex(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(wrap_algebra_elements(
+                qpa_gbnp::groebner_basis_inv_len_inv_lex(&runtime::extract_all(elements)?, algebra)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn biggest_homogeneous_parts_inv_len_inv_lex(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            biggest_homogeneous_parts_for(algebra, elements)
+        })
     }
 
     fn make_uniform_on_right(
@@ -2495,6 +2731,83 @@ impl PyAlgebraElement {
     #[getter]
     fn tip_monomial(&self) -> PyPath {
         self.leading_monomial()
+    }
+
+    fn tip_walk(&self) -> PyResult<Vec<PyQuiverArrow>> {
+        dispatch_ref!(&self.kind, AlgebraElementKind, |element| {
+            tip_walk(element)
+                .map_err(invalid)?
+                .into_iter()
+                .map(|index| {
+                    element
+                        .algebra()
+                        .quiver()
+                        .arrow(index)
+                        .map(PyQuiverArrow::from_inner)
+                        .ok_or_else(|| invalid("tip walk contains an invalid arrow index"))
+                })
+                .collect()
+        })
+    }
+
+    fn tip_inv_len_inv_lex(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraElementKind => AlgebraElementKind,
+            |element| qpa_gbnp::tip_inv_len_inv_lex(element).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    #[getter]
+    fn tip_coefficient_inv_len_inv_lex(&self) -> PyScalar {
+        dispatch_ref!(&self.kind, AlgebraElementKind, |element| element
+            .algebra()
+            .field()
+            .wrap_scalar(&qpa_gbnp::tip_coefficient_inv_len_inv_lex(element)))
+    }
+
+    #[getter]
+    fn tip_monomial_inv_len_inv_lex(&self) -> Option<PyPath> {
+        dispatch_ref!(&self.kind, AlgebraElementKind, |element| {
+            qpa_gbnp::tip_monomial_inv_len_inv_lex(element).map(|inner| PyPath { inner })
+        })
+    }
+
+    fn tip_walk_inv_len_inv_lex(&self) -> PyResult<Vec<PyQuiverArrow>> {
+        dispatch_ref!(&self.kind, AlgebraElementKind, |element| {
+            qpa_gbnp::tip_walk_inv_len_inv_lex(element)
+                .ok_or_else(|| invalid("TipWalkInvLenInvLex is undefined for zero"))?
+                .into_iter()
+                .map(|index| {
+                    element
+                        .algebra()
+                        .quiver()
+                        .arrow(index)
+                        .map(PyQuiverArrow::from_inner)
+                        .ok_or_else(|| invalid("tip walk contains an invalid arrow index"))
+                })
+                .collect()
+        })
+    }
+
+    fn truncate_element(&self, degree: usize) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraElementKind => AlgebraElementKind,
+            |element| qpa_gbnp::truncate_element(element, degree).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn biggest_homogeneous_part_inv_len_inv_lex(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraElementKind => AlgebraElementKind,
+            |element| qpa_gbnp::biggest_homogeneous_part_inv_len_inv_lex(element)
+                .map_err(invalid)?
+        );
+        Ok(Self { kind })
     }
 
     fn path_removal(&self, py: Python<'_>, vertex_positions: Vec<Py<PyAny>>) -> PyResult<Self> {

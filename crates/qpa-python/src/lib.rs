@@ -45,9 +45,9 @@ use algebra::{
     py_brauer_configuration_algebra, py_canonical_algebra, py_complex_and_chain_maps,
     py_compute_lps_array, py_cyclic_permutations_of_band, py_finite_global_dim_green,
     py_finite_global_dim_kirk_kuz, py_format_multiplicity_vector, py_format_multiplicity_vectors,
-    py_kronecker_algebra, py_nakayama_algebra, py_opposite_relations, py_poset_algebra,
-    py_predefined_ar_quiver_catalog, py_predefined_ar_quiver_data, py_read_algebra,
-    py_string_quiver_rho,
+    py_kronecker_algebra, py_leftmost_occurrence, py_leftmost_occurrence_inv_len_inv_lex,
+    py_nakayama_algebra, py_opposite_relations, py_poset_algebra, py_predefined_ar_quiver_catalog,
+    py_predefined_ar_quiver_data, py_read_algebra, py_string_quiver_rho,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -105,6 +105,11 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_brauer_configuration_algebra, module)?)?;
     module.add_function(wrap_pyfunction!(py_opposite_relations, module)?)?;
     module.add_function(wrap_pyfunction!(py_read_algebra, module)?)?;
+    module.add_function(wrap_pyfunction!(py_leftmost_occurrence, module)?)?;
+    module.add_function(wrap_pyfunction!(
+        py_leftmost_occurrence_inv_len_inv_lex,
+        module
+    )?)?;
     Ok(())
 }
 

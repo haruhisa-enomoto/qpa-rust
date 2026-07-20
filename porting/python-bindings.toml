@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 718
+exposed_or_partial_count = 737
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -641,8 +641,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "BiggestHomogeneousPartInvLenInvLex"
 python_name = "biggest_homogeneous_part_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.biggest_homogeneous_part_inv_len_inv_lex; qpa.PathAlgebra.biggest_homogeneous_parts_inv_len_inv_lex"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:BiggestHomogeneousPartInvLenInvLex:1","invlenlexgrb:DeclareOperation:BiggestHomogeneousPartInvLenInvLex:2","invlenlexgrb:InstallMethod:BiggestHomogeneousPartInvLenInvLex:1","invlenlexgrb:InstallMethod:BiggestHomogeneousPartInvLenInvLex:2"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -650,7 +650,7 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["biggest_homogeneous_part_inv_len_inv_lex","biggest_homogeneous_parts_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "BilinearFormOfUnitForm"
@@ -3041,23 +3041,23 @@ python_tests = []
 qpa_name = "GBNPGroebnerBasis"
 python_name = "gbnp_groebner_basis"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.PathAlgebra.gbnp_groebner_basis"
-notes = "The checked relation-list overload is exposed; the ideal convenience overload remains indirect."
+status = "exposed"
+python_target = "qpa.PathAlgebra.gbnp_groebner_basis; qpa.PathAlgebraIdeal.gbnp_groebner_basis"
+notes = "Both the checked relation-list overload and the ideal overload are exposed."
 entry_ids = ["gbnp:DeclareOperation:GBNPGroebnerBasis:1","gbnp:DeclareOperation:GBNPGroebnerBasis:2","gbnp:InstallMethod:GBNPGroebnerBasis:1","gbnp:InstallMethod:GBNPGroebnerBasis:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["gbnp_groebner_basis","gbnp_groebner_basis_of_ideal"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_groebner_helpers.py::test_unchecked_gbnp_bridge_follows_qpa"]
 
 [[operations]]
 qpa_name = "GBNPGroebnerBasisNC"
 python_name = "gbnp_groebner_basis_nc"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.gbnp_groebner_basis_nc"
 notes = ""
 entry_ids = ["gbnp:DeclareOperation:GBNPGroebnerBasisNC:1","gbnp:InstallMethod:GBNPGroebnerBasisNC:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3065,7 +3065,7 @@ source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["gbnp_groebner_basis_nc"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_unchecked_gbnp_bridge_follows_qpa"]
 
 [[operations]]
 qpa_name = "GeneratorIndex"
@@ -3266,8 +3266,8 @@ python_tests = ["python/tests/test_external_representations.py::test_external_re
 qpa_name = "GroebnerBasisInvLenInvLex"
 python_name = "groebner_basis_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.groebner_basis_inv_len_inv_lex"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:GroebnerBasisInvLenInvLex:1","invlenlexgrb:InstallMethod:GroebnerBasisInvLenInvLex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3275,7 +3275,7 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["groebner_basis_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "GroebnerBasisOfIdeal"
@@ -3431,16 +3431,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotil
 qpa_name = "HighLevelGroebnerBasis"
 python_name = "high_level_groebner_basis"
 disposition = "operation"
-status = "partial"
+status = "exposed"
 python_target = "qpa.PathAlgebra.groebner_basis"
-notes = "The relation-list/path-algebra route is exposed as a typed basis object."
+notes = "The relation-list/path-algebra route is exposed as a typed basis object whose relations property is QPA's returned list."
 entry_ids = ["gbhighlevel:DeclareOperation:HighLevelGroebnerBasis:1","gbhighlevel:InstallMethod:HighLevelGroebnerBasis:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/gbhighlevel.gd","upstream/qpa/lib/gbhighlevel.gi"]
 rust_symbols = ["high_level_groebner_basis; GroebnerBasis::high_level"]
 rust_tests = ["tests/fixtures/groebner_high_level.schema-v1.json","tests/gap-reference/groebner_high_level_error.g","tests/gap-reference/groebner_high_level_foreign_error.g"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa","python/tests/test_groebner_helpers.py::test_uniformization_and_generic_leftmost_occurrence_follow_qpa"]
 
 [[operations]]
 qpa_name = "HighestKnownDegree"
@@ -7541,31 +7541,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "LeftmostOccurrence"
 python_name = "leftmost_occurrence"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.leftmost_occurrence"
+notes = "Accepts arbitrary Python list elements; Python returns conventional zero-based half-open endpoints, so QPA [1,2] is (0,2)."
 entry_ids = ["gbhighlevel:DeclareOperation:LeftmostOccurrence:1","gbhighlevel:InstallMethod:LeftmostOccurrence:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/gbhighlevel.gd","upstream/qpa/lib/gbhighlevel.gi"]
 rust_symbols = ["leftmost_occurrence"]
 rust_tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_uniformization_and_generic_leftmost_occurrence_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftmostOccurrenceInvLenInvLex"
 python_name = "leftmost_occurrence_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.leftmost_occurrence_inv_len_inv_lex"
+notes = "Accepts arbitrary Python list elements; Python returns conventional zero-based half-open endpoints, so QPA [1,2] is (0,2)."
 entry_ids = ["invlenlexgrb:DeclareOperation:LeftmostOccurrenceInvLenInvLex:1","invlenlexgrb:InstallMethod:LeftmostOccurrenceInvLenInvLex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgrb.gi"]
 rust_symbols = ["leftmost_occurrence_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "LengthOfComplex"
@@ -7961,8 +7961,8 @@ python_tests = []
 qpa_name = "MakeUniform"
 python_name = "make_uniform"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.make_uniform; qpa.PathAlgebra.make_uniform_list"
 notes = ""
 entry_ids = ["gbnp:DeclareOperation:MakeUniform:1","gbnp:DeclareOperation:MakeUniform:2","gbnp:InstallMethod:MakeUniform:1","gbnp:InstallMethod:MakeUniform:2"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7970,7 +7970,7 @@ source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["make_uniform","make_uniform_list"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_uniformization_and_generic_leftmost_occurrence_follow_qpa"]
 
 [[operations]]
 qpa_name = "MakeUniformOnRight"
@@ -10421,8 +10421,8 @@ python_tests = []
 qpa_name = "QPA_InArrowIdeal"
 python_name = "qpa_in_arrow_ideal"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.qpa_in_arrow_ideal"
 notes = ""
 entry_ids = ["gbnp:DeclareOperation:QPA_InArrowIdeal:1","gbnp:InstallMethod:QPA_InArrowIdeal:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10430,7 +10430,7 @@ source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["qpa_in_arrow_ideal"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_unchecked_gbnp_bridge_follows_qpa"]
 
 [[operations]]
 qpa_name = "QPA_Path2Cohen"
@@ -10871,8 +10871,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "ReducedListInvLenInvLexQPA"
 python_name = "reduced_list_inv_len_inv_lex_qpa"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.reduced_list_inv_len_inv_lex"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:ReducedListInvLenInvLexQPA:1","invlenlexgrb:InstallMethod:ReducedListInvLenInvLexQPA:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10880,14 +10880,14 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["reduced_list_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReducedListQPA"
 python_name = "reduced_list_qpa"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.reduced_list_qpa"
 notes = ""
 entry_ids = ["gbhighlevel:DeclareOperation:ReducedListQPA:1","gbhighlevel:InstallMethod:ReducedListQPA:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10895,7 +10895,7 @@ source_files = ["upstream/qpa/lib/gbhighlevel.gd","upstream/qpa/lib/gbhighlevel.
 rust_symbols = ["reduced_list_qpa"]
 rust_tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReflectionByBilinearForm"
@@ -10961,8 +10961,8 @@ python_tests = ["python/tests/test_external_representations.py::test_external_re
 qpa_name = "RemainderOfDivision"
 python_name = "remainder_of_division"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.remainder_of_division"
 notes = ""
 entry_ids = ["gbhighlevel:DeclareOperation:RemainderOfDivision:1","gbhighlevel:InstallMethod:RemainderOfDivision:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10970,14 +10970,14 @@ source_files = ["upstream/qpa/lib/gbhighlevel.gd","upstream/qpa/lib/gbhighlevel.
 rust_symbols = ["remainder_of_division; GroebnerBasis::remainder"]
 rust_tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
 
 [[operations]]
 qpa_name = "RemainderOfDivisionInvLenInvLexGroebnerBasis"
 python_name = "remainder_of_division_inv_len_inv_lex_groebner_basis"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.remainder_of_division_inv_len_inv_lex"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:RemainderOfDivisionInvLenInvLexGroebnerBasis:1","invlenlexgrb:InstallMethod:RemainderOfDivisionInvLenInvLexGroebnerBasis:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10985,7 +10985,7 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["remainder_of_division_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RemoveEdgeOfCombinatorialMap"
@@ -12326,8 +12326,8 @@ python_tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follo
 qpa_name = "TipCoefficientInvLenInvLex"
 python_name = "tip_coefficient_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip_coefficient_inv_len_inv_lex"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:TipCoefficientInvLenInvLex:1","invlenlexgrb:InstallMethod:TipCoefficientInvLenInvLex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12335,14 +12335,14 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["tip_coefficient_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipInvLenInvLex"
 python_name = "tip_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip_inv_len_inv_lex"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:TipInvLenInvLex:1","invlenlexgrb:InstallMethod:TipInvLenInvLex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12350,7 +12350,7 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["tip_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipMonomial"
@@ -12371,16 +12371,16 @@ python_tests = ["python/tests/test_element_utilities.py::test_tip_synonyms_follo
 qpa_name = "TipMonomialInvLenInvLex"
 python_name = "tip_monomial_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip_monomial_inv_len_inv_lex"
+notes = "QPA's zero algebra-element sentinel is represented by None because nonzero results are Path objects."
 entry_ids = ["invlenlexgrb:DeclareOperation:TipMonomialInvLenInvLex:1","invlenlexgrb:InstallMethod:TipMonomialInvLenInvLex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgrb.gi"]
 rust_symbols = ["tip_monomial_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = ["INVLENLEX-001"]
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipMonomialandCoefficientOfVector"
@@ -12446,8 +12446,8 @@ python_tests = ["python/tests/test_vector_reduction.py::test_path_vector_reducti
 qpa_name = "TipReducedList"
 python_name = "tip_reduced_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.tip_reduced_list"
 notes = ""
 entry_ids = ["gbhighlevel:DeclareOperation:TipReducedList:1","gbhighlevel:InstallMethod:TipReducedList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12455,14 +12455,14 @@ source_files = ["upstream/qpa/lib/gbhighlevel.gd","upstream/qpa/lib/gbhighlevel.
 rust_symbols = ["tip_reduced_list"]
 rust_tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipReducedListInvLenInvLex"
 python_name = "tip_reduced_list_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.tip_reduced_list_inv_len_inv_lex"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:TipReducedListInvLenInvLex:1","invlenlexgrb:InstallMethod:TipReducedListInvLenInvLex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12470,37 +12470,37 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["tip_reduced_list_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipWalk"
 python_name = "tip_walk"
 disposition = "alias"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip_walk"
+notes = "Returns concrete QuiverArrow objects in QPA's walk order."
 entry_ids = ["gbhighlevel:DeclareSynonym:TipWalk:1"]
 constructs = ["DeclareSynonym"]
 source_files = ["upstream/qpa/lib/gbhighlevel.gd"]
 rust_symbols = ["tip_walk"]
 rust_tests = ["tests/fixtures/groebner_high_level.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipWalkInvLenInvLex"
 python_name = "tip_walk_inv_len_inv_lex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.tip_walk_inv_len_inv_lex"
+notes = "Returns concrete QuiverArrow objects and preserves QPA's failure on the zero element."
 entry_ids = ["invlenlexgrb:DeclareOperation:TipWalkInvLenInvLex:1","invlenlexgrb:InstallMethod:TipWalkInvLenInvLex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgrb.gi"]
 rust_symbols = ["tip_walk_inv_len_inv_lex"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = ["INVLENLEX-001"]
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "TitsUnitFormOfAlgebra"
@@ -12671,8 +12671,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_trivial_extension
 qpa_name = "TruncateElement"
 python_name = "truncate_element"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.truncate_element"
 notes = ""
 entry_ids = ["invlenlexgrb:DeclareOperation:TruncateElement:1","invlenlexgrb:InstallMethod:TruncateElement:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12680,7 +12680,7 @@ source_files = ["upstream/qpa/lib/invlenlexgrb.gd","upstream/qpa/lib/invlenlexgr
 rust_symbols = ["truncate_element"]
 rust_tests = ["tests/fixtures/invlenlex.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "TruncatedPathAlgebra"

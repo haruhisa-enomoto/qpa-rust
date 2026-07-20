@@ -118,7 +118,7 @@ pub(crate) struct PyQuiverArrow {
 }
 
 impl PyQuiverArrow {
-    pub(super) const fn from_inner(inner: Arrow) -> Self {
+    pub(crate) const fn from_inner(inner: Arrow) -> Self {
         Self { inner }
     }
 }

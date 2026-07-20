@@ -1236,17 +1236,17 @@ tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quoti
 
 [[bindings]]
 qpa_name = "HighLevelGroebnerBasis"
-status = "partial"
+status = "exposed"
 target = "qpa.PathAlgebra.groebner_basis"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The relation-list/path-algebra route is exposed as a typed basis object."
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa","python/tests/test_groebner_helpers.py::test_uniformization_and_generic_leftmost_occurrence_follow_qpa"]
+notes = "The relation-list/path-algebra route is exposed as a typed basis object whose relations property is QPA's returned list."
 
 [[bindings]]
 qpa_name = "GBNPGroebnerBasis"
-status = "partial"
-target = "qpa.PathAlgebra.gbnp_groebner_basis"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The checked relation-list overload is exposed; the ideal convenience overload remains indirect."
+status = "exposed"
+target = "qpa.PathAlgebra.gbnp_groebner_basis; qpa.PathAlgebraIdeal.gbnp_groebner_basis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_groebner_helpers.py::test_unchecked_gbnp_bridge_follows_qpa"]
+notes = "Both the checked relation-list overload and the ideal overload are exposed."
 
 [[bindings]]
 qpa_name = "IsMonomialAlgebra"
@@ -4513,3 +4513,124 @@ qpa_name = "\\/"
 status = "exposed"
 target = "qpa.PathAlgebra.quotient; qpa.PathAlgebra.quotient_high_level; qpa.PathAlgebraIdeal.quotient"
 tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route","python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
+
+# High-level and inverse-length/inverse-lex Groebner helpers
+
+[[bindings]]
+qpa_name = "GBNPGroebnerBasisNC"
+status = "exposed"
+target = "qpa.PathAlgebra.gbnp_groebner_basis_nc"
+tests = ["python/tests/test_groebner_helpers.py::test_unchecked_gbnp_bridge_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MakeUniform"
+status = "exposed"
+target = "qpa.PathAlgebra.make_uniform; qpa.PathAlgebra.make_uniform_list"
+tests = ["python/tests/test_groebner_helpers.py::test_uniformization_and_generic_leftmost_occurrence_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QPA_InArrowIdeal"
+status = "exposed"
+target = "qpa.PathAlgebra.qpa_in_arrow_ideal"
+tests = ["python/tests/test_groebner_helpers.py::test_unchecked_gbnp_bridge_follows_qpa"]
+
+[[bindings]]
+qpa_name = "RemainderOfDivision"
+status = "exposed"
+target = "qpa.PathAlgebra.remainder_of_division"
+tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ReducedListQPA"
+status = "exposed"
+target = "qpa.PathAlgebra.reduced_list_qpa"
+tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TipReducedList"
+status = "exposed"
+target = "qpa.PathAlgebra.tip_reduced_list"
+tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftmostOccurrence"
+status = "exposed"
+target = "qpa.leftmost_occurrence"
+tests = ["python/tests/test_groebner_helpers.py::test_uniformization_and_generic_leftmost_occurrence_follow_qpa"]
+notes = "Accepts arbitrary Python list elements; Python returns conventional zero-based half-open endpoints, so QPA [1,2] is (0,2)."
+
+[[bindings]]
+qpa_name = "TipWalk"
+status = "exposed"
+target = "qpa.AlgebraElement.tip_walk"
+tests = ["python/tests/test_groebner_helpers.py::test_high_level_groebner_basis_and_division_follow_qpa"]
+notes = "Returns concrete QuiverArrow objects in QPA's walk order."
+
+[[bindings]]
+qpa_name = "GroebnerBasisInvLenInvLex"
+status = "exposed"
+target = "qpa.PathAlgebra.groebner_basis_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RemainderOfDivisionInvLenInvLexGroebnerBasis"
+status = "exposed"
+target = "qpa.PathAlgebra.remainder_of_division_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ReducedListInvLenInvLexQPA"
+status = "exposed"
+target = "qpa.PathAlgebra.reduced_list_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TipReducedListInvLenInvLex"
+status = "exposed"
+target = "qpa.PathAlgebra.tip_reduced_list_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftmostOccurrenceInvLenInvLex"
+status = "exposed"
+target = "qpa.leftmost_occurrence_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
+notes = "Accepts arbitrary Python list elements; Python returns conventional zero-based half-open endpoints, so QPA [1,2] is (0,2)."
+
+[[bindings]]
+qpa_name = "TipInvLenInvLex"
+status = "exposed"
+target = "qpa.AlgebraElement.tip_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TipCoefficientInvLenInvLex"
+status = "exposed"
+target = "qpa.AlgebraElement.tip_coefficient_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TipMonomialInvLenInvLex"
+status = "exposed"
+target = "qpa.AlgebraElement.tip_monomial_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
+notes = "QPA's zero algebra-element sentinel is represented by None because nonzero results are Path objects."
+
+[[bindings]]
+qpa_name = "TipWalkInvLenInvLex"
+status = "exposed"
+target = "qpa.AlgebraElement.tip_walk_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
+notes = "Returns concrete QuiverArrow objects and preserves QPA's failure on the zero element."
+
+[[bindings]]
+qpa_name = "TruncateElement"
+status = "exposed"
+target = "qpa.AlgebraElement.truncate_element"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa","python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "BiggestHomogeneousPartInvLenInvLex"
+status = "exposed"
+target = "qpa.AlgebraElement.biggest_homogeneous_part_inv_len_inv_lex; qpa.PathAlgebra.biggest_homogeneous_parts_inv_len_inv_lex"
+tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]

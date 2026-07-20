@@ -67,6 +67,15 @@ impl PyPathAlgebraIdeal {
         Ok(Self { kind })
     }
 
+    /// Invoke QPA's `GBNPGroebnerBasis` ideal overload.
+    fn gbnp_groebner_basis(&self) -> PyResult<Vec<PyAlgebraElement>> {
+        dispatch_ref!(&self.kind, IdealKind, |ideal| {
+            Ok(wrap_algebra_elements(
+                qpa_gbnp::gbnp_groebner_basis_of_ideal(ideal).map_err(invalid)?,
+            ))
+        })
+    }
+
     fn right_groebner_basis(&self) -> PyResult<PyGroebnerBasis> {
         dispatch_ref!(&self.kind, IdealKind, |ideal| Ok(wrap_groebner_basis(
             ideal.right_groebner_basis().map_err(invalid)?,
