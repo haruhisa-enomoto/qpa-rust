@@ -24,7 +24,7 @@ pub(crate) use fp_projective::{
     PyFpPathAlgebraVector, PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule,
     PyRightFpPathAlgebraSubmodule,
 };
-pub(crate) use module::PyProjectivePathAlgebraPresentation;
+pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
 pub(crate) use projective::{
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
     PyPathAlgebraVectorSpace, PyRightProjectiveModule, PyRightProjectiveSubmodule,

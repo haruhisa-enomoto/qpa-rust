@@ -2447,3 +2447,29 @@ def test_projective_path_algebra_presentation_follow_qpa(field: qpa.Field) -> No
     path_simple = qpa.PathAlgebra(field, qpa.Quiver(["v"], [])).simple_modules()[0]
     with pytest.raises(qpa.InvalidInputError, match="cannot read a defining ideal"):
         path_simple.projective_path_algebra_presentation()
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_gsz_projective_resolution_follows_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v"], [("v", "v", "x")])
+    dual_numbers = qpa.QuotientAlgebra.truncated(field, quiver, 2)
+    simple = dual_numbers.simple_modules()[0]
+    resolution = simple.projective_resolution_of_path_algebra_module(2)
+
+    assert resolution.parent_algebra.is_identical(dual_numbers)
+    assert not resolution.ring_ideal.is_trivial
+    # QPA's module-based constructor deliberately leaves the quotient
+    # projectives attribute unbound and records the lifted data instead.
+    assert not resolution.projectives_attribute_is_bound
+    assert resolution.projectives == []
+    assert len(resolution.r_projectives) == 3
+    assert len(resolution.maps) == 2
+    assert len(resolution.f_lists) == len(resolution.f_prime_lists)
+    assert not resolution.has_r_projectives_vertex_list
+    assert not resolution.has_projectives_f_prime_list
+    assert resolution.finite_at_projective is None
+
+    with pytest.raises(qpa.InvalidInputError):
+        simple.projective_resolution_of_path_algebra_module(0)

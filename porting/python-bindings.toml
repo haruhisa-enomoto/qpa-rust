@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 497
+exposed_or_partial_count = 498
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -10181,16 +10181,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "ProjectiveResolutionOfPathAlgebraModule"
 python_name = "projective_resolution_of_path_algebra_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.projective_resolution_of_path_algebra_module; qpa.GszProjectiveResolution"
+notes = "Returns a distinct GSZ resolution wrapper retaining QPA's quotient/path projective layers, maps, F/F-prime lists, bound-attribute state, and finite-at-projective marker."
 entry_ids = ["moduleprojres:DeclareOperation:ProjectiveResolutionOfPathAlgebraModule:1","moduleprojres:InstallMethod:ProjectiveResolutionOfPathAlgebraModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/moduleprojres.gd","upstream/qpa/lib/moduleprojres.gi"]
 rust_symbols = ["qpa_gbnp::projective_resolution_of_path_algebra_module"]
 rust_tests = ["tests/fixtures/moduleprojres_module_resolution.schema-v1.json","tests/gap-reference/moduleprojres_module_path_error.g","tests/gap-reference/moduleprojres_module_projective_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveResolutionOfSimpleModuleOverEndo"

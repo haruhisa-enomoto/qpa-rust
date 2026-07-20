@@ -3131,3 +3131,10 @@ qpa_name = "ProjectivePathAlgebraPresentation"
 status = "exposed"
 target = "qpa.MatrixModule.projective_path_algebra_presentation; qpa.ProjectivePathAlgebraPresentation"
 tests = ["python/tests/test_architecture_spike.py::test_projective_path_algebra_presentation_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectiveResolutionOfPathAlgebraModule"
+status = "exposed"
+target = "qpa.MatrixModule.projective_resolution_of_path_algebra_module; qpa.GszProjectiveResolution"
+tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
+notes = "Returns a distinct GSZ resolution wrapper retaining QPA's quotient/path projective layers, maps, F/F-prime lists, bound-attribute state, and finite-at-projective marker."

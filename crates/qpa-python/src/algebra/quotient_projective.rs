@@ -15,7 +15,7 @@ use qpa_core::{
 use super::*;
 
 #[derive(Clone)]
-enum QuotientProjectiveKind {
+pub(super) enum QuotientProjectiveKind {
     Rational(RightProjectiveQuotientPathAlgebraModule<RationalField>),
     Binary(RightProjectiveQuotientPathAlgebraModule<Z2>),
     Prime(RightProjectiveQuotientPathAlgebraModule<Zp>),
@@ -154,6 +154,18 @@ pub(super) fn right_projective_module(
         |algebra| quotient_projective(algebra, &vertices)?
     );
     Ok(PyRightProjectiveQuotientModule { kind })
+}
+
+pub(super) fn wrap_quotient_projective<F>(
+    value: RightProjectiveQuotientPathAlgebraModule<F>,
+) -> PyRightProjectiveQuotientModule
+where
+    F: Field,
+    QuotientProjectiveKind: runtime::Wrap<RightProjectiveQuotientPathAlgebraModule<F>>,
+{
+    PyRightProjectiveQuotientModule {
+        kind: runtime::Wrap::wrap(value),
+    }
 }
 
 #[pymethods]

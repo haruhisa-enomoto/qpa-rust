@@ -29,12 +29,34 @@ pub(crate) struct PyProjectivePathAlgebraPresentation {
     kind: ProjectivePathPresentationKind,
 }
 
+#[derive(Clone)]
+enum GszProjectiveResolutionKind {
+    Rational(qpa_core::ProjectiveResolutionFpPathAlgebraModule<RationalField>),
+    Binary(qpa_core::ProjectiveResolutionFpPathAlgebraModule<Z2>),
+    Prime(qpa_core::ProjectiveResolutionFpPathAlgebraModule<Zp>),
+}
+
+/// QPA's GSZ `ProjectiveResolutionFpPathAlgebraModule` attribute object.
+#[pyclass(name = "GszProjectiveResolution", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyGszProjectiveResolution {
+    kind: GszProjectiveResolutionKind,
+}
+
 macro_rules! impl_projective_presentation_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Wrap<qpa_gbnp::ProjectivePathAlgebraPresentation<$field>>
             for ProjectivePathPresentationKind
         {
             fn wrap(value: qpa_gbnp::ProjectivePathAlgebraPresentation<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::ProjectiveResolutionFpPathAlgebraModule<$field>>
+            for GszProjectiveResolutionKind
+        {
+            fn wrap(value: qpa_core::ProjectiveResolutionFpPathAlgebraModule<$field>) -> Self {
                 Self::$variant(value)
             }
         }
@@ -466,6 +488,105 @@ impl PyProjectivePathAlgebraPresentation {
 }
 
 #[pymethods]
+impl PyGszProjectiveResolution {
+    #[getter]
+    fn parent_algebra(&self) -> PyQuotientAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            GszProjectiveResolutionKind => QuotientKind,
+            |value| value.parent_algebra().clone()
+        );
+        PyQuotientAlgebra { kind }
+    }
+
+    #[getter]
+    fn ring_ideal(&self) -> PyPathAlgebraIdeal {
+        let kind = map_ref!(
+            &self.kind,
+            GszProjectiveResolutionKind => IdealKind,
+            |value| value.ring_ideal().clone()
+        );
+        PyPathAlgebraIdeal { kind }
+    }
+
+    #[getter]
+    fn projectives(&self) -> Vec<PyRightProjectiveQuotientModule> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .projectives()
+            .iter()
+            .cloned()
+            .map(quotient_projective::wrap_quotient_projective)
+            .collect())
+    }
+
+    #[getter]
+    fn projectives_attribute_is_bound(&self) -> bool {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .projectives_attribute_is_bound())
+    }
+
+    #[getter]
+    fn r_projectives(&self) -> Vec<PyRightProjectiveModule> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .r_projectives()
+            .iter()
+            .cloned()
+            .map(projective::wrap_projective_module)
+            .collect())
+    }
+
+    #[getter]
+    fn maps(&self) -> Vec<Vec<Vec<PyAlgebraElement>>> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .maps()
+            .iter()
+            .map(|matrix| matrix
+                .iter()
+                .map(|row| wrap_algebra_elements(row.clone()))
+                .collect())
+            .collect())
+    }
+
+    #[getter]
+    fn f_lists(&self) -> Vec<Vec<PyPathAlgebraVector>> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .f_lists()
+            .iter()
+            .map(|vectors| projective::wrap_vectors(vectors.clone()))
+            .collect())
+    }
+
+    #[getter]
+    fn f_prime_lists(&self) -> Vec<Vec<PyPathAlgebraVector>> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .f_prime_lists()
+            .iter()
+            .map(|vectors| projective::wrap_vectors(vectors.clone()))
+            .collect())
+    }
+
+    #[getter]
+    fn has_r_projectives_vertex_list(&self) -> bool {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .r_projectives_vertex_list()
+            .is_bound())
+    }
+
+    #[getter]
+    fn has_projectives_f_prime_list(&self) -> bool {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .projectives_f_prime_list()
+            .is_bound())
+    }
+
+    #[getter]
+    fn finite_at_projective(&self) -> Option<usize> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
+            .finite_at_projective())
+    }
+}
+
+#[pymethods]
 impl PyMatrixModule {
     fn projective_path_algebra_presentation(
         &self,
@@ -476,6 +597,19 @@ impl PyMatrixModule {
             |module| qpa_gbnp::projective_path_algebra_presentation(module).map_err(invalid)?
         );
         Ok(PyProjectivePathAlgebraPresentation { kind })
+    }
+
+    fn projective_resolution_of_path_algebra_module(
+        &self,
+        term: usize,
+    ) -> PyResult<PyGszProjectiveResolution> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => GszProjectiveResolutionKind,
+            |module| qpa_gbnp::projective_resolution_of_path_algebra_module(module, term)
+                .map_err(invalid)?
+        );
+        Ok(PyGszProjectiveResolution { kind })
     }
 
     #[getter]
