@@ -745,3 +745,35 @@ def test_rigidity_predicates_follow_qpa(field: qpa.Field) -> None:
     assert periodic_simple.is_exceptional is False
     assert periodic_simple.is_n_rigid(0)
     assert not periodic_simple.is_n_rigid(1)
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_tilting_and_cotilting_results_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projective_generator = qpa.MatrixModule.direct_sum(algebra.indecomposable_projectives())
+    injective_generator = qpa.MatrixModule.direct_sum(algebra.indecomposable_injectives())
+    assert projective_generator is not None and injective_generator is not None
+    assert projective_generator.cached_is_tilting is None
+    assert injective_generator.cached_is_cotilting is None
+
+    coresolution = projective_generator.finite_coresolution_in_add(projective_generator, 0)
+    assert coresolution is not None
+    assert coresolution.base_degree == "0"
+    assert len(coresolution.differentials) == 1
+    assert coresolution.differential(0).is_isomorphism
+    assert coresolution.object(0).dimension_vector == [1, 2]
+
+    resolution = injective_generator.finite_resolution_in_add(injective_generator, 0)
+    assert resolution is not None and resolution.is_in_add
+    assert resolution.differentials == []
+    assert resolution.differential(0) is None and resolution.object(0) is None
+
+    tilting = projective_generator.tilting(2)
+    assert tilting is not None and tilting.projective_dimension == 0
+    assert len(tilting.coresolutions) == 2
+    assert projective_generator.cached_is_tilting is True
+    cotilting = injective_generator.cotilting(2)
+    assert cotilting is not None and cotilting.injective_dimension == 0
+    assert len(cotilting.resolutions) == 2
+    assert all(result.is_in_add for result in cotilting.resolutions)
+    assert injective_generator.cached_is_cotilting is True

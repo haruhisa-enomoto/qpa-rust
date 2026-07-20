@@ -5,10 +5,13 @@ operation ledger record the exact exposed and remaining QPA surface.
 """
 
 from ._qpa import (
+    AddMCoresolution,
     AlgebraElement,
+    CotiltingModuleResult,
     ExtAlgebraGeneratorsResult,
     ExtOverAlgebraResult,
     Field,
+    FiniteAddMResolutionResult,
     GroebnerBasis,
     InjectiveResolution,
     InvalidInputError,
@@ -29,13 +32,17 @@ from ._qpa import (
     QuotientElement,
     RelationNotSatisfiedError,
     Scalar,
+    TiltingModuleResult,
 )
 
 __all__ = [
+    "AddMCoresolution",
     "AlgebraElement",
+    "CotiltingModuleResult",
     "ExtAlgebraGeneratorsResult",
     "ExtOverAlgebraResult",
     "Field",
+    "FiniteAddMResolutionResult",
     "GroebnerBasis",
     "InjectiveResolution",
     "InvalidInputError",
@@ -56,4 +63,5 @@ __all__ = [
     "QuotientElement",
     "RelationNotSatisfiedError",
     "Scalar",
+    "TiltingModuleResult",
 ]

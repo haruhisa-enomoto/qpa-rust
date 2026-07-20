@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 266
+exposed_or_partial_count = 272
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1406,8 +1406,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "CotiltingModule"
 python_name = "cotilting_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.cotilting; qpa.CotiltingModuleResult"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:CotiltingModule:1","modulehomalg:InstallMethod:CotiltingModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1415,7 +1415,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["cotilting_module; CotiltingModuleResult","cotilting_module; CotiltingModuleResult; is_cotilting_module"]
 rust_tests = ["tests/fixtures/modulehomalg_cotilting.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotilting_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "CoxeterMatrix"
@@ -3401,8 +3401,8 @@ python_tests = []
 qpa_name = "HaveFiniteCoresolutionInAddM"
 python_name = "have_finite_coresolution_in_add_m"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.finite_coresolution_in_add; qpa.AddMCoresolution"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:HaveFiniteCoresolutionInAddM:1","modulehomalg:InstallMethod:HaveFiniteCoresolutionInAddM:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3410,14 +3410,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["have_finite_coresolution_in_add_m; AddMCoresolution"]
 rust_tests = ["tests/fixtures/modulehomalg_add_m_coresolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotilting_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "HaveFiniteResolutionInAddM"
 python_name = "have_finite_resolution_in_add_m"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.finite_resolution_in_add; qpa.FiniteAddMResolutionResult"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:HaveFiniteResolutionInAddM:1","modulehomalg:InstallMethod:HaveFiniteResolutionInAddM:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3425,7 +3425,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["have_finite_resolution_in_add_m; FiniteAddMResolutionResult; AddMResolution"]
 rust_tests = ["tests/fixtures/modulehomalg_add_m_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotilting_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "HighLevelGroebnerBasis"
@@ -4586,8 +4586,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IsCotiltingModule"
 python_name = "is_cotilting_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.cached_is_cotilting"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:IsCotiltingModule:1"]
 constructs = ["DeclareAttribute"]
@@ -4595,7 +4595,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["is_cotilting_module"]
 rust_tests = ["tests/fixtures/modulehomalg_cotilting.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotilting_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsDefaultDynamicTreeRep"
@@ -6731,8 +6731,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicat
 qpa_name = "IsTiltingModule"
 python_name = "is_tilting_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.cached_is_tilting"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:IsTiltingModule:1"]
 constructs = ["DeclareAttribute"]
@@ -6740,7 +6740,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["is_tilting_module"]
 rust_tests = ["tests/fixtures/modulehomalg_tilting.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotilting_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsTipReducedGroebnerBasis"
@@ -12281,8 +12281,8 @@ python_tests = []
 qpa_name = "TiltingModule"
 python_name = "tilting_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.tilting; qpa.TiltingModuleResult"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:TiltingModule:1","modulehomalg:InstallMethod:TiltingModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12290,7 +12290,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["tilting_module; TiltingModuleResult"]
 rust_tests = ["tests/fixtures/modulehomalg_tilting.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotilting_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "Tip"

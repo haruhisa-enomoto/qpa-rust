@@ -350,6 +350,62 @@ pub(crate) struct PyExtAlgebraGeneratorsResult {
     kind: ExtAlgebraGeneratorsKind,
 }
 
+#[derive(Clone)]
+enum AddMCoresolutionKind {
+    Rational(qpa_gbnp::AddMCoresolution<RationalField>),
+    Binary(qpa_gbnp::AddMCoresolution<Z2>),
+    Prime(qpa_gbnp::AddMCoresolution<Zp>),
+}
+
+/// A finite add(M)-coresolution returned by QPA.
+#[pyclass(name = "AddMCoresolution", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyAddMCoresolution {
+    kind: AddMCoresolutionKind,
+}
+
+#[derive(Clone)]
+enum FiniteAddMResolutionKind {
+    Rational(qpa_gbnp::FiniteAddMResolutionResult<RationalField>),
+    Binary(qpa_gbnp::FiniteAddMResolutionResult<Z2>),
+    Prime(qpa_gbnp::FiniteAddMResolutionResult<Zp>),
+}
+
+/// QPA's literal-true or finite-complex add(M)-resolution result.
+#[pyclass(name = "FiniteAddMResolutionResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyFiniteAddMResolutionResult {
+    kind: FiniteAddMResolutionKind,
+}
+
+#[derive(Clone)]
+enum TiltingModuleResultKind {
+    Rational(qpa_gbnp::TiltingModuleResult<RationalField>),
+    Binary(qpa_gbnp::TiltingModuleResult<Z2>),
+    Prime(qpa_gbnp::TiltingModuleResult<Zp>),
+}
+
+/// QPA's bounded tilting-module success record.
+#[pyclass(name = "TiltingModuleResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyTiltingModuleResult {
+    kind: TiltingModuleResultKind,
+}
+
+#[derive(Clone)]
+enum CotiltingModuleResultKind {
+    Rational(qpa_gbnp::CotiltingModuleResult<RationalField>),
+    Binary(qpa_gbnp::CotiltingModuleResult<Z2>),
+    Prime(qpa_gbnp::CotiltingModuleResult<Zp>),
+}
+
+/// QPA's bounded cotilting-module success record.
+#[pyclass(name = "CotiltingModuleResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyCotiltingModuleResult {
+    kind: CotiltingModuleResultKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -455,6 +511,32 @@ macro_rules! impl_resolution_runtime {
             for ExtAlgebraGeneratorsKind
         {
             fn wrap(value: qpa_gbnp::ExtAlgebraGeneratorsResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::AddMCoresolution<$field>> for AddMCoresolutionKind {
+            fn wrap(value: qpa_gbnp::AddMCoresolution<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::FiniteAddMResolutionResult<$field>>
+            for FiniteAddMResolutionKind
+        {
+            fn wrap(value: qpa_gbnp::FiniteAddMResolutionResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::TiltingModuleResult<$field>> for TiltingModuleResultKind {
+            fn wrap(value: qpa_gbnp::TiltingModuleResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::CotiltingModuleResult<$field>> for CotiltingModuleResultKind {
+            fn wrap(value: qpa_gbnp::CotiltingModuleResult<$field>) -> Self {
                 Self::$variant(value)
             }
         }

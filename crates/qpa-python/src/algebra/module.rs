@@ -674,6 +674,84 @@ impl PyMatrixModule {
         })
     }
 
+    #[getter]
+    fn cached_is_tilting(&self) -> Option<bool> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_tilting_module(module)
+        })
+    }
+
+    fn finite_coresolution_in_add(
+        &self,
+        module: &Self,
+        bound: i64,
+    ) -> PyResult<Option<PyAddMCoresolution>> {
+        let bound = Integer::from(bound);
+        dispatch_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind,
+            |source, module| Ok(qpa_gbnp::have_finite_coresolution_in_add_m(
+                source, module, &bound,
+            )
+            .map_err(invalid)?
+            .map(|result| PyAddMCoresolution {
+                kind: runtime::Wrap::wrap(result),
+            })),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn tilting(&self, bound: i64) -> PyResult<Option<PyTiltingModuleResult>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            qpa_gbnp::tilting_module(module, &bound)
+                .map_err(invalid)?
+                .map(|result| PyTiltingModuleResult {
+                    kind: runtime::Wrap::wrap(result),
+                })
+        ))
+    }
+
+    #[getter]
+    fn cached_is_cotilting(&self) -> Option<bool> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_cotilting_module(module)
+        })
+    }
+
+    fn finite_resolution_in_add(
+        &self,
+        module: &Self,
+        bound: i64,
+    ) -> PyResult<Option<PyFiniteAddMResolutionResult>> {
+        let bound = Integer::from(bound);
+        dispatch_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind,
+            |target, module| Ok(
+                qpa_gbnp::have_finite_resolution_in_add_m(target, module, &bound,)
+                    .map_err(invalid)?
+                    .map(|result| PyFiniteAddMResolutionResult {
+                        kind: runtime::Wrap::wrap(result),
+                    })
+            ),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn cotilting(&self, bound: i64) -> PyResult<Option<PyCotiltingModuleResult>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            qpa_gbnp::cotilting_module(module, &bound)
+                .map_err(invalid)?
+                .map(|result| PyCotiltingModuleResult {
+                    kind: runtime::Wrap::wrap(result),
+                })
+        ))
+    }
+
     fn dual(&self) -> PyResult<Self> {
         let kind = map_ref!(
             &self.kind,

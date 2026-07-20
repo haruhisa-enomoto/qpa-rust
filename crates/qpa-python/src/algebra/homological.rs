@@ -800,3 +800,151 @@ impl PyExtAlgebraGeneratorsResult {
             .collect())
     }
 }
+
+#[pymethods]
+impl PyAddMCoresolution {
+    #[getter]
+    fn base_degree(&self) -> String {
+        dispatch_ref!(&self.kind, AddMCoresolutionKind, |result| result
+            .base_position()
+            .to_string())
+    }
+
+    #[getter]
+    fn differentials(&self) -> Vec<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, AddMCoresolutionKind, |result| result
+            .differentials()
+            .iter()
+            .cloned()
+            .map(|homomorphism| PyModuleHomomorphism {
+                kind: runtime::Wrap::wrap(homomorphism),
+            })
+            .collect())
+    }
+
+    fn differential(&self, degree: i64) -> PyResult<PyModuleHomomorphism> {
+        let degree = Integer::from(degree);
+        let kind = map_ref!(
+            &self.kind,
+            AddMCoresolutionKind => ModuleHomomorphismKind,
+            |result| result.differential(&degree).map_err(invalid)?
+        );
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn object(&self, degree: i64) -> PyResult<PyMatrixModule> {
+        let degree = Integer::from(degree);
+        let kind = map_ref!(
+            &self.kind,
+            AddMCoresolutionKind => MatrixModuleKind,
+            |result| result.object(&degree).map_err(invalid)?
+        );
+        Ok(PyMatrixModule { kind })
+    }
+}
+
+#[pymethods]
+impl PyFiniteAddMResolutionResult {
+    #[getter]
+    fn is_in_add(&self) -> bool {
+        dispatch_ref!(&self.kind, FiniteAddMResolutionKind, |result| matches!(
+            result,
+            qpa_gbnp::FiniteAddMResolutionResult::InAddM
+        ))
+    }
+
+    #[getter]
+    fn differentials(&self) -> Vec<PyModuleHomomorphism> {
+        dispatch_ref!(
+            &self.kind,
+            FiniteAddMResolutionKind,
+            |result| match result {
+                qpa_gbnp::FiniteAddMResolutionResult::InAddM => Vec::new(),
+                qpa_gbnp::FiniteAddMResolutionResult::Resolution(resolution) => resolution
+                    .differentials()
+                    .iter()
+                    .cloned()
+                    .map(|homomorphism| PyModuleHomomorphism {
+                        kind: runtime::Wrap::wrap(homomorphism),
+                    })
+                    .collect(),
+            }
+        )
+    }
+
+    fn differential(&self, degree: i64) -> PyResult<Option<PyModuleHomomorphism>> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(
+            &self.kind,
+            FiniteAddMResolutionKind,
+            |result| match result {
+                qpa_gbnp::FiniteAddMResolutionResult::InAddM => Ok(None),
+                qpa_gbnp::FiniteAddMResolutionResult::Resolution(resolution) => {
+                    Ok(Some(PyModuleHomomorphism {
+                        kind: runtime::Wrap::wrap(
+                            resolution.differential(&degree).map_err(invalid)?,
+                        ),
+                    }))
+                }
+            }
+        )
+    }
+
+    fn object(&self, degree: i64) -> PyResult<Option<PyMatrixModule>> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(
+            &self.kind,
+            FiniteAddMResolutionKind,
+            |result| match result {
+                qpa_gbnp::FiniteAddMResolutionResult::InAddM => Ok(None),
+                qpa_gbnp::FiniteAddMResolutionResult::Resolution(resolution) => {
+                    Ok(Some(PyMatrixModule {
+                        kind: runtime::Wrap::wrap(resolution.object(&degree).map_err(invalid)?),
+                    }))
+                }
+            }
+        )
+    }
+}
+
+#[pymethods]
+impl PyTiltingModuleResult {
+    #[getter]
+    fn projective_dimension(&self) -> usize {
+        dispatch_ref!(&self.kind, TiltingModuleResultKind, |result| result
+            .projective_dimension())
+    }
+
+    #[getter]
+    fn coresolutions(&self) -> Vec<PyAddMCoresolution> {
+        dispatch_ref!(&self.kind, TiltingModuleResultKind, |result| result
+            .coresolutions()
+            .iter()
+            .cloned()
+            .map(|coresolution| PyAddMCoresolution {
+                kind: runtime::Wrap::wrap(coresolution),
+            })
+            .collect())
+    }
+}
+
+#[pymethods]
+impl PyCotiltingModuleResult {
+    #[getter]
+    fn injective_dimension(&self) -> usize {
+        dispatch_ref!(&self.kind, CotiltingModuleResultKind, |result| result
+            .injective_dimension())
+    }
+
+    #[getter]
+    fn resolutions(&self) -> Vec<PyFiniteAddMResolutionResult> {
+        dispatch_ref!(&self.kind, CotiltingModuleResultKind, |result| result
+            .resolutions()
+            .iter()
+            .cloned()
+            .map(|resolution| PyFiniteAddMResolutionResult {
+                kind: runtime::Wrap::wrap(resolution),
+            })
+            .collect())
+    }
+}
