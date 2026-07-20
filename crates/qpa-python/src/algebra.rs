@@ -109,10 +109,17 @@ enum GroebnerKind {
 }
 
 /// QPA's two-sided or right Gröbner-basis object.
-#[pyclass(name = "GroebnerBasis", frozen, skip_from_py_object)]
+#[pyclass(name = "GroebnerBasis", skip_from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyGroebnerBasis {
     kind: GroebnerKind,
+}
+
+/// Mutable iterator over a snapshot of QPA's stored Gröbner relations.
+#[pyclass(name = "GroebnerBasisIterator", skip_from_py_object)]
+pub(crate) struct PyGroebnerBasisIterator {
+    relations: Vec<PyAlgebraElement>,
+    position: usize,
 }
 
 macro_rules! impl_runtime_wrap {

@@ -328,9 +328,25 @@ def test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms(field: qpa.Field
     gbnp_basis = algebra.gbnp_groebner_basis([x2]).completely_reduced_basis()
     assert basis.algebra.is_identical(algebra)
     assert basis.kind == "two-sided" and basis.is_complete
+    assert not basis.is_right
     assert basis.tip_reduced_property is True
     assert basis.completely_reduced_property is True
     assert len(basis) == 1
+    iterator = basis.iterator()
+    assert not iterator.is_done
+    assert iterator.next_element() == x2
+    assert iterator.is_done and iterator.next_element() is None
+    assert list(basis) == [x2]
+    assert basis.enumerator == [x2] and basis.as_list == [x2]
+    assert not basis.has_cached_enumerator and not basis.has_cached_as_list
+    basis.set_homogeneous_property(True)
+    assert basis.homogeneous_property is True
+    assert basis.set_enumerator([x])
+    assert basis.enumerator == [x] and basis.as_list == [x]
+    assert basis.has_cached_enumerator and basis.has_cached_as_list
+    assert basis.set_as_list([x2])
+    assert basis.enumerator == [x2] and basis.as_list == [x2]
+    assert "GroebnerBasis(" in basis.print()
     assert gbnp_basis.relations == basis.relations
     assert basis.admits_finitely_many_nontips
     assert basis.nontip_size == "2"
@@ -339,6 +355,12 @@ def test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms(field: qpa.Field
     assert basis.completely_reduce(x2 * x).is_zero
     assert basis.is_prefix_of_tip_in_tip_ideal(x2 * x)
     assert basis.right_basis().kind == "right"
+    unreduced_right = qpa.GroebnerBasis.unreduced_right(algebra, [x2 * x, x2])
+    assert unreduced_right.is_right and not unreduced_right.is_complete
+    with pytest.raises(qpa.InvalidInputError, match="called Length"):
+        unreduced_right.tip_reduced_basis()
+    with pytest.raises(qpa.InvalidInputError, match="algebra"):
+        unreduced_right.print()
     assert ideal.right_groebner_basis().kind == "right"
     assert ideal.product(ideal).contains(x2.pow(2))
 

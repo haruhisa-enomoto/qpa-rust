@@ -358,31 +358,27 @@ notes = "Represented by the concrete Python wrapper type."
 
 [[bindings]]
 qpa_name = "Iterator"
-status = "partial"
-target = "qpa.Quiver.iterator; qpa.Quiver.__iter__"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The quiver overload is exposed; the Groebner-basis overload remains."
+status = "exposed"
+target = "qpa.Quiver.iterator; qpa.Quiver.__iter__; qpa.GroebnerBasis.iterator; qpa.GroebnerBasis.__iter__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
 qpa_name = "Enumerator"
-status = "partial"
-target = "qpa.Quiver.enumerator"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The quiver overload is exposed; the Groebner-basis overload remains."
+status = "exposed"
+target = "qpa.Quiver.enumerator; qpa.GroebnerBasis.enumerator"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
 qpa_name = "IsDoneIterator"
-status = "partial"
-target = "qpa.QuiverPathIterator.is_done"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The quiver-iterator overload is exposed; the Groebner-basis iterator overload remains."
+status = "exposed"
+target = "qpa.QuiverPathIterator.is_done; qpa.GroebnerBasisIterator.is_done"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
 qpa_name = "NextIterator"
-status = "partial"
-target = "qpa.QuiverPathIterator.next_path; qpa.QuiverPathIterator.__next__"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The quiver-iterator overload is exposed; the Groebner-basis iterator overload remains."
+status = "exposed"
+target = "qpa.QuiverPathIterator.next_path; qpa.QuiverPathIterator.__next__; qpa.GroebnerBasisIterator.next_element; qpa.GroebnerBasisIterator.__next__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
 qpa_name = "UniqueQuiverName"
@@ -405,9 +401,9 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "ViewObj"
 status = "partial"
-target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
-notes = "The quiver and quiver-ordering overloads are exposed; grouped display overloads remain."
+target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "The quiver, quiver-ordering, and Groebner-basis overloads are exposed; grouped display overloads remain."
 
 [[bindings]]
 qpa_name = "\\[\\]"
@@ -867,15 +863,52 @@ tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quoti
 
 [[bindings]]
 qpa_name = "GroebnerBasis"
-status = "partial"
-target = "qpa.PathAlgebra.groebner_basis"
+status = "exposed"
+target = "qpa.PathAlgebra.groebner_basis; qpa.GroebnerBasis.unreduced_right"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Complete two-sided high-level construction is exposed; manually objectified right-basis state remains."
 
 [[bindings]]
 qpa_name = "IsGroebnerBasis"
 status = "exposed"
 target = "qpa.GroebnerBasis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsGroebnerBasisDefaultRep"
+status = "exposed"
+target = "qpa.GroebnerBasis"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsGroebnerBasisIteratorRep"
+status = "exposed"
+target = "qpa.GroebnerBasisIterator"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Represented by the concrete Python wrapper type."
+
+[[bindings]]
+qpa_name = "IsRightGroebnerBasis"
+status = "exposed"
+target = "qpa.GroebnerBasis.is_right"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsHomogeneousGroebnerBasis"
+status = "exposed"
+target = "qpa.GroebnerBasis.homogeneous_property; qpa.GroebnerBasis.set_homogeneous_property"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "SetEnumerator"
+status = "exposed"
+target = "qpa.GroebnerBasis.set_enumerator"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "SetAsList"
+status = "exposed"
+target = "qpa.GroebnerBasis.set_as_list"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
@@ -899,10 +932,9 @@ notes = "Reduction by wrapped two-sided and derived right bases is exposed."
 
 [[bindings]]
 qpa_name = "TipReduceGroebnerBasis"
-status = "partial"
+status = "exposed"
 target = "qpa.GroebnerBasis.tip_reduced_basis"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Wrapped complete-basis reduction is exposed."
 
 [[bindings]]
 qpa_name = "IsTipReducedGroebnerBasis"
@@ -1152,9 +1184,9 @@ tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_const
 [[bindings]]
 qpa_name = "PrintObj"
 status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
-notes = "Exact opposite-algebra, quiver, generator, and quiver-ordering printing is exposed through repr; grouped QPA printing overloads remain incomplete."
+target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.print"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Exact opposite-algebra, quiver, generator, quiver-ordering, and Groebner-basis printing is exposed; grouped QPA printing overloads remain incomplete."
 
 [[bindings]]
 qpa_name = "UnderlyingAlgebra"
