@@ -280,6 +280,20 @@ pub(crate) struct PyInjectiveResolution {
     kind: InjectiveResolutionKind,
 }
 
+#[derive(Clone)]
+enum ModuleComplexKind {
+    Rational(qpa_gbnp::ModuleComplex<RationalField>),
+    Binary(qpa_gbnp::ModuleComplex<Z2>),
+    Prime(qpa_gbnp::ModuleComplex<Zp>),
+}
+
+/// A QPA complex in the category of right modules over one algebra.
+#[pyclass(name = "ModuleComplex", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleComplex {
+    kind: ModuleComplexKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -305,6 +319,17 @@ macro_rules! impl_module_value_runtime {
             }
         }
 
+        impl runtime::Extract<PathAlgebraModuleHomomorphism<$field>> for ModuleHomomorphismKind {
+            fn extract(self) -> PyResult<PathAlgebraModuleHomomorphism<$field>> {
+                match self {
+                    Self::$variant(value) => Ok(value),
+                    _ => Err(invalid(
+                        "module homomorphism belongs to another coefficient field",
+                    )),
+                }
+            }
+        }
+
         impl runtime::Wrap<PathAlgebraModuleSubmodule<$field>> for ModuleSubmoduleKind {
             fn wrap(value: PathAlgebraModuleSubmodule<$field>) -> Self {
                 Self::$variant(value)
@@ -327,6 +352,12 @@ macro_rules! impl_resolution_runtime {
 
         impl runtime::Wrap<qpa_gbnp::InjectiveResolution<$field>> for InjectiveResolutionKind {
             fn wrap(value: qpa_gbnp::InjectiveResolution<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::ModuleComplex<$field>> for ModuleComplexKind {
+            fn wrap(value: qpa_gbnp::ModuleComplex<$field>) -> Self {
                 Self::$variant(value)
             }
         }

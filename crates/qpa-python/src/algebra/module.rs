@@ -139,6 +139,16 @@ fn clone_module_elements(
         .collect()
 }
 
+fn clone_module_homomorphisms(
+    py: Python<'_>,
+    homomorphisms: Vec<Py<PyModuleHomomorphism>>,
+) -> Vec<ModuleHomomorphismKind> {
+    homomorphisms
+        .into_iter()
+        .map(|homomorphism| homomorphism.borrow(py).kind.clone())
+        .collect()
+}
+
 fn wrap_module_submodule<F: runtime::PythonField>(
     submodule: PathAlgebraModuleSubmodule<F>,
 ) -> PyModuleSubmodule
@@ -457,6 +467,75 @@ impl PyMatrixModule {
             |module| qpa_gbnp::injective_resolution(module).map_err(invalid)?
         );
         Ok(PyInjectiveResolution { kind })
+    }
+
+    fn zero_complex(&self) -> PyResult<PyModuleComplex> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleComplexKind,
+            |module| qpa_gbnp::zero_complex(
+                qpa_gbnp::cat_of_right_algebra_modules(module.right_acting_algebra())
+                    .map_err(invalid)?,
+            )
+            .map_err(invalid)?
+        );
+        Ok(PyModuleComplex { kind })
+    }
+
+    fn stalk_complex(&self, degree: i64) -> PyResult<PyModuleComplex> {
+        let degree = Integer::from(degree);
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleComplexKind,
+            |module| qpa_gbnp::stalk_complex(
+                qpa_gbnp::cat_of_right_algebra_modules(module.right_acting_algebra())
+                    .map_err(invalid)?,
+                module,
+                degree,
+            )
+            .map_err(invalid)?
+        );
+        Ok(PyModuleComplex { kind })
+    }
+
+    fn finite_complex(
+        &self,
+        py: Python<'_>,
+        base_degree: i64,
+        differentials: Vec<Py<PyModuleHomomorphism>>,
+    ) -> PyResult<PyModuleComplex> {
+        let differentials = clone_module_homomorphisms(py, differentials);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            let category = qpa_gbnp::cat_of_right_algebra_modules(module.right_acting_algebra())
+                .map_err(invalid)?;
+            let kind = runtime::Wrap::wrap(
+                qpa_gbnp::finite_complex(
+                    category,
+                    Integer::from(base_degree),
+                    runtime::extract_all(differentials)?,
+                )
+                .map_err(invalid)?,
+            );
+            Ok(PyModuleComplex { kind })
+        })
+    }
+
+    fn projective_resolution_complex(&self) -> PyResult<PyModuleComplex> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleComplexKind,
+            |module| qpa_gbnp::projective_resolution_complex(module).map_err(invalid)?
+        );
+        Ok(PyModuleComplex { kind })
+    }
+
+    fn injective_resolution_complex(&self) -> PyResult<PyModuleComplex> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleComplexKind,
+            |module| qpa_gbnp::injective_resolution_complex(module).map_err(invalid)?
+        );
+        Ok(PyModuleComplex { kind })
     }
 
     fn is_identical(&self, other: &Self) -> bool {

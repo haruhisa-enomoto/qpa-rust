@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 165
+exposed_or_partial_count = 194
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -746,8 +746,8 @@ python_tests = []
 qpa_name = "BoundariesOfComplex"
 python_name = "boundaries_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.boundaries"
 notes = ""
 entry_ids = ["complex:DeclareOperation:BoundariesOfComplex:1","complex:InstallMethod:BoundariesOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -755,7 +755,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::boundaries"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "BoundaryCurvesOfCombinatorialMap"
@@ -821,8 +821,8 @@ python_tests = []
 qpa_name = "BrutalTruncationAbove"
 python_name = "brutal_truncation_above"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.brutal_truncation_above"
 notes = ""
 entry_ids = ["complex:DeclareOperation:BrutalTruncationAbove:1","complex:InstallMethod:BrutalTruncationAbove:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -830,14 +830,14 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::brutal_truncation_above"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "BrutalTruncationBelow"
 python_name = "brutal_truncation_below"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.brutal_truncation_below"
 notes = ""
 entry_ids = ["complex:DeclareOperation:BrutalTruncationBelow:1","complex:InstallMethod:BrutalTruncationBelow:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -845,7 +845,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::brutal_truncation_below"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CanonicalAlgebra"
@@ -1391,8 +1391,8 @@ python_tests = []
 qpa_name = "CosyzygyTruncation"
 python_name = "cosyzygy_truncation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.cosyzygy_truncation"
 notes = ""
 entry_ids = ["complex:DeclareOperation:CosyzygyTruncation:1","complex:InstallMethod:CosyzygyTruncation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1400,7 +1400,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::cosyzygy_truncation"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CotiltingModule"
@@ -1616,8 +1616,8 @@ python_tests = []
 qpa_name = "CyclesOfComplex"
 python_name = "cycles_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.cycles"
 notes = ""
 entry_ids = ["complex:DeclareOperation:CyclesOfComplex:1","complex:InstallMethod:CyclesOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1625,7 +1625,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::cycles"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CyclicPermutationOfABand"
@@ -2036,16 +2036,16 @@ python_tests = []
 qpa_name = "DifferentialOfComplex"
 python_name = "differential_of_complex"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.ProjectiveResolution.differential"
-notes = "Projective and injective resolution differentials are exposed; general QPA complexes remain."
+status = "exposed"
+python_target = "qpa.ModuleComplex.differential"
+notes = "General module-complex and specialized resolution differentials are exposed."
 entry_ids = ["complex:DeclareOperation:DifferentialOfComplex:1","complex:InstallMethod:DifferentialOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::differential"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "DifferentialsOfComplex"
@@ -2816,8 +2816,8 @@ python_tests = []
 qpa_name = "FiniteComplex"
 python_name = "finite_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.finite_complex"
 notes = ""
 entry_ids = ["complex:DeclareGlobalFunction:FiniteComplex:1","complex:InstallGlobalFunction:FiniteComplex:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -2825,7 +2825,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::finite_complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "FiniteGlobalDimGreen"
@@ -3176,23 +3176,23 @@ python_tests = []
 qpa_name = "GoodTruncationAbove"
 python_name = "good_truncation_above"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.good_truncation_above"
+notes = "Faithfully exposes QPA's explicitly documented not-working implementation."
 entry_ids = ["complex:DeclareOperation:GoodTruncationAbove:1","complex:InstallMethod:GoodTruncationAbove:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::good_truncation_above"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "GoodTruncationBelow"
 python_name = "good_truncation_below"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.good_truncation_below"
 notes = ""
 entry_ids = ["complex:DeclareOperation:GoodTruncationBelow:1","complex:InstallMethod:GoodTruncationBelow:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3200,7 +3200,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::good_truncation_below"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "GorensteinDimension"
@@ -3446,16 +3446,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "HighestKnownDegree"
 python_name = "highest_known_degree"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.highest_known_degree"
+notes = "The complex overload is exposed; the chain-map overload remains."
 entry_ids = ["complex:DeclareOperation:HighestKnownDegree:1","complex:DeclareOperation:HighestKnownDegree:2","complex:InstallMethod:HighestKnownDegree:1","complex:InstallMethod:HighestKnownDegree:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::highest_known_degree; qpa_gbnp::QpaChainMap::highest_known_degree"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "HighestKnownPosition"
@@ -3566,8 +3566,8 @@ python_tests = []
 qpa_name = "HomologyOfComplex"
 python_name = "homology_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.homology"
 notes = ""
 entry_ids = ["complex:DeclareOperation:HomologyOfComplex:1","complex:InstallMethod:HomologyOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3575,7 +3575,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::homology"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "HomomorphismFromImages"
@@ -4841,8 +4841,8 @@ python_tests = []
 qpa_name = "IsExactInDegree"
 python_name = "is_exact_in_degree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_exact_in_degree"
 notes = ""
 entry_ids = ["complex:DeclareOperation:IsExactInDegree:1","complex:InstallMethod:IsExactInDegree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4850,14 +4850,14 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::is_exact_in_degree"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsExactSequence"
 python_name = "is_exact_sequence"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_exact_sequence"
 notes = ""
 entry_ids = ["complex:DeclareProperty:IsExactSequence:1","complex:InstallMethod:IsExactSequence:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -4865,7 +4865,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::is_exact_sequence"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsExceptionalModule"
@@ -4916,8 +4916,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IsFiniteComplex"
 python_name = "is_finite_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_finite"
 notes = ""
 entry_ids = ["complex:DeclareOperation:IsFiniteComplex:1","complex:InstallMethod:IsFiniteComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4925,7 +4925,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::is_finite_complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsFiniteDifference"
@@ -5546,8 +5546,8 @@ python_tests = []
 qpa_name = "IsNegativeRepeating"
 python_name = "is_negative_repeating"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_negative_repeating"
 notes = ""
 entry_ids = ["complex:DeclareOperation:IsNegativeRepeating:1","complex:InstallMethod:IsNegativeRepeating:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -5555,7 +5555,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::is_negative_repeating"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsNormalForm"
@@ -5861,8 +5861,8 @@ python_tests = []
 qpa_name = "IsPositiveRepeating"
 python_name = "is_positive_repeating"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_positive_repeating"
 notes = ""
 entry_ids = ["complex:DeclareOperation:IsPositiveRepeating:1","complex:InstallMethod:IsPositiveRepeating:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -5870,7 +5870,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::is_positive_repeating"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsPrefixOfTipInTipIdeal"
@@ -5981,8 +5981,8 @@ python_tests = []
 qpa_name = "IsQPAComplex"
 python_name = "is_qpa_complex"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex"
 notes = ""
 entry_ids = ["complex:DeclareCategory:IsQPAComplex:1","complex:DeclareCategoryFamily:IsQPAComplex:1"]
 constructs = ["DeclareCategory","DeclareCategoryFamily"]
@@ -5990,7 +5990,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaComplex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsQPAComplexDefaultRep"
@@ -6461,8 +6461,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IsShortExactSequence"
 python_name = "is_short_exact_sequence"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_short_exact_sequence"
 notes = ""
 entry_ids = ["complex:DeclareProperty:IsShortExactSequence:1","complex:InstallMethod:IsShortExactSequence:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6470,7 +6470,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::is_short_exact_sequence"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsSimpleQPAModule"
@@ -7076,8 +7076,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IsZeroComplex"
 python_name = "is_zero_complex"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_zero"
 notes = ""
 entry_ids = ["complex:DeclareCategory:IsZeroComplex:1"]
 constructs = ["DeclareCategory"]
@@ -7085,7 +7085,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaComplex::is_zero_complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsZeroPath"
@@ -7571,8 +7571,8 @@ python_tests = []
 qpa_name = "LengthOfComplex"
 python_name = "length_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.length"
 notes = ""
 entry_ids = ["complex:DeclareOperation:LengthOfComplex:1","complex:InstallMethod:LengthOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7580,7 +7580,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::length"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "LengthOfPath"
@@ -7826,31 +7826,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "LowerBound"
 python_name = "lower_bound"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.lower_bound"
+notes = "The complex overload is exposed; the infinite-list overload remains."
 entry_ids = ["complex:DeclareOperation:LowerBound:1","complex:InstallMethod:LowerBound:1","inflist:DeclareOperation:LowerBound:1","inflist:InstallMethod:LowerBound:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi","upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::lower_bound","qpa_gbnp::QpaComplex::lower_bound"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "LowestKnownDegree"
 python_name = "lowest_known_degree"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.lowest_known_degree"
+notes = "The complex overload is exposed; the chain-map overload remains."
 entry_ids = ["complex:DeclareOperation:LowestKnownDegree:1","complex:DeclareOperation:LowestKnownDegree:2","complex:InstallMethod:LowestKnownDegree:1","complex:InstallMethod:LowestKnownDegree:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::lowest_known_degree; qpa_gbnp::QpaChainMap::lowest_known_degree"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "LowestKnownPosition"
@@ -8711,8 +8711,8 @@ python_tests = []
 qpa_name = "NegativeRepeatDegrees"
 python_name = "negative_repeat_degrees"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.negative_repeat_degrees"
 notes = ""
 entry_ids = ["complex:DeclareOperation:NegativeRepeatDegrees:1","complex:InstallMethod:NegativeRepeatDegrees:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8720,7 +8720,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::negative_repeat_degrees"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "NeighborsOfVertex"
@@ -9071,16 +9071,16 @@ python_tests = []
 qpa_name = "ObjectOfComplex"
 python_name = "object_of_complex"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.ProjectiveResolution.object"
-notes = "Projective and injective resolution objects are exposed; general QPA complexes remain."
+status = "exposed"
+python_target = "qpa.ModuleComplex.object"
+notes = "General module-complex and specialized resolution objects are exposed."
 entry_ids = ["complex:DeclareOperation:ObjectOfComplex:1","complex:InstallMethod:ObjectOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::object"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "OneOp"
@@ -9821,8 +9821,8 @@ python_tests = []
 qpa_name = "PositiveRepeatDegrees"
 python_name = "positive_repeat_degrees"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.positive_repeat_degrees"
 notes = ""
 entry_ids = ["complex:DeclareOperation:PositiveRepeatDegrees:1","complex:InstallMethod:PositiveRepeatDegrees:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9830,7 +9830,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::positive_repeat_degrees"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "PositiveRootsOfUnitForm"
@@ -11501,31 +11501,31 @@ python_tests = []
 qpa_name = "Shift"
 python_name = "shift"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.shift"
+notes = "The complex overload is exposed; half- and full-infinite-list overloads remain."
 entry_ids = ["complex:DeclareOperation:Shift:1","complex:InstallMethod:Shift:1","inflist:DeclareOperation:Shift:1","inflist:DeclareOperation:Shift:2","inflist:InstallMethod:Shift:1","inflist:InstallMethod:Shift:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi","upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::shift; InfiniteList::shift","qpa_gbnp::QpaComplex::shift"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "ShiftUnsigned"
 python_name = "shift_unsigned"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.shift_unsigned"
+notes = "The complex overload is exposed; the infinite-list overload remains."
 entry_ids = ["complex:DeclareOperation:ShiftUnsigned:1","complex:InstallMethod:ShiftUnsigned:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::shift_unsigned"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "ShiftedSplice"
@@ -11756,8 +11756,8 @@ python_tests = []
 qpa_name = "StalkComplex"
 python_name = "stalk_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.stalk_complex"
 notes = ""
 entry_ids = ["complex:DeclareGlobalFunction:StalkComplex:1","complex:InstallGlobalFunction:StalkComplex:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -11765,7 +11765,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::stalk_complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "StarOfMapBetweenDecompProjectives"
@@ -12056,8 +12056,8 @@ python_tests = []
 qpa_name = "SyzygyTruncation"
 python_name = "syzygy_truncation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.syzygy_truncation"
 notes = ""
 entry_ids = ["complex:DeclareOperation:SyzygyTruncation:1","complex:InstallMethod:SyzygyTruncation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12065,7 +12065,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::syzygy_truncation"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "TargetOfArrow"
@@ -12836,16 +12836,16 @@ python_tests = []
 qpa_name = "UpperBound"
 python_name = "upper_bound"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleComplex.upper_bound"
+notes = "The complex overload is exposed; the infinite-list overload remains."
 entry_ids = ["complex:DeclareOperation:UpperBound:1","complex:InstallMethod:UpperBound:1","inflist:DeclareOperation:UpperBound:1","inflist:InstallMethod:UpperBound:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi","upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::upper_bound","qpa_gbnp::QpaComplex::upper_bound"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "Vectorize"
@@ -13106,8 +13106,8 @@ python_tests = []
 qpa_name = "ZeroComplex"
 python_name = "zero_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.zero_complex"
 notes = ""
 entry_ids = ["complex:DeclareGlobalFunction:ZeroComplex:1","complex:InstallGlobalFunction:ZeroComplex:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -13115,7 +13115,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::zero_complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "ZeroMapping"

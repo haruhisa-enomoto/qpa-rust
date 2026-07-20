@@ -9,8 +9,8 @@ mod quiver;
 mod runtime;
 
 use algebra::{
-    PyAlgebraElement, PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule, PyModuleElement,
-    PyModuleHomomorphism, PyModuleSubmodule, PyPathAlgebra, PyPathAlgebraIdeal,
+    PyAlgebraElement, PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule, PyModuleComplex,
+    PyModuleElement, PyModuleHomomorphism, PyModuleSubmodule, PyPathAlgebra, PyPathAlgebraIdeal,
     PyProjectiveResolution, PyQuotientAlgebra, PyQuotientElement,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
@@ -58,5 +58,6 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyModuleSubmodule>()?;
     module.add_class::<PyProjectiveResolution>()?;
     module.add_class::<PyInjectiveResolution>()?;
+    module.add_class::<PyModuleComplex>()?;
     Ok(())
 }

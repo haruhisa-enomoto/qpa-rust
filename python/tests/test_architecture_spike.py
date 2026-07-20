@@ -364,6 +364,7 @@ def test_lazy_resolutions_and_syzygies_follow_qpa(field: qpa.Field) -> None:
     assert projective.object(0).dimension_vector == [1, 1]
     assert projective.object(1).dimension_vector == [0, 1]
     assert projective.object(2).is_zero
+    assert projective.object(5).is_zero
     differential_zero = projective.differential(0)
     differential_one = projective.differential(1)
     assert differential_zero.range.is_identical(first_simple)
@@ -381,3 +382,64 @@ def test_lazy_resolutions_and_syzygies_follow_qpa(field: qpa.Field) -> None:
     periodic = simple.projective_resolution()
     assert periodic.object(0).dimension_vector == [2]
     assert periodic.object(1).dimension_vector == [2]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    algebra = qpa.PathAlgebra(field, quiver)
+    module = algebra.indecomposable_projectives()[0]
+    first_simple, _second_simple = algebra.simple_modules()
+
+    zero = module.zero_complex()
+    assert zero.is_zero and zero.object(100).is_zero
+    assert zero.upper_bound == "-infinity" and zero.lower_bound == "infinity"
+    assert zero.length == "0" and zero.is_finite
+    assert zero.is_exact_sequence
+
+    stalk = first_simple.stalk_complex(0)
+    assert not stalk.is_zero
+    assert stalk.object(0).is_identical(first_simple)
+    assert stalk.homology(0).dimension_vector == [1, 0]
+    assert stalk.homology(1).is_zero
+    assert stalk.is_finite and stalk.length == "1"
+    assert stalk.shift(2).object(-2).dimension_vector == [1, 0]
+    assert stalk.shift_unsigned(-1).object(1).dimension_vector == [1, 0]
+
+    radical = module.radical_inclusion()
+    top = module.top_projection()
+    short_exact = module.finite_complex(0, [top, radical])
+    assert short_exact.is_short_exact_sequence
+    assert short_exact.is_exact_in_degree(0)
+    assert short_exact.differential(0).source.is_identical(module)
+    assert short_exact.cycles(0).dimension_vector == [0, 1]
+    assert short_exact.boundaries(0).dimension_vector == [0, 1]
+    assert short_exact.homology(0).is_zero
+    assert short_exact.highest_known_degree is not None
+    assert short_exact.lowest_known_degree is not None
+    assert short_exact.positive_repeat_degrees() == ["3"]
+    assert short_exact.negative_repeat_degrees() == ["-2"]
+    assert short_exact.brutal_truncation_above(0).object(1).is_zero
+    assert short_exact.brutal_truncation_below(0).object(-1).is_zero
+    assert short_exact.good_truncation_above(0).object(1).is_zero
+    assert short_exact.good_truncation_below(0).object(-1).is_zero
+    assert short_exact.syzygy_truncation(0).object(1).dimension_vector == [0, 1]
+    assert short_exact.cosyzygy_truncation(0).object(-2).is_zero
+    assert short_exact.is_identical(short_exact)
+    assert " -> " in repr(short_exact)
+
+    projective = first_simple.projective_resolution_complex()
+    assert projective.object(-1).is_identical(first_simple)
+    assert projective.object(0).dimension_vector == [1, 1]
+    assert projective.object(1).dimension_vector == [0, 1]
+    assert projective.object(2).is_zero
+    assert projective.object(5).is_zero
+    assert projective.is_positive_repeating
+    assert projective.is_exact_in_degree(0)
+
+    injective = first_simple.injective_resolution_complex()
+    assert injective.object(0).is_identical(first_simple)
+    assert injective.object(-1).dimension_vector == [1, 0]
+    assert injective.object(-2).is_zero
+    assert injective.object(-3).is_zero
+    assert injective.is_negative_repeating

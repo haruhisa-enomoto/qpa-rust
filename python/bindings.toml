@@ -1044,10 +1044,10 @@ tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syz
 
 [[bindings]]
 qpa_name = "DifferentialOfComplex"
-status = "partial"
-target = "qpa.ProjectiveResolution.differential"
-tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
-notes = "Projective and injective resolution differentials are exposed; general QPA complexes remain."
+status = "exposed"
+target = "qpa.ModuleComplex.differential"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "General module-complex and specialized resolution differentials are exposed."
 
 [[bindings]]
 qpa_name = "InjectiveResolution"
@@ -1063,13 +1063,196 @@ tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syz
 
 [[bindings]]
 qpa_name = "ObjectOfComplex"
-status = "partial"
-target = "qpa.ProjectiveResolution.object"
-tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
-notes = "Projective and injective resolution objects are exposed; general QPA complexes remain."
+status = "exposed"
+target = "qpa.ModuleComplex.object"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "General module-complex and specialized resolution objects are exposed."
 
 [[bindings]]
 qpa_name = "ProjectiveResolution"
 status = "exposed"
 target = "qpa.MatrixModule.projective_resolution"
 tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+
+# General right-module complexes
+
+[[bindings]]
+qpa_name = "BoundariesOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.boundaries"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "BrutalTruncationAbove"
+status = "exposed"
+target = "qpa.ModuleComplex.brutal_truncation_above"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "BrutalTruncationBelow"
+status = "exposed"
+target = "qpa.ModuleComplex.brutal_truncation_below"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CosyzygyTruncation"
+status = "exposed"
+target = "qpa.ModuleComplex.cosyzygy_truncation"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CyclesOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.cycles"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "FiniteComplex"
+status = "exposed"
+target = "qpa.MatrixModule.finite_complex"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "GoodTruncationAbove"
+status = "exposed"
+target = "qpa.ModuleComplex.good_truncation_above"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "Faithfully exposes QPA's explicitly documented not-working implementation."
+
+[[bindings]]
+qpa_name = "GoodTruncationBelow"
+status = "exposed"
+target = "qpa.ModuleComplex.good_truncation_below"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "HighestKnownDegree"
+status = "partial"
+target = "qpa.ModuleComplex.highest_known_degree"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "The complex overload is exposed; the chain-map overload remains."
+
+[[bindings]]
+qpa_name = "HomologyOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.homology"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsExactInDegree"
+status = "exposed"
+target = "qpa.ModuleComplex.is_exact_in_degree"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsExactSequence"
+status = "exposed"
+target = "qpa.ModuleComplex.is_exact_sequence"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsFiniteComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.is_finite"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsNegativeRepeating"
+status = "exposed"
+target = "qpa.ModuleComplex.is_negative_repeating"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsPositiveRepeating"
+status = "exposed"
+target = "qpa.ModuleComplex.is_positive_repeating"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsQPAComplex"
+status = "exposed"
+target = "qpa.ModuleComplex"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsShortExactSequence"
+status = "exposed"
+target = "qpa.ModuleComplex.is_short_exact_sequence"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsZeroComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.is_zero"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "LengthOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.length"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "LowerBound"
+status = "partial"
+target = "qpa.ModuleComplex.lower_bound"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "The complex overload is exposed; the infinite-list overload remains."
+
+[[bindings]]
+qpa_name = "LowestKnownDegree"
+status = "partial"
+target = "qpa.ModuleComplex.lowest_known_degree"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "The complex overload is exposed; the chain-map overload remains."
+
+[[bindings]]
+qpa_name = "NegativeRepeatDegrees"
+status = "exposed"
+target = "qpa.ModuleComplex.negative_repeat_degrees"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "PositiveRepeatDegrees"
+status = "exposed"
+target = "qpa.ModuleComplex.positive_repeat_degrees"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "Shift"
+status = "partial"
+target = "qpa.ModuleComplex.shift"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "The complex overload is exposed; half- and full-infinite-list overloads remain."
+
+[[bindings]]
+qpa_name = "ShiftUnsigned"
+status = "partial"
+target = "qpa.ModuleComplex.shift_unsigned"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "The complex overload is exposed; the infinite-list overload remains."
+
+[[bindings]]
+qpa_name = "StalkComplex"
+status = "exposed"
+target = "qpa.MatrixModule.stalk_complex"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "SyzygyTruncation"
+status = "exposed"
+target = "qpa.ModuleComplex.syzygy_truncation"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "UpperBound"
+status = "partial"
+target = "qpa.ModuleComplex.upper_bound"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "The complex overload is exposed; the infinite-list overload remains."
+
+[[bindings]]
+qpa_name = "ZeroComplex"
+status = "exposed"
+target = "qpa.MatrixModule.zero_complex"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
