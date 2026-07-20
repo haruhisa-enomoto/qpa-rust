@@ -18,16 +18,16 @@ use algebra::{
     PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyGroebnerBasis,
     PyGroebnerBasisIterator, PyGszProjectiveResolution, PyInjectiveResolution,
     PyLiftedProjectivePathAlgebraModule, PyMatrixModule, PyMaximalCommonDirectSummand,
-    PyModuleBasisMapping, PyModuleChainMap, PyModuleComplex,
+    PyModuleBasisMapping, PyModuleCategory, PyModuleChainMap, PyModuleComplex,
     PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleEndomorphismAlgebra,
     PyModuleEndomorphismQuotientAlgebra, PyModuleEndomorphismQuotientElement,
     PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
-    PyModuleSubmodule, PyMoreMinimalVersionResult, PyNaturalSubmoduleHomomorphism,
-    PyNonisomorphicDirectSummandData, PyOppositeStructureConstantsAlgebra,
-    PyOppositeStructureConstantsElement, PyPathAlgebra, PyPathAlgebraIdeal,
-    PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
-    PyPathAlgebraVectorSpace, PyPathAlgebraVectorXSet, PyPredecessorValuation,
-    PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent,
+    PyModuleMorphismList, PyModuleSubmodule, PyMoreMinimalVersionResult,
+    PyNaturalSubmoduleHomomorphism, PyNonisomorphicDirectSummandData,
+    PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
+    PyPathAlgebraIdeal, PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector,
+    PyPathAlgebraVectorBasis, PyPathAlgebraVectorSpace, PyPathAlgebraVectorXSet,
+    PyPredecessorValuation, PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent,
     PyProjectivePathAlgebraPresentation, PyProjectiveResolution, PyQuiverAlgebra,
     PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector, PyRightFpPathAlgebraModule,
     PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
@@ -128,6 +128,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyProjectiveResolution>()?;
     module.add_class::<PyInjectiveResolution>()?;
     module.add_class::<PyModuleComplex>()?;
+    module.add_class::<PyModuleCategory>()?;
+    module.add_class::<PyModuleMorphismList>()?;
     module.add_class::<PyModuleChainMap>()?;
     module.add_class::<PyProjectiveIsomorphismComponent>()?;
     module.add_class::<PyExtOverAlgebraResult>()?;

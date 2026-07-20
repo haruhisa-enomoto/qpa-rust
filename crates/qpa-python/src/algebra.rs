@@ -1,5 +1,6 @@
 //! Python wrappers for path algebras, ideals, Gröbner bases, and quotients.
 
+mod complex_foundation;
 mod conversion;
 mod fp_projective;
 mod groebner;
@@ -11,6 +12,7 @@ mod projective_gsz;
 mod quotient;
 mod quotient_projective;
 
+pub(crate) use complex_foundation::{PyModuleCategory, PyModuleMorphismList};
 use conversion::{
     AdrAlgebraOfAlgebraResultKind, StructureConstantsAlgebraKind, adr_algebra_of_basic_module_for,
     wrap_quiver_algebra,

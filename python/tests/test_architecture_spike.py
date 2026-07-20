@@ -593,6 +593,19 @@ def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
     assert zero.is_exact_sequence
 
     stalk = first_simple.stalk_complex(0)
+    category = stalk.category
+    assert category.is_cat and category.is_default_rep
+    assert category.name == "right modules over algebra"
+    assert category.is_identical(qpa.ModuleCategory.from_path_algebra(algebra))
+    assert category.is_zero_object(category.zero_object())
+    assert stalk.is_default_rep
+    differential_list = stalk.differentials
+    assert differential_list.value(0) == stalk.differential(0)
+    assert differential_list.highest_known_position is not None
+    assert differential_list.lowest_known_position is not None
+    rebuilt = qpa.ModuleComplex.from_differential_list(category, differential_list)
+    assert rebuilt.object(0).is_identical(first_simple)
+    assert rebuilt.differential(0) == stalk.differential(0)
     assert not stalk.is_zero
     assert stalk.object(0).is_identical(first_simple)
     assert stalk.homology(0).dimension_vector == [1, 0]
@@ -659,6 +672,7 @@ def test_module_chain_maps_and_mapping_cones_follow_qpa(field: qpa.Field) -> Non
 
     components = [complex.object(degree).identity() for degree in (-1, 0, 1)]
     identity = complex.finite_chain_map_to(complex, -1, components)
+    assert identity.morphisms.value(0) == identity.morphism(0)
     assert identity.source.is_identical(complex)
     assert identity.range.is_identical(complex)
     assert identity.morphism(0).is_isomorphism

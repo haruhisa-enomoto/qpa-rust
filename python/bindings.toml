@@ -3259,3 +3259,51 @@ status = "exposed"
 target = "qpa.GszProjectiveResolution.find_next_syzygy"
 tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_resolution_follows_qpa"]
 notes = "Preserves QPA's declared-but-uninstalled operation diagnostic."
+
+[[bindings]]
+qpa_name = "CatOfRightAlgebraModules"
+status = "exposed"
+target = "qpa.ModuleCategory.from_path_algebra; qpa.ModuleCategory.from_quotient_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CatOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.category"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsCat"
+status = "exposed"
+target = "qpa.ModuleCategory.is_cat"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsCatDefaultRep"
+status = "exposed"
+target = "qpa.ModuleCategory.is_default_rep"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsQPAComplexDefaultRep"
+status = "exposed"
+target = "qpa.ModuleComplex.is_default_rep"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DifferentialsOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.differentials; qpa.ModuleMorphismList"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MorphismsOfChainMap"
+status = "exposed"
+target = "qpa.ModuleChainMap.morphisms; qpa.ModuleMorphismList"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ComplexByDifferentialList"
+status = "exposed"
+target = "qpa.ModuleComplex.from_differential_list"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]

@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 517
+exposed_or_partial_count = 525
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -911,8 +911,8 @@ python_tests = []
 qpa_name = "CatOfComplex"
 python_name = "cat_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.category"
 notes = ""
 entry_ids = ["complex:DeclareAttribute:CatOfComplex:1"]
 constructs = ["DeclareAttribute"]
@@ -920,14 +920,14 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaComplex::category"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CatOfRightAlgebraModules"
 python_name = "cat_of_right_algebra_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleCategory.from_path_algebra; qpa.ModuleCategory.from_quotient_algebra"
 notes = ""
 entry_ids = ["complex:DeclareOperation:CatOfRightAlgebraModules:1","complex:InstallMethod:CatOfRightAlgebraModules:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -935,7 +935,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::cat_of_right_algebra_modules"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "Centre"
@@ -1316,8 +1316,8 @@ python_tests = []
 qpa_name = "ComplexByDifferentialList"
 python_name = "complex_by_differential_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.from_differential_list"
 notes = ""
 entry_ids = ["complex:DeclareOperation:ComplexByDifferentialList:1","complex:InstallMethod:ComplexByDifferentialList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1325,7 +1325,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::by_differential_list"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "ComplexityOfAlgebra"
@@ -2051,8 +2051,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "DifferentialsOfComplex"
 python_name = "differentials_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.differentials; qpa.ModuleMorphismList"
 notes = ""
 entry_ids = ["complex:DeclareAttribute:DifferentialsOfComplex:1"]
 constructs = ["DeclareAttribute"]
@@ -2060,7 +2060,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaComplex::differentials"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "DimEnd"
@@ -4451,8 +4451,8 @@ python_tests = []
 qpa_name = "IsCat"
 python_name = "is_cat"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleCategory.is_cat"
 notes = ""
 entry_ids = ["complex:DeclareCategory:IsCat:1"]
 constructs = ["DeclareCategory"]
@@ -4460,14 +4460,14 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::CallbackCategory"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsCatDefaultRep"
 python_name = "is_cat_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleCategory.is_default_rep"
 notes = ""
 entry_ids = ["complex:DeclareRepresentation:IsCatDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4475,7 +4475,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::CallbackCategory"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsChainMap"
@@ -5996,8 +5996,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "IsQPAComplexDefaultRep"
 python_name = "is_qpa_complex_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_default_rep"
 notes = ""
 entry_ids = ["complex:DeclareRepresentation:IsQPAComplexDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -6005,7 +6005,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaComplex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsQuadraticIdeal"
@@ -8516,8 +8516,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomo
 qpa_name = "MorphismsOfChainMap"
 python_name = "morphisms_of_chain_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleChainMap.morphisms; qpa.ModuleMorphismList"
 notes = ""
 entry_ids = ["complex:DeclareAttribute:MorphismsOfChainMap:1"]
 constructs = ["DeclareAttribute"]
@@ -8525,7 +8525,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap::morphisms"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "MultiplyListsOfMaps"

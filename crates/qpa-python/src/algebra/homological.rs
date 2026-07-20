@@ -99,6 +99,30 @@ where
 #[pymethods]
 impl PyModuleComplex {
     #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_default_rep(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    fn category(&self) -> PyModuleCategory {
+        complex_foundation::category_of_complex(self)
+    }
+
+    #[getter]
+    fn differentials(&self) -> PyModuleMorphismList {
+        complex_foundation::differentials_of_complex(self)
+    }
+
+    #[staticmethod]
+    fn from_differential_list(
+        category: &PyModuleCategory,
+        differentials: &PyModuleMorphismList,
+    ) -> PyResult<Self> {
+        complex_foundation::complex_by_differential_list(category, differentials)
+    }
+
+    #[getter]
     fn is_zero(&self) -> bool {
         dispatch_ref!(&self.kind, ModuleComplexKind, |complex| complex
             .is_zero_complex())
@@ -572,6 +596,11 @@ impl PyModuleComplex {
 
 #[pymethods]
 impl PyModuleChainMap {
+    #[getter]
+    fn morphisms(&self) -> PyModuleMorphismList {
+        complex_foundation::morphisms_of_chain_map(self)
+    }
+
     #[getter]
     fn source(&self) -> PyModuleComplex {
         let kind = map_ref!(
