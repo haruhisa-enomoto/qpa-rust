@@ -1347,3 +1347,89 @@ qpa_name = "YonedaProduct"
 status = "exposed"
 target = "qpa.ModuleComplex.yoneda_product"
 tests = ["python/tests/test_architecture_spike.py::test_yoneda_product_follows_qpa_splicing_convention"]
+
+# Derived-category foundations
+
+[[bindings]]
+qpa_name = "CompareWithIndecInjective"
+status = "exposed"
+target = "qpa.MatrixModule.compare_with_indecomposable_injective"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "CompareWithIndecProjective"
+status = "exposed"
+target = "qpa.MatrixModule.compare_with_indecomposable_projective"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DescriptionOfFiniteInjComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.finite_injective_description"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DescriptionOfFiniteProjComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.finite_projective_description"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DescriptionOfFiniteProjOrInjComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.finite_description"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DescriptionOfInjComplexInDegree"
+status = "exposed"
+target = "qpa.ModuleComplex.injective_description_in_degree"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DescriptionOfProjComplexInDegree"
+status = "exposed"
+target = "qpa.ModuleComplex.projective_description_in_degree"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DescriptionOfProjOrInjComplexInDegree"
+status = "exposed"
+target = "qpa.ModuleComplex.description_in_degree"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DescriptionOfProjectiveModule"
+status = "exposed"
+target = "qpa.MatrixModule.projective_description"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DirectSumMinusSummands"
+status = "exposed"
+target = "qpa.MatrixModule.direct_sum_minus_summands"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FindAllMapComponents"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.all_components"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsInjectiveComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.is_injective_complex"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsProjectiveComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.is_projective_complex"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MatricesOfDualMap"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.dual_vertex_matrices"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]

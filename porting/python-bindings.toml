@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 209
+exposed_or_partial_count = 223
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1151,8 +1151,8 @@ python_tests = []
 qpa_name = "CompareWithIndecInjective"
 python_name = "compare_with_indec_injective"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.compare_with_indecomposable_injective"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:CompareWithIndecInjective:1","derivedcat:InstallMethod:CompareWithIndecInjective:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1160,14 +1160,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["compare_with_indec_injective"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "CompareWithIndecProjective"
 python_name = "compare_with_indec_projective"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.compare_with_indecomposable_projective"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:CompareWithIndecProjective:1","derivedcat:InstallMethod:CompareWithIndecProjective:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1175,7 +1175,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["compare_with_indec_projective"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "ComparisonFunction"
@@ -1901,8 +1901,8 @@ python_tests = []
 qpa_name = "DescriptionOfFiniteInjComplex"
 python_name = "description_of_finite_inj_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.finite_injective_description"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DescriptionOfFiniteInjComplex:1","derivedcat:InstallMethod:DescriptionOfFiniteInjComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1910,14 +1910,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["description_of_finite_inj_complex"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DescriptionOfFiniteProjComplex"
 python_name = "description_of_finite_proj_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.finite_projective_description"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DescriptionOfFiniteProjComplex:1","derivedcat:InstallMethod:DescriptionOfFiniteProjComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1925,14 +1925,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["description_of_finite_proj_complex"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DescriptionOfFiniteProjOrInjComplex"
 python_name = "description_of_finite_proj_or_inj_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.finite_description"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DescriptionOfFiniteProjOrInjComplex:1","derivedcat:InstallMethod:DescriptionOfFiniteProjOrInjComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1940,14 +1940,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["description_of_finite_proj_or_inj_complex"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DescriptionOfInjComplexInDegree"
 python_name = "description_of_inj_complex_in_degree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.injective_description_in_degree"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DescriptionOfInjComplexInDegree:1","derivedcat:InstallMethod:DescriptionOfInjComplexInDegree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1955,14 +1955,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["description_of_inj_complex_in_degree"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DescriptionOfProjComplexInDegree"
 python_name = "description_of_proj_complex_in_degree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.projective_description_in_degree"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DescriptionOfProjComplexInDegree:1","derivedcat:InstallMethod:DescriptionOfProjComplexInDegree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1970,14 +1970,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["description_of_proj_complex_in_degree"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DescriptionOfProjOrInjComplexInDegree"
 python_name = "description_of_proj_or_inj_complex_in_degree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.description_in_degree"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DescriptionOfProjOrInjComplexInDegree:1","derivedcat:InstallMethod:DescriptionOfProjOrInjComplexInDegree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1985,14 +1985,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["description_of_proj_or_inj_complex_in_degree"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DescriptionOfProjectiveModule"
 python_name = "description_of_projective_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.projective_description"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DescriptionOfProjectiveModule:1","derivedcat:InstallMethod:DescriptionOfProjectiveModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2000,7 +2000,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["description_of_projective_module"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DifferenceSize"
@@ -2156,8 +2156,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "DirectSumMinusSummands"
 python_name = "direct_sum_minus_summands"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.direct_sum_minus_summands"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:DirectSumMinusSummands:1","derivedcat:InstallMethod:DirectSumMinusSummands:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2165,7 +2165,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["direct_sum_minus_summands"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DirectSumOfQPAModules"
@@ -2741,8 +2741,8 @@ python_tests = []
 qpa_name = "FindAllMapComponents"
 python_name = "find_all_map_components"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.all_components"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:FindAllMapComponents:1","derivedcat:InstallMethod:FindAllMapComponents:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2750,7 +2750,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["find_all_map_components"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json","tests/fixtures/derivedcat_foundation_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "FindMultiplicativeIdentity"
@@ -5306,8 +5306,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IsInjectiveComplex"
 python_name = "is_injective_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_injective_complex"
 notes = ""
 entry_ids = ["derivedcat:DeclareProperty:IsInjectiveComplex:1","derivedcat:InstallMethod:IsInjectiveComplex:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -5315,7 +5315,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["is_injective_complex"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsInjectiveModule"
@@ -5891,8 +5891,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsProjectiveComplex"
 python_name = "is_projective_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.is_projective_complex"
 notes = ""
 entry_ids = ["derivedcat:DeclareProperty:IsProjectiveComplex:1","derivedcat:InstallMethod:IsProjectiveComplex:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -5900,7 +5900,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["is_projective_complex"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsProjectiveModule"
@@ -8066,8 +8066,8 @@ python_tests = []
 qpa_name = "MatricesOfDualMap"
 python_name = "matrices_of_dual_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.dual_vertex_matrices"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:MatricesOfDualMap:1","derivedcat:InstallMethod:MatricesOfDualMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8075,7 +8075,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["matrices_of_dual_map"]
 rust_tests = ["tests/fixtures/derivedcat_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MatricesOfPathAlgebraMatModuleHomomorphism"

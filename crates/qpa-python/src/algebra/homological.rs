@@ -250,6 +250,61 @@ impl PyModuleComplex {
             .map_err(invalid))
     }
 
+    #[getter]
+    fn is_projective_complex(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::is_projective_complex(complex).map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_injective_complex(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::is_injective_complex(complex).map_err(invalid)
+        })
+    }
+
+    fn description_in_degree(&self, degree: i64, projective: bool) -> PyResult<Vec<usize>> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::description_of_proj_or_inj_complex_in_degree(complex, &degree, projective)
+                .map_err(invalid)
+        })
+    }
+
+    fn projective_description_in_degree(&self, degree: i64) -> PyResult<Vec<usize>> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::description_of_proj_complex_in_degree(complex, &degree).map_err(invalid)
+        })
+    }
+
+    fn injective_description_in_degree(&self, degree: i64) -> PyResult<Vec<usize>> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::description_of_inj_complex_in_degree(complex, &degree).map_err(invalid)
+        })
+    }
+
+    fn finite_description(&self, projective: bool) -> PyResult<Vec<Vec<usize>>> {
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::description_of_finite_proj_or_inj_complex(complex, projective)
+                .map_err(invalid)
+        })
+    }
+
+    fn finite_projective_description(&self) -> PyResult<Vec<Vec<usize>>> {
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::description_of_finite_proj_complex(complex).map_err(invalid)
+        })
+    }
+
+    fn finite_injective_description(&self) -> PyResult<Vec<Vec<usize>>> {
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            qpa_gbnp::description_of_finite_inj_complex(complex).map_err(invalid)
+        })
+    }
+
     fn shift(&self, amount: i64) -> PyResult<Self> {
         let amount = Integer::from(amount);
         let kind = map_ref!(

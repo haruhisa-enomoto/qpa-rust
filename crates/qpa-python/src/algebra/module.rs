@@ -416,6 +416,38 @@ impl PyMatrixModule {
         })
     }
 
+    fn compare_with_indecomposable_projective(&self) -> PyResult<Option<usize>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::compare_with_indec_projective(module).map_err(invalid)
+        })
+    }
+
+    fn compare_with_indecomposable_injective(&self) -> PyResult<Option<usize>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::compare_with_indec_injective(module).map_err(invalid)
+        })
+    }
+
+    fn projective_description(&self) -> PyResult<Vec<Option<usize>>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::description_of_projective_module(module).map_err(invalid)
+        })
+    }
+
+    fn direct_sum_minus_summands(
+        &self,
+        removed: Vec<usize>,
+    ) -> PyResult<(PyModuleHomomorphism, PyModuleHomomorphism)> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            let (inclusion, projection) =
+                qpa_gbnp::direct_sum_minus_summands(module, &removed).map_err(invalid)?;
+            Ok((
+                wrap_module_homomorphism(inclusion),
+                wrap_module_homomorphism(projection),
+            ))
+        })
+    }
+
     fn projective_cover(&self) -> PyResult<PyModuleHomomorphism> {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
             wrap_module_homomorphism(qpa_gbnp::projective_cover(module).map_err(invalid)?,)
@@ -777,6 +809,26 @@ impl PyModuleHomomorphism {
                 .map(matrix_rows)
                 .collect()
         })
+    }
+
+    #[getter]
+    fn dual_vertex_matrices(&self) -> Vec<Vec<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            qpa_gbnp::matrices_of_dual_map(homomorphism)
+                .iter()
+                .map(matrix_rows)
+                .collect()
+        })
+    }
+
+    fn all_components(&self) -> PyResult<Vec<Vec<Self>>> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            qpa_gbnp::find_all_map_components(homomorphism)
+                .map_err(invalid)?
+                .into_iter()
+                .map(wrap_module_homomorphisms)
+                .collect()
+        ))
     }
 
     fn image(&self, element: &PyModuleElement) -> PyResult<PyModuleElement> {

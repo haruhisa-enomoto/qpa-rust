@@ -514,3 +514,46 @@ def test_yoneda_product_follows_qpa_splicing_convention(field: qpa.Field) -> Non
         [2],
         [1],
     ]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_derived_category_foundations_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projectives = algebra.indecomposable_projectives()
+    injectives = algebra.indecomposable_injectives()
+    simples = algebra.simple_modules()
+    projective_sum = qpa.MatrixModule.direct_sum([projectives[0], projectives[1], projectives[0]])
+    injective_sum = qpa.MatrixModule.direct_sum([injectives[1], injectives[0], injectives[1]])
+    assert projective_sum is not None and injective_sum is not None
+
+    assert projectives[0].compare_with_indecomposable_projective() == 1
+    assert projective_sum.compare_with_indecomposable_projective() is None
+    assert simples[0].compare_with_indecomposable_projective() is None
+    assert injectives[1].compare_with_indecomposable_injective() == 2
+    assert injective_sum.compare_with_indecomposable_injective() is None
+    assert projective_sum.projective_description() == [1, 2, 1]
+    assert algebra.zero_module().projective_description() == []
+
+    projective_complex = projective_sum.stalk_complex(1)
+    injective_complex = injective_sum.stalk_complex(-1)
+    assert projective_complex.is_projective_complex
+    assert injective_complex.is_injective_complex
+    assert not simples[0].stalk_complex(0).is_projective_complex
+    assert not simples[1].stalk_complex(0).is_injective_complex
+    assert projective_complex.projective_description_in_degree(1) == [2, 1]
+    assert projective_complex.description_in_degree(1, True) == [2, 1]
+    assert injective_complex.injective_description_in_degree(-1) == [1, 2]
+    assert injective_complex.description_in_degree(-1, False) == [1, 2]
+    assert projective_complex.finite_projective_description() == [[2, 1]]
+    assert projective_complex.finite_description(True) == [[2, 1]]
+    assert injective_complex.finite_injective_description() == [[1, 2]]
+    assert injective_complex.finite_description(False) == [[1, 2]]
+
+    identity = projective_sum.identity()
+    components = identity.all_components()
+    assert len(components) == 3 and all(len(row) == 3 for row in components)
+    assert components[0][0].is_isomorphism and components[0][1].is_zero
+    assert [len(matrix) for matrix in identity.dual_vertex_matrices] == [2, 3]
+    inclusion, projection = projective_sum.direct_sum_minus_summands([2])
+    assert inclusion.source.dimension_vector == [2, 2]
+    assert projection.range.dimension_vector == [2, 2]
