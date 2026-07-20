@@ -1386,6 +1386,115 @@ def test_structure_constants_algebra_operations_follow_qpa() -> None:
     assert primitive[1] * primitive[0] == matrix_algebra.zero()
 
 
+def test_opposite_structure_constants_algebra_follows_qpa() -> None:
+    field5 = qpa.Field.prime(5)
+    upper = qpa.StructureConstantsAlgebra(
+        field5,
+        _structure_constants_tensor(
+            field5,
+            3,
+            [(0, 0, 0), (0, 1, 1), (1, 2, 1), (2, 2, 2)],
+        ),
+    )
+    underlying_basis = upper.basis_elements
+    upper.bind_named_element("y", underlying_basis[1])
+
+    opposite = upper.opposite()
+    another_opposite = upper.opposite()
+    assert isinstance(opposite, qpa.OppositeStructureConstantsAlgebra)
+    assert opposite.field == field5
+    assert opposite.dimension == 3
+    assert opposite.is_opposite_algebra
+    assert not opposite.is_identical_to_underlying
+    assert opposite.is_finite_dimensional
+    assert opposite.underlying_algebra.dimension == upper.dimension
+    assert opposite.multiplication_algebra.dimension == upper.dimension
+
+    basis = opposite.basis_elements
+    canonical = opposite.canonical_basis_elements
+    assert _representative_rows([element.coordinates for element in basis]) == [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+    ]
+    assert _representative_rows([element.coordinates for element in canonical]) == [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+    ]
+    x, y, z = basis
+    assert all(element.is_opposite_algebra_element for element in basis)
+    assert _representative_rows(
+        [(x * y).coordinates, (y * x).coordinates, (y * z).coordinates, (z * y).coordinates]
+    ) == [[0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 1, 0]]
+    assert [coefficient.representative for coefficient in (y + z).coordinates] == [
+        0,
+        1,
+        1,
+    ]
+    assert [coefficient.representative for coefficient in y.scale(field5.element(2)).coordinates] == [
+        0,
+        2,
+        0,
+    ]
+    assert [coefficient.representative for coefficient in (-y).coordinates] == [0, 4, 0]
+    assert [
+        coefficient.representative for coefficient in y.zero_same_parent().coordinates
+    ] == [0, 0, 0]
+    assert [coefficient.representative for coefficient in opposite.coefficients(y)] == [
+        0,
+        1,
+        0,
+    ]
+    assert y.external_representation == y.coordinates
+    assert y.underlying_element == underlying_basis[1]
+    assert opposite.element_from_underlying(underlying_basis[1]) == y
+    assert opposite.element([field5.element(0), field5.element(1), field5.element(0)]) == y
+    assert opposite.element_by_name("y") == y
+    assert opposite.element_by_name("missing") is None
+    assert y in opposite
+    assert not another_opposite.contains(y)
+    assert not (x < y)
+    assert y < x
+    assert y.compare(x) == -1
+    identity = opposite.one()
+    assert identity is not None
+    assert [coefficient.representative for coefficient in identity.coordinates] == [1, 0, 1]
+    assert repr(y) == "op( v.2 )"
+    assert repr(y + z) == "op( v.2+v.3 )"
+    assert repr(y.scale(field5.element(2))) == "op( (Z(5))*v.2 )"
+    assert repr(-y) == "op( (Z(5)^2)*v.2 )"
+    assert repr(opposite.zero()) == "op( 0*v.1 )"
+
+    rational = qpa.Field.rational()
+    rational_upper = qpa.StructureConstantsAlgebra(
+        rational,
+        _structure_constants_tensor(
+            rational,
+            3,
+            [(0, 0, 0), (0, 1, 1), (1, 2, 1), (2, 2, 2)],
+        ),
+    ).opposite()
+    rational_x, rational_y, _ = rational_upper.basis_elements
+    assert repr(rational_x + rational_y) == "op( v.1+v.2 )"
+    assert repr(rational_y.scale(rational.element(2))) == "op( (2)*v.2 )"
+    assert repr(rational_y.scale(rational.element(1, 2))) == "op( (1/2)*v.2 )"
+    assert repr(-rational_y) == "op( (-1)*v.2 )"
+    assert repr(rational_x + rational_y.scale(rational.element(-2))) == (
+        "op( v.1+(-2)*v.2 )"
+    )
+
+    dual_numbers = qpa.StructureConstantsAlgebra(
+        field5,
+        _structure_constants_tensor(
+            field5, 2, [(0, 0, 0), (0, 1, 1), (1, 0, 1)]
+        ),
+    ).opposite()
+    assert dual_numbers.is_identical_to_underlying
+    assert not dual_numbers.is_opposite_algebra
+    assert not dual_numbers.basis_elements[0].is_opposite_algebra_element
+
+
 def test_algebra_as_quiver_algebra_follows_qpa() -> None:
     field2 = qpa.Field.prime(2)
     upper_tensor = _structure_constants_tensor(

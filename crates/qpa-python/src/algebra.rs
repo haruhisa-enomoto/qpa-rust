@@ -12,7 +12,8 @@ use conversion::{
     wrap_quiver_algebra,
 };
 pub(crate) use conversion::{
-    PyAdrAlgebraOfAlgebraResult, PyAlgebraAsQuiverAlgebraResult, PyQuiverAlgebra,
+    PyAdrAlgebraOfAlgebraResult, PyAlgebraAsQuiverAlgebraResult,
+    PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyQuiverAlgebra,
     PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsSubalgebra,
 };
 

@@ -69,10 +69,9 @@ notes = "Embedded quiver generators are exposed."
 
 [[bindings]]
 qpa_name = "Dimension"
-status = "partial"
-target = "qpa.QuotientAlgebra.dimension"
-tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
-notes = "Quotient-algebra and matrix-module dimensions are exposed."
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.dimension; qpa.MatrixModule.dimension; qpa.QuotientAlgebra.dimension"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
 
 [[bindings]]
 qpa_name = "RightModuleOverPathAlgebra"
@@ -289,9 +288,9 @@ notes = "Path and quotient algebra relation lists are exposed."
 [[bindings]]
 qpa_name = "CanonicalBasis"
 status = "partial"
-target = "qpa.PathAlgebra.canonical_basis"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Path-algebra and quotient canonical bases are exposed; other QPA basis families remain."
+target = "qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements; qpa.PathAlgebra.canonical_basis"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Opposite-, path-, and quotient-algebra canonical bases are exposed; module and projective-module basis families remain."
 
 [[bindings]]
 qpa_name = "OppositePathAlgebra"
@@ -533,10 +532,9 @@ tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quoti
 
 [[bindings]]
 qpa_name = "IsFiniteDimensional"
-status = "partial"
-target = "qpa.QuotientAlgebra.is_finite_dimensional"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The quotient-algebra overload is exposed."
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.is_finite_dimensional; qpa.QuotientAlgebra.is_finite_dimensional"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
 qpa_name = "IsAdmissibleQuotientOfPathAlgebra"
@@ -660,6 +658,97 @@ target = "qpa.StructureConstantsAlgebra.primitive_idempotents; qpa.StructureCons
 tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[bindings]]
+qpa_name = "AdditiveInverseSameMutability"
+status = "exposed"
+target = "qpa.OppositeStructureConstantsElement.negate"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "Coefficients"
+status = "partial"
+target = "qpa.OppositeStructureConstantsAlgebra.coefficients"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+notes = "The opposite-algebra basis overload is exposed; module, path-algebra, and projective-module basis overloads remain."
+
+[[bindings]]
+qpa_name = "ExtRepOfObj"
+status = "exposed"
+target = "qpa.OppositeStructureConstantsElement.external_representation; qpa.Path.external_representation; qpa.ModuleElement.external_representation; qpa.QuotientElement.external_representation"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "IsAlgebra"
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsBasisOfOppositeAlgebraDefaultRep"
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.basis_elements"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+notes = "Represented by the concrete ordered basis returned for the opposite-algebra wrapper."
+
+[[bindings]]
+qpa_name = "IsOppositeAlgebra"
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.is_opposite_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsOppositeAlgebraElement"
+status = "exposed"
+target = "qpa.OppositeStructureConstantsElement; qpa.OppositeStructureConstantsElement.is_opposite_algebra_element"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ObjByExtRep"
+status = "partial"
+target = "qpa.OppositeStructureConstantsAlgebra.element_from_underlying; qpa.Quiver.path_from_external_representation"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "Opposite-element and quiver-path reconstruction are exposed; quotient-path-algebra reconstruction remains."
+
+[[bindings]]
+qpa_name = "OppositeAlgebra"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.opposite; qpa.PathAlgebra.opposite; qpa.QuotientAlgebra.opposite"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+
+[[bindings]]
+qpa_name = "PrintObj"
+status = "partial"
+target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+notes = "Exact opposite-algebra printing is exposed through repr; the grouped QPA printing overloads remain incomplete."
+
+[[bindings]]
+qpa_name = "UnderlyingAlgebra"
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.underlying_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "\\."
+status = "partial"
+target = "qpa.StructureConstantsAlgebra.bind_named_element; qpa.OppositeStructureConstantsAlgebra.element_by_name; qpa.Quiver.vertex_path; qpa.Quiver.arrow_path; qpa.PathAlgebra.generator"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Named opposite-algebra, quiver, and quiver-algebra lookup is exposed; the complex-category component overload remains."
+
+[[bindings]]
+qpa_name = "\\<"
+status = "partial"
+target = "qpa.OppositeStructureConstantsElement.__lt__; qpa.AlgebraElement.compare; qpa.QuotientElement.compare; qpa.Quiver.compare_paths"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Opposite, path, quotient, and quiver comparison routes are exposed; projective-module comparison remains."
+
+[[bindings]]
+qpa_name = "\\in"
+status = "partial"
+target = "qpa.OppositeStructureConstantsAlgebra.__contains__; qpa.PathAlgebraIdeal.__contains__"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+notes = "Opposite-algebra and path-ideal membership are exposed; module-space and projective-module membership remain."
+
+[[bindings]]
 qpa_name = "TruncatedPathAlgebra"
 status = "exposed"
 target = "qpa.QuotientAlgebra.truncated"
@@ -677,16 +766,15 @@ notes = "The quotient-element overload is exposed, with QPA fail represented by 
 [[bindings]]
 qpa_name = "Basis"
 status = "partial"
-target = "qpa.MatrixModule.basis_elements"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "The standard matrix-module basis is exposed directly as its ordered basis elements."
+target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.MatrixModule.basis_elements"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Opposite-algebra and standard matrix-module bases are exposed; projective-module basis families remain."
 
 [[bindings]]
 qpa_name = "BasisVectors"
-status = "partial"
-target = "qpa.MatrixModule.basis_elements"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "BasisVectors(Basis(M)) is exposed as MatrixModule.basis_elements()."
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.basis_elements; qpa.OppositeStructureConstantsAlgebra.canonical_basis_elements"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
 
 [[bindings]]
 qpa_name = "CoKernelOfAdditiveGeneralMapping"
@@ -894,9 +982,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorp
 [[bindings]]
 qpa_name = "ZeroOp"
 status = "partial"
-target = "qpa.MatrixModule.zero_element"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "The matrix-module element overload is exposed alongside existing quotient-algebra zero; other QPA domains remain."
+target = "qpa.OppositeStructureConstantsElement.zero_same_parent; qpa.MatrixModule.zero_element"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Opposite- and matrix-module element overloads are exposed alongside quotient-algebra zero; projective-module domains remain."
 
 [[bindings]]
 qpa_name = "AdditiveInverseOp"
@@ -908,16 +996,16 @@ notes = "Module-element and module-homomorphism overloads are exposed; projectiv
 [[bindings]]
 qpa_name = "\\*"
 status = "partial"
-target = "qpa.ModuleHomomorphism.compose"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "Module-element scalar actions and module-map composition/scaling are exposed among the grouped QPA overloads."
+target = "qpa.OppositeStructureConstantsElement.multiply; qpa.OppositeStructureConstantsElement.scale; qpa.ModuleHomomorphism.compose"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Opposite-element multiplication/scaling, module-element scalar actions, and module-map composition/scaling are exposed among the grouped QPA overloads."
 
 [[bindings]]
 qpa_name = "\\+"
 status = "partial"
-target = "qpa.ModuleElement.add"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "Matrix-module element and homomorphism addition are exposed among the grouped QPA overloads."
+target = "qpa.OppositeStructureConstantsElement.add; qpa.ModuleElement.add"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Opposite-, matrix-module-element, and homomorphism addition are exposed among the grouped QPA overloads."
 
 [[bindings]]
 qpa_name = "\\-"
@@ -929,9 +1017,9 @@ notes = "Matrix-module element subtraction and negation are exposed among the gr
 [[bindings]]
 qpa_name = "\\="
 status = "partial"
-target = "qpa.ModuleElement.__eq__"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "Structural equality for matrix modules, their elements, and homomorphisms is exposed among the grouped QPA overloads."
+target = "qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+notes = "Opposite-element equality and structural equality for matrix modules, their elements, and homomorphisms are exposed among the grouped QPA overloads."
 
 [[bindings]]
 qpa_name = "CoKernelProjection"

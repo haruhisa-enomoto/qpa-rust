@@ -19,7 +19,8 @@ use algebra::{
     PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleEndomorphismAlgebra,
     PyModuleEndomorphismQuotientAlgebra, PyModuleEndomorphismQuotientElement,
     PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
-    PyModuleSubmodule, PyMoreMinimalVersionResult, PyNonisomorphicDirectSummandData, PyPathAlgebra,
+    PyModuleSubmodule, PyMoreMinimalVersionResult, PyNonisomorphicDirectSummandData,
+    PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
     PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuiverAlgebra, PyQuotientAlgebra,
     PyQuotientElement, PyStructureConstantsAlgebra, PyStructureConstantsElement,
@@ -64,6 +65,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyStructureConstantsAlgebra>()?;
     module.add_class::<PyStructureConstantsElement>()?;
     module.add_class::<PyStructureConstantsSubalgebra>()?;
+    module.add_class::<PyOppositeStructureConstantsAlgebra>()?;
+    module.add_class::<PyOppositeStructureConstantsElement>()?;
     module.add_class::<PyQuiverAlgebra>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;

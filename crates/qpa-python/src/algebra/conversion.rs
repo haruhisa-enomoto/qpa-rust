@@ -6,7 +6,8 @@ use numerica::domains::{
 };
 use pyo3::prelude::*;
 use qpa_core::{
-    PathAlgebraModule, QuiverAlgebra, StructureConstantsAlgebra, StructureConstantsAlgebraElement,
+    OppositeStructureConstantsAlgebra, OppositeStructureConstantsAlgebraElement, PathAlgebraModule,
+    QuiverAlgebra, StructureConstantsAlgebra, StructureConstantsAlgebraElement,
     StructureConstantsSubalgebra,
 };
 
@@ -54,6 +55,42 @@ enum StructureConstantsSubalgebraKind {
 #[derive(Clone)]
 pub(crate) struct PyStructureConstantsSubalgebra {
     kind: StructureConstantsSubalgebraKind,
+}
+
+#[derive(Clone)]
+enum OppositeStructureConstantsAlgebraKind {
+    Rational(OppositeStructureConstantsAlgebra<RationalField>),
+    Binary(OppositeStructureConstantsAlgebra<Z2>),
+    Prime(OppositeStructureConstantsAlgebra<Zp>),
+}
+
+/// QPA's generic opposite of a structure-constants algebra.
+#[pyclass(
+    name = "OppositeStructureConstantsAlgebra",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyOppositeStructureConstantsAlgebra {
+    kind: OppositeStructureConstantsAlgebraKind,
+}
+
+#[derive(Clone)]
+enum OppositeStructureConstantsElementKind {
+    Rational(OppositeStructureConstantsAlgebraElement<RationalField>),
+    Binary(OppositeStructureConstantsAlgebraElement<Z2>),
+    Prime(OppositeStructureConstantsAlgebraElement<Zp>),
+}
+
+/// An element of QPA's generic opposite-algebra family.
+#[pyclass(
+    name = "OppositeStructureConstantsElement",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyOppositeStructureConstantsElement {
+    kind: OppositeStructureConstantsElementKind,
 }
 
 #[derive(Clone)]
@@ -118,6 +155,22 @@ macro_rules! impl_conversion_runtime {
             for StructureConstantsSubalgebraKind
         {
             fn wrap(value: StructureConstantsSubalgebra<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<OppositeStructureConstantsAlgebra<$field>>
+            for OppositeStructureConstantsAlgebraKind
+        {
+            fn wrap(value: OppositeStructureConstantsAlgebra<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<OppositeStructureConstantsAlgebraElement<$field>>
+            for OppositeStructureConstantsElementKind
+        {
+            fn wrap(value: OppositeStructureConstantsAlgebraElement<$field>) -> Self {
                 Self::$variant(value)
             }
         }
@@ -196,6 +249,24 @@ where
     })
 }
 
+fn opposite_element_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    algebra: &OppositeStructureConstantsAlgebra<F>,
+    coordinates: Vec<Py<PyScalar>>,
+) -> PyResult<PyOppositeStructureConstantsElement>
+where
+    OppositeStructureConstantsElementKind:
+        runtime::Wrap<OppositeStructureConstantsAlgebraElement<F>>,
+{
+    let coordinates = coordinates
+        .into_iter()
+        .map(|coefficient| algebra.field().scalar_value(&coefficient.borrow(py)))
+        .collect::<PyResult<Vec<_>>>()?;
+    Ok(wrap_opposite_element(
+        algebra.element(coordinates).map_err(invalid)?,
+    ))
+}
+
 fn wrap_structure_element<F: runtime::PythonField>(
     element: StructureConstantsAlgebraElement<F>,
 ) -> PyStructureConstantsElement
@@ -225,6 +296,39 @@ where
     PyStructureConstantsSubalgebra {
         kind: runtime::Wrap::wrap(subalgebra),
     }
+}
+
+fn wrap_opposite_algebra<F: runtime::PythonField>(
+    algebra: OppositeStructureConstantsAlgebra<F>,
+) -> PyOppositeStructureConstantsAlgebra
+where
+    OppositeStructureConstantsAlgebraKind: runtime::Wrap<OppositeStructureConstantsAlgebra<F>>,
+{
+    PyOppositeStructureConstantsAlgebra {
+        kind: runtime::Wrap::wrap(algebra),
+    }
+}
+
+fn wrap_opposite_element<F: runtime::PythonField>(
+    element: OppositeStructureConstantsAlgebraElement<F>,
+) -> PyOppositeStructureConstantsElement
+where
+    OppositeStructureConstantsElementKind:
+        runtime::Wrap<OppositeStructureConstantsAlgebraElement<F>>,
+{
+    PyOppositeStructureConstantsElement {
+        kind: runtime::Wrap::wrap(element),
+    }
+}
+
+fn wrap_opposite_elements<F: runtime::PythonField>(
+    elements: Vec<OppositeStructureConstantsAlgebraElement<F>>,
+) -> Vec<PyOppositeStructureConstantsElement>
+where
+    OppositeStructureConstantsElementKind:
+        runtime::Wrap<OppositeStructureConstantsAlgebraElement<F>>,
+{
+    elements.into_iter().map(wrap_opposite_element).collect()
 }
 
 fn structure_matrix_rows<F: runtime::PythonField>(matrix: &DenseMatrix<F>) -> Vec<Vec<PyScalar>> {
@@ -336,6 +440,36 @@ impl PyStructureConstantsAlgebra {
         })
     }
 
+    fn bind_named_element(
+        &self,
+        name: &str,
+        element: &PyStructureConstantsElement,
+    ) -> PyResult<()> {
+        match (&self.kind, &element.kind) {
+            (
+                StructureConstantsAlgebraKind::Rational(algebra),
+                StructureConstantsElementKind::Rational(element),
+            ) => algebra.bind_named_element(name, element).map_err(invalid),
+            (
+                StructureConstantsAlgebraKind::Binary(algebra),
+                StructureConstantsElementKind::Binary(element),
+            ) => algebra.bind_named_element(name, element).map_err(invalid),
+            (
+                StructureConstantsAlgebraKind::Prime(algebra),
+                StructureConstantsElementKind::Prime(element),
+            ) => algebra.bind_named_element(name, element).map_err(invalid),
+            _ => Err(invalid(
+                "structure-constants algebra and element use different coefficient fields",
+            )),
+        }
+    }
+
+    fn opposite(&self) -> PyResult<PyOppositeStructureConstantsAlgebra> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(wrap_opposite_algebra(algebra.opposite().map_err(invalid)?))
+        })
+    }
+
     fn find_multiplicative_identity(&self) -> PyResult<Option<PyStructureConstantsElement>> {
         dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
             Ok(algebra
@@ -443,6 +577,390 @@ impl PyStructureConstantsAlgebra {
             |algebra| qpa_gbnp::algebra_as_quiver_algebra(algebra).map_err(invalid)?
         );
         Ok(PyAlgebraAsQuiverAlgebraResult { kind })
+    }
+}
+
+#[pymethods]
+impl PyOppositeStructureConstantsAlgebra {
+    #[getter]
+    fn field(&self) -> PyField {
+        let kind = dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| algebra.field().python_kind()
+        );
+        PyField { kind }
+    }
+
+    #[getter]
+    fn underlying_algebra(&self) -> PyStructureConstantsAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind => StructureConstantsAlgebraKind,
+            |algebra| algebra.underlying_algebra().clone()
+        );
+        PyStructureConstantsAlgebra { kind }
+    }
+
+    #[getter]
+    fn multiplication_algebra(&self) -> PyStructureConstantsAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind => StructureConstantsAlgebraKind,
+            |algebra| algebra.as_structure_constants_algebra().clone()
+        );
+        PyStructureConstantsAlgebra { kind }
+    }
+
+    #[getter]
+    fn dimension(&self) -> usize {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| algebra.dimension()
+        )
+    }
+
+    #[getter]
+    fn is_opposite_algebra(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| algebra.is_opposite_algebra()
+        )
+    }
+
+    #[getter]
+    fn is_identical_to_underlying(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| algebra.is_identical_to_underlying()
+        )
+    }
+
+    #[getter]
+    fn is_finite_dimensional(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| algebra.is_finite_dimensional()
+        )
+    }
+
+    #[getter]
+    fn basis_elements(&self) -> Vec<PyOppositeStructureConstantsElement> {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| wrap_opposite_elements(algebra.basis_elements())
+        )
+    }
+
+    #[getter]
+    fn canonical_basis_elements(&self) -> Vec<PyOppositeStructureConstantsElement> {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| wrap_opposite_elements(algebra.canonical_basis_elements())
+        )
+    }
+
+    fn element(
+        &self,
+        py: Python<'_>,
+        coordinates: Vec<Py<PyScalar>>,
+    ) -> PyResult<PyOppositeStructureConstantsElement> {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| opposite_element_for(py, algebra, coordinates)
+        )
+    }
+
+    fn element_from_underlying(
+        &self,
+        element: &PyStructureConstantsElement,
+    ) -> PyResult<PyOppositeStructureConstantsElement> {
+        match (&self.kind, &element.kind) {
+            (
+                OppositeStructureConstantsAlgebraKind::Rational(algebra),
+                StructureConstantsElementKind::Rational(element),
+            ) => Ok(wrap_opposite_element(
+                algebra
+                    .element_from_underlying(element.clone())
+                    .map_err(invalid)?,
+            )),
+            (
+                OppositeStructureConstantsAlgebraKind::Binary(algebra),
+                StructureConstantsElementKind::Binary(element),
+            ) => Ok(wrap_opposite_element(
+                algebra
+                    .element_from_underlying(element.clone())
+                    .map_err(invalid)?,
+            )),
+            (
+                OppositeStructureConstantsAlgebraKind::Prime(algebra),
+                StructureConstantsElementKind::Prime(element),
+            ) => Ok(wrap_opposite_element(
+                algebra
+                    .element_from_underlying(element.clone())
+                    .map_err(invalid)?,
+            )),
+            _ => Err(invalid(
+                "opposite algebra and underlying element use different coefficient fields",
+            )),
+        }
+    }
+
+    fn element_by_name(&self, name: &str) -> PyResult<Option<PyOppositeStructureConstantsElement>> {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| Ok(algebra
+                .element_by_name(name)
+                .map_err(invalid)?
+                .map(wrap_opposite_element))
+        )
+    }
+
+    fn coefficients(
+        &self,
+        element: &PyOppositeStructureConstantsElement,
+    ) -> PyResult<Vec<PyScalar>> {
+        match (&self.kind, &element.kind) {
+            (
+                OppositeStructureConstantsAlgebraKind::Rational(algebra),
+                OppositeStructureConstantsElementKind::Rational(element),
+            ) => Ok(algebra
+                .coefficients(element)
+                .map_err(invalid)?
+                .iter()
+                .map(|coefficient| algebra.field().wrap_scalar(coefficient))
+                .collect()),
+            (
+                OppositeStructureConstantsAlgebraKind::Binary(algebra),
+                OppositeStructureConstantsElementKind::Binary(element),
+            ) => Ok(algebra
+                .coefficients(element)
+                .map_err(invalid)?
+                .iter()
+                .map(|coefficient| algebra.field().wrap_scalar(coefficient))
+                .collect()),
+            (
+                OppositeStructureConstantsAlgebraKind::Prime(algebra),
+                OppositeStructureConstantsElementKind::Prime(element),
+            ) => Ok(algebra
+                .coefficients(element)
+                .map_err(invalid)?
+                .iter()
+                .map(|coefficient| algebra.field().wrap_scalar(coefficient))
+                .collect()),
+            _ => Err(invalid(
+                "opposite algebra and element use different coefficient fields",
+            )),
+        }
+    }
+
+    fn zero(&self) -> PyOppositeStructureConstantsElement {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| wrap_opposite_element(algebra.zero())
+        )
+    }
+
+    fn one(&self) -> PyResult<Option<PyOppositeStructureConstantsElement>> {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| Ok(algebra.one().map_err(invalid)?.map(wrap_opposite_element))
+        )
+    }
+
+    fn contains(&self, element: &PyOppositeStructureConstantsElement) -> bool {
+        match (&self.kind, &element.kind) {
+            (
+                OppositeStructureConstantsAlgebraKind::Rational(algebra),
+                OppositeStructureConstantsElementKind::Rational(element),
+            ) => algebra.contains(element),
+            (
+                OppositeStructureConstantsAlgebraKind::Binary(algebra),
+                OppositeStructureConstantsElementKind::Binary(element),
+            ) => algebra.contains(element),
+            (
+                OppositeStructureConstantsAlgebraKind::Prime(algebra),
+                OppositeStructureConstantsElementKind::Prime(element),
+            ) => algebra.contains(element),
+            _ => false,
+        }
+    }
+
+    fn __contains__(&self, element: &PyOppositeStructureConstantsElement) -> bool {
+        self.contains(element)
+    }
+
+    fn __repr__(&self) -> String {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsAlgebraKind,
+            |algebra| algebra.to_string()
+        )
+    }
+}
+
+#[pymethods]
+impl PyOppositeStructureConstantsElement {
+    #[getter]
+    fn algebra(&self) -> PyOppositeStructureConstantsAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind => OppositeStructureConstantsAlgebraKind,
+            |element| element.algebra().clone()
+        );
+        PyOppositeStructureConstantsAlgebra { kind }
+    }
+
+    #[getter]
+    fn underlying_element(&self) -> PyStructureConstantsElement {
+        let kind = map_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind => StructureConstantsElementKind,
+            |element| element.underlying_element().clone()
+        );
+        PyStructureConstantsElement { kind }
+    }
+
+    #[getter]
+    fn coordinates(&self) -> Vec<PyScalar> {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind,
+            |element| element
+                .coordinates()
+                .iter()
+                .map(|coefficient| element.algebra().field().wrap_scalar(coefficient))
+                .collect()
+        )
+    }
+
+    #[getter]
+    fn external_representation(&self) -> Vec<PyScalar> {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind,
+            |element| element
+                .external_representation()
+                .iter()
+                .map(|coefficient| element.algebra().field().wrap_scalar(coefficient))
+                .collect()
+        )
+    }
+
+    #[getter]
+    fn is_opposite_algebra_element(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind,
+            |element| element.is_opposite_algebra_element()
+        )
+    }
+
+    fn add(&self, right: &Self) -> PyResult<Self> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &right.kind,
+            OppositeStructureConstantsElementKind => OppositeStructureConstantsElementKind,
+            |left, right| left.add(right).map_err(invalid)?,
+            invalid("opposite elements belong to different coefficient fields")
+        )?;
+        Ok(Self { kind })
+    }
+
+    fn multiply(&self, right: &Self) -> PyResult<Self> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &right.kind,
+            OppositeStructureConstantsElementKind => OppositeStructureConstantsElementKind,
+            |left, right| left.multiply(right).map_err(invalid)?,
+            invalid("opposite elements belong to different coefficient fields")
+        )?;
+        Ok(Self { kind })
+    }
+
+    fn scale(&self, scalar: &PyScalar) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind => OppositeStructureConstantsElementKind,
+            |element| element
+                .scale(&element.algebra().field().scalar_value(scalar)?)
+                .map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn negate(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind => OppositeStructureConstantsElementKind,
+            |element| element.negate().map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn zero_same_parent(&self) -> Self {
+        let kind = map_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind => OppositeStructureConstantsElementKind,
+            |element| element.zero_same_parent()
+        );
+        Self { kind }
+    }
+
+    fn compare(&self, right: &Self) -> PyResult<i8> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            OppositeStructureConstantsElementKind,
+            |left, right| Ok(ordering_value(left.compare(right).map_err(invalid)?)),
+            Err(invalid(
+                "opposite elements belong to different coefficient fields"
+            ))
+        )
+    }
+
+    fn __add__(&self, right: &Self) -> PyResult<Self> {
+        self.add(right)
+    }
+
+    fn __mul__(&self, right: &Self) -> PyResult<Self> {
+        self.multiply(right)
+    }
+
+    fn __neg__(&self) -> PyResult<Self> {
+        self.negate()
+    }
+
+    fn __lt__(&self, right: &Self) -> PyResult<bool> {
+        Ok(self.compare(right)? < 0)
+    }
+
+    fn __eq__(&self, right: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            OppositeStructureConstantsElementKind,
+            |left, right| left == right,
+            false
+        )
+    }
+
+    fn __repr__(&self) -> String {
+        dispatch_ref!(
+            &self.kind,
+            OppositeStructureConstantsElementKind,
+            |element| element.to_string()
+        )
     }
 }
 
