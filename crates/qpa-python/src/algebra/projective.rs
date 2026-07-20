@@ -684,6 +684,45 @@ impl PyPathAlgebraVector {
         )
     }
 
+    fn left_division(&self, divisor: &Self) -> PyResult<Option<PyAlgebraElement>> {
+        projective_gsz::vector_left_division(self, divisor)
+    }
+
+    #[staticmethod]
+    fn tip_reduce(
+        py: Python<'_>,
+        vectors: Vec<Py<PyPathAlgebraVector>>,
+    ) -> PyResult<Vec<PyPathAlgebraVector>> {
+        projective_gsz::tip_reduce(py, vectors)
+    }
+
+    fn tip_reduce_by(
+        &self,
+        py: Python<'_>,
+        reducers: Vec<Py<PyPathAlgebraVector>>,
+    ) -> PyResult<Self> {
+        projective_gsz::tip_reduce_by(self, py, reducers)
+    }
+
+    fn first_part(
+        &self,
+        py: Python<'_>,
+        f: Vec<Py<PyPathAlgebraVector>>,
+        f_prime: Vec<Py<PyPathAlgebraVector>>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        projective_gsz::first_part_of(self, py, f, f_prime)
+    }
+
+    fn x_set(
+        &self,
+        py: Python<'_>,
+        f: Vec<Py<PyPathAlgebraVector>>,
+        f_prime: Vec<Py<PyPathAlgebraVector>>,
+        ideal: &PyPathAlgebraIdeal,
+    ) -> PyResult<PyPathAlgebraVectorXSet> {
+        projective_gsz::x_set(self, py, f, f_prime, ideal)
+    }
+
     fn __add__(&self, right: &Self) -> PyResult<Self> {
         self.add(right)
     }

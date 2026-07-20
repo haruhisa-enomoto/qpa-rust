@@ -7,6 +7,7 @@ mod homological;
 mod ideal;
 mod module;
 mod projective;
+mod projective_gsz;
 mod quotient;
 mod quotient_projective;
 
@@ -29,6 +30,7 @@ pub(crate) use projective::{
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
     PyPathAlgebraVectorSpace, PyRightProjectiveModule, PyRightProjectiveSubmodule,
 };
+pub(crate) use projective_gsz::PyPathAlgebraVectorXSet;
 pub(crate) use quotient_projective::{
     PyLiftedProjectivePathAlgebraModule, PyQuotientPathAlgebraVector,
     PyRightProjectiveQuotientModule,

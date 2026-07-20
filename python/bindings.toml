@@ -926,10 +926,10 @@ tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quoti
 
 [[bindings]]
 qpa_name = "TipReduce"
-status = "partial"
-target = "qpa.GroebnerBasis.tip_reduce"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Reduction by wrapped two-sided and derived right bases is exposed."
+status = "exposed"
+target = "qpa.GroebnerBasis.tip_reduce; qpa.PathAlgebraVector.tip_reduce; qpa.PathAlgebraVector.tip_reduce_by"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+notes = "Both algebra-Groebner overloads and both projective path-vector overloads are exposed."
 
 [[bindings]]
 qpa_name = "TipReduceGroebnerBasis"
@@ -3152,3 +3152,22 @@ status = "partial"
 target = "qpa.PathAlgebra.end_of_fp_path_algebra_module"
 tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
+
+[[bindings]]
+qpa_name = "LeftDivision"
+status = "exposed"
+target = "qpa.PathAlgebraVector.left_division"
+tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FirstPart"
+status = "exposed"
+target = "qpa.PathAlgebraVector.first_part"
+tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+notes = "Reports QPA's nonterminating unspanned branch as a typed error."
+
+[[bindings]]
+qpa_name = "XSetOfPathAlgebraVector"
+status = "exposed"
+target = "qpa.PathAlgebraVector.x_set; qpa.PathAlgebraVectorXSet"
+tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]

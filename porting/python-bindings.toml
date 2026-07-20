@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 500
+exposed_or_partial_count = 503
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2891,16 +2891,16 @@ python_tests = []
 qpa_name = "FirstPart"
 python_name = "first_part"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraVector.first_part"
+notes = "Reports QPA's nonterminating unspanned branch as a typed error."
 entry_ids = ["moduleprojres:DeclareOperation:FirstPart:1","moduleprojres:InstallMethod:FirstPart:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/moduleprojres.gd","upstream/qpa/lib/moduleprojres.gi"]
 rust_symbols = ["first_part"]
 rust_tests = ["tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"]
 deviations = ["MODULEPROJRES-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "ForEveryDegree"
@@ -7376,8 +7376,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_approximation_ope
 qpa_name = "LeftDivision"
 python_name = "left_division"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraVector.left_division"
 notes = ""
 entry_ids = ["moduleprojres:DeclareOperation:LeftDivision:1","moduleprojres:InstallMethod:LeftDivision:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7385,7 +7385,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd","upstream/qpa/lib/moduleproj
 rust_symbols = ["left_division"]
 rust_tests = ["tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftFacMApproximation"
@@ -12401,16 +12401,16 @@ python_tests = []
 qpa_name = "TipReduce"
 python_name = "tip_reduce"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.GroebnerBasis.tip_reduce"
-notes = "Reduction by wrapped two-sided and derived right bases is exposed."
+status = "exposed"
+python_target = "qpa.GroebnerBasis.tip_reduce; qpa.PathAlgebraVector.tip_reduce; qpa.PathAlgebraVector.tip_reduce_by"
+notes = "Both algebra-Groebner overloads and both projective path-vector overloads are exposed."
 entry_ids = ["groebner:DeclareOperation:TipReduce:1","groebner:InstallMethod:TipReduce:1","groebner:InstallMethod:TipReduce:2","moduleprojres:DeclareOperation:TipReduce:1","moduleprojres:DeclareOperation:TipReduce:2","moduleprojres:InstallMethod:TipReduce:1","moduleprojres:InstallMethod:TipReduce:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/groebner.gd","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/moduleprojres.gd","upstream/qpa/lib/moduleprojres.gi"]
 rust_symbols = ["GroebnerBasis::tip_reduce","tip_reduce_path_algebra_vector","tip_reduce_path_algebra_vectors"]
 rust_tests = ["tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "TipReduceGroebnerBasis"
@@ -13046,8 +13046,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "XSetOfPathAlgebraVector"
 python_name = "x_set_of_path_algebra_vector"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraVector.x_set; qpa.PathAlgebraVectorXSet"
 notes = ""
 entry_ids = ["moduleprojres:DeclareOperation:XSetOfPathAlgebraVector:1","moduleprojres:InstallMethod:XSetOfPathAlgebraVector:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -13055,7 +13055,7 @@ source_files = ["upstream/qpa/lib/moduleprojres.gd","upstream/qpa/lib/moduleproj
 rust_symbols = ["x_set_of_path_algebra_vector"]
 rust_tests = ["tests/fixtures/moduleprojres_xset_firstpart.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "YonedaProduct"

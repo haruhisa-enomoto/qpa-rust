@@ -2202,6 +2202,12 @@ def test_vertex_projective_path_vectors_follow_qpa(field: qpa.Field) -> None:
     divisor = projective.vector([v1, algebra.zero()])
     dividend = projective.vector([arrow, algebra.zero()])
     assert dividend.is_left_divisible(divisor)
+    assert dividend.left_division(divisor) == arrow
+    assert dividend.first_part([divisor], []) == [arrow]
+    assert dividend.tip_reduce_by([divisor]).is_zero
+    assert qpa.PathAlgebraVector.tip_reduce([dividend, divisor]) == [divisor]
+    with pytest.raises(qpa.InvalidInputError, match="empty path-vector list"):
+        qpa.PathAlgebraVector.tip_reduce([])
     assert divisor < vector
 
     whole_basis = projective.right_groebner_basis()
@@ -2212,6 +2218,25 @@ def test_vertex_projective_path_vectors_follow_qpa(field: qpa.Field) -> None:
     assert whole_basis.completely_reduced_basis_vectors() == projective.generators
     assert repr(whole_basis).startswith("<Groebner basis of <right-module over <")
     assert whole_basis.completely_reduce(vector).is_zero
+
+    loop_algebra = qpa.PathAlgebra(
+        field,
+        qpa.Quiver(["v"], [("v", "v", "x"), ("v", "v", "y")]),
+    )
+    vertex, x, y = loop_algebra.generators
+    relations = [x.multiply(x), x.multiply(y), y.multiply(y)]
+    ideal = loop_algebra.ideal(relations).with_complete_groebner_basis(relations)
+    loop_projective = loop_algebra.right_projective_module([1])
+    generator = loop_projective.generators[0]
+    f_n = loop_projective.vector([y.negate()])
+    x_set = f_n.x_set([generator], [], ideal)
+    assert len(x_set.o_set) == 1
+    assert len(x_set.n_set) == 2
+    _, generator_position, q_prime, relation = x_set.o_set[0]
+    assert generator_position == 1
+    assert q_prime == vertex.negate()
+    assert relation == y.multiply(y)
+    assert all(entry[1] == vertex for entry in x_set.n_set)
 
 
 @pytest.mark.parametrize(

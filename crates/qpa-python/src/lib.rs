@@ -26,13 +26,14 @@ use algebra::{
     PyNonisomorphicDirectSummandData, PyOppositeStructureConstantsAlgebra,
     PyOppositeStructureConstantsElement, PyPathAlgebra, PyPathAlgebraIdeal,
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
-    PyPathAlgebraVectorSpace, PyPredecessorValuation, PyPredecessorsOfModuleResult,
-    PyProjectiveIsomorphismComponent, PyProjectivePathAlgebraPresentation, PyProjectiveResolution,
-    PyQuiverAlgebra, PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector,
-    PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule,
-    PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule, PyStructureConstantsAlgebra,
-    PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
-    PyStructureConstantsSubalgebra, PyTiltingModuleResult,
+    PyPathAlgebraVectorSpace, PyPathAlgebraVectorXSet, PyPredecessorValuation,
+    PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent,
+    PyProjectivePathAlgebraPresentation, PyProjectiveResolution, PyQuiverAlgebra,
+    PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector, PyRightFpPathAlgebraModule,
+    PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
+    PyRightProjectiveSubmodule, PyStructureConstantsAlgebra, PyStructureConstantsElement,
+    PyStructureConstantsHomomorphism, PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
+    PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -95,6 +96,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyRightProjectiveModule>()?;
     module.add_class::<PyRightProjectiveSubmodule>()?;
     module.add_class::<PyPathAlgebraVector>()?;
+    module.add_class::<PyPathAlgebraVectorXSet>()?;
     module.add_class::<PyPathAlgebraVectorSpace>()?;
     module.add_class::<PyPathAlgebraVectorBasis>()?;
     module.add_class::<PyPathAlgebraModuleGroebnerBasis>()?;
