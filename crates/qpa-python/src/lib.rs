@@ -10,10 +10,11 @@ mod runtime;
 
 use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAllComplementsResult,
-    PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
-    PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule,
-    PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
-    PyModuleHomomorphism, PyModuleSubmodule, PyNonisomorphicDirectSummandData, PyPathAlgebra,
+    PyCommonDirectSummandResult, PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult,
+    PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution,
+    PyMatrixModule, PyMaximalCommonDirectSummand, PyModuleChainMap, PyModuleComplex,
+    PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleHomomorphism,
+    PyModuleSubmodule, PyMoreMinimalVersionResult, PyNonisomorphicDirectSummandData, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
     PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuotientAlgebra, PyQuotientElement,
     PyTiltingModuleResult,
@@ -78,5 +79,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPredecessorsOfModuleResult>()?;
     module.add_class::<PyModuleDecompositionWithMultiplicities>()?;
     module.add_class::<PyNonisomorphicDirectSummandData>()?;
+    module.add_class::<PyMoreMinimalVersionResult>()?;
+    module.add_class::<PyCommonDirectSummandResult>()?;
+    module.add_class::<PyMaximalCommonDirectSummand>()?;
     Ok(())
 }

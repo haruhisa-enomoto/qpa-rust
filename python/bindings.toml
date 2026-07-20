@@ -2105,3 +2105,51 @@ qpa_name = "LeftMinimalVersion"
 status = "exposed"
 target = "qpa.ModuleHomomorphism.left_minimal_version"
 tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MoreRightMinimalVersion"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.more_right_minimal_version; qpa.MoreMinimalVersionResult"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MoreLeftMinimalVersion"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.more_left_minimal_version; qpa.MoreMinimalVersionResult"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "CommonDirectSummand"
+status = "exposed"
+target = "qpa.MatrixModule.common_direct_summand; qpa.CommonDirectSummandResult"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MaximalCommonDirectSummand"
+status = "exposed"
+target = "qpa.MatrixModule.maximal_common_direct_summand; qpa.MaximalCommonDirectSummand"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MorphismOnKernel"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.morphism_on_kernel"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MorphismOnImage"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.morphism_on_image"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MorphismOnCoKernel"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.morphism_on_cokernel"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MultiplyListsOfMaps"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.multiply_lists"
+tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]

@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 331
+exposed_or_partial_count = 339
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1121,8 +1121,8 @@ python_tests = []
 qpa_name = "CommonDirectSummand"
 python_name = "common_direct_summand"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.common_direct_summand; qpa.CommonDirectSummandResult"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:CommonDirectSummand:1","modulehom:InstallMethod:CommonDirectSummand:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1130,7 +1130,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["common_direct_summand; CommonDirectSummandResult; CommonDirectSummand"]
 rust_tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "CompareArrowLists"
@@ -8171,8 +8171,8 @@ python_tests = []
 qpa_name = "MaximalCommonDirectSummand"
 python_name = "maximal_common_direct_summand"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.maximal_common_direct_summand; qpa.MaximalCommonDirectSummand"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MaximalCommonDirectSummand:1","modulehom:InstallMethod:MaximalCommonDirectSummand:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8180,7 +8180,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["maximal_common_direct_summand; MaximalCommonDirectSummand"]
 rust_tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MaximalPathsOfGentleAlgebra"
@@ -8426,8 +8426,8 @@ python_tests = []
 qpa_name = "MoreLeftMinimalVersion"
 python_name = "more_left_minimal_version"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.more_left_minimal_version; qpa.MoreMinimalVersionResult"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MoreLeftMinimalVersion:1","modulehom:InstallMethod:MoreLeftMinimalVersion:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8435,14 +8435,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["more_left_minimal_version"]
 rust_tests = ["tests/fixtures/modulehom_minimal.schema-v1.json","tests/gap-reference/modulehom_minimal_zero_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MoreRightMinimalVersion"
 python_name = "more_right_minimal_version"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.more_right_minimal_version; qpa.MoreMinimalVersionResult"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MoreRightMinimalVersion:1","modulehom:InstallMethod:MoreRightMinimalVersion:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8450,7 +8450,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["more_right_minimal_version"]
 rust_tests = ["tests/fixtures/modulehom_minimal.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MorphismOfChainMap"
@@ -8471,8 +8471,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps
 qpa_name = "MorphismOnCoKernel"
 python_name = "morphism_on_co_kernel"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.morphism_on_cokernel"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MorphismOnCoKernel:1","modulehom:InstallMethod:MorphismOnCoKernel:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8480,14 +8480,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["morphism_on_cokernel"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MorphismOnImage"
 python_name = "morphism_on_image"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.morphism_on_image"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MorphismOnImage:1","modulehom:InstallMethod:MorphismOnImage:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8495,14 +8495,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["morphism_on_image"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MorphismOnKernel"
 python_name = "morphism_on_kernel"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.morphism_on_kernel"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MorphismOnKernel:1","modulehom:InstallMethod:MorphismOnKernel:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8510,7 +8510,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["morphism_on_kernel"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MorphismsOfChainMap"
@@ -8531,8 +8531,8 @@ python_tests = []
 qpa_name = "MultiplyListsOfMaps"
 python_name = "multiply_lists_of_maps"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.multiply_lists"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MultiplyListsOfMaps:1","modulehom:InstallMethod:MultiplyListsOfMaps:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8540,7 +8540,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["multiply_lists_of_maps"]
 rust_tests = ["tests/fixtures/modulehom_map_utils.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomorphism_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "N_RigidModule"

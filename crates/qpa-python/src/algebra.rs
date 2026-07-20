@@ -480,6 +480,48 @@ pub(crate) struct PyNonisomorphicDirectSummandData {
     value: qpa_core::NonisomorphicDirectSummandData,
 }
 
+#[derive(Clone)]
+enum MoreMinimalVersionResultKind {
+    Rational(qpa_core::MoreMinimalVersionResult<RationalField>),
+    Binary(qpa_core::MoreMinimalVersionResult<Z2>),
+    Prime(qpa_core::MoreMinimalVersionResult<Zp>),
+}
+
+/// QPA's unchanged-map or one-step-reduced minimal-version result.
+#[pyclass(name = "MoreMinimalVersionResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyMoreMinimalVersionResult {
+    kind: MoreMinimalVersionResultKind,
+}
+
+#[derive(Clone)]
+enum CommonDirectSummandResultKind {
+    Rational(qpa_core::CommonDirectSummandResult<RationalField>),
+    Binary(qpa_core::CommonDirectSummandResult<Z2>),
+    Prime(qpa_core::CommonDirectSummandResult<Zp>),
+}
+
+/// QPA's different-algebra, false, or four-module common-summand result.
+#[pyclass(name = "CommonDirectSummandResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyCommonDirectSummandResult {
+    kind: CommonDirectSummandResultKind,
+}
+
+#[derive(Clone)]
+enum MaximalCommonDirectSummandKind {
+    Rational(qpa_core::MaximalCommonDirectSummand<RationalField>),
+    Binary(qpa_core::MaximalCommonDirectSummand<Z2>),
+    Prime(qpa_core::MaximalCommonDirectSummand<Zp>),
+}
+
+/// QPA's ordered common summands and two remaining complements.
+#[pyclass(name = "MaximalCommonDirectSummand", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyMaximalCommonDirectSummand {
+    kind: MaximalCommonDirectSummandKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -639,6 +681,30 @@ macro_rules! impl_resolution_runtime {
             for ModuleDecompositionWithMultiplicitiesKind
         {
             fn wrap(value: qpa_core::ModuleDecompositionWithMultiplicities<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::MoreMinimalVersionResult<$field>>
+            for MoreMinimalVersionResultKind
+        {
+            fn wrap(value: qpa_core::MoreMinimalVersionResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::CommonDirectSummandResult<$field>>
+            for CommonDirectSummandResultKind
+        {
+            fn wrap(value: qpa_core::CommonDirectSummandResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::MaximalCommonDirectSummand<$field>>
+            for MaximalCommonDirectSummandKind
+        {
+            fn wrap(value: qpa_core::MaximalCommonDirectSummand<$field>) -> Self {
                 Self::$variant(value)
             }
         }

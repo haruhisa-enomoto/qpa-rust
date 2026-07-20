@@ -6,6 +6,14 @@ use pyo3::pymethods;
 // Private runtime enums and helpers form one binding domain.
 use super::*;
 
+type InducedMapOperation<F> =
+    fn(
+        &PathAlgebraModuleHomomorphism<F>,
+        &PathAlgebraModuleHomomorphism<F>,
+        &PathAlgebraModuleHomomorphism<F>,
+        &PathAlgebraModuleHomomorphism<F>,
+    ) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, qpa_core::PathAlgebraModuleError>;
+
 fn wrap_module<F: runtime::PythonField>(module: PathAlgebraModule<F>) -> PyMatrixModule
 where
     MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
@@ -211,6 +219,45 @@ fn clone_module_elements(
         .into_iter()
         .map(|element| element.borrow(py).kind.clone())
         .collect()
+}
+
+fn induced_map_for<F: runtime::PythonField>(
+    first: &PathAlgebraModuleHomomorphism<F>,
+    second: ModuleHomomorphismKind,
+    beta: ModuleHomomorphismKind,
+    alpha: ModuleHomomorphismKind,
+    operation: InducedMapOperation<F>,
+) -> PyResult<Option<PyModuleHomomorphism>>
+where
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>
+        + runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    let second = runtime::Extract::extract(second)?;
+    let beta = runtime::Extract::extract(beta)?;
+    let alpha = runtime::Extract::extract(alpha)?;
+    Ok(operation(first, &second, &beta, &alpha)
+        .map_err(invalid)?
+        .map(wrap_module_homomorphism))
+}
+
+fn multiply_lists_of_maps_for<F: runtime::PythonField>(
+    projections: Vec<ModuleHomomorphismKind>,
+    matrix: Vec<Vec<ModuleHomomorphismKind>>,
+    inclusions: Vec<ModuleHomomorphismKind>,
+) -> PyResult<PyModuleHomomorphism>
+where
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>
+        + runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    let projections = runtime::extract_all(projections)?;
+    let matrix = matrix
+        .into_iter()
+        .map(runtime::extract_all)
+        .collect::<PyResult<Vec<_>>>()?;
+    let inclusions = runtime::extract_all(inclusions)?;
+    Ok(wrap_module_homomorphism(
+        qpa_core::multiply_lists_of_maps(&projections, &matrix, &inclusions).map_err(invalid)?,
+    ))
 }
 
 fn wrap_module_submodule<F: runtime::PythonField>(
@@ -464,6 +511,34 @@ impl PyMatrixModule {
             MatrixModuleKind,
             |candidate, generator| qpa_core::is_in_additive_closure(candidate, generator)
                 .map_err(invalid),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn common_direct_summand(&self, other: &Self) -> PyResult<PyCommonDirectSummandResult> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &other.kind,
+            MatrixModuleKind => CommonDirectSummandResultKind,
+            |source, range| qpa_core::common_direct_summand(source, range).map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyCommonDirectSummandResult { kind })
+    }
+
+    fn maximal_common_direct_summand(
+        &self,
+        other: &Self,
+    ) -> PyResult<Option<PyMaximalCommonDirectSummand>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            MatrixModuleKind,
+            |source, range| Ok(qpa_core::maximal_common_direct_summand(source, range)
+                .map_err(invalid)?
+                .map(|result| PyMaximalCommonDirectSummand {
+                    kind: runtime::Wrap::wrap(result),
+                })),
             Err(invalid("modules belong to different coefficient fields"))
         )
     }
@@ -1646,6 +1721,146 @@ impl PyNonisomorphicDirectSummandData {
 }
 
 #[pymethods]
+impl PyMoreMinimalVersionResult {
+    #[getter]
+    fn is_unchanged(&self) -> bool {
+        dispatch_ref!(&self.kind, MoreMinimalVersionResultKind, |result| matches!(
+            result,
+            qpa_core::MoreMinimalVersionResult::Unchanged(_)
+        ))
+    }
+
+    #[getter]
+    fn minimal_part(&self) -> PyModuleHomomorphism {
+        dispatch_ref!(
+            &self.kind,
+            MoreMinimalVersionResultKind,
+            |result| match result {
+                qpa_core::MoreMinimalVersionResult::Unchanged(homomorphism) => {
+                    wrap_module_homomorphism(homomorphism.clone())
+                }
+                qpa_core::MoreMinimalVersionResult::Reduced { minimal_part, .. } => {
+                    wrap_module_homomorphism(minimal_part.clone())
+                }
+            }
+        )
+    }
+
+    #[getter]
+    fn removed_part(&self) -> Option<PyModuleHomomorphism> {
+        dispatch_ref!(
+            &self.kind,
+            MoreMinimalVersionResultKind,
+            |result| match result {
+                qpa_core::MoreMinimalVersionResult::Unchanged(_) => None,
+                qpa_core::MoreMinimalVersionResult::Reduced { removed_part, .. } => {
+                    Some(wrap_module_homomorphism(removed_part.clone()))
+                }
+            }
+        )
+    }
+}
+
+#[pymethods]
+impl PyCommonDirectSummandResult {
+    #[getter]
+    fn status(&self) -> &'static str {
+        dispatch_ref!(
+            &self.kind,
+            CommonDirectSummandResultKind,
+            |result| match result {
+                qpa_core::CommonDirectSummandResult::DifferentAlgebras => "different_algebras",
+                qpa_core::CommonDirectSummandResult::NoCommonSummand => "none",
+                qpa_core::CommonDirectSummandResult::Found(_) => "found",
+            }
+        )
+    }
+
+    #[getter]
+    fn source_common(&self) -> Option<PyMatrixModule> {
+        dispatch_ref!(
+            &self.kind,
+            CommonDirectSummandResultKind,
+            |result| match result {
+                qpa_core::CommonDirectSummandResult::Found(common) => {
+                    Some(wrap_module(common.source_common().clone()))
+                }
+                _ => None,
+            }
+        )
+    }
+
+    #[getter]
+    fn source_complement(&self) -> Option<PyMatrixModule> {
+        dispatch_ref!(
+            &self.kind,
+            CommonDirectSummandResultKind,
+            |result| match result {
+                qpa_core::CommonDirectSummandResult::Found(common) => {
+                    Some(wrap_module(common.source_complement().clone()))
+                }
+                _ => None,
+            }
+        )
+    }
+
+    #[getter]
+    fn range_common(&self) -> Option<PyMatrixModule> {
+        dispatch_ref!(
+            &self.kind,
+            CommonDirectSummandResultKind,
+            |result| match result {
+                qpa_core::CommonDirectSummandResult::Found(common) => {
+                    Some(wrap_module(common.range_common().clone()))
+                }
+                _ => None,
+            }
+        )
+    }
+
+    #[getter]
+    fn range_complement(&self) -> Option<PyMatrixModule> {
+        dispatch_ref!(
+            &self.kind,
+            CommonDirectSummandResultKind,
+            |result| match result {
+                qpa_core::CommonDirectSummandResult::Found(common) => {
+                    Some(wrap_module(common.range_complement().clone()))
+                }
+                _ => None,
+            }
+        )
+    }
+}
+
+#[pymethods]
+impl PyMaximalCommonDirectSummand {
+    #[getter]
+    fn common_summands(&self) -> Vec<PyMatrixModule> {
+        dispatch_ref!(&self.kind, MaximalCommonDirectSummandKind, |result| result
+            .common_summands()
+            .iter()
+            .cloned()
+            .map(wrap_module)
+            .collect())
+    }
+
+    #[getter]
+    fn source_remainder(&self) -> PyMatrixModule {
+        dispatch_ref!(&self.kind, MaximalCommonDirectSummandKind, |result| {
+            wrap_module(result.source_remainder().clone())
+        })
+    }
+
+    #[getter]
+    fn range_remainder(&self) -> PyMatrixModule {
+        dispatch_ref!(&self.kind, MaximalCommonDirectSummandKind, |result| {
+            wrap_module(result.range_remainder().clone())
+        })
+    }
+}
+
+#[pymethods]
 impl PyModuleElement {
     #[getter]
     fn module(&self) -> PyMatrixModule {
@@ -2195,6 +2410,92 @@ impl PyModuleHomomorphism {
                 removed.into_iter().map(wrap_module).collect(),
             ))
         })
+    }
+
+    fn more_right_minimal_version(&self) -> PyResult<PyMoreMinimalVersionResult> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleHomomorphismKind => MoreMinimalVersionResultKind,
+            |homomorphism| qpa_core::more_right_minimal_version(homomorphism).map_err(invalid)?
+        );
+        Ok(PyMoreMinimalVersionResult { kind })
+    }
+
+    fn more_left_minimal_version(&self) -> PyResult<PyMoreMinimalVersionResult> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleHomomorphismKind => MoreMinimalVersionResultKind,
+            |homomorphism| qpa_core::more_left_minimal_version(homomorphism).map_err(invalid)?
+        );
+        Ok(PyMoreMinimalVersionResult { kind })
+    }
+
+    fn morphism_on_kernel(
+        &self,
+        second: &Self,
+        beta: &Self,
+        alpha: &Self,
+    ) -> PyResult<Option<Self>> {
+        let second = second.kind.clone();
+        let beta = beta.kind.clone();
+        let alpha = alpha.kind.clone();
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |first| {
+            induced_map_for(first, second, beta, alpha, qpa_core::morphism_on_kernel)
+        })
+    }
+
+    fn morphism_on_image(
+        &self,
+        second: &Self,
+        beta: &Self,
+        alpha: &Self,
+    ) -> PyResult<Option<Self>> {
+        let second = second.kind.clone();
+        let beta = beta.kind.clone();
+        let alpha = alpha.kind.clone();
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |first| {
+            induced_map_for(first, second, beta, alpha, qpa_core::morphism_on_image)
+        })
+    }
+
+    fn morphism_on_cokernel(
+        &self,
+        second: &Self,
+        beta: &Self,
+        alpha: &Self,
+    ) -> PyResult<Option<Self>> {
+        let second = second.kind.clone();
+        let beta = beta.kind.clone();
+        let alpha = alpha.kind.clone();
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |first| {
+            induced_map_for(first, second, beta, alpha, qpa_core::morphism_on_cokernel)
+        })
+    }
+
+    #[staticmethod]
+    fn multiply_lists(
+        py: Python<'_>,
+        projections: Vec<Py<PyModuleHomomorphism>>,
+        matrix: Vec<Vec<Py<PyModuleHomomorphism>>>,
+        inclusions: Vec<Py<PyModuleHomomorphism>>,
+    ) -> PyResult<PyModuleHomomorphism> {
+        let projections = clone_module_homomorphisms(py, projections);
+        let matrix = matrix
+            .into_iter()
+            .map(|row| clone_module_homomorphisms(py, row))
+            .collect::<Vec<_>>();
+        let inclusions = clone_module_homomorphisms(py, inclusions);
+        match projections.first() {
+            Some(ModuleHomomorphismKind::Rational(_)) | None => {
+                multiply_lists_of_maps_for::<RationalField>(projections, matrix, inclusions)
+            }
+            Some(ModuleHomomorphismKind::Binary(_)) => {
+                multiply_lists_of_maps_for::<Z2>(projections, matrix, inclusions)
+            }
+            Some(ModuleHomomorphismKind::Prime(_)) => {
+                multiply_lists_of_maps_for::<Zp>(projections, matrix, inclusions)
+            }
+        }
     }
 
     fn preimage_representative(

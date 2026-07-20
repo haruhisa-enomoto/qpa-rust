@@ -1039,3 +1039,63 @@ def test_hom_spaces_categorical_maps_and_minimal_versions_follow_qpa(
     assert left_minimal.is_left_minimal
     assert left_minimal.range.dimension_vector == [1, 0]
     assert len(removed_ranges) == 1
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_structured_homomorphism_operations_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    first_simple, second_simple = algebra.simple_modules()
+    repeated = qpa.MatrixModule.direct_sum([first_simple, first_simple])
+    assert repeated is not None
+    inclusions = repeated.direct_sum_inclusions()
+    projections = repeated.direct_sum_projections()
+
+    right_reduction = projections[0].add(projections[1]).more_right_minimal_version()
+    assert not right_reduction.is_unchanged
+    assert right_reduction.minimal_part.source.dimension_vector == [1, 0]
+    assert right_reduction.removed_part is not None
+    assert right_reduction.removed_part.source.dimension_vector == [1, 0]
+    left_reduction = inclusions[0].add(inclusions[1]).more_left_minimal_version()
+    assert not left_reduction.is_unchanged
+    assert left_reduction.minimal_part.range.dimension_vector == [1, 0]
+    assert left_reduction.removed_part is not None
+    assert left_reduction.removed_part.range.dimension_vector == [1, 0]
+    assert first_simple.identity().more_right_minimal_version().is_unchanged
+    assert first_simple.identity().more_left_minimal_version().is_unchanged
+
+    common = repeated.common_direct_summand(first_simple)
+    assert common.status == "found"
+    assert common.source_common is not None
+    assert common.source_common.dimension_vector == [1, 0]
+    assert common.source_complement is not None
+    assert common.source_complement.dimension_vector == [1, 0]
+    assert common.range_common is not None
+    assert common.range_common.dimension_vector == [1, 0]
+    assert common.range_complement is not None
+    assert common.range_complement.dimension_vector == [0, 0]
+    assert first_simple.common_direct_summand(second_simple).status == "none"
+
+    maximal = repeated.maximal_common_direct_summand(first_simple)
+    assert maximal is not None
+    assert [summand.dimension_vector for summand in maximal.common_summands] == [[1, 0]]
+    assert maximal.source_remainder.dimension_vector == [1, 0]
+    assert maximal.range_remainder.dimension_vector == [0, 0]
+    assert first_simple.maximal_common_direct_summand(second_simple) is None
+
+    cover = first_simple.projective_cover()
+    induced_maps = [
+        cover.morphism_on_kernel(cover, cover.source.identity(), cover.range.identity()),
+        cover.morphism_on_image(cover, cover.source.identity(), cover.range.identity()),
+        cover.morphism_on_cokernel(cover, cover.source.identity(), cover.range.identity()),
+    ]
+    assert all(induced is not None and induced.is_isomorphism for induced in induced_maps)
+    assert cover.morphism_on_kernel(
+        cover, cover.source.zero_map_to(cover.source), cover.range.identity()
+    ) is None
+
+    identity = first_simple.identity()
+    zero = first_simple.zero_map_to(first_simple)
+    block_identity = qpa.ModuleHomomorphism.multiply_lists(
+        projections, [[identity, zero], [zero, identity]], inclusions
+    )
+    assert block_identity == repeated.identity()
