@@ -11,6 +11,7 @@ mod projective;
 mod projective_gsz;
 mod quotient;
 mod quotient_projective;
+mod tensor;
 
 pub(crate) use complex_foundation::{PyModuleCategory, PyModuleMorphismList};
 use conversion::{
@@ -38,6 +39,7 @@ pub(crate) use quotient_projective::{
     PyLiftedProjectivePathAlgebraModule, PyQuotientPathAlgebraVector,
     PyRightProjectiveQuotientModule,
 };
+pub(crate) use tensor::PyTensorProductAlgebra;
 
 use numerica::domains::{
     finite_field::{Z2, Zp},

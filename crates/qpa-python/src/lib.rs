@@ -33,8 +33,8 @@ use algebra::{
     PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
     PyRightProjectiveSubmodule, PySimpleEndoProjectiveResolutionResult,
     PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
-    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra, PyTiltingModuleResult,
-    py_complex_and_chain_maps,
+    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra, PyTensorProductAlgebra,
+    PyTiltingModuleResult, py_complex_and_chain_maps,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -93,6 +93,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyOppositeStructureConstantsAlgebra>()?;
     module.add_class::<PyOppositeStructureConstantsElement>()?;
     module.add_class::<PyQuiverAlgebra>()?;
+    module.add_class::<PyTensorProductAlgebra>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;

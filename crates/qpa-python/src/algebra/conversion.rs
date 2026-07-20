@@ -199,6 +199,17 @@ macro_rules! impl_conversion_runtime {
             }
         }
 
+        impl runtime::Extract<QuiverAlgebra<$field>> for QuiverAlgebraKind {
+            fn extract(self) -> PyResult<QuiverAlgebra<$field>> {
+                match self {
+                    Self::$variant(value) => Ok(value),
+                    _ => Err(invalid(
+                        "quiver algebra belongs to another coefficient field",
+                    )),
+                }
+            }
+        }
+
         impl runtime::Wrap<qpa_gbnp::AlgebraAsQuiverAlgebraResult<$field>>
             for AlgebraAsQuiverAlgebraResultKind
         {
@@ -1126,6 +1137,58 @@ impl PyStructureConstantsSubalgebra {
 
 #[pymethods]
 impl PyQuiverAlgebra {
+    /// Wrap a path algebra in QPA's path-or-quotient algebra union.
+    #[staticmethod]
+    fn from_path_algebra(algebra: &PyPathAlgebra) -> Self {
+        Self {
+            kind: map_ref!(
+                &algebra.kind,
+                AlgebraKind => QuiverAlgebraKind,
+                |algebra| QuiverAlgebra::Path(algebra.clone())
+            ),
+        }
+    }
+
+    /// Wrap a quotient in QPA's path-or-quotient algebra union.
+    #[staticmethod]
+    fn from_quotient_algebra(algebra: &PyQuotientAlgebra) -> Self {
+        Self {
+            kind: map_ref!(
+                &algebra.kind,
+                QuotientKind => QuiverAlgebraKind,
+                |algebra| QuiverAlgebra::Quotient(algebra.clone())
+            ),
+        }
+    }
+
+    /// Apply QPA's binary `TensorProductOfAlgebras` method.
+    fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            QuiverAlgebraKind,
+            |left, right| super::tensor::tensor_product_for(left, right),
+            Err(invalid(
+                "tensor factors belong to different coefficient fields"
+            ))
+        )
+    }
+
+    /// Apply QPA's cached `EnvelopingAlgebra` attribute.
+    fn enveloping_algebra(&self) -> PyResult<super::PyTensorProductAlgebra> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::tensor::enveloping_algebra_for(algebra)
+        })
+    }
+
+    /// Return QPA's explicitly installed enveloping-algebra property.
+    #[getter]
+    fn is_enveloping_algebra(&self) -> bool {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            qpa_gbnp::is_enveloping_algebra(algebra)
+        })
+    }
+
     fn complexity(&self, degree: i64) -> PyResult<usize> {
         let degree = Integer::from(degree);
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {

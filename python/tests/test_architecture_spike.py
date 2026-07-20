@@ -197,6 +197,84 @@ def test_quiver_product_and_path_tensor_helpers_follow_qpa() -> None:
         left.zero_path().walk_or_vertex()
 
 
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_tensor_products_and_enveloping_algebras_follow_qpa(field: qpa.Field) -> None:
+    left_path = qpa.PathAlgebra(
+        field, qpa.Quiver(["u1", "u2"], [("u1", "u2", "a")])
+    )
+    right_path = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "b")])
+    )
+    left = qpa.QuiverAlgebra.from_path_algebra(left_path)
+    right = qpa.QuiverAlgebra.from_path_algebra(right_path)
+
+    tensor = left.tensor_product(right)
+    assert isinstance(tensor, qpa.TensorProductAlgebra)
+    assert tensor.algebra.is_quotient
+    assert tensor.quotient.dimension() == "9"
+    assert tensor.product_quiver.quiver.vertices == [
+        "u1_v1",
+        "u1_v2",
+        "u2_v1",
+        "u2_v2",
+    ]
+    assert tensor.product_quiver.quiver.arrows == [
+        ("u1_v1", "u1_v2", "u1_b"),
+        ("u2_v1", "u2_v2", "u2_b"),
+        ("u1_v1", "u2_v1", "a_v1"),
+        ("u1_v2", "u2_v2", "a_v2"),
+    ]
+    assert [
+        factor.is_identical(expected)
+        for factor, expected in zip(tensor.factors, [left, right], strict=True)
+    ] == [True, True]
+    assert [
+        factor.is_identical(expected)
+        for factor, expected in zip(tensor.decomposition, [left, right], strict=True)
+    ] == [True, True]
+    assert tensor.factor(1).is_identical(left)
+    assert tensor.factor(2).is_identical(right)
+    with pytest.raises(qpa.InvalidInputError, match="outside 1..=2"):
+        tensor.factor(0)
+
+    left_inclusion = tensor.inclusion(1)
+    right_inclusion = tensor.inclusion(2)
+    zero_inclusion = tensor.inclusion(0)
+    assert left_inclusion.source_path_algebra.is_identical(left_path)
+    assert right_inclusion.source_path_algebra.is_identical(right_path)
+    assert zero_inclusion.source_path_algebra.is_identical(right_path)
+    assert left_inclusion.range_quotient_algebra.is_identical(tensor.quotient)
+    assert right_inclusion.range_quotient_algebra.is_identical(tensor.quotient)
+
+    assert left.is_enveloping_algebra is False
+    enveloping = left.enveloping_algebra()
+    enveloping_again = left.enveloping_algebra()
+    assert enveloping.is_identical(enveloping_again)
+    assert enveloping.algebra.is_enveloping_algebra is True
+    assert enveloping.factor(2).is_identical(left)
+    assert enveloping.quotient.dimension() == "9"
+
+    loop_path = qpa.PathAlgebra(field, qpa.Quiver(["w"], [("w", "w", "x")]))
+    square_zero = loop_path.quotient(
+        [loop_path.generator("x") * loop_path.generator("x")]
+    )
+    quotient = qpa.QuiverAlgebra.from_quotient_algebra(square_zero)
+    assert quotient.is_quotient
+    assert quotient.quotient_algebra.is_identical(square_zero)
+    quotient_enveloping = quotient.enveloping_algebra()
+    assert quotient_enveloping.algebra.is_enveloping_algebra
+    assert quotient_enveloping.factor(2).is_identical(quotient)
+    assert quotient_enveloping.quotient.dimension() == "4"
+
+    other = qpa.QuiverAlgebra.from_path_algebra(
+        qpa.PathAlgebra(qpa.Field.prime(7), qpa.Quiver(["z"], []))
+    )
+    with pytest.raises(qpa.InvalidInputError, match="field"):
+        left.tensor_product(other)
+
+
 def test_quiver_orderings_follow_qpa_comparison_closures() -> None:
     quiver = qpa.Quiver.indexed(
         2,

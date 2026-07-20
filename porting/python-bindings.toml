@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 544
+exposed_or_partial_count = 550
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2606,16 +2606,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "EnvelopingAlgebra"
 python_name = "enveloping_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.enveloping_algebra"
+notes = "Returns the retained tensor wrapper so QPA's factor decomposition and cached repeated-call identity remain observable."
 entry_ids = ["pathalgtensor:DeclareAttribute:EnvelopingAlgebra:1","pathalgtensor:InstallMethod:EnvelopingAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["enveloping_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "EnvelopingAlgebraHomomorphism"
@@ -4826,8 +4826,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsEnvelopingAlgebra"
 python_name = "is_enveloping_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_enveloping_algebra"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareProperty:IsEnvelopingAlgebra:1","pathalgtensor:InstallMethod:IsEnvelopingAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -4835,7 +4835,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["is_enveloping_algebra","is_enveloping_algebra; QuiverAlgebra::is_enveloping_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_enveloping.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsExactInDegree"
@@ -12131,23 +12131,23 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "TensorAlgebraInclusion"
 python_name = "tensor_algebra_inclusion"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.TensorProductAlgebra.inclusion"
+notes = "Preserves QPA's convention that only index 1 selects the first factor and every other integer selects the second."
 entry_ids = ["pathalgtensor:DeclareOperation:TensorAlgebraInclusion:1","pathalgtensor:InstallMethod:TensorAlgebraInclusion:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["tensor_algebra_inclusion; QuiverAlgebraHomomorphism","tensor_algebra_inclusion; TensorProductAlgebra::inclusion"]
 rust_tests = ["tests/fixtures/pathalgtensor_inclusion.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "TensorProductDecomposition"
 python_name = "tensor_product_decomposition"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.TensorProductAlgebra.factors; qpa.TensorProductAlgebra.decomposition; qpa.TensorProductAlgebra.factor"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareAttribute:TensorProductDecomposition:1"]
 constructs = ["DeclareAttribute"]
@@ -12155,22 +12155,22 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd"]
 rust_symbols = ["TensorProductAlgebra::factors"]
 rust_tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "TensorProductOfAlgebras"
 python_name = "tensor_product_of_algebras"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.tensor_product; qpa.TensorProductAlgebra"
+notes = "Delegates directly to QPA's translated binary tensor-product method for path or quotient factors."
 entry_ids = ["pathalgtensor:DeclareOperation:TensorProductOfAlgebras:1","pathalgtensor:InstallMethod:TensorProductOfAlgebras:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["tensor_product_of_algebras"]
 rust_tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json","tests/gap-reference/pathalgtensor_empty_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "TensorProductOfModules"
@@ -12191,16 +12191,16 @@ python_tests = []
 qpa_name = "TensorProductOfPathAlgebras"
 python_name = "tensor_product_of_path_algebras"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.tensor_product"
+notes = "The Python binary method supplies QPA's two-entry list constructor over the unified quiver-algebra wrapper."
 entry_ids = ["pathalgtensor:DeclareGlobalFunction:TensorProductOfPathAlgebras:1","pathalgtensor:InstallGlobalFunction:TensorProductOfPathAlgebras:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["tensor_product_of_path_algebras"]
 rust_tests = ["tests/fixtures/pathalgtensor_full.schema-v1.json","tests/gap-reference/pathalgtensor_empty_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "TestCodimConjecture"

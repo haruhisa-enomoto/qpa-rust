@@ -3427,3 +3427,43 @@ qpa_name = "ReversePath"
 status = "exposed"
 target = "qpa.Path.reverse_path"
 tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TensorProductOfAlgebras"
+status = "exposed"
+target = "qpa.QuiverAlgebra.tensor_product; qpa.TensorProductAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
+notes = "Delegates directly to QPA's translated binary tensor-product method for path or quotient factors."
+
+[[bindings]]
+qpa_name = "TensorProductOfPathAlgebras"
+status = "exposed"
+target = "qpa.QuiverAlgebra.tensor_product"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
+notes = "The Python binary method supplies QPA's two-entry list constructor over the unified quiver-algebra wrapper."
+
+[[bindings]]
+qpa_name = "TensorProductDecomposition"
+status = "exposed"
+target = "qpa.TensorProductAlgebra.factors; qpa.TensorProductAlgebra.decomposition; qpa.TensorProductAlgebra.factor"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TensorAlgebraInclusion"
+status = "exposed"
+target = "qpa.TensorProductAlgebra.inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
+notes = "Preserves QPA's convention that only index 1 selects the first factor and every other integer selects the second."
+
+[[bindings]]
+qpa_name = "EnvelopingAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.enveloping_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
+notes = "Returns the retained tensor wrapper so QPA's factor decomposition and cached repeated-call identity remain observable."
+
+[[bindings]]
+qpa_name = "IsEnvelopingAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_enveloping_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]

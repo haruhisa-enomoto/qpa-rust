@@ -44,6 +44,12 @@ pub(crate) struct PyQuiverProduct {
     inner: QuiverProduct,
 }
 
+impl PyQuiverProduct {
+    pub(crate) fn from_inner(inner: QuiverProduct) -> Self {
+        Self { inner }
+    }
+}
+
 /// QPA's two-factor decomposition attached to a product quiver.
 #[pyclass(name = "QuiverProductDecomposition", frozen, skip_from_py_object)]
 #[derive(Clone)]
