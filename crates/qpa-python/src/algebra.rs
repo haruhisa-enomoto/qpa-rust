@@ -308,6 +308,20 @@ pub(crate) struct PyModuleChainMap {
     kind: ModuleChainMapKind,
 }
 
+#[derive(Clone)]
+enum ProjectiveIsomorphismComponentKind {
+    Rational(qpa_gbnp::ProjectiveIsomorphismComponent<RationalField>),
+    Binary(qpa_gbnp::ProjectiveIsomorphismComponent<Z2>),
+    Prime(qpa_gbnp::ProjectiveIsomorphismComponent<Zp>),
+}
+
+/// QPA's selected isomorphism component in a map of decomposed projectives.
+#[pyclass(name = "ProjectiveIsomorphismComponent", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyProjectiveIsomorphismComponent {
+    kind: ProjectiveIsomorphismComponentKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -379,6 +393,27 @@ macro_rules! impl_resolution_runtime {
         impl runtime::Wrap<qpa_gbnp::ModuleChainMap<$field>> for ModuleChainMapKind {
             fn wrap(value: qpa_gbnp::ModuleChainMap<$field>) -> Self {
                 Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::ProjectiveIsomorphismComponent<$field>>
+            for ProjectiveIsomorphismComponentKind
+        {
+            fn wrap(value: qpa_gbnp::ProjectiveIsomorphismComponent<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Extract<qpa_gbnp::ProjectiveIsomorphismComponent<$field>>
+            for ProjectiveIsomorphismComponentKind
+        {
+            fn extract(self) -> PyResult<qpa_gbnp::ProjectiveIsomorphismComponent<$field>> {
+                match self {
+                    Self::$variant(value) => Ok(value),
+                    _ => Err(invalid(
+                        "isomorphism component belongs to another coefficient field",
+                    )),
+                }
             }
         }
     };

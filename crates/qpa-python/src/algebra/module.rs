@@ -882,6 +882,76 @@ impl PyModuleHomomorphism {
         ))
     }
 
+    fn check_for_projective_isomorphism(
+        &self,
+    ) -> PyResult<Option<PyProjectiveIsomorphismComponent>> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            qpa_gbnp::check_for_isomorphism(homomorphism)
+                .map_err(invalid)?
+                .map(|component| PyProjectiveIsomorphismComponent {
+                    kind: runtime::Wrap::wrap(component),
+                })
+        ))
+    }
+
+    fn reduce_differential(
+        &self,
+        cancellation: &PyProjectiveIsomorphismComponent,
+        reduced_source: &PyMatrixModule,
+        reduced_range: &PyMatrixModule,
+    ) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |differential| {
+            let cancellation = runtime::Extract::extract(cancellation.kind.clone())?;
+            let reduced_source = runtime::Extract::extract(reduced_source.kind.clone())?;
+            let reduced_range = runtime::Extract::extract(reduced_range.kind.clone())?;
+            Ok(wrap_module_homomorphism(
+                qpa_gbnp::reduce_differential(
+                    differential,
+                    &cancellation,
+                    &reduced_source,
+                    &reduced_range,
+                )
+                .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn reduce_previous_differential(&self, inclusion: &Self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |differential| {
+            let inclusion = runtime::Extract::extract(inclusion.kind.clone())?;
+            Ok(wrap_module_homomorphism(
+                qpa_gbnp::reduce_previous_differential(differential, &inclusion)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn reduce_t_map(
+        &self,
+        differential: &Self,
+        cancellation: &PyProjectiveIsomorphismComponent,
+        inclusion: &Self,
+    ) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |map| {
+            let differential = runtime::Extract::extract(differential.kind.clone())?;
+            let cancellation = runtime::Extract::extract(cancellation.kind.clone())?;
+            let inclusion = runtime::Extract::extract(inclusion.kind.clone())?;
+            Ok(wrap_module_homomorphism(
+                qpa_gbnp::reduce_t_map(map, &differential, &cancellation, &inclusion)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn reduce_previous_t_map(&self, inclusion: &Self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |map| {
+            let inclusion = runtime::Extract::extract(inclusion.kind.clone())?;
+            Ok(wrap_module_homomorphism(
+                qpa_gbnp::reduce_previous_t_map(map, &inclusion).map_err(invalid)?,
+            ))
+        })
+    }
+
     fn image(&self, element: &PyModuleElement) -> PyResult<PyModuleElement> {
         let kind = match (&self.kind, &element.kind) {
             (ModuleHomomorphismKind::Rational(map), ModuleElementKind::Rational(element)) => {

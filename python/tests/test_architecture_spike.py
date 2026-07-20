@@ -593,3 +593,43 @@ def test_derived_category_transforms_follow_qpa(field: qpa.Field) -> None:
     assert tau.lower_bound == "-1" and tau.upper_bound == "-1"
     assert tau.object(-1).dimension_vector == [1]
     assert tau.is_projective_complex
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_derived_category_reductions_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v"], []))
+    projective = algebra.indecomposable_projectives()[0]
+    source = qpa.MatrixModule.direct_sum([projective, projective])
+    range_module = qpa.MatrixModule.direct_sum([projective, projective])
+    assert source is not None and range_module is not None
+    zero = field.element(0)
+    unit = field.element(1)
+    differential = source.homomorphism_to(range_module, [[[unit, unit], [unit, zero]]])
+    zero_map = source.homomorphism_to(range_module, [[[zero, zero], [zero, zero]]])
+    assert zero_map.check_for_projective_isomorphism() is None
+
+    cancellation = differential.check_for_projective_isomorphism()
+    assert cancellation is not None
+    assert cancellation.vertex == 1
+    assert cancellation.source_position == 1 and cancellation.range_position == 1
+    assert cancellation.map.is_isomorphism
+    assert "source summand 1" in repr(cancellation)
+
+    source_inclusion, _source_projection = source.direct_sum_minus_summands([1])
+    range_inclusion, _range_projection = range_module.direct_sum_minus_summands([1])
+    reduced = differential.reduce_differential(
+        cancellation, source_inclusion.source, range_inclusion.source
+    )
+    assert reduced.source.dimension_vector == [1]
+    assert reduced.range.dimension_vector == [1]
+    assert reduced.is_isomorphism
+
+    t_map = source.direct_sum_projections()[0]
+    reduced_t = t_map.reduce_t_map(differential, cancellation, source_inclusion)
+    assert reduced_t.source.dimension_vector == [1] and reduced_t.is_isomorphism
+    range_projections = range_module.direct_sum_projections()
+    previous = range_projections[0].add(range_projections[1])
+    assert previous.reduce_previous_differential(range_inclusion).is_isomorphism
+    source_projections = source.direct_sum_projections()
+    previous_t = source_projections[0].add(source_projections[1])
+    assert previous_t.reduce_previous_t_map(source_inclusion).is_isomorphism

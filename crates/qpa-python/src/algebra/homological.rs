@@ -642,3 +642,52 @@ impl PyModuleChainMap {
         dispatch_ref!(&self.kind, ModuleChainMapKind, |map| map.qpa_string())
     }
 }
+
+#[pymethods]
+impl PyProjectiveIsomorphismComponent {
+    #[getter]
+    fn map(&self) -> PyModuleHomomorphism {
+        let kind = map_ref!(
+            &self.kind,
+            ProjectiveIsomorphismComponentKind => ModuleHomomorphismKind,
+            |component| component.map().clone()
+        );
+        PyModuleHomomorphism { kind }
+    }
+
+    #[getter]
+    fn vertex(&self) -> usize {
+        dispatch_ref!(
+            &self.kind,
+            ProjectiveIsomorphismComponentKind,
+            |component| component.vertex()
+        )
+    }
+
+    #[getter]
+    fn source_position(&self) -> usize {
+        dispatch_ref!(
+            &self.kind,
+            ProjectiveIsomorphismComponentKind,
+            |component| component.source_position()
+        )
+    }
+
+    #[getter]
+    fn range_position(&self) -> usize {
+        dispatch_ref!(
+            &self.kind,
+            ProjectiveIsomorphismComponentKind,
+            |component| component.range_position()
+        )
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "<projective isomorphism at vertex {}, source summand {}, range summand {}>",
+            self.vertex(),
+            self.source_position(),
+            self.range_position(),
+        )
+    }
+}

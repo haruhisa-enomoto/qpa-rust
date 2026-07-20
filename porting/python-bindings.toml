@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 230
+exposed_or_partial_count = 235
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -986,8 +986,8 @@ python_tests = []
 qpa_name = "CheckForIsomorphism"
 python_name = "check_for_isomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.check_for_projective_isomorphism"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:CheckForIsomorphism:1","derivedcat:InstallMethod:CheckForIsomorphism:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -995,7 +995,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["check_for_isomorphism"]
 rust_tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
 
 [[operations]]
 qpa_name = "CheckQuiverSubsetForCycles"
@@ -10811,8 +10811,8 @@ python_tests = []
 qpa_name = "ReduceDifferential"
 python_name = "reduce_differential"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.reduce_differential"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:ReduceDifferential:1","derivedcat:InstallMethod:ReduceDifferential:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10820,14 +10820,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["reduce_differential"]
 rust_tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReducePreviousDifferential"
 python_name = "reduce_previous_differential"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.reduce_previous_differential"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:ReducePreviousDifferential:1","derivedcat:InstallMethod:ReducePreviousDifferential:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10835,14 +10835,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["reduce_previous_differential"]
 rust_tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReducePreviousTMap"
 python_name = "reduce_previous_t_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.reduce_previous_t_map"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:ReducePreviousTMap:1","derivedcat:InstallMethod:ReducePreviousTMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10850,14 +10850,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["reduce_previous_t_map"]
 rust_tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReduceTMap"
 python_name = "reduce_t_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.reduce_t_map"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:ReduceTMap:1","derivedcat:InstallMethod:ReduceTMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10865,7 +10865,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["reduce_t_map"]
 rust_tests = ["tests/fixtures/derivedcat_reduction.schema-v1.json","tests/fixtures/derivedcat_resolution_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReducedListInvLenInvLexQPA"

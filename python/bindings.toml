@@ -1477,3 +1477,35 @@ qpa_name = "TauOfComplex"
 status = "exposed"
 target = "qpa.ModuleComplex.tau"
 tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
+
+# Derived-category cancellation and reduction
+
+[[bindings]]
+qpa_name = "CheckForIsomorphism"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.check_for_projective_isomorphism"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ReduceDifferential"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.reduce_differential"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ReducePreviousDifferential"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.reduce_previous_differential"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ReducePreviousTMap"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.reduce_previous_t_map"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ReduceTMap"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.reduce_t_map"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
