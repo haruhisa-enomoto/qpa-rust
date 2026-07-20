@@ -7,6 +7,7 @@ mod ideal;
 mod module;
 mod projective;
 mod quotient;
+mod quotient_projective;
 
 use conversion::{
     AdrAlgebraOfAlgebraResultKind, StructureConstantsAlgebraKind, adr_algebra_of_basic_module_for,
@@ -21,6 +22,10 @@ pub(crate) use conversion::{
 pub(crate) use projective::{
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
     PyPathAlgebraVectorSpace, PyRightProjectiveModule, PyRightProjectiveSubmodule,
+};
+pub(crate) use quotient_projective::{
+    PyLiftedProjectivePathAlgebraModule, PyQuotientPathAlgebraVector,
+    PyRightProjectiveQuotientModule,
 };
 
 use numerica::domains::{

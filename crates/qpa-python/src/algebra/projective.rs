@@ -18,7 +18,7 @@ use qpa_core::{
 use super::*;
 
 #[derive(Clone)]
-enum ProjectiveModuleKind {
+pub(super) enum ProjectiveModuleKind {
     Rational(RightProjectivePathAlgebraModule<RationalField>),
     Binary(RightProjectivePathAlgebraModule<Z2>),
     Prime(RightProjectivePathAlgebraModule<Zp>),
@@ -60,7 +60,7 @@ pub(crate) struct PyPathAlgebraModuleGroebnerBasis {
 }
 
 #[derive(Clone)]
-enum ProjectiveSubmoduleKind {
+pub(super) enum ProjectiveSubmoduleKind {
     Rational(RightProjectivePathAlgebraSubmodule<RationalField>),
     Binary(RightProjectivePathAlgebraSubmodule<Z2>),
     Prime(RightProjectivePathAlgebraSubmodule<Zp>),
@@ -233,6 +233,30 @@ pub(super) fn right_projective_module(
         |algebra| projective_module(algebra, &vertices)?
     );
     Ok(PyRightProjectiveModule { kind })
+}
+
+pub(super) fn wrap_projective_module<F>(
+    value: RightProjectivePathAlgebraModule<F>,
+) -> PyRightProjectiveModule
+where
+    F: Field,
+    ProjectiveModuleKind: runtime::Wrap<RightProjectivePathAlgebraModule<F>>,
+{
+    PyRightProjectiveModule {
+        kind: runtime::Wrap::wrap(value),
+    }
+}
+
+pub(super) fn wrap_projective_submodule<F>(
+    value: RightProjectivePathAlgebraSubmodule<F>,
+) -> PyRightProjectiveSubmodule
+where
+    F: Field,
+    ProjectiveSubmoduleKind: runtime::Wrap<RightProjectivePathAlgebraSubmodule<F>>,
+{
+    PyRightProjectiveSubmodule {
+        kind: runtime::Wrap::wrap(value),
+    }
 }
 
 pub(super) fn right_groebner_basis_from_generators(

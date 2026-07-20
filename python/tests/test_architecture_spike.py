@@ -2278,3 +2278,60 @@ def test_projective_path_submodules_and_bases_follow_qpa(field: qpa.Field) -> No
     assert coefficients == [field.element(1), field.element(1)]
     assert space.basis_from_vectors([divisor, generator]) is not None
     assert space.basis_nc([divisor, divisor]) is None
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_quotient_projective_path_vectors_follow_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    path_algebra = qpa.PathAlgebra(field, quiver)
+    quotient = path_algebra.quotient([])
+    v1, v2, arrow = quotient.generators
+    projective = quotient.right_projective_module([1, 2])
+
+    assert projective.vertex_indices == [1, 2]
+    assert projective.dimension == 3
+    assert projective.is_vertex_projective
+    assert projective.is_identical(projective)
+    assert not projective.is_identical(
+        qpa.RightProjectiveQuotientModule.from_vertices(quotient, [1, 2])
+    )
+    assert len(projective.generators) == 2
+    assert len(projective.canonical_basis() or []) == 3
+    with pytest.raises(qpa.InvalidInputError, match="nonempty vertex list"):
+        quotient.right_projective_module([])
+
+    vector = projective.vector([arrow, v2])
+    checked_zero = projective.vector([quotient.zero(), quotient.zero()])
+    assert vector.components == [arrow, v2]
+    assert vector.leading_position == 1
+    assert vector.is_normal_form
+    assert vector.leading_term == projective.vector([arrow, quotient.zero()])
+    assert vector.leading_coefficient == field.element(1)
+    assert vector.leading_component == arrow
+    assert vector.source_vertex == path_algebra.generators[0].leading_monomial
+    assert vector.target_vertex == path_algebra.generators[1].leading_monomial
+    assert not vector.is_left_uniform and vector.is_right_uniform
+    assert not vector.is_uniform
+    assert vector.act(v2) == vector
+    assert vector.scale_left(field.element(-1)).add(vector) == projective.zero()
+    assert vector.scale_right(field.element(1)) == vector
+    assert vector.subtract(vector) == checked_zero
+    assert projective.zero().leading_position == 3
+    assert checked_zero.leading_position == 1
+
+    divisor = projective.vector([v1, quotient.zero()])
+    dividend = projective.vector([arrow, quotient.zero()])
+    assert dividend.is_left_divisible(divisor)
+    assert divisor < vector
+
+    lifted = projective.lift()
+    assert not lifted.is_submodule and lifted.submodule is None
+    assert lifted.parent_module.vertex_indices == [1, 2]
+
+    truncated = qpa.QuotientAlgebra.truncated(field, quiver, 1)
+    truncated_lift = truncated.right_projective_module([1]).lift()
+    assert truncated_lift.is_submodule
+    assert truncated_lift.submodule is not None
+    assert truncated_lift.submodule.parent.is_identical(truncated_lift.parent_module)

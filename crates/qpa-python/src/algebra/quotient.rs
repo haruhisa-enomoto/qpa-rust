@@ -40,6 +40,13 @@ where
 
 #[pymethods]
 impl PyQuotientAlgebra {
+    fn right_projective_module(
+        &self,
+        vertices: Vec<usize>,
+    ) -> PyResult<PyRightProjectiveQuotientModule> {
+        quotient_projective::right_projective_module(self, vertices)
+    }
+
     #[staticmethod]
     fn truncated(
         field: PyRef<'_, PyField>,
