@@ -18,14 +18,15 @@ use algebra::{
     PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
     PyEndOfModuleAsQuiverAlgebraResult, PyEulerBilinearForm, PyExtAlgebraGeneratorsResult,
     PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyFpPathAlgebraByImagesHomomorphism,
-    PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyGroebnerBasis,
-    PyGroebnerBasisIterator, PyGszProjectiveResolution, PyInjectiveResolution,
-    PyLiftedProjectivePathAlgebraModule, PyMatrixModule, PyMaximalCommonDirectSummand,
-    PyModuleBasisMapping, PyModuleCategory, PyModuleChainMap, PyModuleComplex,
-    PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleEndomorphismAlgebra,
-    PyModuleEndomorphismQuotientAlgebra, PyModuleEndomorphismQuotientElement,
-    PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
-    PyModuleMorphismList, PyModuleSubmodule, PyMoreMinimalVersionResult, PyNakayamaAlgebraResult,
+    PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyFrobeniusForm,
+    PyFrobeniusLinearFunctional, PyGroebnerBasis, PyGroebnerBasisIterator,
+    PyGszProjectiveResolution, PyInjectiveResolution, PyLiftedProjectivePathAlgebraModule,
+    PyMatrixModule, PyMaximalCommonDirectSummand, PyModuleBasisMapping, PyModuleCategory,
+    PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
+    PyModuleEndomorphismAlgebra, PyModuleEndomorphismQuotientAlgebra,
+    PyModuleEndomorphismQuotientElement, PyModuleEndomorphismQuotientMap, PyModuleHomomorphism,
+    PyModuleHomomorphismBasis, PyModuleMorphismList, PyModuleSubmodule, PyMoreMinimalVersionResult,
+    PyNakayamaAlgebraResult, PyNakayamaAutomorphism, PyNakayamaPermutation,
     PyNaturalSubmoduleHomomorphism, PyNonisomorphicDirectSummandData,
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector,
@@ -115,6 +116,10 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyOppositeStructureConstantsElement>()?;
     module.add_class::<PyQuiverAlgebra>()?;
     module.add_class::<PyQuiverAlgebraElement>()?;
+    module.add_class::<PyNakayamaPermutation>()?;
+    module.add_class::<PyNakayamaAutomorphism>()?;
+    module.add_class::<PyFrobeniusForm>()?;
+    module.add_class::<PyFrobeniusLinearFunctional>()?;
     module.add_class::<PyTensorProductAlgebra>()?;
     module.add_class::<PyCombinatorialMap>()?;
     module.add_class::<PyUnitForm>()?;

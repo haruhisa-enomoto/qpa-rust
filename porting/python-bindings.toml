@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 673
+exposed_or_partial_count = 678
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2921,8 +2921,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "FrobeniusForm"
 python_name = "frobenius_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuotientAlgebra.frobenius_form; qpa.FrobeniusForm"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:FrobeniusForm:1","pathalg:InstallMethod:FrobeniusForm:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2930,14 +2930,14 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["frobenius_form; FrobeniusForm"]
 rust_tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "FrobeniusLinearFunctional"
 python_name = "frobenius_linear_functional"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuotientAlgebra.frobenius_linear_functional; qpa.FrobeniusLinearFunctional"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:FrobeniusLinearFunctional:1","pathalg:InstallMethod:FrobeniusLinearFunctional:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2945,7 +2945,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["frobenius_linear_functional; FrobeniusLinearFunctional"]
 rust_tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "FromEndMToHomMM"
@@ -8576,8 +8576,8 @@ python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonic
 qpa_name = "NakayamaAutomorphism"
 python_name = "nakayama_automorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.nakayama_automorphism; qpa.NakayamaAutomorphism"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:NakayamaAutomorphism:1","pathalg:InstallMethod:NakayamaAutomorphism:1","pathalg:InstallOtherMethod:NakayamaAutomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -8585,7 +8585,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["nakayama_automorphism; NakayamaAutomorphism"]
 rust_tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "NakayamaFunctorOfModule"
@@ -8621,8 +8621,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_
 qpa_name = "NakayamaPermutation"
 python_name = "nakayama_permutation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.nakayama_permutation; qpa.NakayamaPermutation"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:NakayamaPermutation:1","pathalg:InstallMethod:NakayamaPermutation:1","pathalg:InstallOtherMethod:NakayamaPermutation:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -8630,7 +8630,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["nakayama_permutation; NakayamaPermutation"]
 rust_tests = ["tests/fixtures/pathalg_nakayama_permutation.schema-v1.json","tests/fixtures/pathalg_nakayama_permutation_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_permutation_follows_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_permutation_rejects_qpa_invalid_inputs"]
 
 [[operations]]
 qpa_name = "NaturalHomomorphismByIdeal"
@@ -9281,8 +9281,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degen
 qpa_name = "OrderOfNakayamaAutomorphism"
 python_name = "order_of_nakayama_automorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.order_of_nakayama_automorphism"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:OrderOfNakayamaAutomorphism:1","pathalg:InstallMethod:OrderOfNakayamaAutomorphism:1","pathalg:InstallOtherMethod:OrderOfNakayamaAutomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -9290,7 +9290,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["order_of_nakayama_automorphism; NakayamaAutomorphismOrder"]
 rust_tests = ["tests/fixtures/pathalg_nakayama_automorphism.schema-v1.json","tests/fixtures/pathalg_nakayama_automorphism_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "OrderedBy"

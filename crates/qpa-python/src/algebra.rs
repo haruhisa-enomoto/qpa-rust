@@ -13,6 +13,7 @@ mod homological;
 mod ideal;
 mod invariants;
 mod module;
+mod nakayama;
 mod predefined;
 mod projective;
 mod projective_gsz;
@@ -50,6 +51,9 @@ pub(crate) use fp_projective::{
 };
 pub(crate) use homological::py_complex_and_chain_maps;
 pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
+pub(crate) use nakayama::{
+    PyFrobeniusForm, PyFrobeniusLinearFunctional, PyNakayamaAutomorphism, PyNakayamaPermutation,
+};
 pub(crate) use predefined::{
     PyNakayamaAlgebraResult, PyPosetAlgebra, PyPredefinedAlgebra, py_admissible_sequence_generator,
     py_canonical_algebra, py_finite_global_dim_green, py_finite_global_dim_kirk_kuz,

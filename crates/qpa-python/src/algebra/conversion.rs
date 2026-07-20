@@ -1409,6 +1409,27 @@ impl PyQuiverAlgebra {
         })
     }
 
+    /// Return QPA's two Nakayama-permutation closures, or its cached `false`.
+    fn nakayama_permutation(&self) -> PyResult<Option<super::PyNakayamaPermutation>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::nakayama::permutation_for(algebra)
+        })
+    }
+
+    /// Return QPA's Nakayama-automorphism closure, or its cached `false`.
+    fn nakayama_automorphism(&self) -> PyResult<Option<super::PyNakayamaAutomorphism>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::nakayama::automorphism_for(algebra)
+        })
+    }
+
+    /// Return QPA's finite automorphism order, `"infinity"`, or `false` as `None`.
+    fn order_of_nakayama_automorphism(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::nakayama::order_for(py, algebra)
+        })
+    }
+
     fn cartan_matrix(&self) -> PyResult<Option<Vec<Vec<usize>>>> {
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
             super::invariants::cartan_for(algebra)

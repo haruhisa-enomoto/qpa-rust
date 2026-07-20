@@ -298,6 +298,20 @@ impl PyQuotientAlgebra {
             .map(wrap_quotient_elements)))
     }
 
+    /// Return QPA's Frobenius bilinear-form closure, or its cached `false`.
+    fn frobenius_form(&self) -> PyResult<Option<super::PyFrobeniusForm>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            super::nakayama::form_for(algebra)
+        })
+    }
+
+    /// Return QPA's Frobenius functional closure, or its cached `false`.
+    fn frobenius_linear_functional(&self) -> PyResult<Option<super::PyFrobeniusLinearFunctional>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            super::nakayama::functional_for(algebra)
+        })
+    }
+
     #[getter]
     fn is_admissible(&self) -> PyResult<bool> {
         dispatch_ref!(&self.kind, QuotientKind, |algebra| {

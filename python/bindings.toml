@@ -762,6 +762,36 @@ target = "qpa.QuiverAlgebra.associated_graded_algebra"
 tests = ["python/tests/test_associated_algebras.py::test_associated_algebras_follow_qpa","python/tests/test_associated_algebras.py::test_associated_graded_algebra_rejects_qpa_invalid_domains"]
 
 [[bindings]]
+qpa_name = "NakayamaPermutation"
+status = "exposed"
+target = "qpa.QuiverAlgebra.nakayama_permutation; qpa.NakayamaPermutation"
+tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_permutation_follows_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_permutation_rejects_qpa_invalid_inputs"]
+
+[[bindings]]
+qpa_name = "NakayamaAutomorphism"
+status = "exposed"
+target = "qpa.QuiverAlgebra.nakayama_automorphism; qpa.NakayamaAutomorphism"
+tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FrobeniusForm"
+status = "exposed"
+target = "qpa.QuotientAlgebra.frobenius_form; qpa.FrobeniusForm"
+tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FrobeniusLinearFunctional"
+status = "exposed"
+target = "qpa.QuotientAlgebra.frobenius_linear_functional; qpa.FrobeniusLinearFunctional"
+tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "OrderOfNakayamaAutomorphism"
+status = "exposed"
+target = "qpa.QuiverAlgebra.order_of_nakayama_automorphism"
+tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorphism_and_frobenius_data_follow_qpa","python/tests/test_nakayama_frobenius.py::test_nakayama_frobenius_dispatch_errors_follow_qpa"]
+
+[[bindings]]
 qpa_name = "PathAlgebraElementTerms"
 status = "exposed"
 target = "qpa.AlgebraElement.terms"
