@@ -4702,3 +4702,19 @@ status = "exposed"
 target = "qpa.PathAlgebra.quadratic_perpendicular_of_path_algebra_ideal"
 tests = ["python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_follows_qpa","python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_boundary_results_follow_qpa"]
 notes = "Returns (opposite_path_algebra, basis), maps QPA fail for nonquadratic input to None, and preserves the pinned empty-list and empty-matrix defects as InvalidInputError."
+
+# Remaining public quiver enumeration helpers
+
+[[bindings]]
+qpa_name = "NextPath"
+status = "exposed"
+target = "qpa.Quiver.next_path"
+tests = ["python/tests/test_quiver_next_path.py::test_public_next_path_queue_protocol_follows_qpa","python/tests/test_quiver_next_path.py::test_next_path_fail_and_error_boundaries_follow_qpa"]
+notes = "Python None represents QPA's initial integer-zero state and exhausted fail result; successful calls return (path, queue)."
+
+[[bindings]]
+qpa_name = "\"\\[\\]\""
+status = "exposed"
+target = "qpa.QuiverPathEnumerator.at; qpa.QuiverPathEnumerator.__getitem__"
+tests = ["python/tests/test_quiver_next_path.py::test_public_next_path_queue_protocol_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+notes = "The QPA-specific declaration is exposed through one-based at(position), while Python __getitem__ uses conventional zero-based indexing."

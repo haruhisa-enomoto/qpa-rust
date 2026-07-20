@@ -4,23 +4,23 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 747
+exposed_or_partial_count = 749
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
 qpa_name = "\"\\[\\]\""
 python_name = "index"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverPathEnumerator.at; qpa.QuiverPathEnumerator.__getitem__"
+notes = "The QPA-specific declaration is exposed through one-based at(position), while Python __getitem__ uses conventional zero-based indexing."
 entry_ids = ["quiver:DeclareOperation:\"\\[\\]\":1"]
 constructs = ["DeclareOperation"]
 source_files = ["upstream/qpa/lib/quiver.gd"]
 rust_symbols = ["Quiver::path_at"]
 rust_tests = ["tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_quiver_next_path.py::test_public_next_path_queue_protocol_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
 
 [[operations]]
 qpa_name = "\"\\^\""
@@ -8801,16 +8801,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "NextPath"
 python_name = "next_path"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.Quiver.next_path"
+notes = "Python None represents QPA's initial integer-zero state and exhausted fail result; successful calls return (path, queue)."
 entry_ids = ["quiver:DeclareOperation:NextPath:1","quiver:InstallMethod:NextPath:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/quiver.gd","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Quiver::next_path; NextPathPosition"]
 rust_tests = ["tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_quiver_next_path.py::test_public_next_path_queue_protocol_follows_qpa","python/tests/test_quiver_next_path.py::test_next_path_fail_and_error_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "NonSeperatingCurve"

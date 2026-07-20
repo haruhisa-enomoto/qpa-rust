@@ -7,10 +7,11 @@ use std::cmp::Ordering;
 
 use pyo3::{Py, PyAny, prelude::*};
 use qpa_core::{
-    Arrow, ArrowIndex, ArrowSpec, DynkinOrientation, Generator, NamedArrowSpec, Path, PathEndpoint,
-    Quiver, QuiverCardinality, QuiverOrdering, QuiverProduct, QuiverProductDecomposition, Vertex,
-    VertexIndex, include_in_product_quiver, project_from_product_quiver, quiver_product,
-    reverse_path, unique_quiver_name, walk_of_path_or_vertex,
+    Arrow, ArrowIndex, ArrowSpec, DynkinOrientation, Generator, NamedArrowSpec, NextPathPosition,
+    Path, PathEndpoint, Quiver, QuiverCardinality, QuiverOrdering, QuiverProduct,
+    QuiverProductDecomposition, Vertex, VertexIndex, include_in_product_quiver,
+    project_from_product_quiver, quiver_product, reverse_path, unique_quiver_name,
+    walk_of_path_or_vertex,
 };
 
 pub(crate) use objects::{
@@ -444,6 +445,40 @@ impl PyQuiver {
 
     fn path_at(&self, position: usize) -> Option<PyPath> {
         self.inner.path_at(position).map(|inner| PyPath { inner })
+    }
+
+    /// Translate one call to QPA's public `NextPath` queue protocol.
+    ///
+    /// Python `None` represents QPA's initial integer-zero state. Subsequent
+    /// calls pass back the returned path queue unchanged.
+    #[pyo3(signature = (position=None))]
+    fn next_path(
+        &self,
+        py: Python<'_>,
+        position: Option<Vec<Py<PyPath>>>,
+    ) -> PyResult<Option<(PyPath, Vec<PyPath>)>> {
+        let position = match position {
+            None => NextPathPosition::Start,
+            Some(queue) => NextPathPosition::Queue(
+                queue
+                    .into_iter()
+                    .map(|path| path.borrow(py).inner.clone())
+                    .collect(),
+            ),
+        };
+        Ok(self
+            .inner
+            .next_path(&position)
+            .map_err(invalid)?
+            .map(|(path, position)| {
+                let NextPathPosition::Queue(queue) = position else {
+                    unreachable!("successful NextPath always returns a queue")
+                };
+                (
+                    PyPath { inner: path },
+                    queue.into_iter().map(|inner| PyPath { inner }).collect(),
+                )
+            }))
     }
 
     fn iterator(&self) -> PyQuiverPathIterator {
