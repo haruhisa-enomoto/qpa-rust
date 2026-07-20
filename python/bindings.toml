@@ -2239,3 +2239,9 @@ qpa_name = "AllSimpleSubmodulesOfModule"
 status = "exposed"
 target = "qpa.MatrixModule.simple_submodule_inclusions"
 tests = ["python/tests/test_architecture_spike.py::test_projective_generators_rejects_and_map_provenance_follow_qpa"]
+
+[[bindings]]
+qpa_name = "AllSubmodulesOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.all_submodules; qpa.AllSubmodulesOfModuleResult"
+tests = ["python/tests/test_architecture_spike.py::test_all_submodules_follow_qpa"]

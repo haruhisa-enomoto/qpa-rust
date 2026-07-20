@@ -702,6 +702,15 @@ impl PyMatrixModule {
         ))
     }
 
+    fn all_submodules(&self) -> PyResult<PyAllSubmodulesOfModuleResult> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => AllSubmodulesOfModuleResultKind,
+            |module| qpa_core::all_submodules_of_module(module).map_err(invalid)?
+        );
+        Ok(PyAllSubmodulesOfModuleResult { kind })
+    }
+
     fn homomorphism_from_images(
         &self,
         py: Python<'_>,
@@ -1815,6 +1824,41 @@ impl PyModuleDecompositionWithMultiplicities {
             ModuleDecompositionWithMultiplicitiesKind,
             |result| result.multiplicities().to_vec()
         )
+    }
+}
+
+#[pymethods]
+impl PyAllSubmodulesOfModuleResult {
+    #[getter]
+    fn is_flat(&self) -> bool {
+        dispatch_ref!(&self.kind, AllSubmodulesOfModuleResultKind, |result| result
+            .flat()
+            .is_some())
+    }
+
+    #[getter]
+    fn flat(&self) -> Option<Vec<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, AllSubmodulesOfModuleResultKind, |result| result
+            .flat()
+            .map(|maps| wrap_module_homomorphisms(maps.to_vec())))
+    }
+
+    #[getter]
+    fn by_dimension(&self) -> Option<Vec<Vec<PyModuleHomomorphism>>> {
+        dispatch_ref!(&self.kind, AllSubmodulesOfModuleResultKind, |result| result
+            .by_dimension()
+            .map(|levels| levels
+                .iter()
+                .cloned()
+                .map(wrap_module_homomorphisms)
+                .collect()))
+    }
+
+    #[getter]
+    fn flattened(&self) -> Vec<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, AllSubmodulesOfModuleResultKind, |result| {
+            wrap_module_homomorphisms(result.clone().into_flattened())
+        })
     }
 }
 

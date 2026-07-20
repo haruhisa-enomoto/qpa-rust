@@ -10,16 +10,16 @@ mod runtime;
 
 use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAllComplementsResult,
-    PyCommonDirectSummandResult, PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult,
-    PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution,
-    PyMatrixModule, PyMaximalCommonDirectSummand, PyModuleChainMap, PyModuleComplex,
-    PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleEndomorphismAlgebra,
-    PyModuleEndomorphismQuotientAlgebra, PyModuleEndomorphismQuotientElement,
-    PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
-    PyModuleSubmodule, PyMoreMinimalVersionResult, PyNonisomorphicDirectSummandData, PyPathAlgebra,
-    PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
-    PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuotientAlgebra, PyQuotientElement,
-    PyTiltingModuleResult,
+    PyAllSubmodulesOfModuleResult, PyCommonDirectSummandResult, PyCotiltingModuleResult,
+    PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult, PyFiniteAddMResolutionResult,
+    PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule, PyMaximalCommonDirectSummand,
+    PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
+    PyModuleEndomorphismAlgebra, PyModuleEndomorphismQuotientAlgebra,
+    PyModuleEndomorphismQuotientElement, PyModuleEndomorphismQuotientMap, PyModuleHomomorphism,
+    PyModuleHomomorphismBasis, PyModuleSubmodule, PyMoreMinimalVersionResult,
+    PyNonisomorphicDirectSummandData, PyPathAlgebra, PyPathAlgebraIdeal, PyPredecessorValuation,
+    PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent, PyProjectiveResolution,
+    PyQuotientAlgebra, PyQuotientElement, PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{PyPath, PyQuiver};
@@ -85,6 +85,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPredecessorValuation>()?;
     module.add_class::<PyPredecessorsOfModuleResult>()?;
     module.add_class::<PyModuleDecompositionWithMultiplicities>()?;
+    module.add_class::<PyAllSubmodulesOfModuleResult>()?;
     module.add_class::<PyNonisomorphicDirectSummandData>()?;
     module.add_class::<PyMoreMinimalVersionResult>()?;
     module.add_class::<PyCommonDirectSummandResult>()?;

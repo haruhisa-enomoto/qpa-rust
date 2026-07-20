@@ -551,6 +551,20 @@ pub(crate) struct PyModuleDecompositionWithMultiplicities {
     kind: ModuleDecompositionWithMultiplicitiesKind,
 }
 
+#[derive(Clone)]
+enum AllSubmodulesOfModuleResultKind {
+    Rational(qpa_core::AllSubmodulesOfModuleResult<RationalField>),
+    Binary(qpa_core::AllSubmodulesOfModuleResult<Z2>),
+    Prime(qpa_core::AllSubmodulesOfModuleResult<Zp>),
+}
+
+/// QPA's flat or dimension-indexed list of submodule inclusions.
+#[pyclass(name = "AllSubmodulesOfModuleResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyAllSubmodulesOfModuleResult {
+    kind: AllSubmodulesOfModuleResultKind,
+}
+
 /// QPA's number and semisimple-block dimensions of nonisomorphic summands.
 #[pyclass(name = "NonisomorphicDirectSummandData", frozen, skip_from_py_object)]
 #[derive(Clone)]
@@ -799,6 +813,14 @@ macro_rules! impl_resolution_runtime {
             for ModuleDecompositionWithMultiplicitiesKind
         {
             fn wrap(value: qpa_core::ModuleDecompositionWithMultiplicities<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::AllSubmodulesOfModuleResult<$field>>
+            for AllSubmodulesOfModuleResultKind
+        {
+            fn wrap(value: qpa_core::AllSubmodulesOfModuleResult<$field>) -> Self {
                 Self::$variant(value)
             }
         }

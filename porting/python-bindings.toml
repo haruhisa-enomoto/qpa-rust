@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 353
+exposed_or_partial_count = 354
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -371,8 +371,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_projective_genera
 qpa_name = "AllSubmodulesOfModule"
 python_name = "all_submodules_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.all_submodules; qpa.AllSubmodulesOfModuleResult"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:AllSubmodulesOfModule:1","modulehom:InstallMethod:AllSubmodulesOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -380,7 +380,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["all_submodules_of_module; AllSubmodulesOfModuleResult"]
 rust_tests = ["tests/fixtures/modulehom_submodules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_all_submodules_follow_qpa"]
 
 [[operations]]
 qpa_name = "AlmostSplitSequence"

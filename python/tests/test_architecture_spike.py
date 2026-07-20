@@ -1245,3 +1245,39 @@ def test_projective_generators_rejects_and_map_provenance_follow_qpa(
         assert len(simple_inclusions) == expected_count
         assert all(inclusion.source.dimension_vector == [1, 0] for inclusion in simple_inclusions)
         assert all(inclusion.range == repeated for inclusion in simple_inclusions)
+
+
+@pytest.mark.parametrize("characteristic", [2, 5])
+def test_all_submodules_follow_qpa(characteristic: int) -> None:
+    field = qpa.Field.prime(characteristic)
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    zero_result = algebra.zero_module().all_submodules()
+    assert zero_result.is_flat
+    assert zero_result.flat is not None and len(zero_result.flat) == 1
+    assert zero_result.by_dimension is None
+
+    simple_result = algebra.simple_modules()[0].all_submodules()
+    assert simple_result.is_flat
+    assert simple_result.flat is not None and len(simple_result.flat) == 2
+    assert [inclusion.source.dimension for inclusion in simple_result.flattened] == [0, 1]
+
+    semisimple = algebra.module_from_integer_matrices(
+        [2, 1], [("a", [[0], [0]])]
+    )
+    result = semisimple.all_submodules()
+    assert not result.is_flat and result.flat is None
+    assert result.by_dimension is not None
+    assert [len(level) for level in result.by_dimension] == [
+        1,
+        characteristic + 2,
+        characteristic + 2,
+        1,
+    ]
+    assert len(result.flattened) == 2 * characteristic + 6
+    assert all(inclusion.range == semisimple for inclusion in result.flattened)
+
+    rational = qpa.PathAlgebra(
+        qpa.Field.rational(), qpa.Quiver(["v"], [])
+    ).simple_modules()[0]
+    with pytest.raises(qpa.InvalidInputError, match="finite field"):
+        rational.all_submodules()
