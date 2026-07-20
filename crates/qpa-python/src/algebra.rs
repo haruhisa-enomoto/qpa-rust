@@ -4,6 +4,7 @@ mod combinatorial;
 mod combinatorial_rep;
 mod complex_foundation;
 mod conversion;
+mod degeneration;
 mod fp_projective;
 mod groebner;
 mod homological;
@@ -28,6 +29,11 @@ pub(crate) use conversion::{
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyQuiverAlgebra,
     PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
     PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
+};
+pub(crate) use degeneration::{
+    PyArQuiverNumerical, PyCodimensionConjectureReport, PyPredefinedArQuiverData,
+    py_format_multiplicity_vector, py_format_multiplicity_vectors, py_predefined_ar_quiver_catalog,
+    py_predefined_ar_quiver_data,
 };
 pub(crate) use fp_projective::{
     PyFpPathAlgebraByImagesHomomorphism, PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector,

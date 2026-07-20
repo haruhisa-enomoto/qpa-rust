@@ -2,7 +2,6 @@
 
 use std::sync::Arc;
 
-use numerica::domains::integer::Integer;
 use pyo3::{PyAny, pymethods};
 use qpa_core::UnitForm;
 use qpa_gbnp::EulerBilinearForm;
@@ -10,34 +9,10 @@ use qpa_gbnp::EulerBilinearForm;
 #[allow(clippy::wildcard_imports)]
 // The algebra and coefficient runtime unions belong to the parent module.
 use super::*;
-use crate::field::{parse_python_integer, wrap_python_integer};
-
-fn parse_integer_vector(py: Python<'_>, values: Vec<Py<PyAny>>) -> PyResult<Vec<Integer>> {
-    values
-        .into_iter()
-        .map(|value| parse_python_integer(value.bind(py)))
-        .collect()
-}
-
-fn parse_integer_matrix(py: Python<'_>, rows: Vec<Vec<Py<PyAny>>>) -> PyResult<Vec<Vec<Integer>>> {
-    rows.into_iter()
-        .map(|row| parse_integer_vector(py, row))
-        .collect()
-}
-
-fn wrap_integer_vector(py: Python<'_>, values: &[Integer]) -> PyResult<Vec<Py<PyAny>>> {
-    values
-        .iter()
-        .map(|value| wrap_python_integer(py, value))
-        .collect()
-}
-
-fn wrap_integer_matrix(
-    py: Python<'_>,
-    rows: impl Iterator<Item = Vec<Integer>>,
-) -> PyResult<Vec<Vec<Py<PyAny>>>> {
-    rows.map(|row| wrap_integer_vector(py, &row)).collect()
-}
+use crate::field::{
+    parse_python_integer_matrix, parse_python_integer_vector, wrap_python_integer,
+    wrap_python_integer_matrix, wrap_python_integer_vector,
+};
 
 fn scalar_values<F: runtime::PythonField>(
     py: Python<'_>,
@@ -120,7 +95,7 @@ impl PyUnitForm {
     #[new]
     fn new(py: Python<'_>, rows: Vec<Vec<Py<PyAny>>>) -> PyResult<Self> {
         Ok(Self::from_inner(
-            UnitForm::new(parse_integer_matrix(py, rows)?).map_err(invalid)?,
+            UnitForm::new(parse_python_integer_matrix(py, rows)?).map_err(invalid)?,
         ))
     }
 
@@ -138,7 +113,7 @@ impl PyUnitForm {
 
     #[getter]
     fn symmetric_matrix(&self, py: Python<'_>) -> PyResult<Vec<Vec<Py<PyAny>>>> {
-        wrap_integer_matrix(
+        wrap_python_integer_matrix(
             py,
             self.inner.symmetric_matrix().row_iter().map(<[_]>::to_vec),
         )
@@ -155,8 +130,8 @@ impl PyUnitForm {
         left: Vec<Py<PyAny>>,
         right: Vec<Py<PyAny>>,
     ) -> PyResult<Py<PyAny>> {
-        let left = parse_integer_vector(py, left)?;
-        let right = parse_integer_vector(py, right)?;
+        let left = parse_python_integer_vector(py, left)?;
+        let right = parse_python_integer_vector(py, right)?;
         let value = self
             .inner
             .bilinear_form(&numerica::domains::integer::Z, &left, &right)
@@ -181,7 +156,7 @@ impl PyUnitForm {
     }
 
     fn quadratic_form(&self, py: Python<'_>, vector: Vec<Py<PyAny>>) -> PyResult<Py<PyAny>> {
-        let vector = parse_integer_vector(py, vector)?;
+        let vector = parse_python_integer_vector(py, vector)?;
         let value = self
             .inner
             .quadratic_form(&numerica::domains::integer::Z, &vector)
@@ -210,12 +185,12 @@ impl PyUnitForm {
         coordinate: usize,
         vector: Vec<Py<PyAny>>,
     ) -> PyResult<Vec<Py<PyAny>>> {
-        let vector = parse_integer_vector(py, vector)?;
+        let vector = parse_python_integer_vector(py, vector)?;
         let reflection = self
             .inner
             .reflection_by_bilinear_form(&numerica::domains::integer::Z, coordinate, &vector)
             .map_err(invalid)?;
-        wrap_integer_vector(py, &reflection)
+        wrap_python_integer_vector(py, &reflection)
     }
 
     fn reflection_by_bilinear_form_over(
@@ -252,7 +227,7 @@ impl PyUnitForm {
     fn positive_roots(&self, py: Python<'_>) -> PyResult<Option<Vec<Vec<Py<PyAny>>>>> {
         self.inner
             .positive_roots()
-            .map(|roots| wrap_integer_matrix(py, roots.iter().cloned()))
+            .map(|roots| wrap_python_integer_matrix(py, roots.iter().cloned()))
             .transpose()
     }
 
@@ -276,7 +251,7 @@ pub(crate) struct PyEulerBilinearForm {
 impl PyEulerBilinearForm {
     #[getter]
     fn inverse_cartan_matrix(&self, py: Python<'_>) -> PyResult<Vec<Vec<Py<PyAny>>>> {
-        wrap_integer_matrix(
+        wrap_python_integer_matrix(
             py,
             self.inner
                 .inverse_cartan_matrix()
@@ -296,8 +271,8 @@ impl PyEulerBilinearForm {
         left: Vec<Py<PyAny>>,
         right: Vec<Py<PyAny>>,
     ) -> PyResult<Py<PyAny>> {
-        let left = parse_integer_vector(py, left)?;
-        let right = parse_integer_vector(py, right)?;
+        let left = parse_python_integer_vector(py, left)?;
+        let right = parse_python_integer_vector(py, right)?;
         let value = self
             .inner
             .evaluate(&numerica::domains::integer::Z, &left, &right)

@@ -11,8 +11,9 @@ mod runtime;
 use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAdrAlgebraOfAlgebraResult,
     PyAlgebraAsQuiverAlgebraResult, PyAlgebraElement, PyAlgebraHomomorphism,
-    PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCombinatorialMap,
-    PyCommonDirectSummandResult, PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
+    PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyArQuiverNumerical,
+    PyCodimensionConjectureReport, PyCombinatorialMap, PyCommonDirectSummandResult,
+    PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
     PyEndOfModuleAsQuiverAlgebraResult, PyEulerBilinearForm, PyExtAlgebraGeneratorsResult,
     PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyFpPathAlgebraByImagesHomomorphism,
     PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyGroebnerBasis,
@@ -27,15 +28,17 @@ use algebra::{
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector,
     PyPathAlgebraVectorBasis, PyPathAlgebraVectorSpace, PyPathAlgebraVectorXSet,
-    PyPredecessorValuation, PyPredecessorsOfModuleResult, PyProjectiveIsomorphismComponent,
-    PyProjectivePathAlgebraPresentation, PyProjectiveResolution, PyQuiverAlgebra,
-    PyQuiverAlgebraElement, PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector,
-    PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule,
-    PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule,
+    PyPredecessorValuation, PyPredecessorsOfModuleResult, PyPredefinedArQuiverData,
+    PyProjectiveIsomorphismComponent, PyProjectivePathAlgebraPresentation, PyProjectiveResolution,
+    PyQuiverAlgebra, PyQuiverAlgebraElement, PyQuotientAlgebra, PyQuotientElement,
+    PyQuotientPathAlgebraVector, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
+    PyRightProjectiveModule, PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule,
     PySimpleEndoProjectiveResolutionResult, PyStructureConstantsAlgebra,
     PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
     PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult, PyUnitForm,
     py_complex_and_chain_maps, py_compute_lps_array, py_cyclic_permutations_of_band,
+    py_format_multiplicity_vector, py_format_multiplicity_vectors, py_predefined_ar_quiver_catalog,
+    py_predefined_ar_quiver_data,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -75,6 +78,10 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_complex_and_chain_maps, module)?)?;
     module.add_function(wrap_pyfunction!(py_compute_lps_array, module)?)?;
     module.add_function(wrap_pyfunction!(py_cyclic_permutations_of_band, module)?)?;
+    module.add_function(wrap_pyfunction!(py_predefined_ar_quiver_data, module)?)?;
+    module.add_function(wrap_pyfunction!(py_predefined_ar_quiver_catalog, module)?)?;
+    module.add_function(wrap_pyfunction!(py_format_multiplicity_vector, module)?)?;
+    module.add_function(wrap_pyfunction!(py_format_multiplicity_vectors, module)?)?;
     Ok(())
 }
 
@@ -95,6 +102,9 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyCombinatorialMap>()?;
     module.add_class::<PyUnitForm>()?;
     module.add_class::<PyEulerBilinearForm>()?;
+    module.add_class::<PyArQuiverNumerical>()?;
+    module.add_class::<PyPredefinedArQuiverData>()?;
+    module.add_class::<PyCodimensionConjectureReport>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;

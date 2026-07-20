@@ -33,6 +33,43 @@ pub(crate) fn wrap_python_integer(py: Python<'_>, value: &Integer) -> PyResult<P
         .unbind())
 }
 
+pub(crate) fn parse_python_integer_vector(
+    py: Python<'_>,
+    values: Vec<Py<PyAny>>,
+) -> PyResult<Vec<Integer>> {
+    values
+        .into_iter()
+        .map(|value| parse_python_integer(value.bind(py)))
+        .collect()
+}
+
+pub(crate) fn parse_python_integer_matrix(
+    py: Python<'_>,
+    rows: Vec<Vec<Py<PyAny>>>,
+) -> PyResult<Vec<Vec<Integer>>> {
+    rows.into_iter()
+        .map(|row| parse_python_integer_vector(py, row))
+        .collect()
+}
+
+pub(crate) fn wrap_python_integer_vector(
+    py: Python<'_>,
+    values: &[Integer],
+) -> PyResult<Vec<Py<PyAny>>> {
+    values
+        .iter()
+        .map(|value| wrap_python_integer(py, value))
+        .collect()
+}
+
+pub(crate) fn wrap_python_integer_matrix(
+    py: Python<'_>,
+    rows: impl Iterator<Item = Vec<Integer>>,
+) -> PyResult<Vec<Vec<Py<PyAny>>>> {
+    rows.map(|row| wrap_python_integer_vector(py, &row))
+        .collect()
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum FieldKind {
     Rational,

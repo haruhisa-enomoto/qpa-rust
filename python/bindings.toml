@@ -103,9 +103,9 @@ notes = "Represented by the concrete Python wrapper type."
 [[bindings]]
 qpa_name = "DimensionVector"
 status = "partial"
-target = "qpa.MatrixModule.dimension_vector"
-tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core"]
-notes = "Matrix-module dimension vectors are exposed."
+target = "qpa.MatrixModule.dimension_vector; qpa.ArQuiverNumerical.dimension_vector"
+tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+notes = "Matrix-module and numerical AR-quiver dimension-vector overloads are exposed."
 
 # Quivers and paths
 
@@ -401,9 +401,9 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "ViewObj"
 status = "partial"
-target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
-notes = "The quiver, quiver-ordering, algebra Groebner-basis, projective-module Groebner-basis, and unit-form overloads are exposed; grouped display overloads remain."
+target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__; qpa.ArQuiverNumerical.__repr__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+notes = "The quiver, quiver-ordering, algebra Groebner-basis, projective-module Groebner-basis, unit-form, and numerical AR-quiver overloads are exposed; grouped display overloads remain."
 
 [[bindings]]
 qpa_name = "\\[\\]"
@@ -3843,3 +3843,135 @@ status = "exposed"
 target = "qpa.QuiverAlgebra.euler_bilinear_form; qpa.EulerBilinearForm"
 tests = ["python/tests/test_architecture_spike.py::test_tits_and_euler_forms_follow_qpa"]
 notes = "Returns None for QPA's fail value; the captured closure exposes exact integer and supported-field evaluation."
+
+[[bindings]]
+qpa_name = "ARQuiverNumerical"
+status = "exposed"
+target = "qpa.ArQuiverNumerical; qpa.ArQuiverNumerical.from_orbits; qpa.ArQuiverNumerical.predefined"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa", "python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
+notes = "Accepts QPA's one-based explicit mesh and compact orbit descriptions and preserves one-based module numbering."
+
+[[bindings]]
+qpa_name = "IsARQuiverNumerical"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.is_ar_quiver_numerical"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "NumberOfIndecomposables"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.number_of_indecomposables"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "NumberOfProjectives"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.number_of_projectives"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "PredefARQuivers"
+status = "exposed"
+target = "qpa.predefined_ar_quiver_data; qpa.predefined_ar_quiver_catalog; qpa.PredefinedArQuiverData"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa", "python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
+notes = "The raw predefined data and the exact text of QPA's what catalog are both available."
+
+[[bindings]]
+qpa_name = "ModulesOfDimVect"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.modules_of_dimension_vector"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DegOrderPredecessors"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.degeneration_predecessors"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DegOrderDirectPredecessors"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.direct_degeneration_predecessors"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DegOrderPredecessorsWithDirect"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.degeneration_predecessors_with_direct"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DegOrderSuccessors"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.degeneration_successors"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DegOrderDirectSuccessors"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.direct_degeneration_successors"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DegOrderSuccessorsWithDirect"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.degeneration_successors_with_direct"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DegOrderLEQ"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.degeneration_order_leq"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+notes = "Returns False without GAP's warning print when the dimension vectors differ, matching the recorded Rust deviation."
+
+[[bindings]]
+qpa_name = "DegOrderLEQNC"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.degeneration_order_leq_unchecked"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DimHom"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.dim_hom"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DimEnd"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.dim_end"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "OrbitDim"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.orbit_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "OrbitCodim"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.orbit_codimension"
+tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
+
+[[bindings]]
+qpa_name = "PrintMultiplicityVector"
+status = "exposed"
+target = "qpa.format_multiplicity_vector"
+tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
+notes = "Returns QPA's exact rendered text instead of writing it directly to stdout."
+
+[[bindings]]
+qpa_name = "PrintMultiplicityVectors"
+status = "exposed"
+target = "qpa.format_multiplicity_vectors"
+tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
+notes = "Returns QPA's exact rendered text instead of writing it directly to stdout."
+
+[[bindings]]
+qpa_name = "TestCodimConjecture"
+status = "exposed"
+target = "qpa.ArQuiverNumerical.test_codimension_conjecture; qpa.CodimensionConjectureReport"
+tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
+notes = "Returns QPA's accumulated counterexample and count data as a structured result rather than printing a runtime-dependent summary."

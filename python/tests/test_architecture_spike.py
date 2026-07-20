@@ -1,8 +1,14 @@
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 import qpa
+
+
+FIXTURES = Path(__file__).resolve().parents[2] / "tests" / "fixtures"
 
 
 def test_exact_rational_and_prime_field_conversion() -> None:
@@ -3513,3 +3519,122 @@ def test_tits_and_euler_forms_follow_qpa(field: qpa.Field) -> None:
     assert dual_numbers.euler_bilinear_form() is None
     with pytest.raises(qpa.InvalidInputError, match="loop"):
         dual_numbers.tits_unit_form()
+
+
+def test_finite_type_degeneration_order_follows_qpa() -> None:
+    expected = json.loads(
+        (FIXTURES / "degorderfinitetype.schema-v1.json").read_text(encoding="utf-8")
+    )["mesh"]
+    predefined = json.loads(
+        (FIXTURES / "degorderfinitetype_predefined.schema-v1.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    d4_case = next(case for case in predefined["cases"] if case[0] == "D4 subspace")
+    d4_data = qpa.predefined_ar_quiver_data("D4 subspace")
+    assert (
+        d4_data.number_of_indecomposables,
+        d4_data.number_of_projectives,
+        d4_data.mesh_description,
+    ) == tuple(d4_case[1])
+    assert d4_data.orbit_description is None
+
+    ar = d4_data.ar_quiver()
+    explicit = qpa.ArQuiverNumerical(
+        d4_data.number_of_indecomposables,
+        d4_data.number_of_projectives,
+        d4_data.mesh_description,
+    )
+    named = qpa.ArQuiverNumerical.predefined("D4 subspace")
+    assert ar.is_ar_quiver_numerical
+    assert ar.is_identical(ar) and not ar.is_identical(explicit)
+    assert ar.number_of_indecomposables == expected["number_of_indecomposables"]
+    assert ar.number_of_projectives == expected["number_of_projectives"]
+    assert ar.dim_hom_matrix == expected["dim_hom_matrix"]
+    assert explicit.dim_hom_matrix == expected["dim_hom_matrix"]
+    assert named.dim_hom_matrix == expected["dim_hom_matrix"]
+    assert ar.simples == expected["simples"]
+    assert repr(ar) == expected["display"]
+    assert [ar.dimension_vector(index) for index in range(1, 13)] == expected[
+        "dimension_vectors"
+    ]
+
+    indecomposable = 5
+    decomposable = [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0]
+    assert ar.dimension_vector(decomposable) == expected["dimension_vector_of_vector"]
+    assert ar.modules_of_dimension_vector(indecomposable) == expected["modules_number"]
+    assert ar.modules_of_dimension_vector([2, 1, 1, 1]) == expected["modules_vector"]
+    assert ar.degeneration_predecessors(decomposable) == expected["predecessors"]
+    assert ar.direct_degeneration_predecessors(decomposable) == expected[
+        "direct_predecessors"
+    ]
+    assert list(ar.degeneration_predecessors_with_direct(decomposable)) == expected[
+        "predecessors_with_direct"
+    ]
+    assert ar.degeneration_successors(indecomposable) == expected["successors"]
+    assert ar.direct_degeneration_successors(indecomposable) == expected[
+        "direct_successors"
+    ]
+    assert list(ar.degeneration_successors_with_direct(indecomposable)) == expected[
+        "successors_with_direct"
+    ]
+    assert [
+        ar.dim_hom(indecomposable, indecomposable),
+        ar.dim_hom(indecomposable, decomposable),
+        ar.dim_hom(decomposable, indecomposable),
+        ar.dim_hom(decomposable, decomposable),
+    ] == expected["dim_hom_dispatch"]
+    assert [ar.dim_end(indecomposable), ar.dim_end(decomposable)] == expected["dim_end"]
+    assert [
+        ar.orbit_dimension(indecomposable),
+        ar.orbit_dimension(decomposable),
+    ] == expected["orbit_dimension"]
+    assert ar.orbit_codimension(indecomposable, decomposable) == expected[
+        "orbit_codimension"
+    ]
+    assert [
+        ar.degeneration_order_leq(indecomposable, decomposable),
+        ar.degeneration_order_leq(decomposable, indecomposable),
+    ] == expected["degeneration_leq"]
+    assert [
+        ar.degeneration_order_leq_unchecked(indecomposable, decomposable),
+        ar.degeneration_order_leq_unchecked(decomposable, indecomposable),
+    ] == expected["degeneration_leq_nc"]
+    assert ar.degeneration_order_leq(1, 2) is expected["different_dimension_leq"]
+
+    with pytest.raises(qpa.InvalidInputError, match="positive"):
+        ar.dimension_vector(0)
+    with pytest.raises(qpa.InvalidInputError, match="multiplicity vector"):
+        ar.dimension_vector("not a module")
+
+
+def test_predefined_ar_orbits_printing_and_conjecture_follow_qpa() -> None:
+    orbit_data = qpa.predefined_ar_quiver_data("BGo", 14)
+    assert orbit_data.mesh_description is None
+    assert orbit_data.orbit_description is not None
+    orbit = qpa.ArQuiverNumerical.from_orbits(
+        orbit_data.number_of_indecomposables,
+        orbit_data.number_of_projectives,
+        orbit_data.orbit_description,
+    )
+    assert orbit.dim_hom_matrix == orbit_data.ar_quiver().dim_hom_matrix
+
+    catalog = (FIXTURES / "degorderfinitetype_predefined_catalog.txt").read_text(
+        encoding="utf-8"
+    )
+    assert qpa.predefined_ar_quiver_catalog() == catalog
+    assert qpa.format_multiplicity_vector([0, 2, 0, 1]) == "2*(2) + 1*(4)\n"
+    assert qpa.format_multiplicity_vector([0, 0]) == "0\n"
+    assert qpa.format_multiplicity_vectors([[1, 0, 3], [0, 4, 0]]) == (
+        "1*(1) + 3*(3)\n4*(2)\n"
+    )
+
+    a3 = qpa.ArQuiverNumerical.predefined("A3 zero")
+    report = a3.test_codimension_conjecture(False, False)
+    assert report.counterexamples == []
+    assert report.predecessor_count == 0
+    assert report.direct_predecessor_count == 0
+    assert not report.stopped_early
+
+    with pytest.raises(qpa.InvalidInputError, match="wrong number"):
+        qpa.predefined_ar_quiver_data("BG", 1)

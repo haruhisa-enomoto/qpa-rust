@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 610
+exposed_or_partial_count = 631
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -86,16 +86,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_adr_algebra_of_ba
 qpa_name = "ARQuiverNumerical"
 python_name = "ar_quiver_numerical"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical; qpa.ArQuiverNumerical.from_orbits; qpa.ArQuiverNumerical.predefined"
+notes = "Accepts QPA's one-based explicit mesh and compact orbit descriptions and preserves one-based module numbering."
 entry_ids = ["degorderfinitetype:DeclareGlobalFunction:ARQuiverNumerical:1","degorderfinitetype:InstallGlobalFunction:ARQuiverNumerical:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degorderfinitetype.gi"]
 rust_symbols = ["ArQuiverNumerical::new"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa","python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
 
 [[operations]]
 qpa_name = "AddExternalSuffixTreeNode"
@@ -1751,8 +1751,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposit
 qpa_name = "DegOrderDirectPredecessors"
 python_name = "deg_order_direct_predecessors"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.direct_degeneration_predecessors"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderDirectPredecessors:1","degorderfinitetype:InstallMethod:DegOrderDirectPredecessors:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1760,14 +1760,14 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::direct_degeneration_predecessors"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderDirectSuccessors"
 python_name = "deg_order_direct_successors"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.direct_degeneration_successors"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderDirectSuccessors:1","degorderfinitetype:InstallMethod:DegOrderDirectSuccessors:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1775,29 +1775,29 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::direct_degeneration_successors"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderLEQ"
 python_name = "deg_order_leq"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.degeneration_order_leq"
+notes = "Returns False without GAP's warning print when the dimension vectors differ, matching the recorded Rust deviation."
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderLEQ:1","degorderfinitetype:InstallMethod:DegOrderLEQ:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degorderfinitetype.gi"]
 rust_symbols = ["ArQuiverNumerical::degeneration_order_leq"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderLEQNC"
 python_name = "deg_order_leqnc"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.degeneration_order_leq_unchecked"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderLEQNC:1","degorderfinitetype:InstallMethod:DegOrderLEQNC:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1805,14 +1805,14 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::degeneration_order_leq_unchecked"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderPredecessors"
 python_name = "deg_order_predecessors"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.degeneration_predecessors"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderPredecessors:1","degorderfinitetype:InstallMethod:DegOrderPredecessors:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1820,14 +1820,14 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::degeneration_predecessors"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderPredecessorsWithDirect"
 python_name = "deg_order_predecessors_with_direct"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.degeneration_predecessors_with_direct"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderPredecessorsWithDirect:1","degorderfinitetype:InstallMethod:DegOrderPredecessorsWithDirect:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1835,14 +1835,14 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::degeneration_predecessors_with_direct"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderSuccessors"
 python_name = "deg_order_successors"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.degeneration_successors"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderSuccessors:1","degorderfinitetype:InstallMethod:DegOrderSuccessors:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1850,14 +1850,14 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::degeneration_successors"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderSuccessorsWithDirect"
 python_name = "deg_order_successors_with_direct"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.degeneration_successors_with_direct"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DegOrderSuccessorsWithDirect:1","degorderfinitetype:InstallMethod:DegOrderSuccessorsWithDirect:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1865,7 +1865,7 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::degeneration_successors_with_direct"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DeletePatternFromSuffixTree"
@@ -2066,8 +2066,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "DimEnd"
 python_name = "dim_end"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.dim_end"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DimEnd:1","degorderfinitetype:InstallMethod:DimEnd:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2075,14 +2075,14 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::dim_end"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DimHom"
 python_name = "dim_hom"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.dim_hom"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:DimHom:1","degorderfinitetype:InstallMethod:DimHom:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2090,7 +2090,7 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::dim_hom"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "Dimension"
@@ -2112,15 +2112,15 @@ qpa_name = "DimensionVector"
 python_name = "dimension_vector"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.MatrixModule.dimension_vector"
-notes = "Matrix-module dimension vectors are exposed."
+python_target = "qpa.MatrixModule.dimension_vector; qpa.ArQuiverNumerical.dimension_vector"
+notes = "Matrix-module and numerical AR-quiver dimension-vector overloads are exposed."
 entry_ids = ["degorderfinitetype:DeclareOperation:DimensionVector:1","degorderfinitetype:InstallMethod:DimensionVector:1","module:DeclareAttribute:DimensionVector:1"]
 constructs = ["DeclareAttribute","DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/module.gd"]
 rust_symbols = ["ArQuiverNumerical::dimension_vector","PathAlgebraModule::dimension_vector"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core"]
+python_tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_module_calls_qpa_core","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "DimensionVectorPartialOrder"
@@ -4196,8 +4196,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_en
 qpa_name = "IsARQuiverNumerical"
 python_name = "is_ar_quiver_numerical"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.is_ar_quiver_numerical"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareCategory:IsARQuiverNumerical:1"]
 constructs = ["DeclareCategory"]
@@ -4205,7 +4205,7 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd"]
 rust_symbols = ["ArQuiverNumerical"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsAcyclicQuiver"
@@ -8411,8 +8411,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_approximation_ope
 qpa_name = "ModulesOfDimVect"
 python_name = "modules_of_dim_vect"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.modules_of_dimension_vector"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:ModulesOfDimVect:1","degorderfinitetype:InstallMethod:ModulesOfDimVect:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8420,7 +8420,7 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::modules_of_dimension_vector"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "MoreLeftMinimalVersion"
@@ -8981,8 +8981,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_m
 qpa_name = "NumberOfIndecomposables"
 python_name = "number_of_indecomposables"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.number_of_indecomposables"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareAttribute:NumberOfIndecomposables:1"]
 constructs = ["DeclareAttribute"]
@@ -8990,7 +8990,7 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd"]
 rust_symbols = ["ArQuiverNumerical::number_of_indecomposables"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "NumberOfJoints"
@@ -9026,8 +9026,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposit
 qpa_name = "NumberOfProjectives"
 python_name = "number_of_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.number_of_projectives"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareAttribute:NumberOfProjectives:1"]
 constructs = ["DeclareAttribute"]
@@ -9035,7 +9035,7 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd"]
 rust_symbols = ["ArQuiverNumerical::number_of_projectives"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "NumberOfVertices"
@@ -9251,8 +9251,8 @@ python_tests = []
 qpa_name = "OrbitCodim"
 python_name = "orbit_codim"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.orbit_codimension"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:OrbitCodim:1","degorderfinitetype:InstallMethod:OrbitCodim:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9260,14 +9260,14 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::orbit_codimension"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "OrbitDim"
 python_name = "orbit_dim"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.orbit_dimension"
 notes = ""
 entry_ids = ["degorderfinitetype:DeclareOperation:OrbitDim:1","degorderfinitetype:InstallMethod:OrbitDim:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9275,7 +9275,7 @@ source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degor
 rust_symbols = ["ArQuiverNumerical::orbit_dimension"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "OrderOfNakayamaAutomorphism"
@@ -9896,16 +9896,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_irreducible_morph
 qpa_name = "PredefARQuivers"
 python_name = "predef_ar_quivers"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.predefined_ar_quiver_data; qpa.predefined_ar_quiver_catalog; qpa.PredefinedArQuiverData"
+notes = "The raw predefined data and the exact text of QPA's what catalog are both available."
 entry_ids = ["degorderfinitetype:DeclareGlobalFunction:PredefARQuivers:1","degorderfinitetype:InstallGlobalFunction:PredefARQuivers:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degorderfinitetype.gi"]
 rust_symbols = ["predefined_ar_quiver_data; PREDEFINED_AR_QUIVER_CATALOG"]
 rust_tests = ["tests/fixtures/degorderfinitetype_predefined.schema-v1.json","tests/fixtures/degorderfinitetype_predefined_catalog.txt"]
 deviations = ["DEGORDER-001","DEGORDER-003"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa","python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
 
 [[operations]]
 qpa_name = "PrefixSearch"
@@ -9956,31 +9956,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structure_constan
 qpa_name = "PrintMultiplicityVector"
 python_name = "print_multiplicity_vector"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.format_multiplicity_vector"
+notes = "Returns QPA's exact rendered text instead of writing it directly to stdout."
 entry_ids = ["degorderfinitetype:DeclareOperation:PrintMultiplicityVector:1","degorderfinitetype:InstallMethod:PrintMultiplicityVector:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degorderfinitetype.gi"]
 rust_symbols = ["format_multiplicity_vector"]
 rust_tests = ["tests/fixtures/degorderfinitetype_print.txt"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
 
 [[operations]]
 qpa_name = "PrintMultiplicityVectors"
 python_name = "print_multiplicity_vectors"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.format_multiplicity_vectors"
+notes = "Returns QPA's exact rendered text instead of writing it directly to stdout."
 entry_ids = ["degorderfinitetype:DeclareOperation:PrintMultiplicityVectors:1","degorderfinitetype:InstallMethod:PrintMultiplicityVectors:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degorderfinitetype.gi"]
 rust_symbols = ["format_multiplicity_vectors"]
 rust_tests = ["tests/fixtures/degorderfinitetype_print.txt"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
 
 [[operations]]
 qpa_name = "PrintObj"
@@ -12206,16 +12206,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_a
 qpa_name = "TestCodimConjecture"
 python_name = "test_codim_conjecture"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.ArQuiverNumerical.test_codimension_conjecture; qpa.CodimensionConjectureReport"
+notes = "Returns QPA's accumulated counterexample and count data as a structured result rather than printing a runtime-dependent summary."
 entry_ids = ["degorderfinitetype:DeclareOperation:TestCodimConjecture:1","degorderfinitetype:InstallMethod:TestCodimConjecture:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/degorderfinitetype.gd","upstream/qpa/lib/degorderfinitetype.gi"]
 rust_symbols = ["ArQuiverNumerical::test_codimension_conjecture"]
 rust_tests = ["tests/fixtures/degorderfinitetype.schema-v1.json"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orbits_printing_and_conjecture_follow_qpa"]
 
 [[operations]]
 qpa_name = "TheFamilyOfCombinatorialMaps"
@@ -12942,15 +12942,15 @@ qpa_name = "ViewObj"
 python_name = "view_obj"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__"
-notes = "The quiver, quiver-ordering, algebra Groebner-basis, projective-module Groebner-basis, and unit-form overloads are exposed; grouped display overloads remain."
+python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__; qpa.ArQuiverNumerical.__repr__"
+notes = "The quiver, quiver-ordering, algebra Groebner-basis, projective-module Groebner-basis, unit-form, and numerical AR-quiver overloads are exposed; grouped display overloads remain."
 entry_ids = ["combinatorialrep:InstallMethod:ViewObj:1","complex:InstallMethod:ViewObj:1","degorderfinitetype:InstallMethod:ViewObj:1","groebner:InstallMethod:ViewObj:1","groebnerordering:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:2","groebnerstadict:InstallMethod:ViewObj:3","groebnerstadict:InstallMethod:ViewObj:4","module:InstallMethod:ViewObj:1","modulehom:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:2","pathalgtensor:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:2","qpaposet:InstallMethod:ViewObj:1","quiver:InstallMethod:ViewObj:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/groebnerstadict.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/qpaposet.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","Display for PathAlgebraModule","Display for PathAlgebraModuleHomomorphism","Display for UnitForm","GroebnerBasis::view_string","PathAlgebra::view_obj_with","Poset::fmt","Quiver::view_string","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuiverStaticDictionary::fmt; QuiverStaticDictionary::view_string","QuotientPathAlgebra::view_obj_with; PathAlgebraIdeal::view_obj_with","RightPathAlgebraModuleGroebnerBasis::view_obj_with_basis","RightPathAlgebraModuleGroebnerBasis::view_obj_without_basis","StaticDictionary::fmt","qpa_gbnp::QpaCategory::name"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form_view.txt","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/poset_output.txt","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/static_dictionary_output.txt"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
 
 [[operations]]
 qpa_name = "WalkOfPath"
