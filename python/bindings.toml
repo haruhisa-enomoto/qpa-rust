@@ -54,10 +54,9 @@ notes = "Represented by the concrete Python wrapper type."
 
 [[bindings]]
 qpa_name = "ElementOfPathAlgebra"
-status = "partial"
-target = "qpa.PathAlgebra.term"
-tests = ["python/tests/test_architecture_spike.py::test_path_algebra_uses_exact_rust_operations"]
-notes = "Single path-scalar terms and generator elements are exposed."
+status = "exposed"
+target = "qpa.PathAlgebra.element; qpa.PathAlgebra.term"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[bindings]]
 qpa_name = "FactorPathAlgebraByRelators"
@@ -75,10 +74,48 @@ notes = "Represented by the concrete Python wrapper type."
 
 [[bindings]]
 qpa_name = "ElementOfQuotientOfPathAlgebra"
-status = "partial"
-target = "qpa.QuotientAlgebra.generator"
-tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
-notes = "Embedded quiver generators are exposed."
+status = "exposed"
+target = "qpa.QuotientAlgebra.element_with_normality"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_lazy_quotient_preserves_qpa_normal_form_function_boundary"]
+
+[[bindings]]
+qpa_name = "GroebnerBasisFunction"
+status = "exposed"
+target = "qpa.PathAlgebra.groebner_basis_function"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
+notes = "Invokes the GBNPGroebnerBasis function selected by QPA's default PathAlgebra constructor; the explicit high-level alternative remains available separately."
+
+[[bindings]]
+qpa_name = "IsFullFpPathAlgebra"
+status = "exposed"
+target = "qpa.QuotientAlgebra.is_full_fp_path_algebra"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsPathRing"
+status = "exposed"
+target = "qpa.PathAlgebra.is_path_ring; qpa.QuotientAlgebra.is_path_ring"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
+notes = "Preserves QPA's true value for path algebras and false value for their quotients, including PATHALG-002's field-backed path-ring contract."
+
+[[bindings]]
+qpa_name = "NormalFormFunction"
+status = "exposed"
+target = "qpa.QuotientAlgebra.has_normal_form_function; qpa.QuotientAlgebra.normal_form; qpa.QuotientElement.normalized"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_lazy_quotient_preserves_qpa_normal_form_function_boundary"]
+
+[[bindings]]
+qpa_name = "NormalizedElementOfMagmaRingModuloRelations"
+status = "exposed"
+target = "qpa.PathAlgebra.element_from_external_representation"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_binary_external_representation_round_trip_follows_qpa"]
+notes = "The Python external-representation protocol is already the typed canonical descriptor produced after QPA's raw alternating-list normalizer; reconstruction validates that canonical invariant."
+
+[[bindings]]
+qpa_name = "OneOp"
+status = "exposed"
+target = "qpa.QuotientElement.one_same_parent; qpa.QuotientElement.pow; qpa.QuotientAlgebra.one"
+tests = ["python/tests/test_external_representations.py::test_quotient_element_one_and_zero_operations_follow_qpa"]
 
 [[bindings]]
 qpa_name = "Dimension"
@@ -710,10 +747,15 @@ notes = "Path, admissible-quotient, and tagged predefined-algebra dispatch is ex
 
 [[bindings]]
 qpa_name = "RelationsOfAlgebra"
-status = "partial"
-target = "qpa.PathAlgebra.relations"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Path and quotient algebra relation lists are exposed."
+status = "exposed"
+target = "qpa.PathAlgebra.relations; qpa.QuotientAlgebra.relations"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RelatorsOfFpAlgebra"
+status = "exposed"
+target = "qpa.QuotientAlgebra.relators"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[bindings]]
 qpa_name = "CanonicalBasis"
@@ -1329,8 +1371,8 @@ notes = "Opposite-algebra and echelon path-vector-basis overloads are exposed; r
 [[bindings]]
 qpa_name = "ExtRepOfObj"
 status = "exposed"
-target = "qpa.OppositeStructureConstantsElement.external_representation; qpa.Path.external_representation; qpa.ModuleElement.external_representation; qpa.QuotientElement.external_representation"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+target = "qpa.OppositeStructureConstantsElement.external_representation; qpa.Path.external_representation; qpa.AlgebraElement.external_representation; qpa.ModuleElement.external_representation; qpa.QuotientElement.external_representation"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsAlgebra"
@@ -1359,10 +1401,9 @@ tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_const
 
 [[bindings]]
 qpa_name = "ObjByExtRep"
-status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.element_from_underlying; qpa.Quiver.path_from_external_representation"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "Opposite-element and quiver-path reconstruction are exposed; quotient-path-algebra reconstruction remains."
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.element_from_underlying; qpa.Quiver.path_from_external_representation; qpa.PathAlgebra.element_from_external_representation; qpa.QuotientAlgebra.element_from_external_representation"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_binary_external_representation_round_trip_follows_qpa"]
 
 [[bindings]]
 qpa_name = "OppositeAlgebra"
@@ -1679,8 +1720,8 @@ tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorp
 [[bindings]]
 qpa_name = "ZeroOp"
 status = "partial"
-target = "qpa.OppositeStructureConstantsElement.zero_same_parent; qpa.MatrixModule.zero_element; qpa.RightProjectiveModule.zero; qpa.RightProjectiveQuotientModule.zero"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
+target = "qpa.OppositeStructureConstantsElement.zero_same_parent; qpa.QuotientElement.zero_same_parent; qpa.MatrixModule.zero_element; qpa.RightProjectiveModule.zero; qpa.RightProjectiveQuotientModule.zero"
+tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_external_representations.py::test_quotient_element_one_and_zero_operations_follow_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
 notes = "Opposite-, matrix-module-, and both vertex-projective zero overloads are exposed alongside quotient-algebra zero; remaining projective-module domains remain."
 
 [[bindings]]

@@ -377,6 +377,25 @@ impl PyQuotientAlgebra {
         ))
     }
 
+    /// QPA's `RelatorsOfFpAlgebra` is the same ordered defining list.
+    #[getter]
+    fn relators(&self) -> Vec<PyAlgebraElement> {
+        self.relations()
+    }
+
+    /// Return QPA's `IsPathRing` property.
+    #[getter]
+    fn is_path_ring(&self) -> bool {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra.is_path_ring())
+    }
+
+    /// Return the property installed by QPA's f.p. path-algebra constructor.
+    #[getter]
+    fn is_full_fp_path_algebra(&self) -> bool {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra
+            .is_full_fp_path_algebra())
+    }
+
     #[getter]
     fn groebner_basis(&self) -> Option<PyGroebnerBasis> {
         dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra
@@ -419,6 +438,51 @@ impl PyQuotientAlgebra {
             QuotientKind => QuotientElementKind,
             |algebra| algebra
                 .element(runtime::Extract::extract(element)?)
+                .map_err(invalid)?
+        );
+        Ok(PyQuotientElement { kind })
+    }
+
+    /// Invoke QPA's explicit three-argument quotient-element constructor.
+    fn element_with_normality(
+        &self,
+        element: &PyAlgebraElement,
+        known_normal: bool,
+    ) -> PyResult<PyQuotientElement> {
+        let element = element.kind.clone();
+        let kind = map_ref!(
+            &self.kind,
+            QuotientKind => QuotientElementKind,
+            |algebra| algebra
+                .element_with_normality(runtime::Extract::extract(element)?, known_normal)
+                .map_err(invalid)?
+        );
+        Ok(PyQuotientElement { kind })
+    }
+
+    /// Apply the normal-form function installed on this quotient family.
+    fn normal_form(&self, element: &PyAlgebraElement) -> PyResult<PyQuotientElement> {
+        if !self.has_normal_form_function() {
+            return Err(invalid("the quotient family has no normal-form function"));
+        }
+        self.element_with_normality(element, false)
+    }
+
+    /// Rebuild a residue class through QPA's quotient `ObjByExtRep` method.
+    fn element_from_external_representation(
+        &self,
+        py: Python<'_>,
+        representation: Vec<(Vec<usize>, Py<PyScalar>)>,
+    ) -> PyResult<PyQuotientElement> {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientKind => QuotientElementKind,
+            |algebra| algebra
+                .element_from_external_representation(&path_external_representation(
+                    py,
+                    algebra.original_path_algebra(),
+                    representation,
+                )?)
                 .map_err(invalid)?
         );
         Ok(PyQuotientElement { kind })
@@ -803,6 +867,26 @@ impl PyQuotientElement {
             |element| element.normalized().map_err(invalid)?
         );
         Ok(Self { kind })
+    }
+
+    /// Return QPA's `OneOp` result in this element's quotient family.
+    fn one_same_parent(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientElementKind => QuotientElementKind,
+            |element| element.algebra().one().map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    /// Return QPA's `ZeroOp` result in this element's quotient family.
+    fn zero_same_parent(&self) -> Self {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientElementKind => QuotientElementKind,
+            |element| element.algebra().zero()
+        );
+        Self { kind }
     }
 
     fn add(&self, right: &Self) -> PyResult<Self> {

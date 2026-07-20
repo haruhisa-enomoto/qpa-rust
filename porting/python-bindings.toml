@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 702
+exposed_or_partial_count = 709
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2471,31 +2471,31 @@ python_tests = []
 qpa_name = "ElementOfPathAlgebra"
 python_name = "element_of_path_algebra"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.PathAlgebra.term"
-notes = "Single path-scalar terms and generator elements are exposed."
+status = "exposed"
+python_target = "qpa.PathAlgebra.element; qpa.PathAlgebra.term"
+notes = ""
 entry_ids = ["pathalg:DeclareOperation:ElementOfPathAlgebra:1","pathalg:InstallMethod:ElementOfPathAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::element"]
 rust_tests = ["tests/fixtures/pathalg_conversion.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_path_algebra_uses_exact_rust_operations"]
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "ElementOfQuotientOfPathAlgebra"
 python_name = "element_of_quotient_of_path_algebra"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.QuotientAlgebra.generator"
-notes = "Embedded quiver generators are exposed."
+status = "exposed"
+python_target = "qpa.QuotientAlgebra.element_with_normality"
+notes = ""
 entry_ids = ["pathalg:DeclareOperation:ElementOfQuotientOfPathAlgebra:1","pathalg:InstallMethod:ElementOfQuotientOfPathAlgebra:1","pathalg:InstallMethod:ElementOfQuotientOfPathAlgebra:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["QuotientPathAlgebra::element_with_normality"]
 rust_tests = ["tests/fixtures/pathalg_conversion.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route"]
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_lazy_quotient_preserves_qpa_normal_form_function_boundary"]
 
 [[operations]]
 qpa_name = "ElementsOfUnits"
@@ -2682,7 +2682,7 @@ qpa_name = "ExtRepOfObj"
 python_name = "ext_rep_of_obj"
 disposition = "operation"
 status = "exposed"
-python_target = "qpa.OppositeStructureConstantsElement.external_representation; qpa.Path.external_representation; qpa.ModuleElement.external_representation; qpa.QuotientElement.external_representation"
+python_target = "qpa.OppositeStructureConstantsElement.external_representation; qpa.Path.external_representation; qpa.AlgebraElement.external_representation; qpa.ModuleElement.external_representation; qpa.QuotientElement.external_representation"
 notes = ""
 entry_ids = ["algebra:InstallMethod:ExtRepOfObj:1","module:InstallMethod:ExtRepOfObj:1","pathalg:InstallMethod:ExtRepOfObj:1","quiver:InstallMethod:ExtRepOfObj:1","quiver:InstallMethod:ExtRepOfObj:2","quiver:InstallMethod:ExtRepOfObj:3"]
 constructs = ["InstallMethod"]
@@ -2690,7 +2690,7 @@ source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upst
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::external_representation","Path::external_representation","PathAlgebraModuleElement::external_representation","QuotientPathAlgebraElement::external_representation"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/pathalg_conversion.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "FacesOfCombinatorialMap"
@@ -3251,16 +3251,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "GroebnerBasisFunction"
 python_name = "groebner_basis_function"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.groebner_basis_function"
+notes = "Invokes the GBNPGroebnerBasis function selected by QPA's default PathAlgebra constructor; the explicit high-level alternative remains available separately."
 entry_ids = ["pathalg:DeclareAttribute:GroebnerBasisFunction:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["QuotientPathAlgebra::by_relations_high_level; qpa_gbnp::quotient_by_relations"]
 rust_tests = ["tests/fixtures/quotient_path_algebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "GroebnerBasisInvLenInvLex"
@@ -5036,8 +5036,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_finitely_presente
 qpa_name = "IsFullFpPathAlgebra"
 python_name = "is_full_fp_path_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuotientAlgebra.is_full_fp_path_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareProperty:IsFullFpPathAlgebra:1"]
 constructs = ["DeclareProperty"]
@@ -5045,7 +5045,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["QuotientPathAlgebra::is_full_fp_path_algebra"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsGentleAlgebra"
@@ -5801,16 +5801,16 @@ python_tests = []
 qpa_name = "IsPathRing"
 python_name = "is_path_ring"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.is_path_ring; qpa.QuotientAlgebra.is_path_ring"
+notes = "Preserves QPA's true value for path algebras and false value for their quotients, including PATHALG-002's field-backed path-ring contract."
 entry_ids = ["pathalg:DeclareProperty:IsPathRing:1","pathalg:DeclareProperty:IsPathRing:2","pathalg:InstallMethod:IsPathRing:1","pathalg:InstallMethod:IsPathRing:2"]
 constructs = ["DeclareProperty","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::is_path_ring","PathAlgebra::is_path_ring; QuotientPathAlgebra::is_path_ring","QuotientPathAlgebra::is_path_ring"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = ["PATHALG-002"]
-python_tests = []
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsPoset"
@@ -8861,8 +8861,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "NormalFormFunction"
 python_name = "normal_form_function"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuotientAlgebra.has_normal_form_function; qpa.QuotientAlgebra.normal_form; qpa.QuotientElement.normalized"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:NormalFormFunction:1"]
 constructs = ["DeclareAttribute"]
@@ -8870,22 +8870,22 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["QuotientPathAlgebra::has_normal_form_function; QuotientPathAlgebraElement::normalized"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_lazy_quotient_preserves_qpa_normal_form_function_boundary"]
 
 [[operations]]
 qpa_name = "NormalizedElementOfMagmaRingModuloRelations"
 python_name = "normalized_element_of_magma_ring_modulo_relations"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.element_from_external_representation"
+notes = "The Python external-representation protocol is already the typed canonical descriptor produced after QPA's raw alternating-list normalizer; reconstruction validates that canonical invariant."
 entry_ids = ["pathalg:InstallMethod:NormalizedElementOfMagmaRingModuloRelations:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::element_from_external_representation"]
 rust_tests = ["tests/fixtures/pathalg_conversion.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_binary_external_representation_round_trip_follows_qpa"]
 
 [[operations]]
 qpa_name = "NthPowerOfArrowIdeal"
@@ -9056,16 +9056,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "ObjByExtRep"
 python_name = "obj_by_ext_rep"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.OppositeStructureConstantsAlgebra.element_from_underlying; qpa.Quiver.path_from_external_representation"
-notes = "Opposite-element and quiver-path reconstruction are exposed; quotient-path-algebra reconstruction remains."
+status = "exposed"
+python_target = "qpa.OppositeStructureConstantsAlgebra.element_from_underlying; qpa.Quiver.path_from_external_representation; qpa.PathAlgebra.element_from_external_representation; qpa.QuotientAlgebra.element_from_external_representation"
+notes = ""
 entry_ids = ["algebra:InstallMethod:ObjByExtRep:1","pathalg:InstallMethod:ObjByExtRep:1","quiver:InstallMethod:ObjByExtRep:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["OppositeStructureConstantsAlgebra::element_from_underlying","Path::from_external_representation","QuotientPathAlgebra::element_from_external_representation"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/pathalg_conversion.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa","python/tests/test_external_representations.py::test_binary_external_representation_round_trip_follows_qpa"]
 
 [[operations]]
 qpa_name = "ObjectOfComplex"
@@ -9086,8 +9086,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "OneOp"
 python_name = "one_op"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuotientElement.one_same_parent; qpa.QuotientElement.pow; qpa.QuotientAlgebra.one"
 notes = ""
 entry_ids = ["pathalg:InstallOtherMethod:OneOp:1"]
 constructs = ["InstallOtherMethod"]
@@ -9095,7 +9095,7 @@ source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["QuotientPathAlgebra::one; QuotientPathAlgebraElement::pow"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_external_representations.py::test_quotient_element_one_and_zero_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "OppositeAlgebra"
@@ -10931,23 +10931,23 @@ python_tests = ["python/tests/test_architecture_spike.py::test_projective_genera
 qpa_name = "RelationsOfAlgebra"
 python_name = "relations_of_algebra"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.PathAlgebra.relations"
-notes = "Path and quotient algebra relation lists are exposed."
+status = "exposed"
+python_target = "qpa.PathAlgebra.relations; qpa.QuotientAlgebra.relations"
+notes = ""
 entry_ids = ["pathalg:DeclareAttribute:RelationsOfAlgebra:1","pathalg:InstallMethod:RelationsOfAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::relations; QuotientPathAlgebra::relations"]
 rust_tests = ["tests/fixtures/pathalg_conversion.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "RelatorsOfFpAlgebra"
 python_name = "relators_of_fp_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuotientAlgebra.relators"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:RelatorsOfFpAlgebra:1","pathalg:InstallMethod:RelatorsOfFpAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -10955,7 +10955,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["QuotientPathAlgebra::relations"]
 rust_tests = ["tests/fixtures/pathalg_conversion.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "RemainderOfDivision"
@@ -13152,7 +13152,7 @@ qpa_name = "ZeroOp"
 python_name = "zero_op"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsElement.zero_same_parent; qpa.MatrixModule.zero_element; qpa.RightProjectiveModule.zero; qpa.RightProjectiveQuotientModule.zero"
+python_target = "qpa.OppositeStructureConstantsElement.zero_same_parent; qpa.QuotientElement.zero_same_parent; qpa.MatrixModule.zero_element; qpa.RightProjectiveModule.zero; qpa.RightProjectiveQuotientModule.zero"
 notes = "Opposite-, matrix-module-, and both vertex-projective zero overloads are exposed alongside quotient-algebra zero; remaining projective-module domains remain."
 entry_ids = ["algebra:InstallMethod:ZeroOp:1","module:InstallMethod:ZeroOp:1","pathalg:InstallMethod:ZeroOp:1","projpathalgmodule:InstallMethod:ZeroOp:1"]
 constructs = ["InstallMethod"]
@@ -13160,7 +13160,7 @@ source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/module.gi","upst
 rust_symbols = ["OppositeStructureConstantsAlgebraElement::zero_same_parent","PathAlgebraModule::zero_element","QuotientPathAlgebra::zero","RightProjectivePathAlgebraModule::zero; RightProjectiveQuotientPathAlgebraModule::zero"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_external_representations.py::test_quotient_element_one_and_zero_operations_follow_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\*"

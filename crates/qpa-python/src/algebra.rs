@@ -93,9 +93,10 @@ use numerica::domains::{
 use pyo3::{Py, PyRef, PyResult, Python, prelude::*, types::PyList};
 use qpa_core::{
     AlgebraDimension, DenseMatrix, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix, PathAlgebra,
-    PathAlgebraElement, PathAlgebraIdeal, PathAlgebraModule, PathAlgebraModuleElement,
-    PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule, QuiverAlgebra, QuiverAlgebraElement,
-    QuotientPathAlgebra, QuotientPathAlgebraElement, right_module_over_path_algebra,
+    PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal, PathAlgebraModule,
+    PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule,
+    QuiverAlgebra, QuiverAlgebraElement, QuotientPathAlgebra, QuotientPathAlgebraElement,
+    right_module_over_path_algebra,
 };
 
 use crate::field::parse_python_integer;
@@ -1780,6 +1781,12 @@ impl PyPathAlgebra {
             .has_finite_canonical_basis())
     }
 
+    /// Return QPA's `IsPathRing` property.
+    #[getter]
+    fn is_path_ring(&self) -> bool {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra.is_path_ring())
+    }
+
     #[getter]
     fn is_monomial(&self) -> bool {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
@@ -1871,6 +1878,37 @@ impl PyPathAlgebra {
             &self.kind,
             AlgebraKind => AlgebraElementKind,
             |algebra| algebra.element(path).map_err(invalid)?
+        );
+        Ok(PyAlgebraElement { kind })
+    }
+
+    /// Embed a path through QPA's `ElementOfPathAlgebra` operation.
+    fn element(&self, path: &PyPath) -> PyResult<PyAlgebraElement> {
+        let path = path.inner.clone();
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraKind => AlgebraElementKind,
+            |algebra| algebra.element(path).map_err(invalid)?
+        );
+        Ok(PyAlgebraElement { kind })
+    }
+
+    /// Rebuild a path-algebra element from QPA's canonical external form.
+    fn element_from_external_representation(
+        &self,
+        py: Python<'_>,
+        representation: Vec<(Vec<usize>, Py<PyScalar>)>,
+    ) -> PyResult<PyAlgebraElement> {
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraKind => AlgebraElementKind,
+            |algebra| algebra
+                .element_from_external_representation(&path_external_representation(
+                    py,
+                    algebra,
+                    representation,
+                )?)
+                .map_err(invalid)?
         );
         Ok(PyAlgebraElement { kind })
     }
@@ -1975,6 +2013,16 @@ impl PyPathAlgebra {
             |algebra| build_gbnp_groebner_basis(algebra, relations)?
         );
         Ok(PyGroebnerBasis { kind })
+    }
+
+    /// Invoke the `GroebnerBasisFunction` selected by QPA's default
+    /// `PathAlgebra` constructor, namely `GBNPGroebnerBasis`.
+    fn groebner_basis_function(
+        &self,
+        py: Python<'_>,
+        relations: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<PyGroebnerBasis> {
+        self.gbnp_groebner_basis(py, relations)
     }
 
     fn make_uniform_on_right(
@@ -2245,6 +2293,23 @@ where
 {
     let relations = runtime::extract_all(relations)?;
     qpa_gbnp::quotient_by_relations(algebra.clone(), &relations).map_err(invalid)
+}
+
+fn path_external_representation<F: runtime::PythonField>(
+    py: Python<'_>,
+    algebra: &PathAlgebra<F>,
+    representation: Vec<(Vec<usize>, Py<PyScalar>)>,
+) -> PyResult<PathAlgebraExternalRepresentation<F::Element>> {
+    let terms = representation
+        .into_iter()
+        .map(|(path, coefficient)| {
+            Ok((path, algebra.field().scalar_value(&coefficient.borrow(py))?))
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    Ok(PathAlgebraExternalRepresentation::new(
+        algebra.field().integer_value(&Integer::from(0)),
+        terms,
+    ))
 }
 
 fn build_high_level_quotient<F: runtime::PythonField>(
