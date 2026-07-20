@@ -1095,6 +1095,12 @@ target = "qpa.ModuleComplex.brutal_truncation_below"
 tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[bindings]]
+qpa_name = "BrutalTruncation"
+status = "exposed"
+target = "qpa.ModuleComplex.brutal_truncation"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
 qpa_name = "CosyzygyTruncation"
 status = "exposed"
 target = "qpa.ModuleComplex.cosyzygy_truncation"
@@ -1124,6 +1130,13 @@ qpa_name = "GoodTruncationBelow"
 status = "exposed"
 target = "qpa.ModuleComplex.good_truncation_below"
 tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "GoodTruncation"
+status = "exposed"
+target = "qpa.ModuleComplex.good_truncation"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+notes = "Faithfully includes QPA's explicitly documented not-working GoodTruncationAbove step."
 
 [[bindings]]
 qpa_name = "HighestKnownDegree"
@@ -1243,6 +1256,24 @@ target = "qpa.ModuleComplex.syzygy_truncation"
 tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[bindings]]
+qpa_name = "SyzygyCosyzygyTruncation"
+status = "exposed"
+target = "qpa.ModuleComplex.syzygy_cosyzygy_truncation"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CutComplexAbove"
+status = "exposed"
+target = "qpa.ModuleComplex.cut_above"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CutComplexBelow"
+status = "exposed"
+target = "qpa.ModuleComplex.cut_below"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
 qpa_name = "UpperBound"
 status = "partial"
 target = "qpa.ModuleComplex.upper_bound"
@@ -1292,3 +1323,27 @@ qpa_name = "ZeroChainMap"
 status = "exposed"
 target = "qpa.ModuleComplex.zero_chain_map_to"
 tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ComparisonLifting"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.comparison_lifting"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ComparisonLiftingToProjectiveResolution"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.comparison_lifting_to_projective_resolution"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ShortExactSequence"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.short_exact_sequence_with"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "YonedaProduct"
+status = "exposed"
+target = "qpa.ModuleComplex.yoneda_product"
+tests = ["python/tests/test_architecture_spike.py::test_yoneda_product_follows_qpa_splicing_convention"]

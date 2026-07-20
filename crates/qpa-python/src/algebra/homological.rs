@@ -330,6 +330,70 @@ impl PyModuleComplex {
         Ok(Self { kind })
     }
 
+    fn good_truncation(&self, upper: i64, lower: i64) -> PyResult<Self> {
+        let upper = Integer::from(upper);
+        let lower = Integer::from(lower);
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| complex.good_truncation(&upper, &lower).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn brutal_truncation(&self, upper: i64, lower: i64) -> PyResult<Self> {
+        let upper = Integer::from(upper);
+        let lower = Integer::from(lower);
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| complex.brutal_truncation(&upper, &lower).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn syzygy_cosyzygy_truncation(&self, upper: i64, lower: i64) -> PyResult<Self> {
+        let upper = Integer::from(upper);
+        let lower = Integer::from(lower);
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| complex
+                .syzygy_cosyzygy_truncation(&upper, &lower)
+                .map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn cut_above(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| complex.cut_complex_above().map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn cut_below(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| complex.cut_complex_below().map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn yoneda_product(&self, second: &Self) -> PyResult<Self> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &second.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |first, second| qpa_gbnp::yoneda_product(first, second).map_err(invalid)?,
+            invalid("complexes belong to different coefficient fields")
+        )?;
+        Ok(Self { kind })
+    }
+
     fn finite_chain_map_to(
         &self,
         py: Python<'_>,

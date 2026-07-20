@@ -1048,6 +1048,69 @@ impl PyModuleHomomorphism {
         )
     }
 
+    fn short_exact_sequence_with(&self, second: &Self) -> PyResult<PyModuleComplex> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &second.kind,
+            ModuleHomomorphismKind => ModuleComplexKind,
+            |first, second| qpa_gbnp::short_exact_sequence(
+                qpa_gbnp::cat_of_right_algebra_modules(first.source().right_acting_algebra())
+                    .map_err(invalid)?,
+                first.clone(),
+                second.clone(),
+            )
+            .map_err(invalid)?,
+            invalid("homomorphisms belong to different coefficient fields")
+        )?;
+        Ok(PyModuleComplex { kind })
+    }
+
+    fn comparison_lifting(
+        &self,
+        projective_complex: &PyModuleComplex,
+        exact_complex: &PyModuleComplex,
+    ) -> PyResult<PyModuleChainMap> {
+        let kind = match (&self.kind, &projective_complex.kind, &exact_complex.kind) {
+            (
+                ModuleHomomorphismKind::Rational(morphism),
+                ModuleComplexKind::Rational(projective),
+                ModuleComplexKind::Rational(exact),
+            ) => ModuleChainMapKind::Rational(
+                qpa_gbnp::comparison_lifting(morphism, projective, exact).map_err(invalid)?,
+            ),
+            (
+                ModuleHomomorphismKind::Binary(morphism),
+                ModuleComplexKind::Binary(projective),
+                ModuleComplexKind::Binary(exact),
+            ) => ModuleChainMapKind::Binary(
+                qpa_gbnp::comparison_lifting(morphism, projective, exact).map_err(invalid)?,
+            ),
+            (
+                ModuleHomomorphismKind::Prime(morphism),
+                ModuleComplexKind::Prime(projective),
+                ModuleComplexKind::Prime(exact),
+            ) => ModuleChainMapKind::Prime(
+                qpa_gbnp::comparison_lifting(morphism, projective, exact).map_err(invalid)?,
+            ),
+            _ => {
+                return Err(invalid(
+                    "morphism and complexes belong to different coefficient fields",
+                ));
+            }
+        };
+        Ok(PyModuleChainMap { kind })
+    }
+
+    fn comparison_lifting_to_projective_resolution(&self) -> PyResult<PyModuleChainMap> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleHomomorphismKind => ModuleChainMapKind,
+            |morphism| qpa_gbnp::comparison_lifting_to_projective_resolution(morphism)
+                .map_err(invalid)?
+        );
+        Ok(PyModuleChainMap { kind })
+    }
+
     fn __add__(&self, right: &Self) -> PyResult<Self> {
         self.add(right)
     }

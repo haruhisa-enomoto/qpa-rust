@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 200
+exposed_or_partial_count = 209
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -806,8 +806,8 @@ python_tests = []
 qpa_name = "BrutalTruncation"
 python_name = "brutal_truncation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.brutal_truncation"
 notes = ""
 entry_ids = ["complex:DeclareOperation:BrutalTruncation:1","complex:InstallMethod:BrutalTruncation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -815,7 +815,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::brutal_truncation"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "BrutalTruncationAbove"
@@ -1196,8 +1196,8 @@ python_tests = []
 qpa_name = "ComparisonLifting"
 python_name = "comparison_lifting"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.comparison_lifting"
 notes = ""
 entry_ids = ["complex:DeclareOperation:ComparisonLifting:1","complex:InstallMethod:ComparisonLifting:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1205,14 +1205,14 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::comparison_lifting"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "ComparisonLiftingToProjectiveResolution"
 python_name = "comparison_lifting_to_projective_resolution"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.comparison_lifting_to_projective_resolution"
 notes = ""
 entry_ids = ["complex:DeclareOperation:ComparisonLiftingToProjectiveResolution:1","complex:InstallMethod:ComparisonLiftingToProjectiveResolution:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1220,7 +1220,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::comparison_lifting_to_projective_resolution"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "ComplementInFullRowSpace"
@@ -1541,8 +1541,8 @@ python_tests = []
 qpa_name = "CutComplexAbove"
 python_name = "cut_complex_above"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.cut_above"
 notes = ""
 entry_ids = ["complex:DeclareOperation:CutComplexAbove:1","complex:InstallMethod:CutComplexAbove:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1550,14 +1550,14 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::cut_complex_above"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CutComplexBelow"
 python_name = "cut_complex_below"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.cut_below"
 notes = ""
 entry_ids = ["complex:DeclareOperation:CutComplexBelow:1","complex:InstallMethod:CutComplexBelow:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1565,7 +1565,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::cut_complex_below"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CutDynamicTree"
@@ -3161,16 +3161,16 @@ python_tests = []
 qpa_name = "GoodTruncation"
 python_name = "good_truncation"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.good_truncation"
+notes = "Faithfully includes QPA's explicitly documented not-working GoodTruncationAbove step."
 entry_ids = ["complex:DeclareOperation:GoodTruncation:1","complex:InstallMethod:GoodTruncation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::good_truncation"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "GoodTruncationAbove"
@@ -11546,8 +11546,8 @@ python_tests = []
 qpa_name = "ShortExactSequence"
 python_name = "short_exact_sequence"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.short_exact_sequence_with"
 notes = ""
 entry_ids = ["complex:DeclareGlobalFunction:ShortExactSequence:1","complex:InstallGlobalFunction:ShortExactSequence:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -11555,7 +11555,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::short_exact_sequence"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "SimpleModules"
@@ -12041,8 +12041,8 @@ python_tests = []
 qpa_name = "SyzygyCosyzygyTruncation"
 python_name = "syzygy_cosyzygy_truncation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.syzygy_cosyzygy_truncation"
 notes = ""
 entry_ids = ["complex:DeclareOperation:SyzygyCosyzygyTruncation:1","complex:InstallMethod:SyzygyCosyzygyTruncation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12050,7 +12050,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::syzygy_cosyzygy_truncation"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "SyzygyTruncation"
@@ -13061,8 +13061,8 @@ python_tests = []
 qpa_name = "YonedaProduct"
 python_name = "yoneda_product"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.yoneda_product"
 notes = ""
 entry_ids = ["complex:DeclareOperation:YonedaProduct:1","complex:InstallMethod:YonedaProduct:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -13070,7 +13070,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::yoneda_product"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_yoneda_product_follows_qpa_splicing_convention"]
 
 [[operations]]
 qpa_name = "Zero"

@@ -409,6 +409,8 @@ def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
     radical = module.radical_inclusion()
     top = module.top_projection()
     short_exact = module.finite_complex(0, [top, radical])
+    checked_short_exact = radical.short_exact_sequence_with(top)
+    assert checked_short_exact.is_short_exact_sequence
     assert short_exact.is_short_exact_sequence
     assert short_exact.is_exact_in_degree(0)
     assert short_exact.differential(0).source.is_identical(module)
@@ -425,6 +427,12 @@ def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
     assert short_exact.good_truncation_below(0).object(-1).is_zero
     assert short_exact.syzygy_truncation(0).object(1).dimension_vector == [0, 1]
     assert short_exact.cosyzygy_truncation(0).object(-2).is_zero
+    good = short_exact.good_truncation(0, 0)
+    assert good.object(0).is_zero and good.object(1).is_zero
+    assert short_exact.brutal_truncation(0, 0).object(0).dimension_vector == [1, 1]
+    both = short_exact.syzygy_cosyzygy_truncation(0, 0)
+    assert both.object(-1).dimension_vector == [1, 0]
+    assert both.object(1).dimension_vector == [0, 1]
     assert short_exact.is_identical(short_exact)
     assert " -> " in repr(short_exact)
 
@@ -436,7 +444,9 @@ def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
     assert projective.object(5).is_zero
     assert projective.is_positive_repeating
     assert projective.is_exact_in_degree(0)
+    assert projective.cut_above().upper_bound == "1"
 
+    assert first_simple.injective_resolution_complex().cut_below().lower_bound == "-1"
     injective = first_simple.injective_resolution_complex()
     assert injective.object(0).is_identical(first_simple)
     assert injective.object(-1).dimension_vector == [1, 0]
@@ -474,3 +484,33 @@ def test_module_chain_maps_and_mapping_cones_follow_qpa(field: qpa.Field) -> Non
     assert projection.range.object(0).dimension_vector == complex.object(-1).dimension_vector
     assert inclusion.morphism(0).range.is_identical(cone.object(0))
     assert projection.morphism(0).source.is_identical(cone.object(0))
+
+    simple = algebra.simple_modules()[0]
+    module_identity = simple.identity()
+    projective = simple.projective_resolution_complex()
+    lifting = module_identity.comparison_lifting(projective, projective)
+    assert lifting.morphism(-1) == module_identity
+    canonical_lifting = module_identity.comparison_lifting_to_projective_resolution()
+    assert canonical_lifting.morphism(-1) == module_identity
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_yoneda_product_follows_qpa_splicing_convention(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v"], []))
+    one = algebra.module_from_integer_matrices([1], [])
+    two = algebra.module_from_integer_matrices([2], [])
+    zero = field.element(0)
+    unit = field.element(1)
+    inclusion = one.homomorphism_to(two, [[[unit, zero]]])
+    projection = two.homomorphism_to(one, [[[zero], [unit]]])
+    extension = inclusion.short_exact_sequence_with(projection)
+
+    product = extension.yoneda_product(extension)
+    assert product.lower_bound == "-1"
+    assert product.upper_bound == "2"
+    assert [product.object(i).dimension_vector for i in range(-1, 3)] == [
+        [1],
+        [2],
+        [2],
+        [1],
+    ]
