@@ -14,8 +14,8 @@ use pyo3::{Py, PyRef, PyResult, Python, prelude::*};
 use qpa_core::{
     AlgebraDimension, DenseMatrix, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix, PathAlgebra,
     PathAlgebraElement, PathAlgebraIdeal, PathAlgebraModule, PathAlgebraModuleElement,
-    PathAlgebraModuleHomomorphism, QuiverAlgebra, QuiverAlgebraElement, QuotientPathAlgebra,
-    QuotientPathAlgebraElement, right_module_over_path_algebra,
+    PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule, QuiverAlgebra, QuiverAlgebraElement,
+    QuotientPathAlgebra, QuotientPathAlgebraElement, right_module_over_path_algebra,
 };
 
 use crate::{
@@ -237,6 +237,20 @@ pub(crate) struct PyModuleHomomorphism {
     kind: ModuleHomomorphismKind,
 }
 
+#[derive(Clone)]
+enum ModuleSubmoduleKind {
+    Rational(PathAlgebraModuleSubmodule<RationalField>),
+    Binary(PathAlgebraModuleSubmodule<Z2>),
+    Prime(PathAlgebraModuleSubmodule<Zp>),
+}
+
+/// QPA's generator-defined concrete submodule of a path-algebra matrix module.
+#[pyclass(name = "ModuleSubmodule", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleSubmodule {
+    kind: ModuleSubmoduleKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -258,6 +272,12 @@ macro_rules! impl_module_value_runtime {
 
         impl runtime::Wrap<PathAlgebraModuleHomomorphism<$field>> for ModuleHomomorphismKind {
             fn wrap(value: PathAlgebraModuleHomomorphism<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<PathAlgebraModuleSubmodule<$field>> for ModuleSubmoduleKind {
+            fn wrap(value: PathAlgebraModuleSubmodule<$field>) -> Self {
                 Self::$variant(value)
             }
         }
@@ -308,6 +328,18 @@ where
     runtime::wrap_all::<QuotientElementKind, _>(elements)
         .into_iter()
         .map(|kind| PyQuotientElement { kind })
+        .collect()
+}
+
+fn wrap_matrix_modules<F: runtime::PythonField>(
+    modules: Vec<PathAlgebraModule<F>>,
+) -> Vec<PyMatrixModule>
+where
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    runtime::wrap_all::<MatrixModuleKind, _>(modules)
+        .into_iter()
+        .map(|kind| PyMatrixModule { kind })
         .collect()
 }
 
@@ -602,6 +634,36 @@ impl PyPathAlgebra {
             |algebra| build_path_module(algebra, dimension_vector, actions)?
         );
         Ok(PyMatrixModule { kind })
+    }
+
+    fn zero_module(&self) -> PyResult<PyMatrixModule> {
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraKind => MatrixModuleKind,
+            |algebra| qpa_core::zero_module(&QuiverAlgebra::Path(algebra.clone()))
+                .map_err(invalid)?
+        );
+        Ok(PyMatrixModule { kind })
+    }
+
+    fn simple_modules(&self) -> PyResult<Vec<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| Ok(wrap_matrix_modules(
+            qpa_gbnp::simple_modules(&QuiverAlgebra::Path(algebra.clone())).map_err(invalid)?,
+        )))
+    }
+
+    fn indecomposable_projectives(&self) -> PyResult<Vec<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| Ok(wrap_matrix_modules(
+            qpa_gbnp::indec_projective_modules(&QuiverAlgebra::Path(algebra.clone()))
+                .map_err(invalid)?,
+        )))
+    }
+
+    fn indecomposable_injectives(&self) -> PyResult<Vec<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| Ok(wrap_matrix_modules(
+            qpa_gbnp::indec_injective_modules(&QuiverAlgebra::Path(algebra.clone()))
+                .map_err(invalid)?,
+        )))
     }
 
     fn is_identical(&self, other: &Self) -> bool {

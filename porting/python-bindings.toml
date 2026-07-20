@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 137
+exposed_or_partial_count = 159
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1046,8 +1046,8 @@ python_tests = []
 qpa_name = "CoKernelProjection"
 python_name = "co_kernel_projection"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.cokernel_projection"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:CoKernelProjection:1","modulehom:InstallMethod:CoKernelProjection:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -1055,7 +1055,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["cokernel_projection"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "Coefficients"
@@ -3656,8 +3656,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "ImageInclusion"
 python_name = "image_inclusion"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.image_inclusion"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:ImageInclusion:1","modulehom:InstallMethod:ImageInclusion:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -3665,7 +3665,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["image_inclusion"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "ImageOfWhat"
@@ -3686,8 +3686,8 @@ python_tests = []
 qpa_name = "ImageProjection"
 python_name = "image_projection"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.image_projection"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:ImageProjection:1","modulehom:InstallMethod:ImageProjection:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -3695,14 +3695,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["image_projection"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "ImageProjectionInclusion"
 python_name = "image_projection_inclusion"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.image_projection_inclusion"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:ImageProjectionInclusion:1","modulehom:InstallMethod:ImageProjectionInclusion:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -3710,7 +3710,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["image_projection_inclusion"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "ImagesRepresentative"
@@ -3821,31 +3821,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IndecInjectiveModules"
 python_name = "indec_injective_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.indecomposable_injectives"
+notes = "Exposed for both path algebras and quotient path algebras."
 entry_ids = ["modulespecial:DeclareAttribute:IndecInjectiveModules:1","modulespecial:InstallMethod:IndecInjectiveModules:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespecial.gi"]
 rust_symbols = ["indec_injective_modules"]
 rust_tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "IndecProjectiveModules"
 python_name = "indec_projective_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.indecomposable_projectives"
+notes = "Exposed for both path algebras and quotient path algebras."
 entry_ids = ["modulespecial:DeclareAttribute:IndecProjectiveModules:1","modulespecial:InstallMethod:IndecProjectiveModules:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespecial.gi"]
 rust_symbols = ["indec_projective_modules"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "InfConcatenation"
@@ -4046,8 +4046,8 @@ python_tests = []
 qpa_name = "InjectiveEnvelope"
 python_name = "injective_envelope"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.injective_envelope"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:InjectiveEnvelope:1","modulehomalg:InstallMethod:InjectiveEnvelope:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -4055,7 +4055,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["injective_envelope"]
 rust_tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "InjectiveResolution"
@@ -4106,16 +4106,16 @@ python_tests = []
 qpa_name = "IntersectionOfSubmodules"
 python_name = "intersection_of_submodules"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleHomomorphism.intersection"
+notes = "The binary overload is exposed; the list overload remains."
 entry_ids = ["modulehom:DeclareOperation:IntersectionOfSubmodules:1","modulehom:InstallOtherMethod:IntersectionOfSubmodules:1","modulehom:InstallMethod:IntersectionOfSubmodules:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["intersection_of_submodules","intersection_of_submodules; intersection_of_submodules_list","intersection_of_submodules_list"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "Inverse"
@@ -5321,8 +5321,8 @@ python_tests = []
 qpa_name = "IsInjectiveModule"
 python_name = "is_injective_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_injective"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsInjectiveModule:1","module:InstallMethod:IsInjectiveModule:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -5330,7 +5330,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["is_injective_module"]
 rust_tests = ["tests/fixtures/module_families_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsInternalSuffixTreeNode"
@@ -5906,8 +5906,8 @@ python_tests = []
 qpa_name = "IsProjectiveModule"
 python_name = "is_projective_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_projective"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsProjectiveModule:1","module:InstallMethod:IsProjectiveModule:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -5915,7 +5915,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["is_projective_module"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsProjectivePresentation"
@@ -7196,8 +7196,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "KernelInclusion"
 python_name = "kernel_inclusion"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.kernel_inclusion"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:KernelInclusion:1","modulehom:InstallMethod:KernelInclusion:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -7205,7 +7205,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["kernel_inclusion"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "KernelOfWhat"
@@ -10061,8 +10061,8 @@ python_tests = []
 qpa_name = "ProjectiveCover"
 python_name = "projective_cover"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.projective_cover"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:ProjectiveCover:1","modulehomalg:InstallMethod:ProjectiveCover:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -10070,7 +10070,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["projective_cover"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProjectivePathAlgebraPresentation"
@@ -10706,8 +10706,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "RadicalOfModuleInclusion"
 python_name = "radical_of_module_inclusion"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.radical_inclusion"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:RadicalOfModuleInclusion:1","modulehom:InstallMethod:RadicalOfModuleInclusion:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10715,7 +10715,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["radical_of_module_inclusion"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "RadicalRightApproximationByAddM"
@@ -11561,16 +11561,16 @@ python_tests = []
 qpa_name = "SimpleModules"
 python_name = "simple_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.simple_modules"
+notes = "Exposed for both path algebras and quotient path algebras."
 entry_ids = ["modulespecial:DeclareAttribute:SimpleModules:1","modulespecial:InstallMethod:SimpleModules:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespecial.gi"]
 rust_symbols = ["simple_modules"]
 rust_tests = ["tests/fixtures/module_families_properties.schema-v1.json","tests/gap-reference/module_simple_infinite_error.g","tests/gap-reference/module_simple_nonadmissible_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "SimpleTensor"
@@ -11621,8 +11621,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "SocleOfModuleInclusion"
 python_name = "socle_of_module_inclusion"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.socle_inclusion"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:SocleOfModuleInclusion:1","modulehom:InstallMethod:SocleOfModuleInclusion:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11630,7 +11630,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["socle_of_module_inclusion"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "SocleSeries"
@@ -11906,23 +11906,23 @@ python_tests = []
 qpa_name = "SubAlgebraModule"
 python_name = "sub_algebra_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.MatrixModule.submodule"
+notes = "The ordinary path-algebra matrix-submodule overload is exposed; projective presentation overloads remain."
 entry_ids = ["module:InstallMethod:SubAlgebraModule:1","projpathalgmodule:InstallMethod:SubAlgebraModule:1","projpathalgmodule:InstallOtherMethod:SubAlgebraModule:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["RightProjectivePathAlgebraModule::submodule; RightFpPathAlgebraModule::submodule; RightFpPathAlgebraSubmodule","RightProjectivePathAlgebraModule::submodule_with_basis","subalgebra_module; PathAlgebraModuleSubmodule"]
 rust_tests = ["tests/fixtures/module_submodule_errors.schema-v1.json","tests/fixtures/module_submodules.txt","tests/fixtures/projpathalgmodule_basis.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json","tests/fixtures/projpathalgmodule_groebner.schema-v1.json"]
 deviations = ["MODULE-004"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "SubRepresentation"
 python_name = "sub_representation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.subrepresentation"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:SubRepresentation:1","modulehom:InstallMethod:SubRepresentation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11930,14 +11930,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["subrepresentation"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "SubRepresentationInclusion"
 python_name = "sub_representation_inclusion"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.subrepresentation_inclusion"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:SubRepresentationInclusion:1","modulehom:InstallMethod:SubRepresentationInclusion:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11945,22 +11945,22 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["subrepresentation_inclusion"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "SubmoduleAsModule"
 python_name = "submodule_as_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.ModuleSubmodule.as_module"
+notes = "Preserves QPA's documented zero-space-arrow failure."
 entry_ids = ["module:DeclareOperation:SubmoduleAsModule:1","module:InstallMethod:SubmoduleAsModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["submodule_as_module; PathAlgebraModuleSubmodule::as_module"]
 rust_tests = ["tests/fixtures/module_submodule_errors.schema-v1.json","tests/fixtures/module_submodules.txt"]
 deviations = ["MODULE-004"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "SuffixTreeEdgeStartingAt"
@@ -11981,16 +11981,16 @@ python_tests = []
 qpa_name = "SumOfSubmodules"
 python_name = "sum_of_submodules"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ModuleHomomorphism.sum"
+notes = "The binary overload is exposed; the list overload remains."
 entry_ids = ["modulehom:DeclareOperation:SumOfSubmodules:1","modulehom:InstallOtherMethod:SumOfSubmodules:1","modulehom:InstallMethod:SumOfSubmodules:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["sum_of_submodules","sum_of_submodules; sum_of_submodules_list","sum_of_submodules_list"]
 rust_tests = ["tests/fixtures/modulehom_categorical.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "SupportModuleElement"
@@ -12521,23 +12521,23 @@ python_tests = []
 qpa_name = "TopOfModule"
 python_name = "top_of_module"
 disposition = "operation"
-status = "partial"
+status = "exposed"
 python_target = "qpa.MatrixModule.top"
-notes = "The module overload is exposed; the induced homomorphism overload remains."
+notes = "Both the module and induced-homomorphism overloads are exposed."
 entry_ids = ["modulehom:DeclareAttribute:TopOfModule:1","modulehom:DeclareAttribute:TopOfModule:2","modulehom:InstallMethod:TopOfModule:1","modulehom:InstallOtherMethod:TopOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["top_of_module","top_of_module_homomorphism"]
 rust_tests = ["tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/modulehom_functors.schema-v1.json","tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "TopOfModuleProjection"
 python_name = "top_of_module_projection"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.top_projection"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:TopOfModuleProjection:1","modulehom:InstallMethod:TopOfModuleProjection:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -12545,7 +12545,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["top_of_module_projection"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json","tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "TrD"
@@ -13136,16 +13136,16 @@ python_tests = []
 qpa_name = "ZeroModule"
 python_name = "zero_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.zero_module"
+notes = "Exposed for both path algebras and quotient path algebras."
 entry_ids = ["modulespecial:DeclareAttribute:ZeroModule:1","modulespecial:InstallMethod:ZeroModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespecial.gi"]
 rust_symbols = ["zero_module"]
 rust_tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 
 [[operations]]
 qpa_name = "ZeroOp"

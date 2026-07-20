@@ -129,6 +129,27 @@ where
     )
 }
 
+fn clone_module_elements(
+    py: Python<'_>,
+    elements: Vec<Py<PyModuleElement>>,
+) -> Vec<ModuleElementKind> {
+    elements
+        .into_iter()
+        .map(|element| element.borrow(py).kind.clone())
+        .collect()
+}
+
+fn wrap_module_submodule<F: runtime::PythonField>(
+    submodule: PathAlgebraModuleSubmodule<F>,
+) -> PyModuleSubmodule
+where
+    ModuleSubmoduleKind: runtime::Wrap<PathAlgebraModuleSubmodule<F>>,
+{
+    PyModuleSubmodule {
+        kind: runtime::Wrap::wrap(submodule),
+    }
+}
+
 #[pymethods]
 impl PyMatrixModule {
     #[getter]
@@ -311,6 +332,99 @@ impl PyMatrixModule {
             wrap_module_elements(
                 qpa_core::minimal_generating_set_of_module(module.clone()).map_err(invalid)?,
             )
+        ))
+    }
+
+    fn submodule(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyModuleElement>>,
+    ) -> PyResult<PyModuleSubmodule> {
+        let generators = clone_module_elements(py, generators);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_submodule(
+                qpa_core::subalgebra_module(module.clone(), &runtime::extract_all(generators)?,)
+                    .map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn subrepresentation(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyModuleElement>>,
+    ) -> PyResult<Self> {
+        let generators = clone_module_elements(py, generators);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(wrap_module(
+            qpa_core::subrepresentation(module.clone(), &runtime::extract_all(generators)?,)
+                .map_err(invalid)?,
+        )))
+    }
+
+    fn subrepresentation_inclusion(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyModuleElement>>,
+    ) -> PyResult<PyModuleHomomorphism> {
+        let generators = clone_module_elements(py, generators);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphism(
+                qpa_core::subrepresentation_inclusion(
+                    module.clone(),
+                    &runtime::extract_all(generators)?,
+                )
+                .map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn radical_inclusion(&self) -> PyResult<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphism(
+                qpa_core::radical_of_module_inclusion(module.clone()).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn top_projection(&self) -> PyResult<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphism(
+                qpa_core::top_of_module_projection(module.clone()).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn socle_inclusion(&self) -> PyResult<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphism(
+                qpa_core::socle_of_module_inclusion(module.clone()).map_err(invalid)?,
+            )
+        ))
+    }
+
+    #[getter]
+    fn is_projective(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_projective_module(module).map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_injective(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_injective_module(module).map_err(invalid)
+        })
+    }
+
+    fn projective_cover(&self) -> PyResult<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphism(qpa_gbnp::projective_cover(module).map_err(invalid)?,)
+        ))
+    }
+
+    fn injective_envelope(&self) -> PyResult<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphism(qpa_gbnp::injective_envelope(module).map_err(invalid)?,)
         ))
     }
 
@@ -751,6 +865,89 @@ impl PyModuleHomomorphism {
         ))
     }
 
+    fn kernel_inclusion(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(qpa_core::kernel_inclusion(homomorphism).map_err(invalid)?,)
+        ))
+    }
+
+    fn image_projection(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(qpa_core::image_projection(homomorphism).map_err(invalid)?,)
+        ))
+    }
+
+    fn image_inclusion(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(qpa_core::image_inclusion(homomorphism).map_err(invalid)?,)
+        ))
+    }
+
+    fn image_projection_inclusion(&self) -> PyResult<(Self, Self)> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            let (projection, inclusion) =
+                qpa_core::image_projection_inclusion(homomorphism).map_err(invalid)?;
+            Ok((
+                wrap_module_homomorphism(projection),
+                wrap_module_homomorphism(inclusion),
+            ))
+        })
+    }
+
+    fn cokernel_projection(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(qpa_core::cokernel_projection(homomorphism).map_err(invalid)?,)
+        ))
+    }
+
+    fn top(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_core::top_of_module_homomorphism(homomorphism).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn intersection(&self, right: &Self) -> PyResult<(Self, Self, Self)> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            ModuleHomomorphismKind,
+            |left, right| {
+                let (to_right, to_left, inclusion) =
+                    qpa_core::intersection_of_submodules(left, right).map_err(invalid)?;
+                Ok((
+                    wrap_module_homomorphism(to_right),
+                    wrap_module_homomorphism(to_left),
+                    wrap_module_homomorphism(inclusion),
+                ))
+            },
+            Err(invalid(
+                "submodule maps belong to different coefficient fields",
+            ))
+        )
+    }
+
+    fn sum(&self, right: &Self) -> PyResult<(Self, Self, Self)> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            ModuleHomomorphismKind,
+            |left, right| {
+                let (inclusion, from_left, from_right) =
+                    qpa_core::sum_of_submodules(left, right).map_err(invalid)?;
+                Ok((
+                    wrap_module_homomorphism(inclusion),
+                    wrap_module_homomorphism(from_left),
+                    wrap_module_homomorphism(from_right),
+                ))
+            },
+            Err(invalid(
+                "submodule maps belong to different coefficient fields",
+            ))
+        )
+    }
+
     fn __add__(&self, right: &Self) -> PyResult<Self> {
         self.add(right)
     }
@@ -783,6 +980,60 @@ impl PyModuleHomomorphism {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
             homomorphism.qpa_print_string()
         })
+    }
+}
+
+#[pymethods]
+impl PyModuleSubmodule {
+    #[getter]
+    fn parent(&self) -> PyMatrixModule {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleSubmoduleKind => MatrixModuleKind,
+            |submodule| submodule.parent().clone()
+        );
+        PyMatrixModule { kind }
+    }
+
+    #[getter]
+    fn generators(&self) -> Vec<PyModuleElement> {
+        dispatch_ref!(&self.kind, ModuleSubmoduleKind, |submodule| {
+            wrap_module_elements(submodule.generators().to_vec())
+        })
+    }
+
+    fn canonical_basis_elements(&self) -> PyResult<Vec<PyModuleElement>> {
+        dispatch_ref!(&self.kind, ModuleSubmoduleKind, |submodule| Ok(
+            wrap_module_elements(submodule.canonical_basis_elements().map_err(invalid)?,)
+        ))
+    }
+
+    fn as_module(&self) -> PyResult<PyMatrixModule> {
+        dispatch_ref!(&self.kind, ModuleSubmoduleKind, |submodule| Ok(
+            wrap_module(submodule.as_module().map_err(invalid)?,)
+        ))
+    }
+
+    fn is_identical(&self, right: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            ModuleSubmoduleKind,
+            |left, right| left.is_identical(right),
+            false
+        )
+    }
+
+    fn __eq__(&self, right: &Self) -> bool {
+        self.is_identical(right)
+    }
+
+    fn __repr__(&self) -> String {
+        dispatch_ref!(&self.kind, ModuleSubmoduleKind, |submodule| format!(
+            "<submodule generated by {} element(s) in {}>",
+            submodule.generators().len(),
+            submodule.parent().qpa_print_string(),
+        ))
     }
 }
 

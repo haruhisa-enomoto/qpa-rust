@@ -276,3 +276,71 @@ def test_module_elements_homomorphisms_and_structure_follow_qpa(field: qpa.Field
     assert quotient_module.radical().dimension_vector == [1]
     assert quotient_module.top().dimension_vector == [1]
     assert quotient_module.socle().dimension_vector == [1]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_submodules_projectives_and_injectives_follow_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    algebra = qpa.PathAlgebra(field, quiver)
+    module = algebra.module_from_integer_matrices([1, 1], [("a", [[1]])])
+    basis = module.basis_elements()
+
+    assert algebra.zero_module().dimension_vector == [0, 0]
+    simples = algebra.simple_modules()
+    projectives = algebra.indecomposable_projectives()
+    injectives = algebra.indecomposable_injectives()
+    assert [simple.dimension_vector for simple in simples] == [[1, 0], [0, 1]]
+    assert [projective.dimension_vector for projective in projectives] == [[1, 1], [0, 1]]
+    assert [injective.dimension_vector for injective in injectives] == [[1, 0], [1, 1]]
+    assert module == projectives[0]
+    assert module.is_projective and module.is_injective
+
+    cover = simples[0].projective_cover()
+    envelope = simples[1].injective_envelope()
+    assert cover.source == projectives[0] and cover.range == simples[0]
+    assert cover.is_surjective
+    assert envelope.source == simples[1] and envelope.range == injectives[1]
+    assert envelope.is_injective
+
+    concrete = module.submodule([basis[0]])
+    assert concrete.parent.is_identical(module)
+    assert concrete.generators == [basis[0]]
+    assert concrete.canonical_basis_elements() == basis
+    assert concrete.as_module().dimension_vector == [1, 1]
+    with pytest.raises(qpa.InvalidInputError, match="zero-space arrow"):
+        module.submodule([basis[1]]).as_module()
+
+    submodule = module.subrepresentation([basis[1]])
+    inclusion = module.subrepresentation_inclusion([basis[1]])
+    assert submodule.dimension_vector == [0, 1]
+    assert inclusion.source == submodule and inclusion.range.is_identical(module)
+    assert inclusion.is_injective
+
+    radical = module.radical_inclusion()
+    top = module.top_projection()
+    socle = module.socle_inclusion()
+    assert radical.source.dimension_vector == [0, 1]
+    assert top.range.dimension_vector == [1, 0]
+    assert socle.source.dimension_vector == [0, 1]
+
+    identity = module.identity()
+    assert identity.kernel_inclusion().source.is_zero
+    image_projection = identity.image_projection()
+    image_inclusion = identity.image_inclusion()
+    factorization = identity.image_projection_inclusion()
+    assert image_projection.compose(image_inclusion) == identity
+    assert factorization[0].compose(factorization[1]) == identity
+    assert identity.cokernel_projection().range.is_zero
+    assert identity.top().source.dimension_vector == [1, 0]
+
+    intersection = radical.intersection(socle)
+    total = radical.sum(socle)
+    assert intersection[2].source.dimension_vector == [0, 1]
+    assert total[0].source.dimension_vector == [0, 1]
+
+    loop = qpa.Quiver(["w"], [("w", "w", "x")])
+    quotient = qpa.QuotientAlgebra.truncated(field, loop, 2)
+    assert quotient.zero_module().dimension_vector == [0]
+    assert [module.dimension_vector for module in quotient.simple_modules()] == [[1]]
+    assert [module.dimension_vector for module in quotient.indecomposable_projectives()] == [[2]]
+    assert [module.dimension_vector for module in quotient.indecomposable_injectives()] == [[2]]

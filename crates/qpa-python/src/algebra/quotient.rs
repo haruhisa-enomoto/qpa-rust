@@ -265,6 +265,36 @@ impl PyQuotientAlgebra {
         Ok(PyMatrixModule { kind })
     }
 
+    fn zero_module(&self) -> PyResult<PyMatrixModule> {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientKind => MatrixModuleKind,
+            |algebra| qpa_core::zero_module(&QuiverAlgebra::Quotient(algebra.clone()))
+                .map_err(invalid)?
+        );
+        Ok(PyMatrixModule { kind })
+    }
+
+    fn simple_modules(&self) -> PyResult<Vec<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(wrap_matrix_modules(
+            qpa_gbnp::simple_modules(&QuiverAlgebra::Quotient(algebra.clone())).map_err(invalid)?,
+        )))
+    }
+
+    fn indecomposable_projectives(&self) -> PyResult<Vec<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(wrap_matrix_modules(
+            qpa_gbnp::indec_projective_modules(&QuiverAlgebra::Quotient(algebra.clone()))
+                .map_err(invalid)?,
+        )))
+    }
+
+    fn indecomposable_injectives(&self) -> PyResult<Vec<PyMatrixModule>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(wrap_matrix_modules(
+            qpa_gbnp::indec_injective_modules(&QuiverAlgebra::Quotient(algebra.clone()))
+                .map_err(invalid)?,
+        )))
+    }
+
     fn is_identical(&self, other: &Self) -> bool {
         dispatch_pair_ref!(
             &self.kind,

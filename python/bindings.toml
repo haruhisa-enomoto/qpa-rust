@@ -841,10 +841,10 @@ tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorp
 
 [[bindings]]
 qpa_name = "TopOfModule"
-status = "partial"
+status = "exposed"
 target = "qpa.MatrixModule.top"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "The module overload is exposed; the induced homomorphism overload remains."
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "Both the module and induced-homomorphism overloads are exposed."
 
 [[bindings]]
 qpa_name = "Zero"
@@ -893,3 +893,143 @@ status = "partial"
 target = "qpa.ModuleElement.__eq__"
 tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
 notes = "Structural equality for matrix modules, their elements, and homomorphisms is exposed among the grouped QPA overloads."
+
+[[bindings]]
+qpa_name = "CoKernelProjection"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.cokernel_projection"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ImageInclusion"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.image_inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ImageProjection"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.image_projection"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ImageProjectionInclusion"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.image_projection_inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IndecInjectiveModules"
+status = "exposed"
+target = "qpa.PathAlgebra.indecomposable_injectives"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "Exposed for both path algebras and quotient path algebras."
+
+[[bindings]]
+qpa_name = "IndecProjectiveModules"
+status = "exposed"
+target = "qpa.PathAlgebra.indecomposable_projectives"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "Exposed for both path algebras and quotient path algebras."
+
+[[bindings]]
+qpa_name = "InjectiveEnvelope"
+status = "exposed"
+target = "qpa.MatrixModule.injective_envelope"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IntersectionOfSubmodules"
+status = "partial"
+target = "qpa.ModuleHomomorphism.intersection"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "The binary overload is exposed; the list overload remains."
+
+[[bindings]]
+qpa_name = "IsInjectiveModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_injective"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsProjectiveModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_projective"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "KernelInclusion"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.kernel_inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectiveCover"
+status = "exposed"
+target = "qpa.MatrixModule.projective_cover"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RadicalOfModuleInclusion"
+status = "exposed"
+target = "qpa.MatrixModule.radical_inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SimpleModules"
+status = "exposed"
+target = "qpa.PathAlgebra.simple_modules"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "Exposed for both path algebras and quotient path algebras."
+
+[[bindings]]
+qpa_name = "SocleOfModuleInclusion"
+status = "exposed"
+target = "qpa.MatrixModule.socle_inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SubAlgebraModule"
+status = "partial"
+target = "qpa.MatrixModule.submodule"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "The ordinary path-algebra matrix-submodule overload is exposed; projective presentation overloads remain."
+
+[[bindings]]
+qpa_name = "SubRepresentation"
+status = "exposed"
+target = "qpa.MatrixModule.subrepresentation"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SubRepresentationInclusion"
+status = "exposed"
+target = "qpa.MatrixModule.subrepresentation_inclusion"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SubmoduleAsModule"
+status = "exposed"
+target = "qpa.ModuleSubmodule.as_module"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "Preserves QPA's documented zero-space-arrow failure."
+
+[[bindings]]
+qpa_name = "SumOfSubmodules"
+status = "partial"
+target = "qpa.ModuleHomomorphism.sum"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "The binary overload is exposed; the list overload remains."
+
+[[bindings]]
+qpa_name = "TopOfModuleProjection"
+status = "exposed"
+target = "qpa.MatrixModule.top_projection"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ZeroModule"
+status = "exposed"
+target = "qpa.PathAlgebra.zero_module"
+tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
+notes = "Exposed for both path algebras and quotient path algebras."
