@@ -11,6 +11,40 @@ use pyo3::pymethods;
 // Private runtime enums and helpers form one binding domain.
 use super::*;
 
+#[derive(Clone)]
+enum ProjectivePathPresentationKind {
+    Rational(qpa_gbnp::ProjectivePathAlgebraPresentation<RationalField>),
+    Binary(qpa_gbnp::ProjectivePathAlgebraPresentation<Z2>),
+    Prime(qpa_gbnp::ProjectivePathAlgebraPresentation<Zp>),
+}
+
+/// QPA's list-valued `ProjectivePathAlgebraPresentation` result.
+#[pyclass(
+    name = "ProjectivePathAlgebraPresentation",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyProjectivePathAlgebraPresentation {
+    kind: ProjectivePathPresentationKind,
+}
+
+macro_rules! impl_projective_presentation_runtime {
+    ($field:ty, $variant:ident) => {
+        impl runtime::Wrap<qpa_gbnp::ProjectivePathAlgebraPresentation<$field>>
+            for ProjectivePathPresentationKind
+        {
+            fn wrap(value: qpa_gbnp::ProjectivePathAlgebraPresentation<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+    };
+}
+
+impl_projective_presentation_runtime!(RationalField, Rational);
+impl_projective_presentation_runtime!(Z2, Binary);
+impl_projective_presentation_runtime!(Zp, Prime);
+
 type InducedMapOperation<F> =
     fn(
         &PathAlgebraModuleHomomorphism<F>,
@@ -369,7 +403,81 @@ where
 }
 
 #[pymethods]
+impl PyProjectivePathAlgebraPresentation {
+    #[getter]
+    fn projective(&self) -> PyRightProjectiveModule {
+        dispatch_ref!(&self.kind, ProjectivePathPresentationKind, |value| {
+            projective::wrap_projective_module(value.projective().clone())
+        })
+    }
+
+    #[getter]
+    fn submodule(&self) -> Option<PyRightProjectiveSubmodule> {
+        dispatch_ref!(&self.kind, ProjectivePathPresentationKind, |value| value
+            .submodule()
+            .cloned()
+            .map(projective::wrap_projective_submodule))
+    }
+
+    #[getter]
+    fn projective_generators(&self) -> Vec<PyPathAlgebraVector> {
+        dispatch_ref!(&self.kind, ProjectivePathPresentationKind, |value| {
+            projective::wrap_vectors(value.projective_generators().to_vec())
+        })
+    }
+
+    #[getter]
+    fn syzygy_generators(&self) -> Vec<PyPathAlgebraVector> {
+        dispatch_ref!(&self.kind, ProjectivePathPresentationKind, |value| {
+            projective::wrap_vectors(value.syzygy_generators().to_vec())
+        })
+    }
+
+    #[getter]
+    fn matrix(&self) -> Vec<Vec<PyAlgebraElement>> {
+        dispatch_ref!(&self.kind, ProjectivePathPresentationKind, |value| value
+            .matrix()
+            .iter()
+            .map(|row| wrap_algebra_elements(row.clone()))
+            .collect())
+    }
+
+    #[getter]
+    fn reduced_groebner_basis(&self) -> Vec<PyPathAlgebraVector> {
+        dispatch_ref!(&self.kind, ProjectivePathPresentationKind, |value| {
+            projective::wrap_vectors(value.reduced_groebner_basis().to_vec())
+        })
+    }
+
+    #[getter]
+    fn relation_ideal(&self) -> PyPathAlgebraIdeal {
+        let kind = map_ref!(
+            &self.kind,
+            ProjectivePathPresentationKind => IdealKind,
+            |value| value.relation_ideal().clone()
+        );
+        PyPathAlgebraIdeal { kind }
+    }
+
+    fn __len__(&self) -> usize {
+        dispatch_ref!(&self.kind, ProjectivePathPresentationKind, |value| value
+            .result_length())
+    }
+}
+
+#[pymethods]
 impl PyMatrixModule {
+    fn projective_path_algebra_presentation(
+        &self,
+    ) -> PyResult<PyProjectivePathAlgebraPresentation> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ProjectivePathPresentationKind,
+            |module| qpa_gbnp::projective_path_algebra_presentation(module).map_err(invalid)?
+        );
+        Ok(PyProjectivePathAlgebraPresentation { kind })
+    }
+
     #[getter]
     fn field(&self) -> PyField {
         let kind = dispatch_ref!(&self.kind, MatrixModuleKind, |module| module

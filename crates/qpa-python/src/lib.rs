@@ -25,12 +25,12 @@ use algebra::{
     PyOppositeStructureConstantsElement, PyPathAlgebra, PyPathAlgebraIdeal,
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
     PyPathAlgebraVectorSpace, PyPredecessorValuation, PyPredecessorsOfModuleResult,
-    PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuiverAlgebra, PyQuotientAlgebra,
-    PyQuotientElement, PyQuotientPathAlgebraVector, PyRightFpPathAlgebraModule,
-    PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
-    PyRightProjectiveSubmodule, PyStructureConstantsAlgebra, PyStructureConstantsElement,
-    PyStructureConstantsHomomorphism, PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
-    PyTiltingModuleResult,
+    PyProjectiveIsomorphismComponent, PyProjectivePathAlgebraPresentation, PyProjectiveResolution,
+    PyQuiverAlgebra, PyQuotientAlgebra, PyQuotientElement, PyQuotientPathAlgebraVector,
+    PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule,
+    PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule, PyStructureConstantsAlgebra,
+    PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
+    PyStructureConstantsSubalgebra, PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -99,6 +99,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyRightProjectiveQuotientModule>()?;
     module.add_class::<PyQuotientPathAlgebraVector>()?;
     module.add_class::<PyLiftedProjectivePathAlgebraModule>()?;
+    module.add_class::<PyProjectivePathAlgebraPresentation>()?;
     module.add_class::<PyRightFpPathAlgebraModule>()?;
     module.add_class::<PyFpPathAlgebraVector>()?;
     module.add_class::<PyRightFpPathAlgebraSubmodule>()?;

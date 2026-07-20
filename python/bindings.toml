@@ -3125,3 +3125,9 @@ qpa_name = "VertexProjectivePresentation"
 status = "exposed"
 target = "qpa.PathAlgebra.vertex_projective_presentation; qpa.PathAlgebra.vertex_projective_presentation_with_vertices"
 tests = ["python/tests/test_architecture_spike.py::test_vertex_projective_presentations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectivePathAlgebraPresentation"
+status = "exposed"
+target = "qpa.MatrixModule.projective_path_algebra_presentation; qpa.ProjectivePathAlgebraPresentation"
+tests = ["python/tests/test_architecture_spike.py::test_projective_path_algebra_presentation_follow_qpa"]

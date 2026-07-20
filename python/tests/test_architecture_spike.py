@@ -2421,3 +2421,29 @@ def test_vertex_projective_presentations_follow_qpa(field: qpa.Field) -> None:
         algebra.vertex_projective_presentation([[zero]])
     with pytest.raises(qpa.InvalidInputError, match="mismatched starting"):
         algebra.vertex_projective_presentation_with_vertices([[v2]], [1])
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_projective_path_algebra_presentation_follow_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v"], [("v", "v", "x")])
+    dual_numbers = qpa.QuotientAlgebra.truncated(field, quiver, 2)
+    simple = dual_numbers.simple_modules()[0]
+    presentation = simple.projective_path_algebra_presentation()
+
+    assert len(presentation) == 6
+    assert presentation.projective.vertex_indices == [1]
+    assert presentation.submodule is not None
+    assert presentation.submodule.parent.is_identical(presentation.projective)
+    assert len(presentation.projective_generators) == 1
+    assert presentation.syzygy_generators == presentation.reduced_groebner_basis
+    assert presentation.submodule.generators != []
+    assert len(presentation.matrix) == 1
+    assert len(presentation.matrix[0]) == len(presentation.syzygy_generators)
+    assert not presentation.relation_ideal.is_trivial
+    assert presentation.relation_ideal.attached_groebner_basis is not None
+
+    path_simple = qpa.PathAlgebra(field, qpa.Quiver(["v"], [])).simple_modules()[0]
+    with pytest.raises(qpa.InvalidInputError, match="cannot read a defining ideal"):
+        path_simple.projective_path_algebra_presentation()

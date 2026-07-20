@@ -158,7 +158,7 @@ impl_projective_runtime!(RationalField, Rational);
 impl_projective_runtime!(Z2, Binary);
 impl_projective_runtime!(Zp, Prime);
 
-fn wrap_vectors<F: Field>(values: Vec<PathAlgebraVector<F>>) -> Vec<PyPathAlgebraVector>
+pub(super) fn wrap_vectors<F: Field>(values: Vec<PathAlgebraVector<F>>) -> Vec<PyPathAlgebraVector>
 where
     ProjectiveVectorKind: runtime::Wrap<PathAlgebraVector<F>>,
 {
