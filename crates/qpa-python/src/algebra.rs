@@ -434,6 +434,27 @@ pub(crate) struct PyAllComplementsResult {
     kind: AllComplementsResultKind,
 }
 
+#[derive(Clone)]
+enum PredecessorsOfModuleResultKind {
+    Rational(qpa_gbnp::PredecessorsOfModuleResult<RationalField>),
+    Binary(qpa_gbnp::PredecessorsOfModuleResult<Z2>),
+    Prime(qpa_gbnp::PredecessorsOfModuleResult<Zp>),
+}
+
+/// QPA's module-or-layered predecessor result.
+#[pyclass(name = "PredecessorsOfModuleResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyPredecessorsOfModuleResult {
+    kind: PredecessorsOfModuleResultKind,
+}
+
+/// One one-based QPA predecessor valuation entry.
+#[pyclass(name = "PredecessorValuation", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyPredecessorValuation {
+    value: qpa_gbnp::PredecessorValuation,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -577,6 +598,14 @@ macro_rules! impl_resolution_runtime {
 
         impl runtime::Wrap<qpa_gbnp::AllComplementsResult<$field>> for AllComplementsResultKind {
             fn wrap(value: qpa_gbnp::AllComplementsResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::PredecessorsOfModuleResult<$field>>
+            for PredecessorsOfModuleResultKind
+        {
+            fn wrap(value: qpa_gbnp::PredecessorsOfModuleResult<$field>) -> Self {
                 Self::$variant(value)
             }
         }

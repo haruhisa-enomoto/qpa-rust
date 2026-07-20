@@ -1907,3 +1907,35 @@ qpa_name = "RightMutationOfCotiltingModuleComplement"
 status = "exposed"
 target = "qpa.MatrixModule.right_cotilting_complement_mutation"
 tests = ["python/tests/test_architecture_spike.py::test_complements_and_mutations_follow_qpa"]
+
+# Auslander--Reiten operations
+
+[[bindings]]
+qpa_name = "AlmostSplitSequence"
+status = "exposed"
+target = "qpa.MatrixModule.almost_split_sequence"
+tests = ["python/tests/test_architecture_spike.py::test_almost_split_sequences_follow_qpa"]
+
+[[bindings]]
+qpa_name = "AlmostSplitSequenceInPerpT"
+status = "exposed"
+target = "qpa.MatrixModule.almost_split_sequence_in_perp"
+tests = ["python/tests/test_architecture_spike.py::test_almost_split_sequences_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IrreducibleMorphismsEndingIn"
+status = "exposed"
+target = "qpa.MatrixModule.irreducible_morphisms_ending_in"
+tests = ["python/tests/test_architecture_spike.py::test_irreducible_morphisms_and_predecessors_follow_qpa; python/tests/test_architecture_spike.py::test_irreducible_morphisms_preserve_qpa_finite_field_requirement"]
+
+[[bindings]]
+qpa_name = "IrreducibleMorphismsStartingIn"
+status = "exposed"
+target = "qpa.MatrixModule.irreducible_morphisms_starting_in"
+tests = ["python/tests/test_architecture_spike.py::test_irreducible_morphisms_and_predecessors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PredecessorsOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.predecessors; qpa.PredecessorsOfModuleResult; qpa.PredecessorValuation"
+tests = ["python/tests/test_architecture_spike.py::test_irreducible_morphisms_and_predecessors_follow_qpa"]

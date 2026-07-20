@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 299
+exposed_or_partial_count = 304
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -386,8 +386,8 @@ python_tests = []
 qpa_name = "AlmostSplitSequence"
 python_name = "almost_split_sequence"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.almost_split_sequence"
 notes = ""
 entry_ids = ["moduleARtheory:DeclareAttribute:AlmostSplitSequence:1","moduleARtheory:InstallMethod:AlmostSplitSequence:1","moduleARtheory:InstallOtherMethod:AlmostSplitSequence:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -395,14 +395,14 @@ source_files = ["upstream/qpa/lib/moduleARtheory.gd","upstream/qpa/lib/moduleARt
 rust_symbols = ["almost_split_sequence","almost_split_sequence; almost_split_sequence_from_side","almost_split_sequence_from_side; AlmostSplitSide"]
 rust_tests = ["tests/fixtures/module_ar_almost_split.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_almost_split_sequences_follow_qpa"]
 
 [[operations]]
 qpa_name = "AlmostSplitSequenceInPerpT"
 python_name = "almost_split_sequence_in_perp_t"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.almost_split_sequence_in_perp"
 notes = ""
 entry_ids = ["moduleARtheory:DeclareOperation:AlmostSplitSequenceInPerpT:1","moduleARtheory:InstallMethod:AlmostSplitSequenceInPerpT:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -410,7 +410,7 @@ source_files = ["upstream/qpa/lib/moduleARtheory.gd","upstream/qpa/lib/moduleARt
 rust_symbols = ["almost_split_sequence_in_perp_t"]
 rust_tests = ["tests/fixtures/module_ar_perp.schema-v1.json","tests/gap-reference/module_ar_perp_unbound_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_almost_split_sequences_follow_qpa"]
 
 [[operations]]
 qpa_name = "AnnihilatorOfModule"
@@ -4151,8 +4151,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IrreducibleMorphismsEndingIn"
 python_name = "irreducible_morphisms_ending_in"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.irreducible_morphisms_ending_in"
 notes = ""
 entry_ids = ["moduleARtheory:DeclareAttribute:IrreducibleMorphismsEndingIn:1","moduleARtheory:InstallMethod:IrreducibleMorphismsEndingIn:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -4160,14 +4160,14 @@ source_files = ["upstream/qpa/lib/moduleARtheory.gd","upstream/qpa/lib/moduleARt
 rust_symbols = ["irreducible_morphisms_ending_in"]
 rust_tests = ["tests/fixtures/module_ar_irreducible.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_irreducible_morphisms_and_predecessors_follow_qpa; python/tests/test_architecture_spike.py::test_irreducible_morphisms_preserve_qpa_finite_field_requirement"]
 
 [[operations]]
 qpa_name = "IrreducibleMorphismsStartingIn"
 python_name = "irreducible_morphisms_starting_in"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.irreducible_morphisms_starting_in"
 notes = ""
 entry_ids = ["moduleARtheory:DeclareAttribute:IrreducibleMorphismsStartingIn:1","moduleARtheory:InstallMethod:IrreducibleMorphismsStartingIn:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -4175,7 +4175,7 @@ source_files = ["upstream/qpa/lib/moduleARtheory.gd","upstream/qpa/lib/moduleARt
 rust_symbols = ["irreducible_morphisms_starting_in"]
 rust_tests = ["tests/fixtures/module_ar_irreducible.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_irreducible_morphisms_and_predecessors_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsABand"
@@ -9881,8 +9881,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "PredecessorsOfModule"
 python_name = "predecessors_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.predecessors; qpa.PredecessorsOfModuleResult; qpa.PredecessorValuation"
 notes = ""
 entry_ids = ["moduleARtheory:DeclareOperation:PredecessorsOfModule:1","moduleARtheory:InstallMethod:PredecessorsOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9890,7 +9890,7 @@ source_files = ["upstream/qpa/lib/moduleARtheory.gd","upstream/qpa/lib/moduleARt
 rust_symbols = ["predecessors_of_module; PredecessorsOfModuleResult"]
 rust_tests = ["tests/fixtures/module_ar_predecessors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_irreducible_morphisms_and_predecessors_follow_qpa"]
 
 [[operations]]
 qpa_name = "PredefARQuivers"

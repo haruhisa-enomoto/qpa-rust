@@ -58,6 +58,23 @@ where
         .collect()
 }
 
+fn wrap_module_homomorphism_pair<F: runtime::PythonField>(
+    pair: Option<(
+        PathAlgebraModuleHomomorphism<F>,
+        PathAlgebraModuleHomomorphism<F>,
+    )>,
+) -> Option<(PyModuleHomomorphism, PyModuleHomomorphism)>
+where
+    ModuleHomomorphismKind: runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    pair.map(|(first, second)| {
+        (
+            wrap_module_homomorphism(first),
+            wrap_module_homomorphism(second),
+        )
+    })
+}
+
 fn scalar_rows<F: runtime::PythonField>(field: &F, rows: &[Vec<F::Element>]) -> Vec<Vec<PyScalar>> {
     rows.iter()
         .map(|row| row.iter().map(|value| field.wrap_scalar(value)).collect())
@@ -1125,6 +1142,68 @@ impl PyMatrixModule {
         }
     }
 
+    #[pyo3(signature = (side = "ending"))]
+    fn almost_split_sequence(
+        &self,
+        side: &str,
+    ) -> PyResult<Option<(PyModuleHomomorphism, PyModuleHomomorphism)>> {
+        let side = match side {
+            "ending" | "r" => qpa_gbnp::AlmostSplitSide::Ending,
+            "starting" | "l" => qpa_gbnp::AlmostSplitSide::Starting,
+            _ => {
+                return Err(invalid(
+                    "almost-split side must be 'ending'/'r' or 'starting'/'l'",
+                ));
+            }
+        };
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphism_pair(
+                qpa_gbnp::almost_split_sequence_from_side(module, side).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn almost_split_sequence_in_perp(
+        &self,
+        module: &Self,
+    ) -> PyResult<Option<(PyModuleHomomorphism, PyModuleHomomorphism)>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind,
+            |cotilting, module| Ok(wrap_module_homomorphism_pair(
+                qpa_gbnp::almost_split_sequence_in_perp_t(cotilting, module).map_err(invalid)?,
+            )),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn irreducible_morphisms_ending_in(&self) -> PyResult<Vec<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphisms(
+                qpa_gbnp::irreducible_morphisms_ending_in(module).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn irreducible_morphisms_starting_in(&self) -> PyResult<Vec<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphisms(
+                qpa_gbnp::irreducible_morphisms_starting_in(module).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn predecessors(&self, bound: i64) -> PyResult<PyPredecessorsOfModuleResult> {
+        let bound = Integer::from(bound);
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => PredecessorsOfModuleResultKind,
+            |module| qpa_gbnp::predecessors_of_module(module, &bound).map_err(invalid)?
+        );
+        Ok(PyPredecessorsOfModuleResult { kind })
+    }
+
     fn dual(&self) -> PyResult<Self> {
         let kind = map_ref!(
             &self.kind,
@@ -1223,6 +1302,103 @@ impl PyMatrixModule {
     fn __repr__(&self) -> String {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| module
             .qpa_print_string())
+    }
+}
+
+#[pymethods]
+impl PyPredecessorValuation {
+    #[getter]
+    fn predecessor_position(&self) -> usize {
+        self.value.predecessor_position
+    }
+
+    #[getter]
+    fn successor_position(&self) -> usize {
+        self.value.successor_position
+    }
+
+    #[getter]
+    fn scalar_multiplicity(&self) -> Option<usize> {
+        match self.value.multiplicity {
+            qpa_gbnp::PredecessorMultiplicity::Scalar(value) => Some(value),
+            qpa_gbnp::PredecessorMultiplicity::Pair { .. } => None,
+        }
+    }
+
+    #[getter]
+    fn pair_multiplicity(&self) -> Option<(Option<usize>, Option<usize>)> {
+        match self.value.multiplicity {
+            qpa_gbnp::PredecessorMultiplicity::Pair { first, second } => Some((first, second)),
+            qpa_gbnp::PredecessorMultiplicity::Scalar(_) => None,
+        }
+    }
+}
+
+#[pymethods]
+impl PyPredecessorsOfModuleResult {
+    #[getter]
+    fn is_module(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            PredecessorsOfModuleResultKind,
+            |result| matches!(result, qpa_gbnp::PredecessorsOfModuleResult::Module(_))
+        )
+    }
+
+    #[getter]
+    fn module(&self) -> Option<PyMatrixModule> {
+        dispatch_ref!(
+            &self.kind,
+            PredecessorsOfModuleResultKind,
+            |result| match result {
+                qpa_gbnp::PredecessorsOfModuleResult::Module(module) => {
+                    Some(wrap_module(module.clone()))
+                }
+                qpa_gbnp::PredecessorsOfModuleResult::Layers(_) => None,
+            }
+        )
+    }
+
+    #[getter]
+    fn layers(&self) -> Option<Vec<Vec<PyMatrixModule>>> {
+        dispatch_ref!(
+            &self.kind,
+            PredecessorsOfModuleResultKind,
+            |result| match result {
+                qpa_gbnp::PredecessorsOfModuleResult::Module(_) => None,
+                qpa_gbnp::PredecessorsOfModuleResult::Layers(layers) => Some(
+                    layers
+                        .layers
+                        .iter()
+                        .map(|layer| layer.iter().cloned().map(wrap_module).collect())
+                        .collect(),
+                ),
+            }
+        )
+    }
+
+    #[getter]
+    fn valuations(&self) -> Option<Vec<Vec<PyPredecessorValuation>>> {
+        dispatch_ref!(
+            &self.kind,
+            PredecessorsOfModuleResultKind,
+            |result| match result {
+                qpa_gbnp::PredecessorsOfModuleResult::Module(_) => None,
+                qpa_gbnp::PredecessorsOfModuleResult::Layers(layers) => Some(
+                    layers
+                        .valuations
+                        .iter()
+                        .map(|layer| {
+                            layer
+                                .iter()
+                                .cloned()
+                                .map(|value| PyPredecessorValuation { value })
+                                .collect()
+                        })
+                        .collect(),
+                ),
+            }
+        )
     }
 }
 

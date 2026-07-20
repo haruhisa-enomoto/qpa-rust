@@ -874,3 +874,61 @@ def test_complements_and_mutations_follow_qpa(field: qpa.Field) -> None:
     left_cotilting = first_projective.left_cotilting_complement_mutation(second_projective)
     assert left_cotilting is not None and left_cotilting.dimension_vector == [1, 0]
     assert first_projective.right_cotilting_complement_mutation(second_projective) is None
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_almost_split_sequences_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projectives = algebra.indecomposable_projectives()
+    injectives = algebra.indecomposable_injectives()
+    simples = algebra.simple_modules()
+
+    ending = simples[0].almost_split_sequence()
+    assert ending is not None
+    monomorphism, epimorphism = ending
+    assert monomorphism.source.dimension_vector == [0, 1]
+    assert monomorphism.range.dimension_vector == [1, 1]
+    assert epimorphism.range.dimension_vector == [1, 0]
+    assert simples[0].almost_split_sequence("r") is not None
+    assert simples[0].almost_split_sequence("starting") is None
+    assert simples[1].almost_split_sequence("l") is not None
+    assert projectives[0].almost_split_sequence() is None
+
+    cotilting = qpa.MatrixModule.direct_sum([injectives[1], simples[1]])
+    assert cotilting is not None and cotilting.cotilting(1) is not None
+    perpendicular = cotilting.almost_split_sequence_in_perp(simples[0])
+    assert perpendicular is not None
+    assert perpendicular[0].source.dimension_vector == [0, 1]
+    assert perpendicular[1].range.dimension_vector == [1, 0]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_irreducible_morphisms_and_predecessors_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    simples = algebra.simple_modules()
+    ending = simples[0].irreducible_morphisms_ending_in()
+    starting = simples[1].irreducible_morphisms_starting_in()
+    assert len(ending) == 1 and ending[0].source.dimension_vector == [1, 1]
+    assert len(starting) == 1 and starting[0].range.dimension_vector == [1, 1]
+
+    first = simples[0].predecessors(1)
+    assert first.is_module and first.module == simples[0]
+    assert first.layers is None and first.valuations is None
+    second = simples[0].predecessors(2)
+    assert not second.is_module and second.module is None
+    assert second.layers is not None
+    assert [len(layer) for layer in second.layers] == [1, 1, 1]
+    assert second.valuations is not None
+    valuation = second.valuations[0][0]
+    assert valuation.predecessor_position == 1
+    assert valuation.successor_position == 1
+    assert valuation.pair_multiplicity == (1, None)
+    assert valuation.scalar_multiplicity is None
+
+
+def test_irreducible_morphisms_preserve_qpa_finite_field_requirement() -> None:
+    algebra = qpa.PathAlgebra(
+        qpa.Field.rational(), qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    with pytest.raises(qpa.InvalidInputError, match="finite field"):
+        algebra.simple_modules()[0].irreducible_morphisms_ending_in()
