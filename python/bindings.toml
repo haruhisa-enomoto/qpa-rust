@@ -4181,7 +4181,58 @@ notes = "Preserves QPA's algebra-or-fail result, exact diagnostics, and in-place
 
 [[bindings]]
 qpa_name = "IsSymmetricAlgebra"
-status = "partial"
-target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra"
-tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa"]
-notes = "The Brauer-constructor installed property is exposed; the general finite-dimensional recognition method remains."
+status = "exposed"
+target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra; qpa.QuiverAlgebra.is_symmetric_algebra"
+tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa","python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
+
+# Cartan and Coxeter invariants
+
+[[bindings]]
+qpa_name = "CartanMatrix"
+status = "exposed"
+target = "qpa.QuiverAlgebra.cartan_matrix"
+tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
+
+[[bindings]]
+qpa_name = "CoxeterMatrix"
+status = "exposed"
+target = "qpa.QuiverAlgebra.coxeter_matrix"
+tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
+notes = "Returns QPA's exact rational matrix even when the algebra coefficient field is finite."
+
+[[bindings]]
+qpa_name = "CoxeterPolynomial"
+status = "exposed"
+target = "qpa.QuiverAlgebra.coxeter_polynomial"
+tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
+notes = "Coefficients are exact rationals in QPA's ascending-degree order."
+
+[[bindings]]
+qpa_name = "IsDistributiveAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_distributive_algebra"
+tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa","python/tests/test_algebra_invariants.py::test_quotient_distributivity_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsSchurianAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_schurian_algebra"
+tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsSelfinjectiveAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_selfinjective_algebra"
+tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsSemicommutativeAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_semicommutative_algebra"
+tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsWeaklySymmetricAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_weakly_symmetric_algebra"
+tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]

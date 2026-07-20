@@ -10,6 +10,7 @@ mod fp_projective;
 mod groebner;
 mod homological;
 mod ideal;
+mod invariants;
 mod module;
 mod predefined;
 mod projective;

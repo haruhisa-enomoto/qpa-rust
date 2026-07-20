@@ -1395,6 +1395,60 @@ impl PyQuiverAlgebra {
         })
     }
 
+    fn cartan_matrix(&self) -> PyResult<Option<Vec<Vec<usize>>>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::cartan_for(algebra)
+        })
+    }
+
+    fn coxeter_matrix(&self) -> PyResult<Option<Vec<Vec<PyScalar>>>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::coxeter_for(algebra)
+        })
+    }
+
+    fn coxeter_polynomial(&self) -> PyResult<Option<Vec<PyScalar>>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::coxeter_polynomial_for(algebra)
+        })
+    }
+
+    fn is_selfinjective_algebra(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::selfinjective_for(algebra)
+        })
+    }
+
+    fn is_symmetric_algebra(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::symmetric_for(algebra)
+        })
+    }
+
+    fn is_weakly_symmetric_algebra(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::weakly_symmetric_for(algebra)
+        })
+    }
+
+    fn is_schurian_algebra(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::schurian_for(algebra)
+        })
+    }
+
+    fn is_semicommutative_algebra(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::semicommutative_for(algebra)
+        })
+    }
+
+    fn is_distributive_algebra(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::invariants::distributive_for(algebra)
+        })
+    }
+
     #[getter]
     fn field(&self) -> PyField {
         let kind = dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {

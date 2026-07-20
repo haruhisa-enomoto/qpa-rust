@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 663
+exposed_or_partial_count = 671
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -881,8 +881,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "CartanMatrix"
 python_name = "cartan_matrix"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.cartan_matrix"
 notes = ""
 entry_ids = ["pathalg:InstallOtherMethod:CartanMatrix:1"]
 constructs = ["InstallOtherMethod"]
@@ -890,7 +890,7 @@ source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["cartan_matrix"]
 rust_tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "Cat"
@@ -1421,31 +1421,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotil
 qpa_name = "CoxeterMatrix"
 python_name = "coxeter_matrix"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.coxeter_matrix"
+notes = "Returns QPA's exact rational matrix even when the algebra coefficient field is finite."
 entry_ids = ["pathalg:DeclareAttribute:CoxeterMatrix:1","pathalg:InstallMethod:CoxeterMatrix:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["coxeter_matrix"]
 rust_tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "CoxeterPolynomial"
 python_name = "coxeter_polynomial"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.coxeter_polynomial"
+notes = "Coefficients are exact rationals in QPA's ascending-degree order."
 entry_ids = ["pathalg:DeclareAttribute:CoxeterPolynomial:1","pathalg:InstallMethod:CoxeterPolynomial:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["coxeter_polynomial"]
 rust_tests = ["tests/fixtures/pathalg_cartan_coxeter.schema-v1.json","tests/fixtures/pathalg_cartan_coxeter_dispatch.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "CreateDynamicTree"
@@ -4706,8 +4706,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison
 qpa_name = "IsDistributiveAlgebra"
 python_name = "is_distributive_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_distributive_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareProperty:IsDistributiveAlgebra:1","pathalg:InstallMethod:IsDistributiveAlgebra:1","pathalg:InstallOtherMethod:IsDistributiveAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallOtherMethod"]
@@ -4715,7 +4715,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["path_algebra_is_distributive","path_algebra_is_distributive; quotient_is_distributive","quotient_is_distributive"]
 rust_tests = ["tests/fixtures/reptype_quotient.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa","python/tests/test_algebra_invariants.py::test_quotient_distributivity_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsDomesticStringAlgebra"
@@ -6386,8 +6386,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicat
 qpa_name = "IsSchurianAlgebra"
 python_name = "is_schurian_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_schurian_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareProperty:IsSchurianAlgebra:1","pathalg:InstallMethod:IsSchurianAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6395,14 +6395,14 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["is_schurian_algebra"]
 rust_tests = ["tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json","tests/fixtures/pathalg_symmetry_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSelfinjectiveAlgebra"
 python_name = "is_selfinjective_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_selfinjective_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareProperty:IsSelfinjectiveAlgebra:1","pathalg:InstallMethod:IsSelfinjectiveAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6410,14 +6410,14 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["is_selfinjective_algebra"]
 rust_tests = ["tests/fixtures/algebra_homological_dispatch.schema-v1.json","tests/fixtures/algebra_homological_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSemicommutativeAlgebra"
 python_name = "is_semicommutative_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_semicommutative_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareProperty:IsSemicommutativeAlgebra:1","pathalg:DeclareProperty:IsSemicommutativeAlgebra:2","pathalg:InstallMethod:IsSemicommutativeAlgebra:1","pathalg:InstallMethod:IsSemicommutativeAlgebra:2"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6425,7 +6425,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["is_semicommutative_algebra"]
 rust_tests = ["tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json","tests/fixtures/pathalg_symmetry_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSemisimpleAlgebra"
@@ -6686,16 +6686,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IsSymmetricAlgebra"
 python_name = "is_symmetric_algebra"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra"
-notes = "The Brauer-constructor installed property is exposed; the general finite-dimensional recognition method remains."
+status = "exposed"
+python_target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra; qpa.QuiverAlgebra.is_symmetric_algebra"
+notes = ""
 entry_ids = ["pathalg:DeclareProperty:IsSymmetricAlgebra:1","pathalg:InstallMethod:IsSymmetricAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["is_symmetric_algebra"]
 rust_tests = ["tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json","tests/fixtures/pathalg_symmetry_properties.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa"]
+python_tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa","python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsTauPeriodic"
@@ -6956,8 +6956,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow
 qpa_name = "IsWeaklySymmetricAlgebra"
 python_name = "is_weakly_symmetric_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_weakly_symmetric_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareProperty:IsWeaklySymmetricAlgebra:1","pathalg:InstallMethod:IsWeaklySymmetricAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6965,7 +6965,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["is_weakly_symmetric_algebra"]
 rust_tests = ["tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json","tests/fixtures/pathalg_symmetry_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsWeightOrdering"
