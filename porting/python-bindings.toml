@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 741
+exposed_or_partial_count = 747
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -5186,8 +5186,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsHomogeneousListOfElements"
 python_name = "is_homogeneous_list_of_elements"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.is_homogeneous_list_of_elements"
 notes = ""
 entry_ids = ["pathalgideal:DeclareOperation:IsHomogeneousListOfElements:1","pathalgideal:InstallMethod:IsHomogeneousListOfElements:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -5195,7 +5195,7 @@ source_files = ["upstream/qpa/lib/pathalgideal.gd","upstream/qpa/lib/pathalgidea
 rust_symbols = ["is_homogeneous_list_of_elements"]
 rust_tests = ["tests/fixtures/pathalg_ideal.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_koszul_and_utilities.py::test_paths_of_length_two_and_homogeneity_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsIdealInPathAlgebra"
@@ -6011,8 +6011,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "IsQuadraticIdeal"
 python_name = "is_quadratic_ideal"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.is_quadratic_ideal"
 notes = ""
 entry_ids = ["pathalgkoszul:DeclareOperation:IsQuadraticIdeal:1","pathalgkoszul:InstallMethod:IsQuadraticIdeal:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -6020,7 +6020,7 @@ source_files = ["upstream/qpa/lib/pathalgkoszul.gd","upstream/qpa/lib/pathalgkos
 rust_symbols = ["is_quadratic_ideal"]
 rust_tests = ["tests/fixtures/pathalg_koszul.schema-v1.json","tests/gap-reference/pathalg_koszul_nonquadratic.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsQuiver"
@@ -8921,8 +8921,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_
 qpa_name = "NullList"
 python_name = "null_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Field.null_list"
 notes = ""
 entry_ids = ["util:DeclareOperation:NullList:1","util:InstallMethod:NullList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8930,7 +8930,7 @@ source_files = ["upstream/qpa/lib/util.gd","upstream/qpa/lib/util.gi"]
 rust_symbols = ["null_list"]
 rust_tests = ["tests/fixtures/util.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_koszul_and_utilities.py::test_null_list_and_positions_nonzero_follow_qpa"]
 
 [[operations]]
 qpa_name = "NumberOfArrows"
@@ -9686,8 +9686,8 @@ python_tests = ["python/tests/test_external_representations.py::test_external_re
 qpa_name = "PathsOfLengthTwo"
 python_name = "paths_of_length_two"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Quiver.paths_of_length_two"
 notes = ""
 entry_ids = ["pathalgkoszul:DeclareOperation:PathsOfLengthTwo:1","pathalgkoszul:InstallMethod:PathsOfLengthTwo:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9695,7 +9695,7 @@ source_files = ["upstream/qpa/lib/pathalgkoszul.gd","upstream/qpa/lib/pathalgkos
 rust_symbols = ["paths_of_length_two"]
 rust_tests = ["tests/fixtures/pathalg_koszul.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_koszul_and_utilities.py::test_paths_of_length_two_and_homogeneity_follow_qpa"]
 
 [[operations]]
 qpa_name = "Patterns"
@@ -9761,16 +9761,16 @@ python_tests = ["python/tests/test_posets.py::test_poset_algebra_follows_qpa"]
 qpa_name = "PositionsNonzero"
 python_name = "positions_nonzero"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.positions_nonzero"
+notes = "Preserves QPA's one-based positions and recursively recognizes zero Python list/tuple matrices as GAP matrices."
 entry_ids = ["util:DeclareOperation:PositionsNonzero:1","util:InstallMethod:PositionsNonzero:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/util.gd","upstream/qpa/lib/util.gi"]
 rust_symbols = ["positions_nonzero; positions_nonzero_in_field"]
 rust_tests = ["tests/fixtures/util.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_koszul_and_utilities.py::test_null_list_and_positions_nonzero_follow_qpa"]
 
 [[operations]]
 qpa_name = "PositiveInfinity"
@@ -10496,16 +10496,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow
 qpa_name = "QuadraticPerpOfPathAlgebraIdeal"
 python_name = "quadratic_perp_of_path_algebra_ideal"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.quadratic_perpendicular_of_path_algebra_ideal"
+notes = "Returns (opposite_path_algebra, basis), maps QPA fail for nonquadratic input to None, and preserves the pinned empty-list and empty-matrix defects as InvalidInputError."
 entry_ids = ["pathalgkoszul:DeclareOperation:QuadraticPerpOfPathAlgebraIdeal:1","pathalgkoszul:InstallMethod:QuadraticPerpOfPathAlgebraIdeal:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgkoszul.gd","upstream/qpa/lib/pathalgkoszul.gi"]
 rust_symbols = ["quadratic_perpendicular_of_path_algebra_ideal; QuadraticPerpendicular"]
 rust_tests = ["tests/fixtures/pathalg_koszul.schema-v1.json","tests/gap-reference/pathalg_koszul_empty_error.g","tests/gap-reference/pathalg_koszul_no_paths_error.g","tests/gap-reference/pathalg_koszul_nonquadratic.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_follows_qpa","python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_boundary_results_follow_qpa"]
 
 [[operations]]
 qpa_name = "Quiver"

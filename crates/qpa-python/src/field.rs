@@ -1,6 +1,6 @@
 //! Python descriptors and exact conversions for Numerica coefficient fields.
 
-use std::str::FromStr;
+use std::{num::NonZeroUsize, str::FromStr};
 
 use numerica::domains::{
     finite_field::{PrimeIteratorU64, Z2, Zp},
@@ -14,7 +14,7 @@ use pyo3::{
     types::{PyAny, PyInt},
 };
 
-use crate::{InvalidInputError, runtime};
+use crate::{InvalidInputError, runtime, runtime::PythonField as _};
 
 pub(crate) fn parse_python_integer(value: &Bound<'_, PyAny>) -> PyResult<Integer> {
     if !value.is_instance_of::<PyInt>() {
@@ -169,6 +169,29 @@ impl PyField {
         }
     }
 
+    /// Translate QPA's `NullList(length, field)` operation.
+    fn null_list(&self, length: usize) -> PyResult<Vec<PyScalar>> {
+        let length = NonZeroUsize::new(length)
+            .ok_or_else(|| InvalidInputError::new_err("NullList length must be positive"))?;
+        Ok(match self.kind {
+            FieldKind::Rational => qpa_core::null_list(length, &Q)
+                .iter()
+                .map(|value| Q.wrap_scalar(value))
+                .collect(),
+            FieldKind::Binary => qpa_core::null_list(length, &Z2)
+                .iter()
+                .map(|value| Z2.wrap_scalar(value))
+                .collect(),
+            FieldKind::Prime(characteristic) => {
+                let field = Zp::new(characteristic);
+                qpa_core::null_list(length, &field)
+                    .iter()
+                    .map(|value| field.wrap_scalar(value))
+                    .collect()
+            }
+        })
+    }
+
     fn __repr__(&self) -> String {
         self.kind.display()
     }
@@ -206,6 +229,13 @@ impl PyScalar {
 
     pub(crate) fn value_for<F: runtime::PythonField>(&self, field: &F) -> PyResult<F::Element> {
         field.scalar_value(self)
+    }
+
+    pub(crate) fn is_zero_value(&self) -> bool {
+        match &self.value {
+            ScalarKind::Rational(value) => value.is_zero(),
+            ScalarKind::Prime { representative, .. } => *representative == 0,
+        }
     }
 }
 
@@ -245,6 +275,11 @@ impl PyScalar {
             ScalarKind::Rational(_) => None,
             ScalarKind::Prime { representative, .. } => Some(representative),
         }
+    }
+
+    #[getter]
+    fn is_zero(&self) -> bool {
+        self.is_zero_value()
     }
 
     fn __repr__(&self) -> String {

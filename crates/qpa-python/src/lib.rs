@@ -8,6 +8,7 @@ mod field;
 mod poset;
 mod quiver;
 mod runtime;
+mod util;
 
 use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAdrAlgebraOfAlgebraResult,
@@ -60,6 +61,7 @@ use poset::{PyPoset, PyPosetOrder};
 use pyo3::{
     PyErr, PyResult, create_exception, exceptions::PyException, prelude::*, types::PyModule,
 };
+use util::py_positions_nonzero;
 
 // Base exception for failures reported by the Rust QPA binding.
 create_exception!(_qpa, QpaError, PyException);
@@ -110,6 +112,7 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
         py_leftmost_occurrence_inv_len_inv_lex,
         module
     )?)?;
+    module.add_function(wrap_pyfunction!(py_positions_nonzero, module)?)?;
     Ok(())
 }
 

@@ -92,6 +92,14 @@ impl PyQuiver {
         })
     }
 
+    fn paths_of_length_two(&self) -> PyResult<Vec<PyPath>> {
+        Ok(qpa_core::paths_of_length_two(&self.inner)
+            .map_err(invalid)?
+            .into_iter()
+            .map(|inner| PyPath { inner })
+            .collect())
+    }
+
     fn source_of_string_arrow(&self, character: &str) -> PyResult<PyQuiverVertex> {
         Ok(PyQuiverVertex::from_inner(
             qpa_gbnp::source_of_string_arrow(&self.inner, string_arrow_character(character)?)

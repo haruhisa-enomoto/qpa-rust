@@ -1291,6 +1291,53 @@ where
     ))
 }
 
+fn quadratic_perpendicular_for<F: runtime::PythonField>(
+    _algebra: &PathAlgebra<F>,
+    generators: Vec<AlgebraElementKind>,
+) -> PyResult<Option<(PyPathAlgebra, Vec<PyAlgebraElement>)>>
+where
+    AlgebraKind: runtime::Wrap<PathAlgebra<F>>,
+    AlgebraElementKind:
+        runtime::Extract<PathAlgebraElement<F>> + runtime::Wrap<PathAlgebraElement<F>>,
+{
+    let generators = runtime::extract_all(generators)?;
+    let result = match qpa_core::quadratic_perpendicular_of_path_algebra_ideal(&generators) {
+        Ok(result) => result,
+        Err(qpa_core::KoszulError::NotQuadratic) => return Ok(None),
+        Err(error) => return Err(invalid(error)),
+    };
+    let (opposite_algebra, basis) = result.into_parts();
+    Ok(Some((
+        PyPathAlgebra {
+            kind: runtime::Wrap::wrap(opposite_algebra),
+        },
+        wrap_algebra_elements(basis),
+    )))
+}
+
+fn is_homogeneous_list_for<F: runtime::PythonField>(
+    _algebra: &PathAlgebra<F>,
+    elements: Vec<AlgebraElementKind>,
+    degree: usize,
+) -> PyResult<bool>
+where
+    AlgebraElementKind: runtime::Extract<PathAlgebraElement<F>>,
+{
+    let elements: Vec<PathAlgebraElement<F>> = runtime::extract_all(elements)?;
+    qpa_core::is_homogeneous_list_of_elements(&elements, degree).map_err(invalid)
+}
+
+fn is_quadratic_ideal_for<F: runtime::PythonField>(
+    _algebra: &PathAlgebra<F>,
+    generators: Vec<AlgebraElementKind>,
+) -> PyResult<bool>
+where
+    AlgebraElementKind: runtime::Extract<PathAlgebraElement<F>>,
+{
+    let generators: Vec<PathAlgebraElement<F>> = runtime::extract_all(generators)?;
+    qpa_core::is_quadratic_ideal(&generators).map_err(invalid)
+}
+
 fn wrap_groebner_basis<F: runtime::PythonField>(basis: GroebnerBasis<F>) -> PyGroebnerBasis
 where
     GroebnerKind: runtime::Wrap<GroebnerBasis<F>>,
@@ -2214,6 +2261,40 @@ impl PyPathAlgebra {
             Ok(wrap_cohen_representations(
                 qpa_gbnp::relations_for_path_algebra(algebra).map_err(invalid)?,
             ))
+        })
+    }
+
+    fn is_homogeneous_list_of_elements(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+        degree: usize,
+    ) -> PyResult<bool> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            is_homogeneous_list_for(algebra, elements, degree)
+        })
+    }
+
+    fn is_quadratic_ideal(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<bool> {
+        let generators = clone_relations(py, generators);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            is_quadratic_ideal_for(algebra, generators)
+        })
+    }
+
+    fn quadratic_perpendicular_of_path_algebra_ideal(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Option<(PyPathAlgebra, Vec<PyAlgebraElement>)>> {
+        let generators = clone_relations(py, generators);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            quadratic_perpendicular_for(algebra, generators)
         })
     }
 

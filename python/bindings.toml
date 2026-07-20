@@ -4662,3 +4662,43 @@ qpa_name = "QPA_RelationsForPathAlgebra"
 status = "exposed"
 target = "qpa.PathAlgebra.qpa_relations_for_path_algebra"
 tests = ["python/tests/test_groebner_helpers.py::test_qpa_path_algebra_structure_relations_follow_qpa"]
+
+# Generic utilities and quadratic/Koszul helpers
+
+[[bindings]]
+qpa_name = "NullList"
+status = "exposed"
+target = "qpa.Field.null_list"
+tests = ["python/tests/test_koszul_and_utilities.py::test_null_list_and_positions_nonzero_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PositionsNonzero"
+status = "exposed"
+target = "qpa.positions_nonzero"
+tests = ["python/tests/test_koszul_and_utilities.py::test_null_list_and_positions_nonzero_follow_qpa"]
+notes = "Preserves QPA's one-based positions and recursively recognizes zero Python list/tuple matrices as GAP matrices."
+
+[[bindings]]
+qpa_name = "PathsOfLengthTwo"
+status = "exposed"
+target = "qpa.Quiver.paths_of_length_two"
+tests = ["python/tests/test_koszul_and_utilities.py::test_paths_of_length_two_and_homogeneity_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsHomogeneousListOfElements"
+status = "exposed"
+target = "qpa.PathAlgebra.is_homogeneous_list_of_elements"
+tests = ["python/tests/test_koszul_and_utilities.py::test_paths_of_length_two_and_homogeneity_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsQuadraticIdeal"
+status = "exposed"
+target = "qpa.PathAlgebra.is_quadratic_ideal"
+tests = ["python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_follows_qpa"]
+
+[[bindings]]
+qpa_name = "QuadraticPerpOfPathAlgebraIdeal"
+status = "exposed"
+target = "qpa.PathAlgebra.quadratic_perpendicular_of_path_algebra_ideal"
+tests = ["python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_follows_qpa","python/tests/test_koszul_and_utilities.py::test_quadratic_perpendicular_boundary_results_follow_qpa"]
+notes = "Returns (opposite_path_algebra, basis), maps QPA fail for nonquadratic input to None, and preserves the pinned empty-list and empty-matrix defects as InvalidInputError."
