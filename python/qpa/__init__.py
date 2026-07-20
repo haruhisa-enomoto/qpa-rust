@@ -55,6 +55,8 @@ from ._qpa import (
     RelationNotSatisfiedError,
     Scalar,
     StructureConstantsAlgebra,
+    StructureConstantsElement,
+    StructureConstantsSubalgebra,
     TiltingModuleResult,
 )
 
@@ -109,5 +111,7 @@ __all__ = [
     "RelationNotSatisfiedError",
     "Scalar",
     "StructureConstantsAlgebra",
+    "StructureConstantsElement",
+    "StructureConstantsSubalgebra",
     "TiltingModuleResult",
 ]

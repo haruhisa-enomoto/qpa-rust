@@ -5,7 +5,10 @@ use numerica::domains::{
     rational::{Q, RationalField},
 };
 use pyo3::prelude::*;
-use qpa_core::{PathAlgebraModule, QuiverAlgebra, StructureConstantsAlgebra};
+use qpa_core::{
+    PathAlgebraModule, QuiverAlgebra, StructureConstantsAlgebra, StructureConstantsAlgebraElement,
+    StructureConstantsSubalgebra,
+};
 
 #[allow(clippy::wildcard_imports)]
 // Private runtime enums and helpers form one binding domain.
@@ -23,6 +26,34 @@ pub(super) enum StructureConstantsAlgebraKind {
 #[derive(Clone)]
 pub(crate) struct PyStructureConstantsAlgebra {
     pub(super) kind: StructureConstantsAlgebraKind,
+}
+
+#[derive(Clone)]
+enum StructureConstantsElementKind {
+    Rational(StructureConstantsAlgebraElement<RationalField>),
+    Binary(StructureConstantsAlgebraElement<Z2>),
+    Prime(StructureConstantsAlgebraElement<Zp>),
+}
+
+/// An element in the ordered basis of a structure-constants algebra.
+#[pyclass(name = "StructureConstantsElement", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyStructureConstantsElement {
+    kind: StructureConstantsElementKind,
+}
+
+#[derive(Clone)]
+enum StructureConstantsSubalgebraKind {
+    Rational(StructureConstantsSubalgebra<RationalField>),
+    Binary(StructureConstantsSubalgebra<Z2>),
+    Prime(StructureConstantsSubalgebra<Zp>),
+}
+
+/// A QPA subalgebra with an explicit ordered basis in its ambient algebra.
+#[pyclass(name = "StructureConstantsSubalgebra", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyStructureConstantsSubalgebra {
+    kind: StructureConstantsSubalgebraKind,
 }
 
 #[derive(Clone)]
@@ -71,6 +102,22 @@ macro_rules! impl_conversion_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Wrap<StructureConstantsAlgebra<$field>> for StructureConstantsAlgebraKind {
             fn wrap(value: StructureConstantsAlgebra<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<StructureConstantsAlgebraElement<$field>>
+            for StructureConstantsElementKind
+        {
+            fn wrap(value: StructureConstantsAlgebraElement<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<StructureConstantsSubalgebra<$field>>
+            for StructureConstantsSubalgebraKind
+        {
+            fn wrap(value: StructureConstantsSubalgebra<$field>) -> Self {
                 Self::$variant(value)
             }
         }
@@ -130,6 +177,66 @@ where
             StructureConstantsAlgebra::new(field, dimension, products).map_err(invalid)?,
         ),
     })
+}
+
+fn structure_element_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    algebra: &StructureConstantsAlgebra<F>,
+    coordinates: Vec<Py<PyScalar>>,
+) -> PyResult<PyStructureConstantsElement>
+where
+    StructureConstantsElementKind: runtime::Wrap<StructureConstantsAlgebraElement<F>>,
+{
+    let coordinates = coordinates
+        .into_iter()
+        .map(|coefficient| algebra.field().scalar_value(&coefficient.borrow(py)))
+        .collect::<PyResult<Vec<_>>>()?;
+    Ok(PyStructureConstantsElement {
+        kind: runtime::Wrap::wrap(algebra.element(coordinates).map_err(invalid)?),
+    })
+}
+
+fn wrap_structure_element<F: runtime::PythonField>(
+    element: StructureConstantsAlgebraElement<F>,
+) -> PyStructureConstantsElement
+where
+    StructureConstantsElementKind: runtime::Wrap<StructureConstantsAlgebraElement<F>>,
+{
+    PyStructureConstantsElement {
+        kind: runtime::Wrap::wrap(element),
+    }
+}
+
+fn wrap_structure_elements<F: runtime::PythonField>(
+    elements: Vec<StructureConstantsAlgebraElement<F>>,
+) -> Vec<PyStructureConstantsElement>
+where
+    StructureConstantsElementKind: runtime::Wrap<StructureConstantsAlgebraElement<F>>,
+{
+    elements.into_iter().map(wrap_structure_element).collect()
+}
+
+fn wrap_structure_subalgebra<F: runtime::PythonField>(
+    subalgebra: StructureConstantsSubalgebra<F>,
+) -> PyStructureConstantsSubalgebra
+where
+    StructureConstantsSubalgebraKind: runtime::Wrap<StructureConstantsSubalgebra<F>>,
+{
+    PyStructureConstantsSubalgebra {
+        kind: runtime::Wrap::wrap(subalgebra),
+    }
+}
+
+fn structure_matrix_rows<F: runtime::PythonField>(matrix: &DenseMatrix<F>) -> Vec<Vec<PyScalar>> {
+    (0..matrix.nrows())
+        .map(|row| {
+            matrix
+                .row(row)
+                .iter()
+                .map(|coefficient| matrix.field().wrap_scalar(coefficient))
+                .collect()
+        })
+        .collect()
 }
 
 pub(super) fn wrap_quiver_algebra<F: runtime::PythonField>(
@@ -206,6 +313,129 @@ impl PyStructureConstantsAlgebra {
         })
     }
 
+    fn zero(&self) -> PyStructureConstantsElement {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            wrap_structure_element(algebra.zero())
+        })
+    }
+
+    #[getter]
+    fn basis_elements(&self) -> Vec<PyStructureConstantsElement> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            wrap_structure_elements(algebra.basis_elements())
+        })
+    }
+
+    fn element(
+        &self,
+        py: Python<'_>,
+        coordinates: Vec<Py<PyScalar>>,
+    ) -> PyResult<PyStructureConstantsElement> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            structure_element_for(py, algebra, coordinates)
+        })
+    }
+
+    fn find_multiplicative_identity(&self) -> PyResult<Option<PyStructureConstantsElement>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(algebra
+                .find_multiplicative_identity()
+                .map_err(invalid)?
+                .map(wrap_structure_element))
+        })
+    }
+
+    fn center(&self) -> PyResult<PyStructureConstantsSubalgebra> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(wrap_structure_subalgebra(
+                algebra.centre().map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn radical(&self) -> PyResult<PyStructureConstantsSubalgebra> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(wrap_structure_subalgebra(
+                algebra.radical().map_err(invalid)?,
+            ))
+        })
+    }
+
+    #[getter]
+    fn radical_series(&self) -> PyResult<Vec<Vec<Vec<PyScalar>>>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(algebra
+                .radical_series()
+                .map_err(invalid)?
+                .iter()
+                .map(structure_matrix_rows)
+                .collect())
+        })
+    }
+
+    fn power_subalgebra(&self, degree: usize) -> PyResult<PyStructureConstantsSubalgebra> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(wrap_structure_subalgebra(
+                algebra.power_subalgebra(degree).map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn blocks(&self) -> PyResult<Vec<PyStructureConstantsSubalgebra>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(algebra
+                .blocks()
+                .map_err(invalid)?
+                .into_iter()
+                .map(wrap_structure_subalgebra)
+                .collect())
+        })
+    }
+
+    #[getter]
+    fn is_semisimple(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            algebra.is_semisimple_algebra().map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_radical_square_zero(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            algebra.is_radical_square_zero().map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_basic(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            algebra.is_basic_algebra().map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn is_elementary(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            algebra.is_elementary_algebra().map_err(invalid)
+        })
+    }
+
+    fn primitive_idempotents(&self) -> PyResult<Vec<PyStructureConstantsElement>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(wrap_structure_elements(
+                algebra.primitive_idempotents().map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn idempotents_for_decomposition(&self) -> PyResult<Vec<PyStructureConstantsElement>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(wrap_structure_elements(
+                algebra.idempotents_for_decomposition().map_err(invalid)?,
+            ))
+        })
+    }
+
     fn as_quiver_algebra(&self) -> PyResult<PyAlgebraAsQuiverAlgebraResult> {
         let kind = map_ref!(
             &self.kind,
@@ -213,6 +443,109 @@ impl PyStructureConstantsAlgebra {
             |algebra| qpa_gbnp::algebra_as_quiver_algebra(algebra).map_err(invalid)?
         );
         Ok(PyAlgebraAsQuiverAlgebraResult { kind })
+    }
+}
+
+#[pymethods]
+impl PyStructureConstantsElement {
+    #[getter]
+    fn algebra(&self) -> PyStructureConstantsAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            StructureConstantsElementKind => StructureConstantsAlgebraKind,
+            |element| element.algebra().clone()
+        );
+        PyStructureConstantsAlgebra { kind }
+    }
+
+    #[getter]
+    fn coordinates(&self) -> Vec<PyScalar> {
+        dispatch_ref!(&self.kind, StructureConstantsElementKind, |element| {
+            element
+                .coordinates()
+                .iter()
+                .map(|coefficient| element.algebra().field().wrap_scalar(coefficient))
+                .collect()
+        })
+    }
+
+    fn multiply(&self, right: &Self) -> PyResult<Self> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &right.kind,
+            StructureConstantsElementKind => StructureConstantsElementKind,
+            |left, right| left.multiply(right).map_err(invalid)?,
+            invalid("structure-constants elements belong to different coefficient fields")
+        )?;
+        Ok(Self { kind })
+    }
+
+    fn __mul__(&self, right: &Self) -> PyResult<Self> {
+        self.multiply(right)
+    }
+
+    fn __eq__(&self, right: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            StructureConstantsElementKind,
+            |left, right| left == right,
+            false
+        )
+    }
+}
+
+#[pymethods]
+impl PyStructureConstantsSubalgebra {
+    #[getter]
+    fn ambient(&self) -> PyStructureConstantsAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            StructureConstantsSubalgebraKind => StructureConstantsAlgebraKind,
+            |subalgebra| subalgebra.ambient().clone()
+        );
+        PyStructureConstantsAlgebra { kind }
+    }
+
+    #[getter]
+    fn basis(&self) -> Vec<Vec<PyScalar>> {
+        dispatch_ref!(&self.kind, StructureConstantsSubalgebraKind, |subalgebra| {
+            structure_matrix_rows(subalgebra.basis())
+        })
+    }
+
+    #[getter]
+    fn algebra(&self) -> PyStructureConstantsAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            StructureConstantsSubalgebraKind => StructureConstantsAlgebraKind,
+            |subalgebra| subalgebra.algebra().clone()
+        );
+        PyStructureConstantsAlgebra { kind }
+    }
+
+    fn lift_coordinates(
+        &self,
+        py: Python<'_>,
+        coordinates: Vec<Py<PyScalar>>,
+    ) -> PyResult<Vec<PyScalar>> {
+        dispatch_ref!(&self.kind, StructureConstantsSubalgebraKind, |subalgebra| {
+            let coordinates = coordinates
+                .into_iter()
+                .map(|coefficient| {
+                    subalgebra
+                        .ambient()
+                        .field()
+                        .scalar_value(&coefficient.borrow(py))
+                })
+                .collect::<PyResult<Vec<_>>>()?;
+            Ok(subalgebra
+                .lift_coordinates(&coordinates)
+                .map_err(invalid)?
+                .iter()
+                .map(|coefficient| subalgebra.ambient().field().wrap_scalar(coefficient))
+                .collect())
+        })
     }
 }
 

@@ -13,7 +13,7 @@ use conversion::{
 };
 pub(crate) use conversion::{
     PyAdrAlgebraOfAlgebraResult, PyAlgebraAsQuiverAlgebraResult, PyQuiverAlgebra,
-    PyStructureConstantsAlgebra,
+    PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsSubalgebra,
 };
 
 use numerica::domains::{

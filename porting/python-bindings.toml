@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 362
+exposed_or_partial_count = 369
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -716,8 +716,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposit
 qpa_name = "BlocksOfAlgebra"
 python_name = "blocks_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.blocks; qpa.StructureConstantsSubalgebra"
 notes = ""
 entry_ids = ["algebra:DeclareOperation:BlocksOfAlgebra:1","algebra:InstallMethod:BlocksOfAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -725,7 +725,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["StructureConstantsAlgebra::blocks"]
 rust_tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "BongartzTest"
@@ -2756,8 +2756,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_
 qpa_name = "FindMultiplicativeIdentity"
 python_name = "find_multiplicative_identity"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.find_multiplicative_identity; qpa.StructureConstantsElement"
 notes = ""
 entry_ids = ["algebra:DeclareOperation:FindMultiplicativeIdentity:1","algebra:InstallMethod:FindMultiplicativeIdentity:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2765,7 +2765,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["StructureConstantsAlgebra::find_multiplicative_identity"]
 rust_tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/gap-reference/algebra_structure_constants_empty_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "FindNextRProjective"
@@ -3611,8 +3611,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IdempotentsForDecomposition"
 python_name = "idempotents_for_decomposition"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.idempotents_for_decomposition; qpa.StructureConstantsElement"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:IdempotentsForDecomposition:1","moduledecomp:InstallMethod:IdempotentsForDecomposition:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3620,7 +3620,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["StructureConstantsAlgebra::idempotents_for_decomposition"]
 rust_tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IdentityMapping"
@@ -4346,16 +4346,16 @@ python_tests = []
 qpa_name = "IsBasicAlgebra"
 python_name = "is_basic_algebra"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.QuotientAlgebra.is_basic"
-notes = "The admissible-quotient true-method is exposed."
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.is_basic; qpa.QuotientAlgebra.is_basic"
+notes = ""
 entry_ids = ["algebra:DeclareProperty:IsBasicAlgebra:1","algebra:InstallTrueMethod:IsBasicAlgebra:1","algebra:InstallMethod:IsBasicAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["StructureConstantsAlgebra::is_basic_algebra","admissible_quotient_is_basic"]
 rust_tests = ["tests/fixtures/pathalg_admissible_properties.schema-v1.json","tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json","tests/gap-reference/algebra_as_quiver_nonbasic_error.g"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsBasisOfOppositeAlgebraDefaultRep"
@@ -4811,16 +4811,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsElementaryAlgebra"
 python_name = "is_elementary_algebra"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.QuotientAlgebra.is_elementary"
-notes = "The admissible-quotient true-method is exposed."
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.is_elementary; qpa.QuotientAlgebra.is_elementary"
+notes = ""
 entry_ids = ["algebra:DeclareProperty:IsElementaryAlgebra:1","algebra:InstallMethod:IsElementaryAlgebra:1","pathalgideal:InstallTrueMethod:IsElementaryAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi","upstream/qpa/lib/pathalgideal.gd"]
 rust_symbols = ["StructureConstantsAlgebra::is_elementary_algebra","admissible_quotient_is_elementary"]
 rust_tests = ["tests/fixtures/pathalg_admissible_properties.schema-v1.json","tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsEnvelopingAlgebra"
@@ -6236,8 +6236,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the
 qpa_name = "IsRadicalSquareZeroAlgebra"
 python_name = "is_radical_square_zero_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.is_radical_square_zero"
 notes = ""
 entry_ids = ["algebra:DeclareProperty:IsRadicalSquareZeroAlgebra:1","algebra:InstallMethod:IsRadicalSquareZeroAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6245,7 +6245,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["StructureConstantsAlgebra::is_radical_square_zero"]
 rust_tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsRepeating"
@@ -6431,16 +6431,16 @@ python_tests = []
 qpa_name = "IsSemisimpleAlgebra"
 python_name = "is_semisimple_algebra"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.QuotientAlgebra.is_semisimple"
-notes = "The admissible-quotient specialized method is exposed."
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.is_semisimple; qpa.QuotientAlgebra.is_semisimple"
+notes = ""
 entry_ids = ["algebra:DeclareProperty:IsSemisimpleAlgebra:1","pathalg:InstallMethod:IsSemisimpleAlgebra:1","pathalg:InstallOtherMethod:IsSemisimpleAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["StructureConstantsAlgebra::is_semisimple_algebra","StructureConstantsAlgebra::is_semisimple_algebra; admissible_quotient_is_semisimple","admissible_quotient_is_semisimple"]
 rust_tests = ["tests/fixtures/algebra_homological_properties.schema-v1.json","tests/fixtures/pathalg_admissible_properties.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsSemisimpleModule"
@@ -9851,8 +9851,8 @@ python_tests = []
 qpa_name = "PowerSubalgebraOp"
 python_name = "power_subalgebra_op"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.power_subalgebra; qpa.StructureConstantsSubalgebra"
 notes = ""
 entry_ids = ["algebra:InstallMethod:PowerSubalgebraOp:1","algebra:InstallMethod:PowerSubalgebraOp:2"]
 constructs = ["InstallMethod"]
@@ -9860,7 +9860,7 @@ source_files = ["upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["StructureConstantsAlgebra::power_subalgebra"]
 rust_tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "PreImagesRepresentativeNC"
@@ -9941,8 +9941,8 @@ python_tests = []
 qpa_name = "PrimitiveIdempotents"
 python_name = "primitive_idempotents"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.primitive_idempotents; qpa.StructureConstantsElement"
 notes = ""
 entry_ids = ["idempotent:DeclareAttribute:PrimitiveIdempotents:1","idempotent:InstallMethod:PrimitiveIdempotents:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -9950,7 +9950,7 @@ source_files = ["upstream/qpa/lib/idempotent.gd","upstream/qpa/lib/idempotent.gi
 rust_symbols = ["StructureConstantsAlgebra::primitive_idempotents; StructureConstantsAlgebra::primitive_idempotents_with_rng","StructureConstantsAlgebra::primitive_idempotents; StructureConstantsAlgebra::primitive_idempotents_with_rng; StructureConstantsAlgebra::cached_primitive_idempotents"]
 rust_tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = ["IDEMPOTENT-001","IDEMPOTENT-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "PrintMultiplicityVector"
@@ -10751,8 +10751,8 @@ python_tests = []
 qpa_name = "RadicalSeriesOfAlgebra"
 python_name = "radical_series_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.radical_series"
 notes = ""
 entry_ids = ["algebra:DeclareAttribute:RadicalSeriesOfAlgebra:1","algebra:InstallMethod:RadicalSeriesOfAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -10760,7 +10760,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["StructureConstantsAlgebra::radical_series"]
 rust_tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RandomModule"

@@ -22,7 +22,8 @@ use algebra::{
     PyModuleSubmodule, PyMoreMinimalVersionResult, PyNonisomorphicDirectSummandData, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
     PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuiverAlgebra, PyQuotientAlgebra,
-    PyQuotientElement, PyStructureConstantsAlgebra, PyTiltingModuleResult,
+    PyQuotientElement, PyStructureConstantsAlgebra, PyStructureConstantsElement,
+    PyStructureConstantsSubalgebra, PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{PyPath, PyQuiver};
@@ -61,6 +62,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;
     module.add_class::<PyStructureConstantsAlgebra>()?;
+    module.add_class::<PyStructureConstantsElement>()?;
+    module.add_class::<PyStructureConstantsSubalgebra>()?;
     module.add_class::<PyQuiverAlgebra>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;

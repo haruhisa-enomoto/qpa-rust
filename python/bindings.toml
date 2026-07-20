@@ -601,24 +601,63 @@ notes = "The default GBNP-backed quotient overload is exposed."
 
 [[bindings]]
 qpa_name = "IsSemisimpleAlgebra"
-status = "partial"
-target = "qpa.QuotientAlgebra.is_semisimple"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The admissible-quotient specialized method is exposed."
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.is_semisimple; qpa.QuotientAlgebra.is_semisimple"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsElementaryAlgebra"
-status = "partial"
-target = "qpa.QuotientAlgebra.is_elementary"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The admissible-quotient true-method is exposed."
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.is_elementary; qpa.QuotientAlgebra.is_elementary"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsBasicAlgebra"
-status = "partial"
-target = "qpa.QuotientAlgebra.is_basic"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The admissible-quotient true-method is exposed."
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.is_basic; qpa.QuotientAlgebra.is_basic"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "BlocksOfAlgebra"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.blocks; qpa.StructureConstantsSubalgebra"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FindMultiplicativeIdentity"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.find_multiplicative_identity; qpa.StructureConstantsElement"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsRadicalSquareZeroAlgebra"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.is_radical_square_zero"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PowerSubalgebraOp"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.power_subalgebra; qpa.StructureConstantsSubalgebra"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RadicalSeriesOfAlgebra"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.radical_series"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IdempotentsForDecomposition"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.idempotents_for_decomposition; qpa.StructureConstantsElement"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PrimitiveIdempotents"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.primitive_idempotents; qpa.StructureConstantsElement"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa"]
 
 [[bindings]]
 qpa_name = "TruncatedPathAlgebra"

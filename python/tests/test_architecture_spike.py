@@ -1268,6 +1268,124 @@ def _structure_constants_tensor(
     return products
 
 
+def _representative_rows(
+    rows: list[list[qpa.Scalar]],
+) -> list[list[int]]:
+    return [[coefficient.representative for coefficient in row] for row in rows]
+
+
+def test_structure_constants_algebra_operations_follow_qpa() -> None:
+    field2 = qpa.Field.prime(2)
+    upper = qpa.StructureConstantsAlgebra(
+        field2,
+        _structure_constants_tensor(
+            field2,
+            3,
+            [(0, 0, 0), (0, 1, 1), (1, 2, 1), (2, 2, 2)],
+        ),
+    )
+
+    basis = upper.basis_elements
+    assert _representative_rows([element.coordinates for element in basis]) == [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+    ]
+    assert [coefficient.representative for coefficient in upper.zero().coordinates] == [
+        0,
+        0,
+        0,
+    ]
+    assert basis[0] * basis[1] == basis[1]
+    assert basis[1] * basis[2] == basis[1]
+
+    identity = upper.find_multiplicative_identity()
+    assert identity is not None
+    assert [coefficient.representative for coefficient in identity.coordinates] == [
+        1,
+        0,
+        1,
+    ]
+    center = upper.center()
+    radical = upper.radical()
+    assert _representative_rows(center.basis) == [[1, 0, 1]]
+    assert _representative_rows(radical.basis) == [[0, 1, 0]]
+    assert center.ambient.dimension == 3
+    assert center.algebra.dimension == 1
+    assert [
+        coefficient.representative
+        for coefficient in center.lift_coordinates([field2.element(1)])
+    ] == [1, 0, 1]
+    assert [
+        _representative_rows(term) for term in upper.radical_series
+    ] == [
+        [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        [[0, 1, 0]],
+        [],
+    ]
+    assert _representative_rows(upper.power_subalgebra(1).basis) == [[1, 0, 1]]
+    assert [_representative_rows(block.basis) for block in upper.blocks()] == [
+        [[1, 0, 1], [0, 0, 1], [0, 1, 0]]
+    ]
+    assert not upper.is_semisimple
+    assert upper.is_radical_square_zero
+    assert upper.is_basic is True
+    assert upper.is_elementary is True
+
+    zero_algebra = qpa.StructureConstantsAlgebra(
+        field2, _structure_constants_tensor(field2, 1, [])
+    )
+    assert zero_algebra.find_multiplicative_identity() is None
+
+    rational = qpa.Field.rational()
+    rational_dual = qpa.StructureConstantsAlgebra(
+        rational,
+        _structure_constants_tensor(
+            rational, 2, [(0, 0, 0), (0, 1, 1), (1, 0, 1)]
+        ),
+    )
+    assert rational_dual.is_basic is None
+    assert rational_dual.is_elementary is None
+
+    field5 = qpa.Field.prime(5)
+    shifted_products = _structure_constants_tensor(field5, 3, [])
+    shifted_products[0][0][0] = field5.element(1)
+    shifted_products[0][1][2] = field5.element(2)
+    shifted_products[0][2][2] = field5.element(1)
+    shifted_products[1][1][1] = field5.element(1)
+    shifted_products[2][1][2] = field5.element(1)
+    shifted = qpa.StructureConstantsAlgebra(field5, shifted_products)
+    assert _representative_rows(
+        [element.coordinates for element in shifted.idempotents_for_decomposition()]
+    ) == [[0, 1, 0], [1, 0, 3]]
+
+    matrix_products = _structure_constants_tensor(field2, 4, [])
+    for left_row in range(2):
+        for left_column in range(2):
+            for right_row in range(2):
+                for right_column in range(2):
+                    if left_column == right_row:
+                        left = 2 * left_row + left_column
+                        right = 2 * right_row + right_column
+                        output = 2 * left_row + right_column
+                        matrix_products[left][right][output] = field2.element(1)
+    matrix_algebra = qpa.StructureConstantsAlgebra(field2, matrix_products)
+    primitive = matrix_algebra.primitive_idempotents()
+    primitive_rows = _representative_rows(
+        [element.coordinates for element in primitive]
+    )
+    assert len(primitive) == 2
+    assert [sum(row[column] for row in primitive_rows) % 2 for column in range(4)] == [
+        1,
+        0,
+        0,
+        1,
+    ]
+    assert all(element * element == element for element in primitive)
+    assert primitive[0] * primitive[1] == matrix_algebra.zero()
+    assert primitive[1] * primitive[0] == matrix_algebra.zero()
+
+
 def test_algebra_as_quiver_algebra_follows_qpa() -> None:
     field2 = qpa.Field.prime(2)
     upper_tensor = _structure_constants_tensor(
