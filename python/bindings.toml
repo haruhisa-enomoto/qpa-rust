@@ -445,9 +445,9 @@ notes = "The quiver, quiver-ordering, Groebner-basis, unit-form, numerical AR-qu
 [[bindings]]
 qpa_name = "\\[\\]"
 status = "partial"
-target = "qpa.QuiverPathEnumerator.__getitem__"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The quiver-enumerator overload is exposed; suffix-tree and product-decomposition indexing remain."
+target = "qpa.QuiverPathEnumerator.__getitem__; qpa.SuffixTree.__getitem__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+notes = "The quiver-enumerator and suffix-tree overloads are exposed; product-decomposition indexing remains."
 
 # Quiver orderings
 
@@ -1748,9 +1748,9 @@ notes = "Matrix-module element and projective-vector subtraction and negation ar
 [[bindings]]
 qpa_name = "\\="
 status = "partial"
-target = "qpa.DynamicTree.__eq__; qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
-tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
-notes = "Dynamic-tree identity equality, opposite-element equality, and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
+target = "qpa.DynamicTree.__eq__; qpa.SuffixTreeNode.__eq__; qpa.SuffixTreeEdge.__eq__; qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+notes = "Identity equality for dynamic trees and suffix-tree handles, opposite-element equality, and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
 
 [[bindings]]
 qpa_name = "CoKernelProjection"
@@ -4802,6 +4802,159 @@ qpa_name = "PrefixSearch"
 status = "exposed"
 target = "qpa.QuiverStaticDictionary.prefix_search"
 tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+
+# Dynamic suffix-tree dictionaries
+
+[[bindings]]
+qpa_name = "AddExternalSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTree.add_external_node"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "AddInternalSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTree.add_internal_node"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "AllPatternsInSequence"
+status = "exposed"
+target = "qpa.SuffixTree.all_patterns_in_sequence"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_source_failures_follow_qpa"]
+
+[[bindings]]
+qpa_name = "CreateExternalSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTree.create_external_node"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CreateInternalSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTree.create_internal_node"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CreateSuffixTree"
+status = "exposed"
+target = "qpa.SuffixTree"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CreateSuffixTreeEdge"
+status = "exposed"
+target = "qpa.SuffixTree.create_edge"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DeletePatternFromSuffixTree"
+status = "exposed"
+target = "qpa.SuffixTree.delete_pattern"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_source_failures_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InfoDynamicDictionary"
+status = "exposed"
+target = "qpa.info_dynamic_dictionary_name"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "InsertPatternIntoSuffixTree"
+status = "exposed"
+target = "qpa.SuffixTree.insert_pattern"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_source_failures_follow_qpa"]
+notes = "Arbitrary finite Python sequences are adapted to the translated QPA suffix tree using Python equality."
+
+[[bindings]]
+qpa_name = "IsDefaultInternalSuffixTreeNodeRep"
+status = "exposed"
+target = "qpa.SuffixTreeNode.is_default_internal_rep; qpa.SuffixTree.node_edges; qpa.SuffixTree.node_suffix_link; qpa.SuffixTree.node_is_marked"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsDefaultSuffixTreeEdgeRep"
+status = "exposed"
+target = "qpa.SuffixTreeEdge.is_default_rep; qpa.SuffixTree.edge_parent; qpa.SuffixTree.edge_child"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsDefaultSuffixTreeNodeRep"
+status = "exposed"
+target = "qpa.SuffixTreeNode.is_default_rep"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsDefaultSuffixTreeRep"
+status = "exposed"
+target = "qpa.SuffixTree.is_default_rep"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsExternalSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTreeNode.is_external; qpa.SuffixTree.external_occurrences"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsInternalSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTreeNode.is_internal"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsSuffixTree"
+status = "exposed"
+target = "qpa.SuffixTree.is_suffix_tree"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsSuffixTreeEdge"
+status = "exposed"
+target = "qpa.SuffixTreeEdge.is_suffix_tree_edge"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsSuffixTreeElement"
+status = "exposed"
+target = "qpa.SuffixTreeNode.is_suffix_tree_element; qpa.SuffixTreeEdge.is_suffix_tree_element"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTreeNode.is_suffix_tree_node"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "LabelOfSuffixTreeEdge"
+status = "exposed"
+target = "qpa.SuffixTree.label_of_edge"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "LabelOfSuffixTreeNode"
+status = "exposed"
+target = "qpa.SuffixTree.label_of_node"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ParentNode"
+status = "exposed"
+target = "qpa.SuffixTree.parent_node"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
+
+[[bindings]]
+qpa_name = "SequenceInPatterns"
+status = "exposed"
+target = "qpa.SuffixTree.sequence_in_patterns"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SuffixTreeEdgeStartingAt"
+status = "exposed"
+target = "qpa.SuffixTree.edge_starting_at"
+tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 # Dynamic trees
 

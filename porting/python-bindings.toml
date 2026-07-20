@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 773
+exposed_or_partial_count = 798
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -101,8 +101,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degen
 qpa_name = "AddExternalSuffixTreeNode"
 python_name = "add_external_suffix_tree_node"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.add_external_node"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:AddExternalSuffixTreeNode:1","groebnerdyndict:InstallMethod:AddExternalSuffixTreeNode:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -110,14 +110,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::add_external_node"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "AddInternalSuffixTreeNode"
 python_name = "add_internal_suffix_tree_node"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.add_internal_node"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:AddInternalSuffixTreeNode:1","groebnerdyndict:InstallMethod:AddInternalSuffixTreeNode:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -125,7 +125,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::add_internal_node"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "AddNthPowerToRelations"
@@ -341,8 +341,8 @@ python_tests = []
 qpa_name = "AllPatternsInSequence"
 python_name = "all_patterns_in_sequence"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.all_patterns_in_sequence"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:AllPatternsInSequence:1","groebnerdyndict:InstallMethod:AllPatternsInSequence:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -350,7 +350,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::all_patterns_in_sequence"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_source_failures_follow_qpa"]
 
 [[operations]]
 qpa_name = "AllSimpleSubmodulesOfModule"
@@ -1466,8 +1466,8 @@ python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construct
 qpa_name = "CreateExternalSuffixTreeNode"
 python_name = "create_external_suffix_tree_node"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.create_external_node"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareGlobalFunction:CreateExternalSuffixTreeNode:1","groebnerdyndict:InstallGlobalFunction:CreateExternalSuffixTreeNode:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -1475,14 +1475,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::create_external_node"]
 rust_tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CreateInternalSuffixTreeNode"
 python_name = "create_internal_suffix_tree_node"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.create_internal_node"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareGlobalFunction:CreateInternalSuffixTreeNode:1","groebnerdyndict:InstallGlobalFunction:CreateInternalSuffixTreeNode:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -1490,14 +1490,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::create_internal_node"]
 rust_tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CreateSuffixTree"
 python_name = "create_suffix_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareGlobalFunction:CreateSuffixTree:1","groebnerdyndict:InstallGlobalFunction:CreateSuffixTree:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -1505,14 +1505,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::new"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "CreateSuffixTreeEdge"
 python_name = "create_suffix_tree_edge"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.create_edge"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareGlobalFunction:CreateSuffixTreeEdge:1","groebnerdyndict:InstallGlobalFunction:CreateSuffixTreeEdge:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -1520,7 +1520,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::create_edge"]
 rust_tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "Cut"
@@ -1871,8 +1871,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_finite_type_degen
 qpa_name = "DeletePatternFromSuffixTree"
 python_name = "delete_pattern_from_suffix_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.delete_pattern"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:DeletePatternFromSuffixTree:1","groebnerdyndict:InstallMethod:DeletePatternFromSuffixTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1880,7 +1880,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::delete_pattern"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_duplicate_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_source_failures_follow_qpa"]
 
 [[operations]]
 qpa_name = "DepthSearchCombinatorialMap"
@@ -3896,8 +3896,8 @@ python_tests = []
 qpa_name = "InfoDynamicDictionary"
 python_name = "info_dynamic_dictionary"
 disposition = "diagnostic_channel"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.info_dynamic_dictionary_name"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareInfoClass:InfoDynamicDictionary:1"]
 constructs = ["DeclareInfoClass"]
@@ -3905,7 +3905,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["INFO_DYNAMIC_DICTIONARY"]
 rust_tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "InfoElementOfQuotientOfPathAlgebra"
@@ -4076,16 +4076,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_
 qpa_name = "InsertPatternIntoSuffixTree"
 python_name = "insert_pattern_into_suffix_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.insert_pattern"
+notes = "Arbitrary finite Python sequences are adapted to the translated QPA suffix tree using Python equality."
 entry_ids = ["groebnerdyndict:DeclareOperation:InsertPatternIntoSuffixTree:1","groebnerdyndict:InstallMethod:InsertPatternIntoSuffixTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebnerdyndict.gi"]
 rust_symbols = ["SuffixTree::insert_pattern"]
 rust_tests = ["tests/fixtures/combinatorialmap_derived.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json","tests/gap-reference/suffix_tree_duplicate_error.g","tests/gap-reference/suffix_tree_empty_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_source_failures_follow_qpa"]
 
 [[operations]]
 qpa_name = "IntegersList"
@@ -4616,8 +4616,8 @@ python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construct
 qpa_name = "IsDefaultInternalSuffixTreeNodeRep"
 python_name = "is_default_internal_suffix_tree_node_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeNode.is_default_internal_rep; qpa.SuffixTree.node_edges; qpa.SuffixTree.node_suffix_link; qpa.SuffixTree.node_is_marked"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareRepresentation:IsDefaultInternalSuffixTreeNodeRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4625,14 +4625,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeNodeKind::Internal; SuffixTree::node_edges; SuffixTree::node_suffix_link; SuffixTree::node_is_marked"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsDefaultSuffixTreeEdgeRep"
 python_name = "is_default_suffix_tree_edge_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeEdge.is_default_rep; qpa.SuffixTree.edge_parent; qpa.SuffixTree.edge_child"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareRepresentation:IsDefaultSuffixTreeEdgeRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4640,14 +4640,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeEdgeId; SuffixTree::edge_parent; SuffixTree::edge_child; SuffixTree::label_of_edge"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsDefaultSuffixTreeNodeRep"
 python_name = "is_default_suffix_tree_node_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeNode.is_default_rep"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareRepresentation:IsDefaultSuffixTreeNodeRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4655,14 +4655,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeNodeId; SuffixTree::parent_node; SuffixTree::label_of_node"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsDefaultSuffixTreeRep"
 python_name = "is_default_suffix_tree_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.is_default_rep"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareRepresentation:IsDefaultSuffixTreeRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4670,7 +4670,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTree; SuffixTree::number_of_patterns; SuffixTree::root_node; SuffixTree::dead_length"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsDirectSumOfModules"
@@ -4886,8 +4886,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_rigidity_predicat
 qpa_name = "IsExternalSuffixTreeNode"
 python_name = "is_external_suffix_tree_node"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeNode.is_external; qpa.SuffixTree.external_occurrences"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareCategory:IsExternalSuffixTreeNode:1"]
 constructs = ["DeclareCategory"]
@@ -4895,7 +4895,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeNodeKind::External; SuffixTree::external_occurrences"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsFinite"
@@ -5336,8 +5336,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "IsInternalSuffixTreeNode"
 python_name = "is_internal_suffix_tree_node"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeNode.is_internal"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareCategory:IsInternalSuffixTreeNode:1"]
 constructs = ["DeclareCategory"]
@@ -5345,7 +5345,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeNodeKind::Internal"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsIsomorphism"
@@ -6611,8 +6611,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsSuffixTree"
 python_name = "is_suffix_tree"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.is_suffix_tree"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareCategory:IsSuffixTree:1"]
 constructs = ["DeclareCategory"]
@@ -6620,14 +6620,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTree"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsSuffixTreeEdge"
 python_name = "is_suffix_tree_edge"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeEdge.is_suffix_tree_edge"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareCategory:IsSuffixTreeEdge:1"]
 constructs = ["DeclareCategory"]
@@ -6635,14 +6635,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeEdgeId"]
 rust_tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsSuffixTreeElement"
 python_name = "is_suffix_tree_element"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeNode.is_suffix_tree_element; qpa.SuffixTreeEdge.is_suffix_tree_element"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareCategory:IsSuffixTreeElement:1"]
 constructs = ["DeclareCategory"]
@@ -6650,14 +6650,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeNodeId; SuffixTreeEdgeId"]
 rust_tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsSuffixTreeNode"
 python_name = "is_suffix_tree_node"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTreeNode.is_suffix_tree_node"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareCategory:IsSuffixTreeNode:1"]
 constructs = ["DeclareCategory"]
@@ -6665,7 +6665,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd"]
 rust_symbols = ["SuffixTreeNodeId"]
 rust_tests = ["tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsSurjective"
@@ -7241,8 +7241,8 @@ python_tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonic
 qpa_name = "LabelOfSuffixTreeEdge"
 python_name = "label_of_suffix_tree_edge"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.label_of_edge"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:LabelOfSuffixTreeEdge:1","groebnerdyndict:InstallMethod:LabelOfSuffixTreeEdge:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7250,14 +7250,14 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::label_of_edge"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "LabelOfSuffixTreeNode"
 python_name = "label_of_suffix_tree_node"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.label_of_node"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:LabelOfSuffixTreeNode:1","groebnerdyndict:InstallMethod:LabelOfSuffixTreeNode:1","groebnerdyndict:InstallMethod:LabelOfSuffixTreeNode:2"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7265,7 +7265,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::label_of_node"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "LeadingCoefficient"
@@ -9476,8 +9476,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_re
 qpa_name = "ParentNode"
 python_name = "parent_node"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.parent_node"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:ParentNode:1","groebnerdyndict:InstallMethod:ParentNode:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9485,7 +9485,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::parent_node"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "PartialIyamaGenerator"
@@ -11456,8 +11456,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "SequenceInPatterns"
 python_name = "sequence_in_patterns"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.sequence_in_patterns"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:SequenceInPatterns:1","groebnerdyndict:InstallMethod:SequenceInPatterns:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11465,7 +11465,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::sequence_in_patterns"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_query_and_delete_follow_qpa"]
 
 [[operations]]
 qpa_name = "SetAsList"
@@ -11966,8 +11966,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "SuffixTreeEdgeStartingAt"
 python_name = "suffix_tree_edge_starting_at"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.SuffixTree.edge_starting_at"
 notes = ""
 entry_ids = ["groebnerdyndict:DeclareOperation:SuffixTreeEdgeStartingAt:1","groebnerdyndict:InstallMethod:SuffixTreeEdgeStartingAt:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11975,7 +11975,7 @@ source_files = ["upstream/qpa/lib/groebnerdyndict.gd","upstream/qpa/lib/groebner
 rust_symbols = ["SuffixTree::edge_starting_at"]
 rust_tests = ["tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = []
+python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "SumOfSubmodules"
@@ -13257,30 +13257,30 @@ qpa_name = "\\="
 python_name = "equal"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.DynamicTree.__eq__; qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
-notes = "Dynamic-tree identity equality, opposite-element equality, and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
+python_target = "qpa.DynamicTree.__eq__; qpa.SuffixTreeNode.__eq__; qpa.SuffixTreeEdge.__eq__; qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
+notes = "Identity equality for dynamic trees and suffix-tree handles, opposite-element equality, and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\=:1","complex:InstallMethod:\\=:1","groebnerdyndict:InstallMethod:\\=:1","groebnerdyntree:InstallMethod:\\=:1","module:InstallMethod:\\=:1","module:InstallMethod:\\=:2","modulehom:InstallMethod:\\=:1","pathalg:InstallMethod:\\=:1","projpathalgmodule:InstallMethod:\\=:1","quiver:InstallMethod:\\=:1","quiver:InstallMethod:\\=:2","quiver:InstallMethod:\\=:3","quiver:InstallMethod:\\=:4","quiver:InstallMethod:\\=:5","quiver:InstallMethod:\\=:6"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/groebnerdyndict.gi","upstream/qpa/lib/groebnerdyntree.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["DynamicTree::is_identical; DynamicTree::eq","OppositeStructureConstantsAlgebraElement::eq","PartialEq for PathAlgebraModuleElement","Path::eq","PathAlgebraModule::eq; PathAlgebraModule::is_identical","PathAlgebraModuleHomomorphism::eq","PathAlgebraVector::eq; QuotientPathAlgebraVector::eq","QuotientPathAlgebraElement::eq","SuffixTreeNodeId::eq; SuffixTreeEdgeId::eq","qpa_gbnp::CallbackCategory::eq"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/final_declared_surface.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa","python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\[\\]"
 python_name = "index"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.QuiverPathEnumerator.__getitem__"
-notes = "The quiver-enumerator overload is exposed; suffix-tree and product-decomposition indexing remain."
+python_target = "qpa.QuiverPathEnumerator.__getitem__; qpa.SuffixTree.__getitem__"
+notes = "The quiver-enumerator and suffix-tree overloads are exposed; product-decomposition indexing remains."
 entry_ids = ["groebnerdyndict:InstallOtherMethod:\\[\\]:1","pathalgtensor:InstallMethod:\\[\\]:1","quiver:InstallMethod:\\[\\]:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/groebnerdyndict.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Quiver::path_at","QuiverProductDecomposition::factor","SuffixTree::pattern"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/suffix_tree.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_suffix_trees.py::test_suffix_tree_surface_follows_qpa"]
 
 [[operations]]
 qpa_name = "\\^"

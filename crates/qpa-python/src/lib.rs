@@ -10,6 +10,7 @@ mod poset;
 mod quiver;
 mod runtime;
 mod static_dictionary;
+mod suffix_tree;
 mod util;
 
 use algebra::{
@@ -62,6 +63,9 @@ use quiver::{
 use static_dictionary::{
     PyQuiverStaticDictionary, PyStaticDictionary, py_static_dictionary_info_messages,
 };
+use suffix_tree::{
+    PySuffixTree, PySuffixTreeEdge, PySuffixTreeNode, py_info_dynamic_dictionary_name,
+};
 
 use poset::{PyPoset, PyPosetOrder};
 use pyo3::{
@@ -83,6 +87,9 @@ fn invalid(error: impl std::fmt::Display) -> PyErr {
 fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyDynamicForest>()?;
     module.add_class::<PyDynamicTree>()?;
+    module.add_class::<PySuffixTree>()?;
+    module.add_class::<PySuffixTreeNode>()?;
+    module.add_class::<PySuffixTreeEdge>()?;
     module.add_class::<PyField>()?;
     module.add_class::<PyScalar>()?;
     module.add_class::<PyQuiver>()?;
@@ -121,6 +128,7 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
         module
     )?)?;
     module.add_function(wrap_pyfunction!(py_positions_nonzero, module)?)?;
+    module.add_function(wrap_pyfunction!(py_info_dynamic_dictionary_name, module)?)?;
     module.add_function(wrap_pyfunction!(
         py_static_dictionary_info_messages,
         module

@@ -2,7 +2,7 @@
 
 use pyo3::{
     Bound, Py, PyAny, PyResult, Python,
-    prelude::{PyAnyMethods, PyStringMethods, pyclass, pyfunction, pymethods},
+    prelude::{pyclass, pyfunction, pymethods},
     types::PyString,
 };
 use qpa_core::{DictionaryMatch, QuiverStaticDictionary, StaticDictionary};
@@ -11,40 +11,8 @@ use crate::{
     field::wrap_python_integer,
     invalid,
     quiver::{PyPath, PyQuiver},
+    util::{intern_symbol, sequence_symbols, symbol_index},
 };
-
-fn sequence_symbols(py: Python<'_>, sequence: &Bound<'_, PyAny>) -> PyResult<Vec<Py<PyAny>>> {
-    if let Ok(string) = sequence.cast::<PyString>() {
-        return string
-            .to_str()?
-            .chars()
-            .map(|character| {
-                Ok(PyString::new(py, &character.to_string())
-                    .into_any()
-                    .unbind())
-            })
-            .collect();
-    }
-    sequence
-        .try_iter()?
-        .map(|item| item.map(Bound::unbind))
-        .collect()
-}
-
-fn intern_symbol(
-    py: Python<'_>,
-    representatives: &mut Vec<Py<PyAny>>,
-    symbol: &Py<PyAny>,
-) -> PyResult<usize> {
-    for (index, representative) in representatives.iter().enumerate() {
-        if representative.bind(py).eq(symbol.bind(py))? {
-            return Ok(index);
-        }
-    }
-    let index = representatives.len();
-    representatives.push(symbol.clone_ref(py));
-    Ok(index)
-}
 
 fn matches_to_python(matches: Vec<DictionaryMatch>) -> Vec<(usize, Vec<usize>)> {
     matches
@@ -111,14 +79,7 @@ impl PyStaticDictionary {
         let unknown = self.representatives.len();
         let mut encoded = Vec::with_capacity(symbols.len());
         for symbol in symbols {
-            let mut token = unknown;
-            for (index, representative) in self.representatives.iter().enumerate() {
-                if representative.bind(py).eq(symbol.bind(py))? {
-                    token = index;
-                    break;
-                }
-            }
-            encoded.push(token);
+            encoded.push(symbol_index(py, &self.representatives, &symbol)?.unwrap_or(unknown));
         }
         Ok(matches_to_python(
             self.inner.search(&encoded).map_err(invalid)?,

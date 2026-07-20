@@ -2,10 +2,59 @@
 
 use pyo3::{
     Py, PyAny, PyResult, Python, pyfunction,
-    types::{PyAnyMethods, PyList, PyListMethods, PyTuple, PyTupleMethods},
+    types::{
+        PyAnyMethods, PyList, PyListMethods, PyString, PyStringMethods, PyTuple, PyTupleMethods,
+    },
 };
 
 use crate::PyScalar;
+
+pub(crate) fn sequence_symbols(
+    py: Python<'_>,
+    sequence: &pyo3::Bound<'_, PyAny>,
+) -> PyResult<Vec<Py<PyAny>>> {
+    if let Ok(string) = sequence.cast::<PyString>() {
+        return string
+            .to_str()?
+            .chars()
+            .map(|character| {
+                Ok(PyString::new(py, &character.to_string())
+                    .into_any()
+                    .unbind())
+            })
+            .collect();
+    }
+    sequence
+        .try_iter()?
+        .map(|item| item.map(pyo3::Bound::unbind))
+        .collect()
+}
+
+pub(crate) fn intern_symbol(
+    py: Python<'_>,
+    representatives: &mut Vec<Py<PyAny>>,
+    symbol: &Py<PyAny>,
+) -> PyResult<usize> {
+    if let Some(index) = symbol_index(py, representatives, symbol)? {
+        return Ok(index);
+    }
+    let index = representatives.len();
+    representatives.push(symbol.clone_ref(py));
+    Ok(index)
+}
+
+pub(crate) fn symbol_index(
+    py: Python<'_>,
+    representatives: &[Py<PyAny>],
+    symbol: &Py<PyAny>,
+) -> PyResult<Option<usize>> {
+    for (index, representative) in representatives.iter().enumerate() {
+        if representative.bind(py).eq(symbol.bind(py))? {
+            return Ok(Some(index));
+        }
+    }
+    Ok(None)
+}
 
 fn python_is_zero(value: &pyo3::Bound<'_, PyAny>) -> PyResult<bool> {
     if let Ok(scalar) = value.extract::<pyo3::PyRef<'_, PyScalar>>() {
