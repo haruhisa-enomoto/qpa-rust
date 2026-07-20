@@ -34,7 +34,7 @@ pub(crate) struct PyTensorProductAlgebra {
 #[pyclass(name = "QuiverAlgebraElement", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub(crate) struct PyQuiverAlgebraElement {
-    kind: QuiverAlgebraElementKind,
+    pub(super) kind: QuiverAlgebraElementKind,
 }
 
 macro_rules! impl_tensor_runtime {
@@ -146,6 +146,45 @@ where
     )
 }
 
+pub(super) fn trivial_extension_for<F: runtime::PythonField>(
+    algebra: &QuiverAlgebra<F>,
+) -> PyResult<Option<PyQuiverAlgebra>>
+where
+    QuiverAlgebraKind: runtime::Wrap<QuiverAlgebra<F>>,
+{
+    Ok(qpa_gbnp::trivial_extension_of_quiver_algebra(algebra)
+        .map_err(invalid)?
+        .map(conversion::wrap_quiver_algebra))
+}
+
+pub(super) fn trivial_extension_projection_for<F: runtime::PythonField>(
+    algebra: &QuiverAlgebra<F>,
+) -> PyResult<Option<PyAlgebraHomomorphism>>
+where
+    AlgebraHomomorphismKind: runtime::Wrap<qpa_core::QuiverAlgebraHomomorphism<F>>,
+{
+    Ok(
+        qpa_gbnp::trivial_extension_of_quiver_algebra_projection(algebra)
+            .map_err(invalid)?
+            .map(|homomorphism| PyAlgebraHomomorphism {
+                kind: runtime::Wrap::wrap(homomorphism),
+            }),
+    )
+}
+
+pub(super) fn enveloping_homomorphism_for<F: runtime::PythonField>(
+    homomorphism: &qpa_core::QuiverAlgebraHomomorphism<F>,
+) -> PyResult<PyAlgebraHomomorphism>
+where
+    AlgebraHomomorphismKind: runtime::Wrap<qpa_core::QuiverAlgebraHomomorphism<F>>,
+{
+    Ok(PyAlgebraHomomorphism {
+        kind: runtime::Wrap::wrap(
+            qpa_gbnp::enveloping_algebra_homomorphism(homomorphism).map_err(invalid)?,
+        ),
+    })
+}
+
 fn simple_tensor_for<F: runtime::PythonField>(
     tensor: &TensorProductAlgebra<F>,
     left: QuiverAlgebraElementKind,
@@ -169,6 +208,40 @@ fn element_algebra<F: runtime::PythonField>(element: &QuiverAlgebraElement<F>) -
             QuiverAlgebra::Quotient(element.algebra().clone())
         }
     }
+}
+
+pub(super) fn wrap_quiver_element<F: runtime::PythonField>(
+    element: QuiverAlgebraElement<F>,
+) -> PyQuiverAlgebraElement
+where
+    QuiverAlgebraElementKind: runtime::Wrap<QuiverAlgebraElement<F>>,
+{
+    PyQuiverAlgebraElement {
+        kind: runtime::Wrap::wrap(element),
+    }
+}
+
+pub(super) fn wrap_quiver_elements<F: runtime::PythonField>(
+    elements: &[QuiverAlgebraElement<F>],
+) -> Vec<PyQuiverAlgebraElement>
+where
+    QuiverAlgebraElementKind: runtime::Wrap<QuiverAlgebraElement<F>>,
+{
+    elements.iter().cloned().map(wrap_quiver_element).collect()
+}
+
+pub(super) fn homomorphism_image_for<F: runtime::PythonField>(
+    homomorphism: &qpa_core::QuiverAlgebraHomomorphism<F>,
+    element: QuiverAlgebraElementKind,
+) -> PyResult<PyQuiverAlgebraElement>
+where
+    QuiverAlgebraElementKind:
+        runtime::Extract<QuiverAlgebraElement<F>> + runtime::Wrap<QuiverAlgebraElement<F>>,
+{
+    let element = runtime::Extract::extract(element)?;
+    Ok(wrap_quiver_element(
+        homomorphism.image(&element).map_err(invalid)?,
+    ))
 }
 
 #[pymethods]

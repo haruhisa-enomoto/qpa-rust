@@ -1197,6 +1197,28 @@ impl PyQuiverAlgebra {
         })
     }
 
+    /// Apply QPA's cached trivial-extension construction.
+    fn trivial_extension(&self) -> PyResult<Option<Self>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::tensor::trivial_extension_for(algebra)
+        })
+    }
+
+    /// Return QPA's default-zero trivial-extension iteration level.
+    #[getter]
+    fn trivial_extension_level(&self) -> usize {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            qpa_gbnp::trivial_extension_level(algebra)
+        })
+    }
+
+    /// Construct QPA's natural projection from the trivial extension.
+    fn trivial_extension_projection(&self) -> PyResult<Option<PyAlgebraHomomorphism>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::tensor::trivial_extension_projection_for(algebra)
+        })
+    }
+
     /// Apply QPA's binary `TensorProductOfAlgebras` method.
     fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
         dispatch_pair_ref!(

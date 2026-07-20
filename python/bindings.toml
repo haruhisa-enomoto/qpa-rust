@@ -3514,3 +3514,29 @@ status = "exposed"
 target = "qpa.QuiverAlgebra.dual_of_algebra_as_module_over_enveloping_algebra"
 tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_enveloping_modules_follow_qpa"]
 notes = "Returns None for QPA's cached fail value and preserves cached module identity."
+
+[[bindings]]
+qpa_name = "TrivialExtensionOfQuiverAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.trivial_extension"
+tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
+notes = "Delegates to QPA's cached dual-bimodule/nullspace construction and returns None for its infinite-dimensional fail value."
+
+[[bindings]]
+qpa_name = "TrivialExtensionOfQuiverAlgebraLevel"
+status = "exposed"
+target = "qpa.QuiverAlgebra.trivial_extension_level"
+tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TrivialExtensionOfQuiverAlgebraProjection"
+status = "exposed"
+target = "qpa.QuiverAlgebra.trivial_extension_projection"
+tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
+notes = "Returns None for QPA's fail result and retains its generators-with-one convention."
+
+[[bindings]]
+qpa_name = "EnvelopingAlgebraHomomorphism"
+status = "exposed"
+target = "qpa.AlgebraHomomorphism.enveloping_algebra_homomorphism"
+tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]

@@ -425,6 +425,72 @@ def test_regular_and_dual_enveloping_modules_follow_qpa(field: qpa.Field) -> Non
     assert infinite.dual_of_algebra_as_module_over_enveloping_algebra() is None
 
 
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_trivial_extensions_and_enveloping_maps_follow_qpa(field: qpa.Field) -> None:
+    path_algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    algebra = qpa.QuiverAlgebra.from_path_algebra(path_algebra)
+    assert algebra.trivial_extension_level == 0
+
+    extension = algebra.trivial_extension()
+    extension_again = algebra.trivial_extension()
+    assert extension is not None
+    assert extension_again is not None
+    assert extension.is_identical(extension_again)
+    assert extension.is_quotient
+    assert extension.trivial_extension_level == 1
+    assert extension.quotient_algebra.dimension() == "6"
+    assert extension.quiver.arrows == [
+        ("v1", "v2", "a"),
+        ("v2", "v1", "te_a1_1_1"),
+    ]
+
+    projection = algebra.trivial_extension_projection()
+    assert projection is not None
+    assert projection.uses_generators_with_one
+    assert projection.generator_count == 4
+    assert [image.is_zero for image in projection.generator_images] == [
+        False,
+        False,
+        False,
+        True,
+    ]
+    assert projection.source_quotient_algebra.is_identical(
+        extension.quotient_algebra
+    )
+    assert projection.range_path_algebra.is_identical(path_algebra)
+
+    identity = qpa.AlgebraHomomorphism.path_to_path(
+        path_algebra,
+        path_algebra,
+        path_algebra.generators,
+        generators_with_one=True,
+    )
+    induced = identity.enveloping_algebra_homomorphism()
+    enveloping = algebra.enveloping_algebra()
+    assert induced.uses_generators_with_one
+    assert induced.generator_count == (
+        enveloping.product_quiver.quiver.number_of_vertices
+        + enveloping.product_quiver.quiver.number_of_arrows
+    )
+    assert induced.source.is_identical(induced.range)
+    assert induced.generators == induced.generator_images
+    assert [induced.image(generator) for generator in induced.generators] == (
+        induced.generators
+    )
+
+    infinite_path = qpa.PathAlgebra(
+        field, qpa.Quiver(["w"], [("w", "w", "x")])
+    )
+    infinite = qpa.QuiverAlgebra.from_path_algebra(infinite_path)
+    assert infinite.trivial_extension_level == 0
+    assert infinite.trivial_extension() is None
+    assert infinite.trivial_extension_projection() is None
+
+
 def test_quiver_orderings_follow_qpa_comparison_closures() -> None:
     quiver = qpa.Quiver.indexed(
         2,

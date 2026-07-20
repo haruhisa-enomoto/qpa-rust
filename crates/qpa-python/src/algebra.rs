@@ -1249,6 +1249,46 @@ where
 
 #[pymethods]
 impl PyAlgebraHomomorphism {
+    fn enveloping_algebra_homomorphism(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            tensor::enveloping_homomorphism_for(homomorphism)
+        })
+    }
+
+    #[getter]
+    fn source(&self) -> PyQuiverAlgebra {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            conversion::wrap_quiver_algebra(homomorphism.source().clone())
+        })
+    }
+
+    #[getter]
+    fn range(&self) -> PyQuiverAlgebra {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            conversion::wrap_quiver_algebra(homomorphism.range().clone())
+        })
+    }
+
+    #[getter]
+    fn generators(&self) -> Vec<PyQuiverAlgebraElement> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            tensor::wrap_quiver_elements(homomorphism.generators())
+        })
+    }
+
+    #[getter]
+    fn generator_images(&self) -> Vec<PyQuiverAlgebraElement> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            tensor::wrap_quiver_elements(homomorphism.generator_images())
+        })
+    }
+
+    fn image(&self, element: &PyQuiverAlgebraElement) -> PyResult<PyQuiverAlgebraElement> {
+        dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
+            tensor::homomorphism_image_for(homomorphism, element.kind.clone())
+        })
+    }
+
     #[staticmethod]
     #[pyo3(signature = (source, range, generator_images, generators_with_one=false))]
     fn path_to_path(

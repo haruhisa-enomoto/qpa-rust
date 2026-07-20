@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 557
+exposed_or_partial_count = 561
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2621,8 +2621,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_a
 qpa_name = "EnvelopingAlgebraHomomorphism"
 python_name = "enveloping_algebra_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraHomomorphism.enveloping_algebra_homomorphism"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareAttribute:EnvelopingAlgebraHomomorphism:1","pathalgtensor:InstallMethod:EnvelopingAlgebraHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2630,7 +2630,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["enveloping_algebra_homomorphism"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
 
 [[operations]]
 qpa_name = "EulerBilinearFormOfAlgebra"
@@ -12626,23 +12626,23 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_
 qpa_name = "TrivialExtensionOfQuiverAlgebra"
 python_name = "trivial_extension_of_quiver_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.trivial_extension"
+notes = "Delegates to QPA's cached dual-bimodule/nullspace construction and returns None for its infinite-dimensional fail value."
 entry_ids = ["pathalgtensor:DeclareAttribute:TrivialExtensionOfQuiverAlgebra:1","pathalgtensor:InstallMethod:TrivialExtensionOfQuiverAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["trivial_extension_of_quiver_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
 
 [[operations]]
 qpa_name = "TrivialExtensionOfQuiverAlgebraLevel"
 python_name = "trivial_extension_of_quiver_algebra_level"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.trivial_extension_level"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareAttribute:TrivialExtensionOfQuiverAlgebraLevel:1","pathalgtensor:InstallMethod:TrivialExtensionOfQuiverAlgebraLevel:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -12650,22 +12650,22 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["trivial_extension_level"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
 
 [[operations]]
 qpa_name = "TrivialExtensionOfQuiverAlgebraProjection"
 python_name = "trivial_extension_of_quiver_algebra_projection"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.trivial_extension_projection"
+notes = "Returns None for QPA's fail result and retains its generators-with-one convention."
 entry_ids = ["pathalgtensor:DeclareAttribute:TrivialExtensionOfQuiverAlgebraProjection:1","pathalgtensor:InstallMethod:TrivialExtensionOfQuiverAlgebraProjection:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["trivial_extension_of_quiver_algebra_projection"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
 
 [[operations]]
 qpa_name = "TruncateElement"
