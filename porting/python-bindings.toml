@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 345
+exposed_or_partial_count = 347
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2996,8 +2996,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_
 qpa_name = "FromMatrixToHomomorphismOfProjectives"
 python_name = "from_matrix_to_homomorphism_of_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.homomorphism_of_projectives_from_matrix; qpa.QuotientAlgebra.homomorphism_of_projectives_from_matrix"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:FromMatrixToHomomorphismOfProjectives:1","modulehom:InstallMethod:FromMatrixToHomomorphismOfProjectives:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3005,7 +3005,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["from_matrix_to_homomorphism_of_projectives"]
 rust_tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json","tests/gap-reference/modulehom_projective_support_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_matrix_conversions_follow_qpa"]
 
 [[operations]]
 qpa_name = "FullSubquiver"
@@ -8141,8 +8141,8 @@ python_tests = []
 qpa_name = "MatrixOfHomomorphismBetweenProjectives"
 python_name = "matrix_of_homomorphism_between_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.projective_matrix"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MatrixOfHomomorphismBetweenProjectives:1","modulehom:InstallMethod:MatrixOfHomomorphismBetweenProjectives:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8150,7 +8150,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["matrix_of_homomorphism_between_projectives"]
 rust_tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_projective_matrix_conversions_follow_qpa"]
 
 [[operations]]
 qpa_name = "MatrixRepresentation"

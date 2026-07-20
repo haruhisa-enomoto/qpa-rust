@@ -2191,3 +2191,15 @@ qpa_name = "UnderlyingLinearMap"
 status = "exposed"
 target = "qpa.ModuleHomomorphism.underlying_linear_matrix"
 tests = ["python/tests/test_architecture_spike.py::test_endomorphism_algebras_and_stable_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MatrixOfHomomorphismBetweenProjectives"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.projective_matrix"
+tests = ["python/tests/test_architecture_spike.py::test_projective_matrix_conversions_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FromMatrixToHomomorphismOfProjectives"
+status = "exposed"
+target = "qpa.PathAlgebra.homomorphism_of_projectives_from_matrix; qpa.QuotientAlgebra.homomorphism_of_projectives_from_matrix"
+tests = ["python/tests/test_architecture_spike.py::test_projective_matrix_conversions_follow_qpa"]

@@ -6,6 +6,38 @@ use pyo3::pymethods;
 // Private runtime enums and helpers form one binding domain.
 use super::*;
 
+fn homomorphism_of_projectives_from_quotient_matrix<F: runtime::PythonField>(
+    algebra: &QuotientPathAlgebra<F>,
+    matrix: Vec<Vec<QuotientElementKind>>,
+    source_vertices: &[usize],
+    range_vertices: &[usize],
+) -> PyResult<PyModuleHomomorphism>
+where
+    QuotientElementKind: runtime::Extract<QuotientPathAlgebraElement<F>>,
+    ModuleHomomorphismKind: runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    let matrix = matrix
+        .into_iter()
+        .map(|row| {
+            Ok(runtime::extract_all(row)?
+                .into_iter()
+                .map(QuiverAlgebraElement::Quotient)
+                .collect::<Vec<_>>())
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    Ok(PyModuleHomomorphism {
+        kind: runtime::Wrap::wrap(
+            qpa_gbnp::from_matrix_to_homomorphism_of_projectives(
+                &QuiverAlgebra::Quotient(algebra.clone()),
+                &matrix,
+                source_vertices,
+                range_vertices,
+            )
+            .map_err(invalid)?,
+        ),
+    })
+}
+
 #[pymethods]
 impl PyQuotientAlgebra {
     #[staticmethod]
@@ -306,6 +338,31 @@ impl PyQuotientAlgebra {
             )?
         );
         Ok(PyMatrixModule { kind })
+    }
+
+    fn homomorphism_of_projectives_from_matrix(
+        &self,
+        py: Python<'_>,
+        matrix: Vec<Vec<Py<PyQuotientElement>>>,
+        source_vertices: Vec<usize>,
+        range_vertices: Vec<usize>,
+    ) -> PyResult<PyModuleHomomorphism> {
+        let matrix = matrix
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|element| element.borrow(py).kind.clone())
+                    .collect()
+            })
+            .collect();
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            homomorphism_of_projectives_from_quotient_matrix(
+                algebra,
+                matrix,
+                &source_vertices,
+                &range_vertices,
+            )
+        })
     }
 
     fn zero_module(&self) -> PyResult<PyMatrixModule> {

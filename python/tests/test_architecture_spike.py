@@ -1169,3 +1169,34 @@ def test_endomorphism_algebras_and_stable_quotients_follow_qpa(field: qpa.Field)
         algebra.zero_module().endomorphism_algebra()
     with pytest.raises(qpa.InvalidInputError, match="zero module"):
         algebra.zero_module().stable_endomorphism_quotient()
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_projective_matrix_conversions_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projectives = qpa.MatrixModule.direct_sum(algebra.indecomposable_projectives())
+    assert projectives is not None
+    matrix = projectives.identity().projective_matrix()
+    assert len(matrix) == 2 and all(len(row) == 2 for row in matrix)
+    assert matrix[0][0].external_representation[0][0] == [1]
+    assert matrix[0][1].is_zero
+    assert matrix[1][0].is_zero
+    assert matrix[1][1].external_representation[0][0] == [2]
+    roundtrip = algebra.homomorphism_of_projectives_from_matrix(
+        matrix, [1, 2], [1, 2]
+    )
+    assert roundtrip == projectives.identity()
+
+    quotient = algebra.quotient([])
+    quotient_projectives = qpa.MatrixModule.direct_sum(
+        quotient.indecomposable_projectives()
+    )
+    assert quotient_projectives is not None
+    quotient_matrix = quotient_projectives.identity().projective_matrix()
+    quotient_entries = [
+        [quotient.element(element) for element in row] for row in quotient_matrix
+    ]
+    quotient_roundtrip = quotient.homomorphism_of_projectives_from_matrix(
+        quotient_entries, [1, 2], [1, 2]
+    )
+    assert quotient_roundtrip == quotient_projectives.identity()

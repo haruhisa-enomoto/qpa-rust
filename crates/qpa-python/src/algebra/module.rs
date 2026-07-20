@@ -2504,6 +2504,16 @@ impl PyModuleHomomorphism {
         ))
     }
 
+    fn projective_matrix(&self) -> PyResult<Vec<Vec<PyAlgebraElement>>> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            qpa_gbnp::matrix_of_homomorphism_between_projectives(homomorphism)
+                .map_err(invalid)?
+                .into_iter()
+                .map(wrap_algebra_elements)
+                .collect()
+        ))
+    }
+
     #[getter]
     fn dual_vertex_matrices(&self) -> Vec<Vec<Vec<PyScalar>>> {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
