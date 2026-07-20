@@ -11,8 +11,8 @@ mod runtime;
 use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAdrAlgebraOfAlgebraResult,
     PyAlgebraAsQuiverAlgebraResult, PyAlgebraElement, PyAlgebraHomomorphism,
-    PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCommonDirectSummandResult,
-    PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
+    PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCombinatorialMap,
+    PyCommonDirectSummandResult, PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
     PyEndOfModuleAsQuiverAlgebraResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
     PyFiniteAddMResolutionResult, PyFpPathAlgebraByImagesHomomorphism,
     PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyGroebnerBasis,
@@ -98,6 +98,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyQuiverAlgebra>()?;
     module.add_class::<PyQuiverAlgebraElement>()?;
     module.add_class::<PyTensorProductAlgebra>()?;
+    module.add_class::<PyCombinatorialMap>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;

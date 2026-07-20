@@ -1268,6 +1268,24 @@ impl PyQuiverAlgebra {
         })
     }
 
+    #[getter]
+    fn maximal_paths_of_gentle_algebra(&self) -> PyResult<Vec<PyPath>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::combinatorial::maximal_paths_for(algebra)
+        })
+    }
+
+    #[getter]
+    fn combinatorial_map_of_gentle_algebra(&self) -> PyResult<super::PyCombinatorialMap> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::combinatorial::combinatorial_map_for(algebra)
+        })
+    }
+
+    fn are_derived_equivalent(&self, right: &Self) -> PyResult<bool> {
+        super::combinatorial::derived_equivalent(&self.kind, &right.kind)
+    }
+
     /// Apply QPA's binary `TensorProductOfAlgebras` method.
     fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
         dispatch_pair_ref!(

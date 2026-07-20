@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 573
+exposed_or_partial_count = 598
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -431,8 +431,8 @@ python_tests = []
 qpa_name = "AreDerivedEquivalent"
 python_name = "are_derived_equivalent"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.are_derived_equivalent"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:AreDerivedEquivalent:1","combinatorialmap:InstallMethod:AreDerivedEquivalent:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -440,7 +440,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["qpa_gbnp::are_derived_equivalent"]
 rust_tests = ["tests/fixtures/combinatorialmap_derived.schema-v1.json","tests/gap-reference/combinatorialmap_derived_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gentle_combinatorial_maps_follow_qpa"]
 
 [[operations]]
 qpa_name = "ArrowIndex"
@@ -761,8 +761,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "BoundaryCurvesOfCombinatorialMap"
 python_name = "boundary_curves_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.boundary_curves"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:BoundaryCurvesOfCombinatorialMap:1","combinatorialmap:InstallMethod:BoundaryCurvesOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -770,7 +770,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::boundary_curves"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json","tests/gap-reference/combinatorialmap_boundary_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "BrauerConfigurationAlgebra"
@@ -1091,8 +1091,8 @@ python_tests = []
 qpa_name = "CombinatorialMap"
 python_name = "combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:CombinatorialMap:1","combinatorialmap:InstallMethod:CombinatorialMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1100,14 +1100,14 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::new"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json","tests/gap-reference/combinatorialmap_ordering_error.g","tests/gap-reference/combinatorialmap_pairing_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "CombinatorialMapOfGentleAlgebra"
 python_name = "combinatorial_map_of_gentle_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.combinatorial_map_of_gentle_algebra"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:CombinatorialMapOfGentleAlgebra:1","combinatorialmap:InstallMethod:CombinatorialMapOfGentleAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -1115,7 +1115,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["qpa_gbnp::combinatorial_map_of_gentle_algebra"]
 rust_tests = ["tests/fixtures/combinatorialmap_gentle.schema-v1.json","tests/gap-reference/combinatorialmap_gentle_loop_map_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gentle_combinatorial_maps_follow_qpa"]
 
 [[operations]]
 qpa_name = "CommonDirectSummand"
@@ -1586,8 +1586,8 @@ python_tests = []
 qpa_name = "CutJoinCurveCombinatorialMap"
 python_name = "cut_join_curve_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.cut_join_curve"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:CutJoinCurveCombinatorialMap:1","combinatorialmap:InstallMethod:CutJoinCurveCombinatorialMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1595,14 +1595,14 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::cut_join_curve"]
 rust_tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
 deviations = ["COMBMAP-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
 
 [[operations]]
 qpa_name = "CutNonSepCombinatorialMap"
 python_name = "cut_non_sep_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.cut_non_separating"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:CutNonSepCombinatorialMap:1","combinatorialmap:InstallMethod:CutNonSepCombinatorialMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1610,7 +1610,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::cut_non_separating"]
 rust_tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
 deviations = ["COMBMAP-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
 
 [[operations]]
 qpa_name = "CyclesOfComplex"
@@ -1886,8 +1886,8 @@ python_tests = []
 qpa_name = "DepthSearchCombinatorialMap"
 python_name = "depth_search_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.depth_search"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:DepthSearchCombinatorialMap:1","combinatorialmap:InstallMethod:DepthSearchCombinatorialMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1895,7 +1895,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::depth_search"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "DescriptionOfFiniteInjComplex"
@@ -2291,8 +2291,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_regular_and_dual_
 qpa_name = "DualOfCombinatorialMap"
 python_name = "dual_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.dual"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:DualOfCombinatorialMap:1","combinatorialmap:InstallMethod:DualOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2300,7 +2300,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::dual"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "DualOfModule"
@@ -2696,8 +2696,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "FacesOfCombinatorialMap"
 python_name = "faces_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.faces"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:FacesOfCombinatorialMap:1","combinatorialmap:InstallMethod:FacesOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -2705,7 +2705,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::faces"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "FactorPathAlgebraByRelators"
@@ -3116,8 +3116,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "GenusOfCombinatorialMap"
 python_name = "genus_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.genus"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:GenusOfCombinatorialMap:1","combinatorialmap:InstallMethod:GenusOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -3125,7 +3125,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::genus"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "GlobalDimension"
@@ -3551,8 +3551,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_alge
 qpa_name = "HomologyBasisOfCombinatorialMap"
 python_name = "homology_basis_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.homology_basis"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:HomologyBasisOfCombinatorialMap:1","combinatorialmap:InstallMethod:HomologyBasisOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -3560,7 +3560,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::homology_basis"]
 rust_tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
 deviations = ["COMBMAP-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
 
 [[operations]]
 qpa_name = "HomologyOfComplex"
@@ -4511,8 +4511,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps
 qpa_name = "IsCombinatorialMap"
 python_name = "is_combinatorial_map"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.is_combinatorial_map"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareCategory:IsCombinatorialMap:1"]
 constructs = ["DeclareCategory"]
@@ -4520,14 +4520,14 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd"]
 rust_symbols = ["CombinatorialMap"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsCombinatorialMapRep"
 python_name = "is_combinatorial_map_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.is_default_rep"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareRepresentation:IsCombinatorialMapRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4535,7 +4535,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd"]
 rust_symbols = ["CombinatorialMap"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsCompleteGroebnerBasis"
@@ -7166,8 +7166,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_complexity_and_iy
 qpa_name = "JoinCurveCombinatorialMap"
 python_name = "join_curve_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.join_curve"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:JoinCurveCombinatorialMap:1","combinatorialmap:InstallMethod:JoinCurveCombinatorialMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7175,7 +7175,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::join_curve"]
 rust_tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
 deviations = ["COMBMAP-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
 
 [[operations]]
 qpa_name = "Kernel"
@@ -8036,8 +8036,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_re
 qpa_name = "MarkedBoundariesOfCombinatorialMap"
 python_name = "marked_boundaries_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.marked_boundaries"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:MarkedBoundariesOfCombinatorialMap:1","combinatorialmap:InstallMethod:MarkedBoundariesOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -8045,14 +8045,14 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::marked_boundaries"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "MarkedEdgesOfCombinatorialMap"
 python_name = "marked_edges_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.marked_edges"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:MarkedEdgesOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute"]
@@ -8060,7 +8060,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd"]
 rust_symbols = ["CombinatorialMap::marked_edges"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "MatricesOfDualMap"
@@ -8186,8 +8186,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structured_homomo
 qpa_name = "MaximalPathsOfGentleAlgebra"
 python_name = "maximal_paths_of_gentle_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.maximal_paths_of_gentle_algebra"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:MaximalPathsOfGentleAlgebra:1","combinatorialmap:InstallMethod:MaximalPathsOfGentleAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -8195,7 +8195,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["qpa_gbnp::maximal_paths_of_gentle_algebra"]
 rust_tests = ["tests/fixtures/combinatorialmap_gentle.schema-v1.json","tests/gap-reference/combinatorialmap_gentle_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_gentle_combinatorial_maps_follow_qpa"]
 
 [[operations]]
 qpa_name = "MaximumLengthOfDirectString"
@@ -8816,16 +8816,16 @@ python_tests = []
 qpa_name = "NonSeperatingCurve"
 python_name = "non_seperating_curve"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.non_separating_curve"
+notes = "The Python spelling corrects QPA's public Seperating typo while preserving its algorithm."
 entry_ids = ["combinatorialmap:DeclareAttribute:NonSeperatingCurve:1","combinatorialmap:InstallMethod:NonSeperatingCurve:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combinatorialmap.gi"]
 rust_symbols = ["CombinatorialMap::non_separating_curve"]
 rust_tests = ["tests/fixtures/combinatorialmap_homology.schema-v1.json"]
 deviations = ["COMBMAP-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
 
 [[operations]]
 qpa_name = "NontipSize"
@@ -9341,8 +9341,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "OrderingOfCombinatorialMap"
 python_name = "ordering_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.ordering"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:OrderingOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute"]
@@ -9350,7 +9350,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd"]
 rust_symbols = ["CombinatorialMap::ordering"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "OrderingOfQuiver"
@@ -9446,8 +9446,8 @@ python_tests = []
 qpa_name = "PairingOfCombinatorialMap"
 python_name = "pairing_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.pairing"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareAttribute:PairingOfCombinatorialMap:1"]
 constructs = ["DeclareAttribute"]
@@ -9455,7 +9455,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd"]
 rust_symbols = ["CombinatorialMap::pairing"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "ParentAlgebra"
@@ -10991,8 +10991,8 @@ python_tests = []
 qpa_name = "RemoveEdgeOfCombinatorialMap"
 python_name = "remove_edge_of_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.remove_edge"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:RemoveEdgeOfCombinatorialMap:1","combinatorialmap:InstallMethod:RemoveEdgeOfCombinatorialMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11000,7 +11000,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::remove_edge"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "RepeatingList"
@@ -11592,15 +11592,15 @@ qpa_name = "Size"
 python_name = "size"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.Quiver.cardinality"
-notes = "The QPA quiver size overload is exposed; the global GAP operation has unrelated overloads."
+python_target = "qpa.Quiver.cardinality; qpa.CombinatorialMap.size"
+notes = "The QPA quiver and combinatorial-map overloads are exposed; the poset overload remains."
 entry_ids = ["combinatorialmap:DeclareAttribute:Size:1","qpaposet:DeclareAttribute:Size:1","qpaposet:InstallMethod:Size:1","quiver:InstallMethod:Size:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/qpaposet.gd","upstream/qpa/lib/qpaposet.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["CombinatorialMap::size","Poset::size","Quiver::cardinality"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json","tests/fixtures/poset.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
+python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "SocleOfModule"
@@ -12221,16 +12221,16 @@ python_tests = []
 qpa_name = "TheFamilyOfCombinatorialMaps"
 python_name = "the_family_of_combinatorial_maps"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap"
+notes = "Python's CombinatorialMap runtime class represents QPA's dedicated GAP family."
 entry_ids = ["combinatorialmap:BindGlobal:TheFamilyOfCombinatorialMaps:1"]
 constructs = ["BindGlobal"]
 source_files = ["upstream/qpa/lib/combinatorialmap.gd"]
 rust_symbols = ["CombinatorialMap"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "TheFamilyOfPosets"
@@ -12251,16 +12251,16 @@ python_tests = []
 qpa_name = "TheTypeCombinatorialMap"
 python_name = "the_type_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap"
+notes = "Python's CombinatorialMap runtime class represents QPA's default GAP object type."
 entry_ids = ["combinatorialmap:BindGlobal:TheTypeCombinatorialMap:1"]
 constructs = ["BindGlobal"]
 source_files = ["upstream/qpa/lib/combinatorialmap.gd"]
 rust_symbols = ["CombinatorialMap"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "TheTypePoset"
@@ -13001,8 +13001,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "WidthSearchCombinatorialMap"
 python_name = "width_search_combinatorial_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.width_search"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:WidthSearchCombinatorialMap:1","combinatorialmap:InstallMethod:WidthSearchCombinatorialMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -13010,14 +13010,14 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::width_search"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
 
 [[operations]]
 qpa_name = "WindingNumber"
 python_name = "winding_number"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.CombinatorialMap.winding_number"
 notes = ""
 entry_ids = ["combinatorialmap:DeclareOperation:WindingNumber:1","combinatorialmap:InstallMethod:WindingNumber:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -13025,7 +13025,7 @@ source_files = ["upstream/qpa/lib/combinatorialmap.gd","upstream/qpa/lib/combina
 rust_symbols = ["CombinatorialMap::winding_number"]
 rust_tests = ["tests/fixtures/combinatorialmap_foundation.schema-v1.json"]
 deviations = ["COMBMAP-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa","python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
 
 [[operations]]
 qpa_name = "WreathOrdering"

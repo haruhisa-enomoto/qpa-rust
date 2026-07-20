@@ -173,9 +173,9 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "Size"
 status = "partial"
-target = "qpa.Quiver.cardinality"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core"]
-notes = "The QPA quiver size overload is exposed; the global GAP operation has unrelated overloads."
+target = "qpa.Quiver.cardinality; qpa.CombinatorialMap.size"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core", "python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+notes = "The QPA quiver and combinatorial-map overloads are exposed; the poset overload remains."
 
 [[bindings]]
 qpa_name = "IncomingArrowsOfVertex"
@@ -3612,3 +3612,156 @@ qpa_name = "BridgeQuiver"
 status = "exposed"
 target = "qpa.QuiverAlgebra.bridge_quiver"
 tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.is_combinatorial_map"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsCombinatorialMapRep"
+status = "exposed"
+target = "qpa.CombinatorialMap.is_default_rep"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "TheFamilyOfCombinatorialMaps"
+status = "exposed"
+target = "qpa.CombinatorialMap"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+notes = "Python's CombinatorialMap runtime class represents QPA's dedicated GAP family."
+
+[[bindings]]
+qpa_name = "TheTypeCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+notes = "Python's CombinatorialMap runtime class represents QPA's default GAP object type."
+
+[[bindings]]
+qpa_name = "OrderingOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.ordering"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "PairingOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.pairing"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MarkedEdgesOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.marked_edges"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "FacesOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.faces"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "GenusOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.genus"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DualOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.dual"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "RemoveEdgeOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.remove_edge"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MarkedBoundariesOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.marked_boundaries"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "BoundaryCurvesOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.boundary_curves"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "WindingNumber"
+status = "exposed"
+target = "qpa.CombinatorialMap.winding_number"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa", "python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
+
+[[bindings]]
+qpa_name = "DepthSearchCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.depth_search"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "WidthSearchCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.width_search"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
+
+[[bindings]]
+qpa_name = "NonSeperatingCurve"
+status = "exposed"
+target = "qpa.CombinatorialMap.non_separating_curve"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
+notes = "The Python spelling corrects QPA's public Seperating typo while preserving its algorithm."
+
+[[bindings]]
+qpa_name = "CutNonSepCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.cut_non_separating"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
+
+[[bindings]]
+qpa_name = "JoinCurveCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.join_curve"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CutJoinCurveCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.cut_join_curve"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
+
+[[bindings]]
+qpa_name = "HomologyBasisOfCombinatorialMap"
+status = "exposed"
+target = "qpa.CombinatorialMap.homology_basis"
+tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map_homology_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MaximalPathsOfGentleAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.maximal_paths_of_gentle_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_gentle_combinatorial_maps_follow_qpa"]
+
+[[bindings]]
+qpa_name = "CombinatorialMapOfGentleAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.combinatorial_map_of_gentle_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_gentle_combinatorial_maps_follow_qpa"]
+
+[[bindings]]
+qpa_name = "AreDerivedEquivalent"
+status = "exposed"
+target = "qpa.QuiverAlgebra.are_derived_equivalent"
+tests = ["python/tests/test_architecture_spike.py::test_gentle_combinatorial_maps_follow_qpa"]

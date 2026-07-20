@@ -3209,3 +3209,180 @@ def test_gsz_projective_resolution_follows_qpa(field: qpa.Field) -> None:
         explicit.find_next_r_projective(dual_numbers.original_path_algebra, 1)
     with pytest.raises(qpa.InvalidInputError, match="FindNextSyzygy"):
         explicit.find_next_syzygy(1)
+
+
+def _combinatorial_map_data(combinatorial_map: qpa.CombinatorialMap) -> dict[str, object]:
+    return {
+        "size": combinatorial_map.size,
+        "ordering": combinatorial_map.ordering,
+        "pairing": combinatorial_map.pairing,
+        "marked": combinatorial_map.marked_edges,
+        "faces": combinatorial_map.faces,
+        "genus": [
+            int(combinatorial_map.genus.numerator),
+            int(combinatorial_map.genus.denominator),
+        ],
+        "marked_boundaries": combinatorial_map.marked_boundaries,
+    }
+
+
+def test_combinatorial_map_foundation_follows_qpa() -> None:
+    torus = qpa.CombinatorialMap(
+        4,
+        [2, 3, 4, 1],
+        [3, 4, 1, 2],
+        [1, 3],
+    )
+    assert torus.is_combinatorial_map and torus.is_default_rep
+    assert _combinatorial_map_data(torus) == {
+        "size": 4,
+        "ordering": [2, 3, 4, 1],
+        "pairing": [3, 4, 1, 2],
+        "marked": [1, 3],
+        "faces": [[1, 4, 3, 2]],
+        "genus": [1, 1],
+        "marked_boundaries": [([1, 4, 3, 2], 2)],
+    }
+    assert torus.is_identical(torus)
+    assert not torus.is_identical(
+        qpa.CombinatorialMap(4, [2, 3, 4, 1], [3, 4, 1, 2], [1, 3])
+    )
+    dual = torus.dual()
+    assert dual.is_identical(torus.dual())
+    assert _combinatorial_map_data(dual) == {
+        "size": 4,
+        "ordering": [4, 1, 2, 3],
+        "pairing": [3, 4, 1, 2],
+        "marked": [1, 3],
+        "faces": [[1, 2, 3, 4]],
+        "genus": [1, 1],
+        "marked_boundaries": [([1, 2, 3, 4], 2)],
+    }
+
+    removed = torus.remove_edge([1, 3])
+    assert _combinatorial_map_data(removed) == {
+        "size": 4,
+        "ordering": [1, 4, 3, 2],
+        "pairing": [1, 4, 3, 2],
+        "marked": [],
+        "faces": [[1], [2], [3], [4]],
+        "genus": [-3, 2],
+        "marked_boundaries": [([1], 0), ([2], 0), ([3], 0), ([4], 0)],
+    }
+    assert torus.boundary_curves == [([1, 3, 4, 2, 3, 1, 2, 4], 2)]
+    assert torus.winding_number([1, 1]) == 0
+    assert torus.winding_number([1, 2]) == -1
+    assert torus.winding_number([2, 4]) == -1
+
+    search_map = qpa.CombinatorialMap(
+        8,
+        [2, 3, 1, 5, 4, 7, 6, 8],
+        [4, 6, 8, 1, 7, 2, 5, 3],
+        [1, 5, 8],
+    )
+    assert search_map.depth_search(1) == [[5, 7], [6, 2], [8, 3]]
+    assert search_map.width_search(1) == [[4, 1], [6, 2], [8, 3]]
+    assert search_map.depth_search(9) == []
+    assert search_map.boundary_curves == [
+        ([1, 4, 5, 7, 6, 2], 1),
+        ([2, 6, 7, 5, 4, 1], 2),
+    ]
+    assert repr(search_map) == "<combinatorial map on 8 half-edges>"
+
+    with pytest.raises(qpa.InvalidInputError, match="more than once"):
+        qpa.CombinatorialMap(2, [2, 2], [2, 1], [])
+    with pytest.raises(qpa.InvalidInputError, match="positive"):
+        torus.depth_search(0)
+    with pytest.raises(qpa.InvalidInputError, match="trivial"):
+        torus.winding_number([])
+
+
+def test_combinatorial_map_homology_follows_qpa() -> None:
+    torus = qpa.CombinatorialMap(
+        4,
+        [3, 4, 2, 1],
+        [2, 1, 4, 3],
+        [1],
+    )
+    curve = torus.non_separating_curve
+    assert curve == [3, 4]
+    index = [1, 2, 3, 4]
+    cut, first_boundary, second_boundary, cut_index = torus.cut_non_separating(
+        curve, index
+    )
+    assert _combinatorial_map_data(cut) | {"marked_boundaries": None} == {
+        "size": 6,
+        "ordering": [3, 6, 4, 1, 2, 5],
+        "pairing": [2, 1, 4, 3, 6, 5],
+        "marked": [1],
+        "faces": [[1, 6, 2, 3], [4], [5]],
+        "genus": [0, 1],
+        "marked_boundaries": None,
+    }
+    assert (first_boundary, second_boundary, cut_index) == (
+        [3, 4],
+        [5, 6],
+        [1, 2, 3, 4, 3, 4],
+    )
+
+    join_curve = cut.join_curve(first_boundary, second_boundary, cut_index)
+    assert join_curve == [2, 1]
+    cut_join, joined_index = cut.cut_join_curve(
+        first_boundary, second_boundary, join_curve, cut_index
+    )
+    assert _combinatorial_map_data(cut_join) | {"marked_boundaries": None} == {
+        "size": 8,
+        "ordering": [3, 5, 1, 8, 2, 7, 6, 4],
+        "pairing": [2, 1, 4, 3, 6, 5, 8, 7],
+        "marked": [1],
+        "faces": [[1, 5, 7, 4], [2, 3, 8, 6]],
+        "genus": [0, 1],
+        "marked_boundaries": None,
+    }
+    assert joined_index == [1, 2, 3, 4, 3, 4, 2, 1]
+
+    basis = torus.homology_basis
+    assert basis == [([3, 4], [2, 1])]
+    assert [
+        [torus.winding_number(alpha), torus.winding_number(beta)]
+        for alpha, beta in basis
+    ] == [[-1, -1]]
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_gentle_combinatorial_maps_follow_qpa(field: qpa.Field) -> None:
+    path_algebra = qpa.PathAlgebra(
+        field,
+        qpa.Quiver(["v1", "v2", "v3"], [("v1", "v2", "a"), ("v2", "v3", "b")]),
+    )
+    algebra = qpa.QuiverAlgebra.from_path_algebra(path_algebra)
+
+    assert [repr(path) for path in algebra.maximal_paths_of_gentle_algebra] == [
+        "a*b"
+    ]
+    combinatorial_map = algebra.combinatorial_map_of_gentle_algebra
+    assert _combinatorial_map_data(combinatorial_map) | {"marked_boundaries": None} == {
+        "size": 6,
+        "ordering": [3, 2, 5, 4, 1, 6],
+        "pairing": [2, 1, 4, 3, 6, 5],
+        "marked": [5, 2, 4, 6],
+        "faces": [[1, 2, 3, 4, 5, 6]],
+        "genus": [0, 1],
+        "marked_boundaries": None,
+    }
+    assert combinatorial_map.is_identical(algebra.combinatorial_map_of_gentle_algebra)
+    assert algebra.are_derived_equivalent(algebra)
+
+    different_field = qpa.Field.prime(7 if field.characteristic != 7 else 5)
+    other = qpa.QuiverAlgebra.from_path_algebra(
+        qpa.PathAlgebra(
+            different_field,
+            qpa.Quiver(
+                ["v1", "v2", "v3"],
+                [("v1", "v2", "a"), ("v2", "v3", "b")],
+            ),
+        )
+    )
+    assert not algebra.are_derived_equivalent(other)
