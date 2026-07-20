@@ -1386,6 +1386,126 @@ def test_structure_constants_algebra_operations_follow_qpa() -> None:
     assert primitive[1] * primitive[0] == matrix_algebra.zero()
 
 
+def test_structure_constants_quotients_and_lifting_follow_qpa() -> None:
+    field5 = qpa.Field.prime(5)
+    zero = field5.element(0)
+    one = field5.element(1)
+
+    shifted_dual_products = _structure_constants_tensor(field5, 2, [])
+    shifted_dual_products[0][0] = [one, one]
+    shifted_dual_products[0][1] = [zero, one]
+    shifted_dual_products[1][0] = [zero, one]
+    shifted_dual = qpa.StructureConstantsAlgebra(field5, shifted_dual_products)
+    dual_quotient = shifted_dual.quotient_by_ideal_basis([[zero, one]])
+    assert isinstance(dual_quotient, qpa.StructureConstantsQuotient)
+    assert dual_quotient.original.dimension == 2
+    assert dual_quotient.algebra.dimension == 1
+    assert _representative_rows(dual_quotient.ideal_basis) == [[0, 1]]
+    assert _representative_rows(dual_quotient.lifts) == [[1, 0]]
+
+    quotient_idempotent = dual_quotient.algebra.element([one])
+    projected = dual_quotient.project(shifted_dual.basis_elements[0])
+    assert projected == quotient_idempotent
+    assert [
+        coefficient.representative
+        for coefficient in dual_quotient.lift(quotient_idempotent).coordinates
+    ] == [1, 0]
+    lifting = dual_quotient.lifting_idempotent(quotient_idempotent)
+    assert lifting is not None
+    assert [coefficient.representative for coefficient in lifting.coordinates] == [1, 4]
+    lift = dual_quotient.lift_idempotent(quotient_idempotent)
+    assert [coefficient.representative for coefficient in lift.coordinates] == [1, 4]
+    assert _representative_rows(
+        [
+            element.coordinates
+            for element in dual_quotient.lift_complete_set_of_orthogonal_idempotents(
+                [quotient_idempotent]
+            )
+        ]
+    ) == [[1, 4]]
+
+    dual_mapping = dual_quotient.natural_homomorphism()
+    assert isinstance(dual_mapping, qpa.StructureConstantsHomomorphism)
+    assert dual_mapping.source.dimension == 2
+    assert dual_mapping.range.dimension == 1
+    assert _representative_rows(dual_mapping.basis_images) == [[1], [0]]
+    assert dual_mapping.image(shifted_dual.basis_elements[0]) == quotient_idempotent
+    preimage = dual_mapping.preimage_representative(quotient_idempotent)
+    assert preimage is not None
+    assert [coefficient.representative for coefficient in preimage.coordinates] == [1, 0]
+    assert [
+        coefficient.representative
+        for coefficient in dual_mapping.lift_idempotent(quotient_idempotent).coordinates
+    ] == [1, 4]
+    entered_mapping = qpa.StructureConstantsHomomorphism.by_basis_images(
+        shifted_dual, dual_quotient.algebra, [[one], [zero]]
+    )
+    assert entered_mapping.basis_images == dual_mapping.basis_images
+
+    shifted_upper_products = _structure_constants_tensor(field5, 3, [])
+    shifted_upper_products[0][0][0] = one
+    shifted_upper_products[0][1][2] = field5.element(2)
+    shifted_upper_products[0][2][2] = one
+    shifted_upper_products[1][1][1] = one
+    shifted_upper_products[2][1][2] = one
+    shifted_upper = qpa.StructureConstantsAlgebra(field5, shifted_upper_products)
+    upper_quotient = shifted_upper.quotient_by_ideal_basis([[zero, zero, one]])
+    idempotents = [
+        upper_quotient.algebra.element([zero, one]),
+        upper_quotient.algebra.element([one, zero]),
+    ]
+    first_lift = shifted_upper.element([zero, one, zero])
+    expected = [[0, 1, 0], [1, 0, 3]]
+    assert _representative_rows(
+        [
+            element.coordinates
+            for element in upper_quotient.lift_two_orthogonal_idempotents(
+                first_lift, idempotents[1]
+            )
+        ]
+    ) == expected
+    assert _representative_rows(
+        [
+            element.coordinates
+            for element in upper_quotient.lift_complete_set_of_orthogonal_idempotents(
+                idempotents
+            )
+        ]
+    ) == expected
+    assert _representative_rows(
+        [
+            element.coordinates
+            for element in upper_quotient.lift_idempotents_for_decomposition(
+                idempotents
+            )
+        ]
+    ) == expected
+
+    upper_mapping = upper_quotient.natural_homomorphism()
+    assert _representative_rows(
+        [
+            element.coordinates
+            for element in upper_mapping.lift_two_orthogonal_idempotents(
+                first_lift, idempotents[1]
+            )
+        ]
+    ) == expected
+    assert _representative_rows(
+        [
+            element.coordinates
+            for element in upper_mapping.lifting_complete_set_of_orthogonal_idempotents(
+                idempotents
+            )
+        ]
+    ) == expected
+    assert _representative_rows(
+        [
+            element.coordinates
+            for element in upper_mapping.lift_idempotents_for_decomposition(idempotents)
+        ]
+    ) == expected
+
+
 def test_opposite_structure_constants_algebra_follows_qpa() -> None:
     field5 = qpa.Field.prime(5)
     upper = qpa.StructureConstantsAlgebra(
@@ -1796,6 +1916,7 @@ def test_restriction_via_algebra_homomorphism_follows_qpa(field: qpa.Field) -> N
     path_identity = qpa.AlgebraHomomorphism.path_to_path(
         algebra, algebra, algebra.generators
     )
+    assert path_identity.opposite().opposite() == path_identity
     quotient_identity = qpa.AlgebraHomomorphism.quotient_to_quotient(
         quotient, quotient, [quotient.one(), *quotient.generators]
     )

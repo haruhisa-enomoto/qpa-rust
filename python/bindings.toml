@@ -728,6 +728,42 @@ target = "qpa.OppositeStructureConstantsAlgebra.underlying_algebra"
 tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
 
 [[bindings]]
+qpa_name = "LiftIdempotent"
+status = "exposed"
+target = "qpa.StructureConstantsQuotient.lift_idempotent; qpa.StructureConstantsHomomorphism.lift_idempotent"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LiftIdempotentsForDecomposition"
+status = "exposed"
+target = "qpa.StructureConstantsQuotient.lift_idempotents_for_decomposition; qpa.StructureConstantsHomomorphism.lift_idempotents_for_decomposition"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LiftTwoOrthogonalIdempotents"
+status = "exposed"
+target = "qpa.StructureConstantsQuotient.lift_two_orthogonal_idempotents; qpa.StructureConstantsHomomorphism.lift_two_orthogonal_idempotents"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LiftingCompleteSetOfOrthogonalIdempotents"
+status = "exposed"
+target = "qpa.StructureConstantsQuotient.lift_complete_set_of_orthogonal_idempotents; qpa.StructureConstantsHomomorphism.lifting_complete_set_of_orthogonal_idempotents"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LiftingIdempotent"
+status = "exposed"
+target = "qpa.StructureConstantsQuotient.lifting_idempotent"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
+
+[[bindings]]
+qpa_name = "OppositeAlgebraHomomorphism"
+status = "exposed"
+target = "qpa.AlgebraHomomorphism.opposite"
+tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]
+
+[[bindings]]
 qpa_name = "\\."
 status = "partial"
 target = "qpa.StructureConstantsAlgebra.bind_named_element; qpa.OppositeStructureConstantsAlgebra.element_by_name; qpa.Quiver.vertex_path; qpa.Quiver.arrow_path; qpa.PathAlgebra.generator"

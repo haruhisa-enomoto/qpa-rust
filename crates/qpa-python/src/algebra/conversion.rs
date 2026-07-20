@@ -1,5 +1,10 @@
 //! Python wrappers for QPA's finite-dimensional algebra conversions.
 
+mod quotient;
+
+use quotient::structure_constants_quotient_for;
+pub(crate) use quotient::{PyStructureConstantsHomomorphism, PyStructureConstantsQuotient};
+
 use numerica::domains::{
     finite_field::{Z2, Zp},
     rational::{Q, RationalField},
@@ -148,6 +153,19 @@ macro_rules! impl_conversion_runtime {
         {
             fn wrap(value: StructureConstantsAlgebraElement<$field>) -> Self {
                 Self::$variant(value)
+            }
+        }
+
+        impl runtime::Extract<StructureConstantsAlgebraElement<$field>>
+            for StructureConstantsElementKind
+        {
+            fn extract(self) -> PyResult<StructureConstantsAlgebraElement<$field>> {
+                match self {
+                    Self::$variant(value) => Ok(value),
+                    _ => Err(invalid(
+                        "structure-constants element belongs to another coefficient field",
+                    )),
+                }
             }
         }
 
@@ -467,6 +485,16 @@ impl PyStructureConstantsAlgebra {
     fn opposite(&self) -> PyResult<PyOppositeStructureConstantsAlgebra> {
         dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
             Ok(wrap_opposite_algebra(algebra.opposite().map_err(invalid)?))
+        })
+    }
+
+    fn quotient_by_ideal_basis(
+        &self,
+        py: Python<'_>,
+        ideal_basis: Vec<Vec<Py<PyScalar>>>,
+    ) -> PyResult<PyStructureConstantsQuotient> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            structure_constants_quotient_for(py, algebra, ideal_basis)
         })
     }
 

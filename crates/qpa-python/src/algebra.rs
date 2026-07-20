@@ -14,7 +14,8 @@ use conversion::{
 pub(crate) use conversion::{
     PyAdrAlgebraOfAlgebraResult, PyAlgebraAsQuiverAlgebraResult,
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyQuiverAlgebra,
-    PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsSubalgebra,
+    PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
+    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
 };
 
 use numerica::domains::{
@@ -1397,6 +1398,16 @@ impl PyAlgebraHomomorphism {
         dispatch_ref!(&self.kind, AlgebraHomomorphismKind, |homomorphism| {
             homomorphism.uses_generators_with_one()
         })
+    }
+
+    fn opposite(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraHomomorphismKind => AlgebraHomomorphismKind,
+            |homomorphism| qpa_gbnp::opposite_algebra_homomorphism(homomorphism)
+                .map_err(invalid)?
+        );
+        Ok(Self { kind })
     }
 
     fn __eq__(&self, other: &Self) -> bool {

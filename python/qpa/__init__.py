@@ -58,6 +58,8 @@ from ._qpa import (
     Scalar,
     StructureConstantsAlgebra,
     StructureConstantsElement,
+    StructureConstantsHomomorphism,
+    StructureConstantsQuotient,
     StructureConstantsSubalgebra,
     TiltingModuleResult,
 )
@@ -116,6 +118,8 @@ __all__ = [
     "Scalar",
     "StructureConstantsAlgebra",
     "StructureConstantsElement",
+    "StructureConstantsHomomorphism",
+    "StructureConstantsQuotient",
     "StructureConstantsSubalgebra",
     "TiltingModuleResult",
 ]

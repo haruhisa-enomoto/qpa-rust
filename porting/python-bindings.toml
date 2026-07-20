@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 383
+exposed_or_partial_count = 389
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -7646,8 +7646,8 @@ python_tests = []
 qpa_name = "LiftIdempotent"
 python_name = "lift_idempotent"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsQuotient.lift_idempotent; qpa.StructureConstantsHomomorphism.lift_idempotent"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:LiftIdempotent:1","moduledecomp:InstallMethod:LiftIdempotent:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7655,7 +7655,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["lift_idempotent; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_idempotent"]
 rust_tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
 
 [[operations]]
 qpa_name = "LiftIdempotents"
@@ -7676,8 +7676,8 @@ python_tests = []
 qpa_name = "LiftIdempotentsForDecomposition"
 python_name = "lift_idempotents_for_decomposition"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsQuotient.lift_idempotents_for_decomposition; qpa.StructureConstantsHomomorphism.lift_idempotents_for_decomposition"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:LiftIdempotentsForDecomposition:1","moduledecomp:InstallMethod:LiftIdempotentsForDecomposition:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7685,7 +7685,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["lift_idempotents_for_decomposition; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_idempotents_for_decomposition"]
 rust_tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
 
 [[operations]]
 qpa_name = "LiftPathAlgebraModule"
@@ -7706,8 +7706,8 @@ python_tests = []
 qpa_name = "LiftTwoOrthogonalIdempotents"
 python_name = "lift_two_orthogonal_idempotents"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsQuotient.lift_two_orthogonal_idempotents; qpa.StructureConstantsHomomorphism.lift_two_orthogonal_idempotents"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:LiftTwoOrthogonalIdempotents:1","moduledecomp:InstallMethod:LiftTwoOrthogonalIdempotents:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7715,14 +7715,14 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["lift_two_orthogonal_idempotents; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_two_orthogonal_idempotents"]
 rust_tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
 
 [[operations]]
 qpa_name = "LiftingCompleteSetOfOrthogonalIdempotents"
 python_name = "lifting_complete_set_of_orthogonal_idempotents"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsQuotient.lift_complete_set_of_orthogonal_idempotents; qpa.StructureConstantsHomomorphism.lifting_complete_set_of_orthogonal_idempotents"
 notes = ""
 entry_ids = ["algebra:DeclareOperation:LiftingCompleteSetOfOrthogonalIdempotents:1","algebra:InstallMethod:LiftingCompleteSetOfOrthogonalIdempotents:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7730,14 +7730,14 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["lifting_complete_set_of_orthogonal_idempotents; StructureConstantsAlgebraHomomorphism; StructureConstantsQuotient::lift_complete_set_of_orthogonal_idempotents"]
 rust_tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json","tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
 
 [[operations]]
 qpa_name = "LiftingIdempotent"
 python_name = "lifting_idempotent"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsQuotient.lifting_idempotent"
 notes = ""
 entry_ids = ["algebra:DeclareOperation:LiftingIdempotent:1","algebra:InstallMethod:LiftingIdempotent:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7745,7 +7745,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["StructureConstantsQuotient::lifting_idempotent"]
 rust_tests = ["tests/fixtures/algebra_structure_constants.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_structure_constants_quotients_and_lifting_follow_qpa"]
 
 [[operations]]
 qpa_name = "LiftingInclusionMorphisms"
@@ -9116,8 +9116,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "OppositeAlgebraHomomorphism"
 python_name = "opposite_algebra_homomorphism"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraHomomorphism.opposite"
 notes = ""
 entry_ids = ["algebra:DeclareAttribute:OppositeAlgebraHomomorphism:1","algebra:InstallMethod:OppositeAlgebraHomomorphism:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -9125,7 +9125,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["opposite_algebra_homomorphism"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]
 
 [[operations]]
 qpa_name = "OppositeNakayamaFunctorOfModule"
