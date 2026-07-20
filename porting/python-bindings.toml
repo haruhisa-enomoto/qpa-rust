@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 598
+exposed_or_partial_count = 610
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -656,16 +656,16 @@ python_tests = []
 qpa_name = "BilinearFormOfUnitForm"
 python_name = "bilinear_form_of_unit_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.UnitForm.bilinear_form; qpa.UnitForm.bilinear_form_over"
+notes = "The integer entry point returns Python int; the field-aware entry point covers every supported Numerica coefficient field."
 entry_ids = ["combinatorialrep:DeclareAttribute:BilinearFormOfUnitForm:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gd"]
 rust_symbols = ["UnitForm::bilinear_form"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "BlockDecompositionOfModule"
@@ -2636,16 +2636,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_trivial_extension
 qpa_name = "EulerBilinearFormOfAlgebra"
 python_name = "euler_bilinear_form_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.euler_bilinear_form; qpa.EulerBilinearForm"
+notes = "Returns None for QPA's fail value; the captured closure exposes exact integer and supported-field evaluation."
 entry_ids = ["combinatorialrep:DeclareOperation:EulerBilinearFormOfAlgebra:1","combinatorialrep:InstallMethod:EulerBilinearFormOfAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gd","upstream/qpa/lib/combinatorialrep.gi"]
 rust_symbols = ["qpa_gbnp::euler_bilinear_form_of_algebra","qpa_gbnp::euler_bilinear_form_of_algebra; EulerBilinearForm::evaluate"]
 rust_tests = ["tests/fixtures/combinatorialrep_euler.schema-v1.json","tests/gap-reference/combinatorialrep_euler_fail.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tits_and_euler_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "ExtAlgebraGenerators"
@@ -6851,23 +6851,23 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsUnitForm"
 python_name = "is_unit_form"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.UnitForm.is_unit_form"
+notes = "The UnitForm class also supplies Python's runtime family and collection typing."
 entry_ids = ["combinatorialrep:DeclareCategory:IsUnitForm:1","combinatorialrep:DeclareCategoryFamily:IsUnitForm:1","combinatorialrep:DeclareCategoryCollections:IsUnitForm:1"]
 constructs = ["DeclareCategory","DeclareCategoryCollections","DeclareCategoryFamily"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gd"]
 rust_symbols = ["UnitForm","Vec<UnitForm>"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsUnitFormRep"
 python_name = "is_unit_form_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.UnitForm.is_default_rep"
 notes = ""
 entry_ids = ["combinatorialrep:DeclareRepresentation:IsUnitFormRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -6875,7 +6875,7 @@ source_files = ["upstream/qpa/lib/combinatorialrep.gd"]
 rust_symbols = ["UnitForm"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsValidString"
@@ -6926,8 +6926,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective
 qpa_name = "IsWeaklyNonnegativeUnitForm"
 python_name = "is_weakly_nonnegative_unit_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.UnitForm.is_weakly_nonnegative"
 notes = ""
 entry_ids = ["combinatorialrep:DeclareProperty:IsWeaklyNonnegativeUnitForm:1","combinatorialrep:InstallMethod:IsWeaklyNonnegativeUnitForm:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6935,14 +6935,14 @@ source_files = ["upstream/qpa/lib/combinatorialrep.gd","upstream/qpa/lib/combina
 rust_symbols = ["UnitForm::is_weakly_nonnegative"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsWeaklyPositiveUnitForm"
 python_name = "is_weakly_positive_unit_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.UnitForm.is_weakly_positive"
 notes = ""
 entry_ids = ["combinatorialrep:DeclareProperty:IsWeaklyPositiveUnitForm:1","combinatorialrep:InstallMethod:IsWeaklyPositiveUnitForm:1"]
 constructs = ["DeclareProperty","InstallMethod"]
@@ -6950,7 +6950,7 @@ source_files = ["upstream/qpa/lib/combinatorialrep.gd","upstream/qpa/lib/combina
 rust_symbols = ["UnitForm::is_weakly_positive"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsWeaklySymmetricAlgebra"
@@ -9836,16 +9836,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "PositiveRootsOfUnitForm"
 python_name = "positive_roots_of_unit_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.UnitForm.positive_roots"
+notes = "Returns None while QPA's attribute is unbound and exact integer roots after a successful positivity computation."
 entry_ids = ["combinatorialrep:DeclareAttribute:PositiveRootsOfUnitForm:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gd"]
 rust_symbols = ["UnitForm::positive_roots"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "PowerSubalgebraOp"
@@ -10481,16 +10481,16 @@ python_tests = []
 qpa_name = "QuadraticFormOfUnitForm"
 python_name = "quadratic_form_of_unit_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.UnitForm.quadratic_form; qpa.UnitForm.quadratic_form_over"
+notes = "Preserves QPA's failure when division by two is unavailable, including characteristic two."
 entry_ids = ["combinatorialrep:DeclareAttribute:QuadraticFormOfUnitForm:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gd"]
 rust_symbols = ["UnitForm::quadratic_form"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuadraticPerpOfPathAlgebraIdeal"
@@ -10901,8 +10901,8 @@ python_tests = []
 qpa_name = "ReflectionByBilinearForm"
 python_name = "reflection_by_bilinear_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.UnitForm.reflection_by_bilinear_form; qpa.UnitForm.reflection_by_bilinear_form_over"
 notes = ""
 entry_ids = ["combinatorialrep:DeclareOperation:ReflectionByBilinearForm:1","combinatorialrep:InstallMethod:ReflectionByBilinearForm:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10910,7 +10910,7 @@ source_files = ["upstream/qpa/lib/combinatorialrep.gd","upstream/qpa/lib/combina
 rust_symbols = ["UnitForm::reflection_by_bilinear_form"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "RejectOfModule"
@@ -12026,8 +12026,8 @@ python_tests = []
 qpa_name = "SymmetricMatrixOfUnitForm"
 python_name = "symmetric_matrix_of_unit_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.UnitForm.symmetric_matrix"
 notes = ""
 entry_ids = ["combinatorialrep:DeclareAttribute:SymmetricMatrixOfUnitForm:1"]
 constructs = ["DeclareAttribute"]
@@ -12035,7 +12035,7 @@ source_files = ["upstream/qpa/lib/combinatorialrep.gd"]
 rust_symbols = ["UnitForm::symmetric_matrix"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "SyzygyCosyzygyTruncation"
@@ -12506,8 +12506,8 @@ python_tests = []
 qpa_name = "TitsUnitFormOfAlgebra"
 python_name = "tits_unit_form_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.tits_unit_form"
 notes = ""
 entry_ids = ["combinatorialrep:DeclareOperation:TitsUnitFormOfAlgebra:1","combinatorialrep:InstallMethod:TitsUnitFormOfAlgebra:1","combinatorialrep:InstallMethod:TitsUnitFormOfAlgebra:2"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12515,7 +12515,7 @@ source_files = ["upstream/qpa/lib/combinatorialrep.gd","upstream/qpa/lib/combina
 rust_symbols = ["qpa_gbnp::tits_unit_form_of_algebra","qpa_gbnp::tits_unit_form_of_quotient","tits_unit_form_of_path_algebra"]
 rust_tests = ["tests/fixtures/combinatorialrep_tits_path.schema-v1.json","tests/fixtures/combinatorialrep_tits_quotient.schema-v1.json","tests/gap-reference/combinatorialrep_tits_path_error.g","tests/gap-reference/combinatorialrep_tits_quotient_loop_error.g","tests/gap-reference/combinatorialrep_tits_quotient_relation_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tits_and_euler_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "TopOfModule"
@@ -12806,16 +12806,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "UnitForm"
 python_name = "unit_form"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.UnitForm"
+notes = "Accepts and returns arbitrary-precision Python integers."
 entry_ids = ["combinatorialrep:DeclareOperation:UnitForm:1","combinatorialrep:InstallMethod:UnitForm:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gd","upstream/qpa/lib/combinatorialrep.gi"]
 rust_symbols = ["UnitForm::new","UnitForm::new; UnitForm::bilinear_form; UnitForm::quadratic_form"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form.schema-v1.json","tests/gap-reference/combinatorialrep_unit_form_empty_error.g","tests/gap-reference/combinatorialrep_unit_form_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "Units"
@@ -12942,15 +12942,15 @@ qpa_name = "ViewObj"
 python_name = "view_obj"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__"
-notes = "The quiver, quiver-ordering, algebra Groebner-basis, and projective-module Groebner-basis overloads are exposed; grouped display overloads remain."
+python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__"
+notes = "The quiver, quiver-ordering, algebra Groebner-basis, projective-module Groebner-basis, and unit-form overloads are exposed; grouped display overloads remain."
 entry_ids = ["combinatorialrep:InstallMethod:ViewObj:1","complex:InstallMethod:ViewObj:1","degorderfinitetype:InstallMethod:ViewObj:1","groebner:InstallMethod:ViewObj:1","groebnerordering:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:2","groebnerstadict:InstallMethod:ViewObj:3","groebnerstadict:InstallMethod:ViewObj:4","module:InstallMethod:ViewObj:1","modulehom:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:2","pathalgtensor:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:2","qpaposet:InstallMethod:ViewObj:1","quiver:InstallMethod:ViewObj:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/groebnerstadict.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/qpaposet.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","Display for PathAlgebraModule","Display for PathAlgebraModuleHomomorphism","Display for UnitForm","GroebnerBasis::view_string","PathAlgebra::view_obj_with","Poset::fmt","Quiver::view_string","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuiverStaticDictionary::fmt; QuiverStaticDictionary::view_string","QuotientPathAlgebra::view_obj_with; PathAlgebraIdeal::view_obj_with","RightPathAlgebraModuleGroebnerBasis::view_obj_with_basis","RightPathAlgebraModuleGroebnerBasis::view_obj_without_basis","StaticDictionary::fmt","qpa_gbnp::QpaCategory::name"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form_view.txt","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/poset_output.txt","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/static_dictionary_output.txt"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa"]
 
 [[operations]]
 qpa_name = "WalkOfPath"

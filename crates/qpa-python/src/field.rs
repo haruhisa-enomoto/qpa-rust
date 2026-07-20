@@ -16,12 +16,21 @@ use pyo3::{
 
 use crate::{InvalidInputError, runtime};
 
-fn parse_python_integer(value: &Bound<'_, PyAny>) -> PyResult<Integer> {
+pub(crate) fn parse_python_integer(value: &Bound<'_, PyAny>) -> PyResult<Integer> {
     if !value.is_instance_of::<PyInt>() {
         return Err(PyTypeError::new_err("an exact Python integer is required"));
     }
     Integer::from_str(value.str()?.to_str()?)
         .map_err(|error| PyTypeError::new_err(format!("invalid Python integer: {error}")))
+}
+
+/// Convert a Numerica arbitrary-precision integer to Python's exact `int`.
+pub(crate) fn wrap_python_integer(py: Python<'_>, value: &Integer) -> PyResult<Py<PyAny>> {
+    Ok(py
+        .import("builtins")?
+        .getattr("int")?
+        .call1((value.to_string(),))?
+        .unbind())
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

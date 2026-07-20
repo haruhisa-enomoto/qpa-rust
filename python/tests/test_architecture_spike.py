@@ -3386,3 +3386,130 @@ def test_gentle_combinatorial_maps_follow_qpa(field: qpa.Field) -> None:
         )
     )
     assert not algebra.are_derived_equivalent(other)
+
+
+def test_unit_forms_follow_qpa() -> None:
+    a2 = qpa.UnitForm([[2, -1], [-1, 2]])
+    assert a2.is_unit_form and a2.is_default_rep
+    assert a2.dimension == 2
+    assert a2.symmetric_matrix == [[2, -1], [-1, 2]]
+    assert a2.bilinear_form([1, 2], [-1, 3]) == 9
+    assert a2.quadratic_form([1, 2]) == 3
+    assert a2.reflection_by_bilinear_form(2, [1, 2]) == [1, -1]
+    assert a2.positive_roots is None
+    assert a2.is_weakly_nonnegative
+    assert a2.is_weakly_positive
+    assert a2.positive_roots == [[1, 0], [0, 1], [1, 1]]
+    assert a2.is_identical(a2)
+    assert not a2.is_identical(qpa.UnitForm([[2, -1], [-1, 2]]))
+    assert repr(a2) == "[ [ 2, -1 ], [ -1, 2 ] ]"
+
+    a3 = qpa.UnitForm([[2, -1, 0], [-1, 2, -1], [0, -1, 2]])
+    assert a3.is_weakly_nonnegative and a3.is_weakly_positive
+    assert a3.positive_roots == [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 1, 0],
+        [0, 1, 1],
+        [1, 1, 1],
+    ]
+    affine_a1 = qpa.UnitForm([[2, -2], [-2, 2]])
+    assert affine_a1.is_weakly_nonnegative and not affine_a1.is_weakly_positive
+    indefinite = qpa.UnitForm([[2, -3], [-3, 2]])
+    assert not indefinite.is_weakly_nonnegative and not indefinite.is_weakly_positive
+
+    huge = 10**80 + 1
+    huge_form = qpa.UnitForm([[2, huge], [huge, 2]])
+    assert huge_form.symmetric_matrix == [[2, huge], [huge, 2]]
+    assert huge_form.bilinear_form([1, 0], [0, 1]) == huge
+
+    rationals = qpa.Field.rational()
+    rational_vector = [rationals.element(1), rationals.element(2)]
+    rational_right = [rationals.element(-1), rationals.element(3)]
+    assert a2.bilinear_form_over(
+        rationals, rational_vector, rational_right
+    ).numerator == "9"
+    assert a2.quadratic_form_over(rationals, rational_vector).numerator == "3"
+    assert [
+        value.numerator
+        for value in a2.reflection_by_bilinear_form_over(
+            rationals, 2, rational_vector
+        )
+    ] == ["1", "-1"]
+
+    field5 = qpa.Field.prime(5)
+    finite_vector = [field5.element(1), field5.element(2)]
+    assert a2.quadratic_form_over(field5, finite_vector).representative == 3
+    with pytest.raises(qpa.InvalidInputError, match="divided by two"):
+        a2.quadratic_form_over(
+            qpa.Field.prime(2),
+            [qpa.Field.prime(2).element(1), qpa.Field.prime(2).element(0)],
+        )
+
+    with pytest.raises(qpa.InvalidInputError, match="not a matrix"):
+        qpa.UnitForm([])
+    with pytest.raises(qpa.InvalidInputError, match="not two"):
+        qpa.UnitForm([[1]])
+    with pytest.raises(qpa.InvalidInputError, match="outside"):
+        a2.reflection_by_bilinear_form(0, [1, 2])
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_tits_and_euler_forms_follow_qpa(field: qpa.Field) -> None:
+    path_algebra = qpa.PathAlgebra(
+        field,
+        qpa.Quiver(["v1", "v2", "v3"], [("v1", "v2", "a"), ("v2", "v3", "b")]),
+    )
+    path = qpa.QuiverAlgebra.from_path_algebra(path_algebra)
+    assert path.tits_unit_form().symmetric_matrix == [
+        [2, -1, 0],
+        [-1, 2, -1],
+        [0, -1, 2],
+    ]
+
+    relation = path_algebra.generator("a") * path_algebra.generator("b")
+    quotient_algebra = path_algebra.quotient([relation])
+    quotient = qpa.QuiverAlgebra.from_quotient_algebra(quotient_algebra)
+    assert quotient.tits_unit_form().symmetric_matrix == [
+        [2, -1, 1],
+        [-1, 2, -1],
+        [1, -1, 2],
+    ]
+
+    path_euler = path.euler_bilinear_form()
+    assert path_euler is not None
+    assert path_euler.dimension == 3
+    assert path_euler.inverse_cartan_matrix == [
+        [1, -1, 0],
+        [0, 1, -1],
+        [0, 0, 1],
+    ]
+    assert path_euler.evaluate([1, 2, -1], [3, 0, 2]) == -3
+    assert repr(path_euler) == "<Euler bilinear form of dimension 3>"
+
+    quotient_euler = quotient.euler_bilinear_form()
+    assert quotient_euler is not None
+    assert quotient_euler.inverse_cartan_matrix == [
+        [1, -1, 1],
+        [0, 1, -1],
+        [0, 0, 1],
+    ]
+    assert quotient_euler.evaluate([1, 2, -1], [3, 0, 2]) == -1
+
+    scalar_left = [field.element(1), field.element(2), field.element(-1)]
+    scalar_right = [field.element(3), field.element(0), field.element(2)]
+    scalar_value = path_euler.evaluate_over(field, scalar_left, scalar_right)
+    if field.characteristic is None:
+        assert scalar_value.numerator == "-3"
+    else:
+        assert scalar_value.representative == (-3) % field.characteristic
+
+    loop_path = qpa.PathAlgebra(field, qpa.Quiver(["v"], [("v", "v", "x")]))
+    x = loop_path.generator("x")
+    dual_numbers = qpa.QuiverAlgebra.from_quotient_algebra(loop_path.quotient([x * x]))
+    assert dual_numbers.euler_bilinear_form() is None
+    with pytest.raises(qpa.InvalidInputError, match="loop"):
+        dual_numbers.tits_unit_form()

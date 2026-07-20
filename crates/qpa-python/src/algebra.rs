@@ -1,6 +1,7 @@
 //! Python wrappers for path algebras, ideals, Gröbner bases, and quotients.
 
 mod combinatorial;
+mod combinatorial_rep;
 mod complex_foundation;
 mod conversion;
 mod fp_projective;
@@ -16,6 +17,7 @@ mod string;
 mod tensor;
 
 pub(crate) use combinatorial::PyCombinatorialMap;
+pub(crate) use combinatorial_rep::{PyEulerBilinearForm, PyUnitForm};
 pub(crate) use complex_foundation::{PyModuleCategory, PyModuleMorphismList};
 use conversion::{
     AdrAlgebraOfAlgebraResultKind, StructureConstantsAlgebraKind, adr_algebra_of_basic_module_for,

@@ -1286,6 +1286,18 @@ impl PyQuiverAlgebra {
         super::combinatorial::derived_equivalent(&self.kind, &right.kind)
     }
 
+    fn tits_unit_form(&self) -> PyResult<super::PyUnitForm> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::combinatorial_rep::tits_unit_form_for(algebra)
+        })
+    }
+
+    fn euler_bilinear_form(&self) -> PyResult<Option<super::PyEulerBilinearForm>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::combinatorial_rep::euler_bilinear_form_for(algebra)
+        })
+    }
+
     /// Apply QPA's binary `TensorProductOfAlgebras` method.
     fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
         dispatch_pair_ref!(

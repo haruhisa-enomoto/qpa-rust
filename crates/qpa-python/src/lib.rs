@@ -13,8 +13,8 @@ use algebra::{
     PyAlgebraAsQuiverAlgebraResult, PyAlgebraElement, PyAlgebraHomomorphism,
     PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCombinatorialMap,
     PyCommonDirectSummandResult, PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
-    PyEndOfModuleAsQuiverAlgebraResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
-    PyFiniteAddMResolutionResult, PyFpPathAlgebraByImagesHomomorphism,
+    PyEndOfModuleAsQuiverAlgebraResult, PyEulerBilinearForm, PyExtAlgebraGeneratorsResult,
+    PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyFpPathAlgebraByImagesHomomorphism,
     PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyGroebnerBasis,
     PyGroebnerBasisIterator, PyGszProjectiveResolution, PyInjectiveResolution,
     PyLiftedProjectivePathAlgebraModule, PyMatrixModule, PyMaximalCommonDirectSummand,
@@ -34,7 +34,7 @@ use algebra::{
     PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule,
     PySimpleEndoProjectiveResolutionResult, PyStructureConstantsAlgebra,
     PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
-    PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult,
+    PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult, PyUnitForm,
     py_complex_and_chain_maps, py_compute_lps_array, py_cyclic_permutations_of_band,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
@@ -59,17 +59,7 @@ fn invalid(error: impl std::fmt::Display) -> PyErr {
     InvalidInputError::new_err(error.to_string())
 }
 
-#[pymodule]
-fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
-    module.add("QpaError", module.py().get_type::<QpaError>())?;
-    module.add(
-        "InvalidInputError",
-        module.py().get_type::<InvalidInputError>(),
-    )?;
-    module.add(
-        "RelationNotSatisfiedError",
-        module.py().get_type::<RelationNotSatisfiedError>(),
-    )?;
+fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyField>()?;
     module.add_class::<PyScalar>()?;
     module.add_class::<PyQuiver>()?;
@@ -85,6 +75,10 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_complex_and_chain_maps, module)?)?;
     module.add_function(wrap_pyfunction!(py_compute_lps_array, module)?)?;
     module.add_function(wrap_pyfunction!(py_cyclic_permutations_of_band, module)?)?;
+    Ok(())
+}
+
+fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;
@@ -99,6 +93,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyQuiverAlgebraElement>()?;
     module.add_class::<PyTensorProductAlgebra>()?;
     module.add_class::<PyCombinatorialMap>()?;
+    module.add_class::<PyUnitForm>()?;
+    module.add_class::<PyEulerBilinearForm>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;
@@ -124,6 +120,10 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyFpPathAlgebraMatrixHomomorphism>()?;
     module.add_class::<PyQuotientAlgebra>()?;
     module.add_class::<PyQuotientElement>()?;
+    Ok(())
+}
+
+fn register_modules(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyMatrixModule>()?;
     module.add_class::<PyModuleElement>()?;
     module.add_class::<PyModuleHomomorphism>()?;
@@ -161,4 +161,20 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyCommonDirectSummandResult>()?;
     module.add_class::<PyMaximalCommonDirectSummand>()?;
     Ok(())
+}
+
+#[pymodule]
+fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add("QpaError", module.py().get_type::<QpaError>())?;
+    module.add(
+        "InvalidInputError",
+        module.py().get_type::<InvalidInputError>(),
+    )?;
+    module.add(
+        "RelationNotSatisfiedError",
+        module.py().get_type::<RelationNotSatisfiedError>(),
+    )?;
+    register_foundation(module)?;
+    register_algebra(module)?;
+    register_modules(module)
 }
