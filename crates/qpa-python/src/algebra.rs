@@ -683,6 +683,38 @@ pub(crate) struct PyMaximalCommonDirectSummand {
     kind: MaximalCommonDirectSummandKind,
 }
 
+#[derive(Clone)]
+enum EndOfModuleAsQuiverAlgebraResultKind {
+    Rational(qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<RationalField>),
+    Binary(qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<Z2>),
+    Prime(qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<Zp>),
+}
+
+/// QPA's endomorphism algebra, adjacency matrix, and quiver-algebra conversion.
+#[pyclass(name = "EndOfModuleAsQuiverAlgebraResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyEndOfModuleAsQuiverAlgebraResult {
+    kind: EndOfModuleAsQuiverAlgebraResultKind,
+}
+
+#[derive(Clone)]
+enum EndOfBasicModuleAsQuiverAlgebraResultKind {
+    Rational(qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<RationalField>),
+    Binary(qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<Z2>),
+    Prime(qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<Zp>),
+}
+
+/// QPA's quiver presentation of the endomorphism ring of a basic module list.
+#[pyclass(
+    name = "EndOfBasicModuleAsQuiverAlgebraResult",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyEndOfBasicModuleAsQuiverAlgebraResult {
+    kind: EndOfBasicModuleAsQuiverAlgebraResultKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -922,6 +954,22 @@ macro_rules! impl_resolution_runtime {
             for MaximalCommonDirectSummandKind
         {
             fn wrap(value: qpa_core::MaximalCommonDirectSummand<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<$field>>
+            for EndOfModuleAsQuiverAlgebraResultKind
+        {
+            fn wrap(value: qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<$field>>
+            for EndOfBasicModuleAsQuiverAlgebraResultKind
+        {
+            fn wrap(value: qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<$field>) -> Self {
                 Self::$variant(value)
             }
         }

@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 357
+exposed_or_partial_count = 359
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2546,8 +2546,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_alge
 qpa_name = "EndOfBasicModuleAsQuiverAlgebra"
 python_name = "end_of_basic_module_as_quiver_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic; qpa.EndOfBasicModuleAsQuiverAlgebraResult"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:EndOfBasicModuleAsQuiverAlgebra:1","modulehom:InstallMethod:EndOfBasicModuleAsQuiverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2555,14 +2555,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["end_of_basic_module_as_quiver_algebra; end_of_basic_module_as_quiver_algebra_with_bound; EndOfBasicModuleAsQuiverAlgebraResult; EndOfBasicModuleAsQuiverAlgebraError"]
 rust_tests = ["tests/fixtures/modulehom_basic_end.schema-v1.json","tests/gap-reference/modulehom_basic_end_different_error.g","tests/gap-reference/modulehom_basic_end_empty_error.g","tests/gap-reference/modulehom_basic_end_nonelementary_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_basic_endomorphism_as_quiver_algebra_follows_qpa"]
 
 [[operations]]
 qpa_name = "EndOfModuleAsQuiverAlgebra"
 python_name = "end_of_module_as_quiver_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.endomorphism_as_quiver_algebra; qpa.EndOfModuleAsQuiverAlgebraResult"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:EndOfModuleAsQuiverAlgebra:1","modulehom:InstallMethod:EndOfModuleAsQuiverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2570,7 +2570,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["end_of_module_as_quiver_algebra; EndOfModuleAsQuiverAlgebraResult; EndOfModuleAsQuiverAlgebraError"]
 rust_tests = ["tests/fixtures/modulehom_end_quiver.schema-v1.json"]
 deviations = ["MODULEHOM-002"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_endomorphism_as_quiver_algebra_follows_qpa"]
 
 [[operations]]
 qpa_name = "EndOverAlgebra"

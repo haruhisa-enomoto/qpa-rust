@@ -209,6 +209,26 @@ where
     )
 }
 
+fn end_of_basic_module_as_quiver_algebra_for<F: runtime::PythonField>(
+    modules: Vec<MatrixModuleKind>,
+    bound: Option<usize>,
+) -> PyResult<PyEndOfBasicModuleAsQuiverAlgebraResult>
+where
+    MatrixModuleKind: runtime::Extract<PathAlgebraModule<F>>,
+    EndOfBasicModuleAsQuiverAlgebraResultKind:
+        runtime::Wrap<qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<F>>,
+{
+    let modules = runtime::extract_all(modules)?;
+    let result = match bound {
+        Some(bound) => qpa_gbnp::end_of_basic_module_as_quiver_algebra_with_bound(&modules, bound),
+        None => qpa_gbnp::end_of_basic_module_as_quiver_algebra(&modules),
+    }
+    .map_err(invalid)?;
+    Ok(PyEndOfBasicModuleAsQuiverAlgebraResult {
+        kind: runtime::Wrap::wrap(result),
+    })
+}
+
 fn radical_right_approximation_by_add_for<F: runtime::PythonField>(
     modules: Vec<MatrixModuleKind>,
     index: &Integer,
@@ -674,6 +694,39 @@ impl PyMatrixModule {
             |module| qpa_core::end_over_algebra(module).map_err(invalid)?
         );
         Ok(PyModuleEndomorphismAlgebra { kind })
+    }
+
+    fn endomorphism_as_quiver_algebra(&self) -> PyResult<PyEndOfModuleAsQuiverAlgebraResult> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => EndOfModuleAsQuiverAlgebraResultKind,
+            |module| qpa_gbnp::end_of_module_as_quiver_algebra(module).map_err(invalid)?
+        );
+        Ok(PyEndOfModuleAsQuiverAlgebraResult { kind })
+    }
+
+    #[staticmethod]
+    #[pyo3(signature = (modules, bound=None))]
+    fn endomorphism_as_quiver_algebra_of_basic(
+        py: Python<'_>,
+        modules: Vec<Py<PyMatrixModule>>,
+        bound: Option<usize>,
+    ) -> PyResult<PyEndOfBasicModuleAsQuiverAlgebraResult> {
+        let modules = modules
+            .into_iter()
+            .map(|module| module.borrow(py).kind.clone())
+            .collect::<Vec<_>>();
+        match modules.first() {
+            Some(MatrixModuleKind::Rational(_)) | None => {
+                end_of_basic_module_as_quiver_algebra_for::<RationalField>(modules, bound)
+            }
+            Some(MatrixModuleKind::Binary(_)) => {
+                end_of_basic_module_as_quiver_algebra_for::<Z2>(modules, bound)
+            }
+            Some(MatrixModuleKind::Prime(_)) => {
+                end_of_basic_module_as_quiver_algebra_for::<Zp>(modules, bound)
+            }
+        }
     }
 
     fn stable_endomorphism_quotient(&self) -> PyResult<PyModuleEndomorphismQuotientMap> {
@@ -2171,6 +2224,152 @@ impl PyModuleEndomorphismAlgebra {
             ModuleEndomorphismAlgebraKind,
             |left, right| left.is_identical(right),
             false
+        )
+    }
+}
+
+#[pymethods]
+impl PyEndOfModuleAsQuiverAlgebraResult {
+    #[getter]
+    fn endomorphism_algebra(&self) -> PyModuleEndomorphismAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            EndOfModuleAsQuiverAlgebraResultKind => ModuleEndomorphismAlgebraKind,
+            |result| result.endomorphism_algebra().clone()
+        );
+        PyModuleEndomorphismAlgebra { kind }
+    }
+
+    #[getter]
+    fn adjacency_matrix(&self) -> Vec<Vec<usize>> {
+        dispatch_ref!(&self.kind, EndOfModuleAsQuiverAlgebraResultKind, |result| {
+            result
+                .adjacency_matrix()
+                .iter()
+                .map(|row| row.to_vec())
+                .collect()
+        })
+    }
+
+    #[getter]
+    fn quiver(&self) -> PyQuiver {
+        let inner = dispatch_ref!(&self.kind, EndOfModuleAsQuiverAlgebraResultKind, |result| {
+            result.quiver_algebra().quiver().clone()
+        });
+        PyQuiver { inner }
+    }
+
+    #[getter]
+    fn is_quotient(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            EndOfModuleAsQuiverAlgebraResultKind,
+            |result| matches!(result.quiver_algebra(), QuiverAlgebra::Quotient(_))
+        )
+    }
+
+    #[getter]
+    fn path_algebra(&self) -> Option<PyPathAlgebra> {
+        dispatch_ref!(
+            &self.kind,
+            EndOfModuleAsQuiverAlgebraResultKind,
+            |result| match result.quiver_algebra() {
+                QuiverAlgebra::Path(algebra) => Some(PyPathAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+                QuiverAlgebra::Quotient(_) => None,
+            }
+        )
+    }
+
+    #[getter]
+    fn quotient_algebra(&self) -> Option<PyQuotientAlgebra> {
+        dispatch_ref!(
+            &self.kind,
+            EndOfModuleAsQuiverAlgebraResultKind,
+            |result| match result.quiver_algebra() {
+                QuiverAlgebra::Path(_) => None,
+                QuiverAlgebra::Quotient(algebra) => Some(PyQuotientAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+            }
+        )
+    }
+}
+
+#[pymethods]
+impl PyEndOfBasicModuleAsQuiverAlgebraResult {
+    #[getter]
+    fn search_bound(&self) -> usize {
+        dispatch_ref!(
+            &self.kind,
+            EndOfBasicModuleAsQuiverAlgebraResultKind,
+            |result| result.search_bound()
+        )
+    }
+
+    #[getter]
+    fn final_search_length(&self) -> usize {
+        dispatch_ref!(
+            &self.kind,
+            EndOfBasicModuleAsQuiverAlgebraResultKind,
+            |result| result.final_search_length()
+        )
+    }
+
+    #[getter]
+    fn relations_may_be_incomplete(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            EndOfBasicModuleAsQuiverAlgebraResultKind,
+            |result| result.relations_may_be_incomplete()
+        )
+    }
+
+    #[getter]
+    fn quiver(&self) -> PyQuiver {
+        let inner = dispatch_ref!(
+            &self.kind,
+            EndOfBasicModuleAsQuiverAlgebraResultKind,
+            |result| result.algebra().quiver().clone()
+        );
+        PyQuiver { inner }
+    }
+
+    #[getter]
+    fn is_quotient(&self) -> bool {
+        dispatch_ref!(
+            &self.kind,
+            EndOfBasicModuleAsQuiverAlgebraResultKind,
+            |result| matches!(result.algebra(), QuiverAlgebra::Quotient(_))
+        )
+    }
+
+    #[getter]
+    fn path_algebra(&self) -> Option<PyPathAlgebra> {
+        dispatch_ref!(
+            &self.kind,
+            EndOfBasicModuleAsQuiverAlgebraResultKind,
+            |result| match result.algebra() {
+                QuiverAlgebra::Path(algebra) => Some(PyPathAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+                QuiverAlgebra::Quotient(_) => None,
+            }
+        )
+    }
+
+    #[getter]
+    fn quotient_algebra(&self) -> Option<PyQuotientAlgebra> {
+        dispatch_ref!(
+            &self.kind,
+            EndOfBasicModuleAsQuiverAlgebraResultKind,
+            |result| match result.algebra() {
+                QuiverAlgebra::Path(_) => None,
+                QuiverAlgebra::Quotient(algebra) => Some(PyQuotientAlgebra {
+                    kind: runtime::Wrap::wrap(algebra.clone()),
+                }),
+            }
         )
     }
 }

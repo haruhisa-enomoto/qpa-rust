@@ -2264,3 +2264,15 @@ qpa_name = "RestrictionViaAlgebraHomomorphismMap"
 status = "exposed"
 target = "qpa.AlgebraHomomorphism; qpa.ModuleHomomorphism.restrict_scalars"
 tests = ["python/tests/test_architecture_spike.py::test_restriction_via_algebra_homomorphism_follows_qpa"]
+
+[[bindings]]
+qpa_name = "EndOfModuleAsQuiverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.endomorphism_as_quiver_algebra; qpa.EndOfModuleAsQuiverAlgebraResult"
+tests = ["python/tests/test_architecture_spike.py::test_endomorphism_as_quiver_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "EndOfBasicModuleAsQuiverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic; qpa.EndOfBasicModuleAsQuiverAlgebraResult"
+tests = ["python/tests/test_architecture_spike.py::test_basic_endomorphism_as_quiver_algebra_follows_qpa"]

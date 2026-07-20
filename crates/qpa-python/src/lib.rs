@@ -11,7 +11,8 @@ mod runtime;
 use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAlgebraHomomorphism,
     PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCommonDirectSummandResult,
-    PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
+    PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
+    PyEndOfModuleAsQuiverAlgebraResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
     PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule,
     PyMaximalCommonDirectSummand, PyModuleBasisMapping, PyModuleChainMap, PyModuleComplex,
     PyModuleDecompositionWithMultiplicities, PyModuleElement, PyModuleEndomorphismAlgebra,
@@ -68,6 +69,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyModuleBasisMapping>()?;
     module.add_class::<PyModuleHomomorphismBasis>()?;
     module.add_class::<PyModuleEndomorphismAlgebra>()?;
+    module.add_class::<PyEndOfModuleAsQuiverAlgebraResult>()?;
+    module.add_class::<PyEndOfBasicModuleAsQuiverAlgebraResult>()?;
     module.add_class::<PyModuleEndomorphismQuotientAlgebra>()?;
     module.add_class::<PyModuleEndomorphismQuotientElement>()?;
     module.add_class::<PyModuleEndomorphismQuotientMap>()?;

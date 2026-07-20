@@ -1171,6 +1171,81 @@ def test_endomorphism_algebras_and_stable_quotients_follow_qpa(field: qpa.Field)
         algebra.zero_module().stable_endomorphism_quotient()
 
 
+@pytest.mark.parametrize("characteristic", [2, 5])
+def test_endomorphism_as_quiver_algebra_follows_qpa(characteristic: int) -> None:
+    field = qpa.Field.prime(characteristic)
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["v"], [("v", "v", "x")]), 2
+    )
+    regular = dual_numbers.indecomposable_projectives()[0]
+
+    result = regular.endomorphism_as_quiver_algebra()
+    assert result.endomorphism_algebra.dimension == 2
+    assert result.adjacency_matrix == [[1]]
+    assert result.quiver.adjacency_matrix == [[1]]
+    assert result.is_quotient
+    assert result.path_algebra is None
+    assert result.quotient_algebra is not None
+    assert result.quotient_algebra.dimension() == "2"
+
+    repeated_simple = qpa.PathAlgebra(
+        field, qpa.Quiver(["v"], [])
+    ).module_from_integer_matrices([2], [])
+    with pytest.raises(qpa.InvalidInputError, match="not basic"):
+        repeated_simple.endomorphism_as_quiver_algebra()
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_basic_endomorphism_as_quiver_algebra_follows_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    first_simple, second_simple = algebra.simple_modules()
+    first_projective = algebra.indecomposable_projectives()[0]
+    modules = [first_simple, first_projective, second_simple]
+
+    result = qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic(modules)
+    assert result.search_bound == 2
+    assert result.final_search_length == 2
+    assert not result.relations_may_be_incomplete
+    assert result.quiver.adjacency_matrix == [
+        [0, 0, 0],
+        [1, 0, 0],
+        [0, 1, 0],
+    ]
+    assert result.is_quotient
+    assert result.path_algebra is None
+    assert result.quotient_algebra is not None
+    assert result.quotient_algebra.dimension() == "5"
+
+    bounded = qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic(modules, 1)
+    assert bounded.search_bound == 1
+    assert bounded.final_search_length == 2
+    assert bounded.relations_may_be_incomplete
+    assert bounded.quiver.adjacency_matrix == result.quiver.adjacency_matrix
+    assert bounded.quotient_algebra is not None
+    assert bounded.quotient_algebra.dimension() == "5"
+
+    with pytest.raises(qpa.InvalidInputError, match="positive"):
+        qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic(modules, 0)
+
+
+def test_endomorphism_quiver_algebra_validation_follows_qpa() -> None:
+    with pytest.raises(qpa.InvalidInputError, match="nonempty"):
+        qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic([])
+
+    field = qpa.Field.rational()
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["v"], [("v", "v", "x")]), 2
+    )
+    with pytest.raises(qpa.InvalidInputError, match="finite field"):
+        dual_numbers.indecomposable_projectives()[
+            0
+        ].endomorphism_as_quiver_algebra()
+
+
 @pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
 def test_projective_matrix_conversions_follow_qpa(field: qpa.Field) -> None:
     algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
