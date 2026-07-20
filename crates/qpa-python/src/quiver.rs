@@ -29,6 +29,19 @@ pub(crate) fn py_unique_quiver_name() -> String {
     unique_quiver_name()
 }
 
+fn string_arrow_character(value: &str) -> PyResult<char> {
+    let mut characters = value.chars();
+    let character = characters
+        .next()
+        .ok_or_else(|| invalid("string-arrow input must contain exactly one character"))?;
+    if characters.next().is_some() {
+        return Err(invalid(
+            "string-arrow input must contain exactly one character",
+        ));
+    }
+    Ok(character)
+}
+
 /// Python-owned handle to a Rust QPA quiver identity.
 #[pyclass(name = "Quiver", frozen, skip_from_py_object)]
 #[derive(Clone)]
@@ -77,6 +90,20 @@ impl PyQuiver {
         Ok(PyQuiverProduct {
             inner: quiver_product(&self.inner, &right.inner).map_err(invalid)?,
         })
+    }
+
+    fn source_of_string_arrow(&self, character: &str) -> PyResult<PyQuiverVertex> {
+        Ok(PyQuiverVertex::from_inner(
+            qpa_gbnp::source_of_string_arrow(&self.inner, string_arrow_character(character)?)
+                .map_err(invalid)?,
+        ))
+    }
+
+    fn target_of_string_arrow(&self, character: &str) -> PyResult<PyQuiverVertex> {
+        Ok(PyQuiverVertex::from_inner(
+            qpa_gbnp::target_of_string_arrow(&self.inner, string_arrow_character(character)?)
+                .map_err(invalid)?,
+        ))
     }
 
     #[staticmethod]

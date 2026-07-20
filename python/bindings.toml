@@ -3540,3 +3540,75 @@ qpa_name = "EnvelopingAlgebraHomomorphism"
 status = "exposed"
 target = "qpa.AlgebraHomomorphism.enveloping_algebra_homomorphism"
 tests = ["python/tests/test_architecture_spike.py::test_trivial_extensions_and_enveloping_maps_follow_qpa"]
+
+[[bindings]]
+qpa_name = "computeLPSarray"
+status = "exposed"
+target = "qpa.compute_lps_array"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "CyclicPermutationOfABand"
+status = "exposed"
+target = "qpa.cyclic_permutations_of_band"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "SourceOfArrow"
+status = "exposed"
+target = "qpa.Quiver.source_of_string_arrow"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "TargetOfArrow"
+status = "exposed"
+target = "qpa.Quiver.target_of_string_arrow"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "MaximumLengthOfDirectString"
+status = "exposed"
+target = "qpa.QuiverAlgebra.maximum_length_of_direct_string"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "NumberOfJoints"
+status = "exposed"
+target = "qpa.QuiverAlgebra.number_of_joints"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsABand"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_a_band"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "StringsLessThan"
+status = "exposed"
+target = "qpa.QuiverAlgebra.strings_less_than"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "BandsLessThan"
+status = "exposed"
+target = "qpa.QuiverAlgebra.bands_less_than"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "BandRepresentativesLessThan"
+status = "exposed"
+target = "qpa.QuiverAlgebra.band_representatives_less_than"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsDomesticStringAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.is_domestic_string_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
+
+[[bindings]]
+qpa_name = "BridgeQuiver"
+status = "exposed"
+target = "qpa.QuiverAlgebra.bridge_quiver"
+tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]

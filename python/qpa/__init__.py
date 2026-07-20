@@ -94,6 +94,8 @@ from ._qpa import (
     TensorProductAlgebra,
     TiltingModuleResult,
     complex_and_chain_maps,
+    compute_lps_array,
+    cyclic_permutations_of_band,
     unique_quiver_name,
 )
 
@@ -187,5 +189,7 @@ __all__ = [
     "TensorProductAlgebra",
     "TiltingModuleResult",
     "complex_and_chain_maps",
+    "compute_lps_array",
+    "cyclic_permutations_of_band",
     "unique_quiver_name",
 ]

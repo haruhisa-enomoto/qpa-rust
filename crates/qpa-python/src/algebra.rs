@@ -11,6 +11,7 @@ mod projective;
 mod projective_gsz;
 mod quotient;
 mod quotient_projective;
+mod string;
 mod tensor;
 
 pub(crate) use complex_foundation::{PyModuleCategory, PyModuleMorphismList};
@@ -39,6 +40,7 @@ pub(crate) use quotient_projective::{
     PyLiftedProjectivePathAlgebraModule, PyQuotientPathAlgebraVector,
     PyRightProjectiveQuotientModule,
 };
+pub(crate) use string::{py_compute_lps_array, py_cyclic_permutations_of_band};
 pub(crate) use tensor::{PyQuiverAlgebraElement, PyTensorProductAlgebra};
 
 use numerica::domains::{

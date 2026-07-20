@@ -491,6 +491,125 @@ def test_trivial_extensions_and_enveloping_maps_follow_qpa(field: qpa.Field) -> 
     assert infinite.trivial_extension_projection() is None
 
 
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_string_algebra_enumeration_follows_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(
+        ["v1", "v2", "v3", "v4"],
+        [
+            ("v1", "v2", "a"),
+            ("v1", "v2", "b"),
+            ("v2", "v3", "c"),
+            ("v3", "v4", "d"),
+            ("v3", "v4", "e"),
+        ],
+    )
+    parent = qpa.PathAlgebra(field, quiver)
+    algebra = qpa.QuiverAlgebra.from_quotient_algebra(
+        parent.quotient(
+            [
+                parent.generator("b") * parent.generator("c"),
+                parent.generator("c") * parent.generator("d"),
+            ]
+        )
+    )
+
+    assert qpa.compute_lps_array("ababaca") == [0, 0, 1, 2, 3, 0, 1]
+    assert qpa.compute_lps_array("aaaa") == [0, 1, 2, 3]
+    assert qpa.compute_lps_array("") == []
+    assert qpa.cyclic_permutations_of_band("Abc") == ["bcA", "cAb", "Abc"]
+    assert [
+        (
+            quiver.source_of_string_arrow(character).name,
+            quiver.target_of_string_arrow(character).name,
+        )
+        for character in ["a", "A", "e", "E"]
+    ] == [("v1", "v2"), ("v2", "v1"), ("v3", "v4"), ("v4", "v3")]
+    with pytest.raises(qpa.InvalidInputError, match="exactly one"):
+        quiver.source_of_string_arrow("aa")
+
+    assert algebra.maximum_length_of_direct_string() == 3
+    assert algebra.number_of_joints() == 4
+    band_inputs = ["eca", "Ab", "aB", "De", "(1,1)", "A", "AbAb"]
+    assert [algebra.is_a_band(word) for word in band_inputs] == [
+        False,
+        True,
+        True,
+        True,
+        False,
+        False,
+        False,
+    ]
+    assert algebra.strings_less_than(1) == [
+        "(1,1)",
+        "b",
+        "(1,-1)",
+        "a",
+        "(2,1)",
+        "c",
+        "B",
+        "(2,-1)",
+        "A",
+        "(3,1)",
+        "e",
+        "(3,-1)",
+        "d",
+        "C",
+        "(4,1)",
+        "E",
+        "(4,-1)",
+        "D",
+    ]
+    assert algebra.strings_less_than(2) == [
+        "(1,1)",
+        "b",
+        "Ab",
+        "(1,-1)",
+        "a",
+        "ca",
+        "Ba",
+        "(2,1)",
+        "c",
+        "B",
+        "ec",
+        "aB",
+        "(2,-1)",
+        "A",
+        "bA",
+        "(3,1)",
+        "e",
+        "De",
+        "(3,-1)",
+        "d",
+        "C",
+        "Ed",
+        "AC",
+        "(4,1)",
+        "E",
+        "dE",
+        "CE",
+        "(4,-1)",
+        "D",
+        "eD",
+    ]
+    assert algebra.bands_less_than(3) == [
+        "Ab",
+        "Ba",
+        "aB",
+        "bA",
+        "De",
+        "Ed",
+        "dE",
+        "eD",
+    ]
+    assert algebra.band_representatives_less_than(3) == ["aB", "bA", "dE", "eD"]
+    assert algebra.is_domestic_string_algebra
+    bridge = algebra.bridge_quiver()
+    assert bridge.vertices == ["v1", "v2", "v3", "v4"]
+    assert bridge.arrows == [("v3", "v2", "CE"), ("v1", "v4", "ec")]
+
+
 def test_quiver_orderings_follow_qpa_comparison_closures() -> None:
     quiver = qpa.Quiver.indexed(
         2,

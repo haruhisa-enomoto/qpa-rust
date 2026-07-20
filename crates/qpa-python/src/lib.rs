@@ -35,7 +35,7 @@ use algebra::{
     PySimpleEndoProjectiveResolutionResult, PyStructureConstantsAlgebra,
     PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
     PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult,
-    py_complex_and_chain_maps,
+    py_complex_and_chain_maps, py_compute_lps_array, py_cyclic_permutations_of_band,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -83,6 +83,8 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPath>()?;
     module.add_function(wrap_pyfunction!(py_unique_quiver_name, module)?)?;
     module.add_function(wrap_pyfunction!(py_complex_and_chain_maps, module)?)?;
+    module.add_function(wrap_pyfunction!(py_compute_lps_array, module)?)?;
+    module.add_function(wrap_pyfunction!(py_cyclic_permutations_of_band, module)?)?;
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;

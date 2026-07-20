@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 561
+exposed_or_partial_count = 573
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -521,8 +521,8 @@ python_tests = []
 qpa_name = "BandRepresentativesLessThan"
 python_name = "band_representatives_less_than"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.band_representatives_less_than"
 notes = ""
 entry_ids = ["stringalgebra:DeclareOperation:BandRepresentativesLessThan:1","stringalgebra:InstallMethod:BandRepresentativesLessThan:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -530,14 +530,14 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["band_representatives_less_than"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "BandsLessThan"
 python_name = "bands_less_than"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.bands_less_than"
 notes = ""
 entry_ids = ["stringalgebra:DeclareOperation:BandsLessThan:1","stringalgebra:InstallMethod:BandsLessThan:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -545,7 +545,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["bands_less_than"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "BasicVersionOfModule"
@@ -791,8 +791,8 @@ python_tests = []
 qpa_name = "BridgeQuiver"
 python_name = "bridge_quiver"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.bridge_quiver"
 notes = ""
 entry_ids = ["stringalgebra:DeclareOperation:BridgeQuiver:1","stringalgebra:InstallMethod:BridgeQuiver:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -800,7 +800,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["bridge_quiver"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "BrutalTruncation"
@@ -1631,8 +1631,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "CyclicPermutationOfABand"
 python_name = "cyclic_permutation_of_a_band"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.cyclic_permutations_of_band"
 notes = ""
 entry_ids = ["stringalgebra:DeclareGlobalFunction:CyclicPermutationOfABand:1","stringalgebra:InstallGlobalFunction:CyclicPermutationOfABand:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -1640,7 +1640,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["cyclic_permutations_of_band"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "DTr"
@@ -4181,8 +4181,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_irreducible_morph
 qpa_name = "IsABand"
 python_name = "is_a_band"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_a_band"
 notes = ""
 entry_ids = ["stringalgebra:DeclareOperation:IsABand:1","stringalgebra:InstallMethod:IsABand:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4190,7 +4190,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["is_a_band"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsARQuiverNumerical"
@@ -4721,8 +4721,8 @@ python_tests = []
 qpa_name = "IsDomesticStringAlgebra"
 python_name = "is_domestic_string_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.is_domestic_string_algebra"
 notes = ""
 entry_ids = ["stringalgebra:DeclareOperation:IsDomesticStringAlgebra:1","stringalgebra:InstallMethod:IsDomesticStringAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4730,7 +4730,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["is_domestic_string_algebra"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "IsDoneIterator"
@@ -8201,8 +8201,8 @@ python_tests = []
 qpa_name = "MaximumLengthOfDirectString"
 python_name = "maximum_length_of_direct_string"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.maximum_length_of_direct_string"
 notes = ""
 entry_ids = ["stringalgebra:DeclareGlobalFunction:MaximumLengthOfDirectString:1","stringalgebra:InstallGlobalFunction:MaximumLengthOfDirectString:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -8210,7 +8210,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["maximum_length_of_direct_string"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "MiddleEnd"
@@ -8996,8 +8996,8 @@ python_tests = []
 qpa_name = "NumberOfJoints"
 python_name = "number_of_joints"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.number_of_joints"
 notes = ""
 entry_ids = ["stringalgebra:DeclareGlobalFunction:NumberOfJoints:1","stringalgebra:InstallGlobalFunction:NumberOfJoints:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -9005,7 +9005,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["number_of_joints"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "NumberOfNonIsoDirSummands"
@@ -11666,8 +11666,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "SourceOfArrow"
 python_name = "source_of_arrow"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Quiver.source_of_string_arrow"
 notes = ""
 entry_ids = ["stringalgebra:DeclareGlobalFunction:SourceOfArrow:1","stringalgebra:InstallGlobalFunction:SourceOfArrow:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -11675,7 +11675,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["source_of_string_arrow"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "SourceOfPath"
@@ -11891,8 +11891,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "StringsLessThan"
 python_name = "strings_less_than"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.strings_less_than"
 notes = ""
 entry_ids = ["stringalgebra:DeclareOperation:StringsLessThan:1","stringalgebra:InstallMethod:StringsLessThan:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11900,7 +11900,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["strings_less_than"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "SubAlgebraModule"
@@ -12071,8 +12071,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "TargetOfArrow"
 python_name = "target_of_arrow"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Quiver.target_of_string_arrow"
 notes = ""
 entry_ids = ["stringalgebra:DeclareGlobalFunction:TargetOfArrow:1","stringalgebra:InstallGlobalFunction:TargetOfArrow:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -12080,7 +12080,7 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["target_of_string_arrow"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]
 
 [[operations]]
 qpa_name = "TargetOfPath"
@@ -13316,8 +13316,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structur
 qpa_name = "computeLPSarray"
 python_name = "compute_lp_sarray"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.compute_lps_array"
 notes = ""
 entry_ids = ["stringalgebra:DeclareGlobalFunction:computeLPSarray:1","stringalgebra:InstallGlobalFunction:computeLPSarray:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -13325,4 +13325,4 @@ source_files = ["upstream/qpa/lib/stringalgebra.gd","upstream/qpa/lib/stringalge
 rust_symbols = ["compute_lps_array"]
 rust_tests = ["tests/fixtures/stringalgebra.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_enumeration_follows_qpa"]

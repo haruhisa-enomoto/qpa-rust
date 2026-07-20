@@ -1219,6 +1219,55 @@ impl PyQuiverAlgebra {
         })
     }
 
+    fn maximum_length_of_direct_string(&self) -> PyResult<usize> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::maximum_direct_for(algebra)
+        })
+    }
+
+    fn number_of_joints(&self) -> PyResult<usize> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::number_of_joints_for(algebra)
+        })
+    }
+
+    fn is_a_band(&self, word: &str) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::is_a_band_for(algebra, word)
+        })
+    }
+
+    fn strings_less_than(&self, level: usize) -> PyResult<Vec<String>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::strings_less_than_for(algebra, level)
+        })
+    }
+
+    fn bands_less_than(&self, level: usize) -> PyResult<Vec<String>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::bands_less_than_for(algebra, level)
+        })
+    }
+
+    fn band_representatives_less_than(&self, level: usize) -> PyResult<Vec<String>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::band_representatives_less_than_for(algebra, level)
+        })
+    }
+
+    #[getter]
+    fn is_domestic_string_algebra(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::domestic_for(algebra)
+        })
+    }
+
+    fn bridge_quiver(&self) -> PyResult<PyQuiver> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::string::bridge_quiver_for(algebra)
+        })
+    }
+
     /// Apply QPA's binary `TensorProductOfAlgebras` method.
     fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
         dispatch_pair_ref!(
