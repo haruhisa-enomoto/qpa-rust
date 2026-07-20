@@ -6,6 +6,7 @@
 mod algebra;
 mod dynamic_tree;
 mod field;
+mod infinite_list;
 mod poset;
 mod quiver;
 mod runtime;
@@ -56,6 +57,10 @@ use algebra::{
 };
 use dynamic_tree::{PyDynamicForest, PyDynamicTree};
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
+use infinite_list::{
+    PyHalfInfiniteList, PyInfiniteList, PyInfiniteListElementFunction,
+    PyInfiniteListNewValueCallback, py_integers_list,
+};
 use quiver::{
     PyPath, PyQuiver, PyQuiverArrow, PyQuiverOrdering, PyQuiverPathEnumerator,
     PyQuiverPathIterator, PyQuiverProduct, PyQuiverProductDecomposition, PyQuiverVertex,
@@ -86,8 +91,14 @@ fn invalid(error: impl std::fmt::Display) -> PyErr {
 }
 
 fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add("PositiveInfinity", "infinity")?;
+    module.add("NegativeInfinity", "-infinity")?;
     module.add_class::<PyDynamicForest>()?;
     module.add_class::<PyDynamicTree>()?;
+    module.add_class::<PyHalfInfiniteList>()?;
+    module.add_class::<PyInfiniteList>()?;
+    module.add_class::<PyInfiniteListElementFunction>()?;
+    module.add_class::<PyInfiniteListNewValueCallback>()?;
     module.add_class::<PySuffixTree>()?;
     module.add_class::<PySuffixTreeNode>()?;
     module.add_class::<PySuffixTreeEdge>()?;
@@ -130,6 +141,7 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(py_positions_nonzero, module)?)?;
     module.add_function(wrap_pyfunction!(py_info_dynamic_dictionary_name, module)?)?;
+    module.add_function(wrap_pyfunction!(py_integers_list, module)?)?;
     module.add_function(wrap_pyfunction!(
         py_static_dictionary_info_messages,
         module

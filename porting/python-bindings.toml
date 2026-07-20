@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 807
+exposed_or_partial_count = 847
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -27,15 +27,15 @@ qpa_name = "\"\\^\""
 python_name = "power"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.ModuleComplex.differential; qpa.ModuleChainMap.morphism; qpa.ModuleMorphismList.value"
-notes = "Complex, chain-map, and the exposed module-morphism infinite-list indexing surfaces are available; general QPA infinite-list classes remain internal."
+python_target = "qpa.HalfInfiniteList.value; qpa.InfiniteList.value; qpa.ModuleComplex.differential; qpa.ModuleChainMap.morphism; qpa.ModuleMorphismList.value"
+notes = "General half/full infinite lists plus the complex, chain-map, and module-morphism indexing surfaces are exposed; grouped overloads remain."
 entry_ids = ["complex:DeclareOperation:\"\\^\":1","complex:DeclareOperation:\"\\^\":2","inflist:DeclareOperation:\"\\^\":1","inflist:DeclareOperation:\"\\^\":2"]
 constructs = ["DeclareOperation"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["InfiniteList; HalfInfiniteList","qpa_gbnp::complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "1stSyzygy"
@@ -1376,8 +1376,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "ConstantInfList"
 python_name = "constant_inf_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.constant"
 notes = ""
 entry_ids = ["inflist:DeclareGlobalFunction:ConstantInfList:1","inflist:InstallGlobalFunction:ConstantInfList:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -1385,7 +1385,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::constant"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
 
 [[operations]]
 qpa_name = "CosyzygyTruncation"
@@ -1526,8 +1526,8 @@ python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_surface_fol
 qpa_name = "Cut"
 python_name = "cut"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.cut"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:Cut:1","inflist:InstallMethod:Cut:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1535,7 +1535,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::cut"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
 
 [[operations]]
 qpa_name = "CutComplexAbove"
@@ -2201,8 +2201,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "Direction"
 python_name = "direction"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.direction"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:Direction:1","inflist:InstallMethod:Direction:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2210,7 +2210,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::direction"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "Display"
@@ -2426,8 +2426,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "ElementFunction"
 python_name = "element_function"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.element_function; qpa.InfiniteListElementFunction"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:ElementFunction:1","inflist:InstallMethod:ElementFunction:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2435,7 +2435,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::element_function"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "ElementInIndecProjective"
@@ -2861,8 +2861,8 @@ python_tests = ["python/tests/test_predefined_algebras.py::test_admissible_seque
 qpa_name = "FiniteInfList"
 python_name = "finite_inf_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.finite"
 notes = ""
 entry_ids = ["inflist:DeclareGlobalFunction:FiniteInfList:1","inflist:InstallGlobalFunction:FiniteInfList:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -2870,14 +2870,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::finite"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
 
 [[operations]]
 qpa_name = "FinitePartAsList"
 python_name = "finite_part_as_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.finite_part_as_list"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:FinitePartAsList:1","inflist:InstallMethod:FinitePartAsList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2885,7 +2885,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::finite_part_as_list"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "FirstPart"
@@ -3026,8 +3026,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "FunctionInfList"
 python_name = "function_inf_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.function"
 notes = ""
 entry_ids = ["inflist:DeclareGlobalFunction:FunctionInfList:1","inflist:InstallGlobalFunction:FunctionInfList:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -3035,7 +3035,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::function"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
 
 [[operations]]
 qpa_name = "GBNPGroebnerBasis"
@@ -3386,8 +3386,8 @@ python_tests = []
 qpa_name = "HalfInfList"
 python_name = "half_inf_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.map"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:HalfInfList:1","inflist:InstallMethod:HalfInfList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3395,7 +3395,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::map"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "HaveFiniteCoresolutionInAddM"
@@ -3461,16 +3461,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "HighestKnownPosition"
 python_name = "highest_known_position"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.highest_known_position; qpa.InfiniteList.highest_known_position"
+notes = "QPA infinity and none sentinels are returned as the strings 'infinity', '-infinity', and 'none'."
 entry_ids = ["inflist:DeclareOperation:HighestKnownPosition:1","inflist:DeclareOperation:HighestKnownPosition:2","inflist:InstallMethod:HighestKnownPosition:1","inflist:InstallMethod:HighestKnownPosition:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::highest_known_position; InfiniteList::highest_known_position"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "Hom"
@@ -3851,8 +3851,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "InfConcatenation"
 python_name = "inf_concatenation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.concatenate"
 notes = ""
 entry_ids = ["inflist:DeclareGlobalFunction:InfConcatenation:1","inflist:InstallGlobalFunction:InfConcatenation:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -3860,14 +3860,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::concatenate"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "InfList"
 python_name = "inf_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList; qpa.InfiniteList.map"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:InfList:1","inflist:InstallMethod:InfList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3875,14 +3875,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::map"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "InfListType"
 python_name = "inf_list_type"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.list_type"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:InfListType:1","inflist:InstallMethod:InfListType:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3890,7 +3890,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::list_type"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "InfoDynamicDictionary"
@@ -4001,16 +4001,16 @@ python_tests = ["python/tests/test_static_dictionaries.py::test_static_dictionar
 qpa_name = "InitialValue"
 python_name = "initial_value"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.initial_value"
+notes = "Python None represents QPA fail for non-next half lists."
 entry_ids = ["inflist:DeclareOperation:InitialValue:1","inflist:InstallMethod:InitialValue:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::initial_value"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "InjDimension"
@@ -4091,8 +4091,8 @@ python_tests = ["python/tests/test_suffix_trees.py::test_suffix_tree_insert_quer
 qpa_name = "IntegersList"
 python_name = "integers_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.integers_list"
 notes = ""
 entry_ids = ["inflist:BindGlobal:IntegersList:1"]
 constructs = ["BindGlobal"]
@@ -4100,7 +4100,7 @@ source_files = ["upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["integers_list"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
 
 [[operations]]
 qpa_name = "IntersectionOfSubmodules"
@@ -5126,8 +5126,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsHalfInfList"
 python_name = "is_half_inf_list"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.is_half_infinite_list"
 notes = ""
 entry_ids = ["inflist:DeclareCategory:IsHalfInfList:1"]
 constructs = ["DeclareCategory"]
@@ -5135,14 +5135,14 @@ source_files = ["upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["HalfInfiniteList"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsHalfInfListDefaultRep"
 python_name = "is_half_inf_list_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.is_default_rep"
 notes = ""
 entry_ids = ["inflist:DeclareRepresentation:IsHalfInfListDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -5150,7 +5150,7 @@ source_files = ["upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["HalfInfiniteList"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsHereditaryAlgebra"
@@ -5261,8 +5261,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison
 qpa_name = "IsInfList"
 python_name = "is_inf_list"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.is_infinite_list"
 notes = ""
 entry_ids = ["inflist:DeclareCategory:IsInfList:1"]
 constructs = ["DeclareCategory"]
@@ -5270,14 +5270,14 @@ source_files = ["upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["InfiniteList"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsInfListDefaultRep"
 python_name = "is_inf_list_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.is_default_rep"
 notes = ""
 entry_ids = ["inflist:DeclareRepresentation:IsInfListDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -5285,7 +5285,7 @@ source_files = ["upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["InfiniteList"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsInjective"
@@ -6251,8 +6251,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structure_constan
 qpa_name = "IsRepeating"
 python_name = "is_repeating"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.is_repeating"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:IsRepeating:1","inflist:InstallMethod:IsRepeating:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -6260,7 +6260,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::is_repeating"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsReverseOrdering"
@@ -6581,8 +6581,8 @@ python_tests = ["python/tests/test_static_dictionaries.py::test_generic_static_d
 qpa_name = "IsStoringValues"
 python_name = "is_storing_values"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.is_storing_values"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:IsStoringValues:1","inflist:InstallMethod:IsStoringValues:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -6590,7 +6590,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::is_storing_values"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsStringAlgebra"
@@ -7827,15 +7827,15 @@ qpa_name = "LowerBound"
 python_name = "lower_bound"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.ModuleComplex.lower_bound"
-notes = "The complex overload is exposed; the infinite-list overload remains."
+python_target = "qpa.ModuleComplex.lower_bound; qpa.InfiniteList.lower_bound"
+notes = "The complex and infinite-list overloads are exposed; grouped overloads remain."
 entry_ids = ["complex:DeclareOperation:LowerBound:1","complex:InstallMethod:LowerBound:1","inflist:DeclareOperation:LowerBound:1","inflist:InstallMethod:LowerBound:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi","upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::lower_bound","qpa_gbnp::QpaComplex::lower_bound"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "LowestKnownDegree"
@@ -7856,8 +7856,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "LowestKnownPosition"
 python_name = "lowest_known_position"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.lowest_known_position; qpa.InfiniteList.lowest_known_position"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:LowestKnownPosition:1","inflist:DeclareOperation:LowestKnownPosition:2","inflist:InstallMethod:LowestKnownPosition:1","inflist:InstallMethod:LowestKnownPosition:2"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7865,7 +7865,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::lowest_known_position; InfiniteList::lowest_known_position"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MakeBasicListOfModules"
@@ -7886,23 +7886,23 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposit
 qpa_name = "MakeHalfInfList"
 python_name = "make_half_inf_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList"
+notes = "Accepts QPA's tagged repeat, next, next/repeat, and pos specifications with Python callables."
 entry_ids = ["inflist:DeclareGlobalFunction:MakeHalfInfList:1","inflist:InstallGlobalFunction:MakeHalfInfList:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::new"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "MakeInfList"
 python_name = "make_inf_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList"
 notes = ""
 entry_ids = ["inflist:DeclareGlobalFunction:MakeInfList:1","inflist:InstallGlobalFunction:MakeInfList:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -7910,14 +7910,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::new"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
 
 [[operations]]
 qpa_name = "MakeInfListFromHalfInfLists"
 python_name = "make_inf_list_from_half_inf_lists"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.from_half_lists"
 notes = ""
 entry_ids = ["inflist:DeclareGlobalFunction:MakeInfListFromHalfInfLists:1","inflist:InstallGlobalFunction:MakeInfListFromHalfInfLists:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -7925,7 +7925,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::from_parts"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
 
 [[operations]]
 qpa_name = "MakeQPADocumentation"
@@ -7946,8 +7946,8 @@ python_tests = []
 qpa_name = "MakeRepeatingList"
 python_name = "make_repeating_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.make_repeating_list"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:MakeRepeatingList:1","inflist:InstallMethod:MakeRepeatingList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7955,7 +7955,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::make_repeating_list"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "MakeUniform"
@@ -8216,8 +8216,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_string_algebra_en
 qpa_name = "MiddleEnd"
 python_name = "middle_end"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.middle_end"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:MiddleEnd:1","inflist:InstallMethod:MiddleEnd:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8225,14 +8225,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::middle_end"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MiddlePart"
 python_name = "middle_part"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.middle_part"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:MiddlePart:1","inflist:InstallMethod:MiddlePart:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8240,14 +8240,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::middle_part"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MiddleStart"
 python_name = "middle_start"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.middle_start"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:MiddleStart:1","inflist:InstallMethod:MiddleStart:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8255,7 +8255,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::middle_start"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalGeneratingSetOfIdeal"
@@ -8666,8 +8666,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_matrix_submodule_
 qpa_name = "NegativeInfinity"
 python_name = "negative_infinity"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.NegativeInfinity"
 notes = ""
 entry_ids = ["inflist:BindGlobal:NegativeInfinity:1"]
 constructs = ["BindGlobal"]
@@ -8675,14 +8675,14 @@ source_files = ["upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["ExtendedInteger"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "NegativePart"
 python_name = "negative_part"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.negative_part"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:NegativePart:1","inflist:InstallMethod:NegativePart:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8690,14 +8690,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::negative_part"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "NegativePartFrom"
 python_name = "negative_part_from"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.negative_part_from"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:NegativePartFrom:1","inflist:InstallMethod:NegativePartFrom:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8705,7 +8705,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::negative_part_from"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "NegativeRepeatDegrees"
@@ -8756,8 +8756,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_projective_path_s
 qpa_name = "NewValueCallback"
 python_name = "new_value_callback"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.new_value_callback; qpa.InfiniteListNewValueCallback"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:NewValueCallback:1","inflist:InstallMethod:NewValueCallback:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8765,7 +8765,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::new_value_callback"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "NextIterator"
@@ -9776,8 +9776,8 @@ python_tests = ["python/tests/test_koszul_and_utilities.py::test_null_list_and_p
 qpa_name = "PositiveInfinity"
 python_name = "positive_infinity"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PositiveInfinity"
 notes = ""
 entry_ids = ["inflist:BindGlobal:PositiveInfinity:1"]
 constructs = ["BindGlobal"]
@@ -9785,14 +9785,14 @@ source_files = ["upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["ExtendedInteger"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "PositivePart"
 python_name = "positive_part"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.positive_part"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:PositivePart:1","inflist:InstallMethod:PositivePart:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9800,14 +9800,14 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::positive_part"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "PositivePartFrom"
 python_name = "positive_part_from"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.positive_part_from"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:PositivePartFrom:1","inflist:InstallMethod:PositivePartFrom:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9815,7 +9815,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::positive_part_from"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "PositiveRepeatDegrees"
@@ -11006,8 +11006,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map
 qpa_name = "RepeatingList"
 python_name = "repeating_list"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.repeating_list"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:RepeatingList:1","inflist:InstallMethod:RepeatingList:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11015,7 +11015,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::repeating_list"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
 
 [[operations]]
 qpa_name = "RestrictionViaAlgebraHomomorphism"
@@ -11502,15 +11502,15 @@ qpa_name = "Shift"
 python_name = "shift"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.ModuleComplex.shift"
-notes = "The complex overload is exposed; half- and full-infinite-list overloads remain."
+python_target = "qpa.ModuleComplex.shift; qpa.HalfInfiniteList.shift; qpa.InfiniteList.shift"
+notes = "The complex and both infinite-list overloads are exposed; grouped overloads remain."
 entry_ids = ["complex:DeclareOperation:Shift:1","complex:InstallMethod:Shift:1","inflist:DeclareOperation:Shift:1","inflist:DeclareOperation:Shift:2","inflist:InstallMethod:Shift:1","inflist:InstallMethod:Shift:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi","upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::shift; InfiniteList::shift","qpa_gbnp::QpaComplex::shift"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
 
 [[operations]]
 qpa_name = "ShiftUnsigned"
@@ -11531,16 +11531,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "ShiftedSplice"
 python_name = "shifted_splice"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.shifted_splice"
+notes = "Preserves QPA's declared-but-uninstalled operation as InvalidInputError rather than inventing an implementation."
 entry_ids = ["inflist:DeclareOperation:ShiftedSplice:1"]
 constructs = ["DeclareOperation"]
 source_files = ["upstream/qpa/lib/inflist.gd"]
 rust_symbols = ["shifted_splice"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
 
 [[operations]]
 qpa_name = "ShortExactSequence"
@@ -11726,8 +11726,8 @@ python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root
 qpa_name = "Splice"
 python_name = "splice"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.InfiniteList.splice"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:Splice:1","inflist:InstallMethod:Splice:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11735,7 +11735,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::splice"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "SpliceDynamicTree"
@@ -11846,8 +11846,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_
 qpa_name = "StartPosition"
 python_name = "start_position"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.start_position"
 notes = ""
 entry_ids = ["inflist:DeclareOperation:StartPosition:1","inflist:InstallMethod:StartPosition:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11855,7 +11855,7 @@ source_files = ["upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["HalfInfiniteList::start_position"]
 rust_tests = ["tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
 
 [[operations]]
 qpa_name = "StaticDictionary"
@@ -12837,15 +12837,15 @@ qpa_name = "UpperBound"
 python_name = "upper_bound"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.ModuleComplex.upper_bound"
-notes = "The complex overload is exposed; the infinite-list overload remains."
+python_target = "qpa.ModuleComplex.upper_bound; qpa.InfiniteList.upper_bound"
+notes = "The complex and infinite-list overloads are exposed; grouped overloads remain."
 entry_ids = ["complex:DeclareOperation:UpperBound:1","complex:InstallMethod:UpperBound:1","inflist:DeclareOperation:UpperBound:1","inflist:InstallMethod:UpperBound:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi","upstream/qpa/lib/inflist.gd","upstream/qpa/lib/inflist.gi"]
 rust_symbols = ["InfiniteList::upper_bound","qpa_gbnp::QpaComplex::upper_bound"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "Vectorize"
@@ -13286,16 +13286,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "\\^"
 python_name = "power"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.HalfInfiniteList.value; qpa.InfiniteList.value"
+notes = "The parser records QPA's half/full infinite-list exponentiation spelling separately from the quoted grouped operator entry; both map to mathematical-position lookup."
 entry_ids = ["complex:InstallMethod:\\^:1","complex:InstallMethod:\\^:2","inflist:InstallMethod:\\^:1","inflist:InstallMethod:\\^:2","module:InstallOtherMethod:\\^:1","module:InstallOtherMethod:\\^:2","pathalg:InstallMethod:\\^:1","pathalg:InstallMethod:\\^:2","projpathalgmodule:InstallOtherMethod:\\^:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/complex.gi","upstream/qpa/lib/inflist.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["InfiniteList; HalfInfiniteList","PathAlgebraModuleElement::act","PathAlgebraVector::act; QuotientPathAlgebraVector::act","QuotientPathAlgebraElement::pow_integer; power_quotient_element","qpa_gbnp::QpaComplex::differential; qpa_gbnp::QpaChainMap::morphism"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/inflist.schema-v1.json","tests/fixtures/inflist_errors.schema-v1.json","tests/fixtures/module_element_errors.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/pathalg_inverse.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\in"

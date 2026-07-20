@@ -2065,9 +2065,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_f
 [[bindings]]
 qpa_name = "LowerBound"
 status = "partial"
-target = "qpa.ModuleComplex.lower_bound"
-tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
-notes = "The complex overload is exposed; the infinite-list overload remains."
+target = "qpa.ModuleComplex.lower_bound; qpa.InfiniteList.lower_bound"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+notes = "The complex and infinite-list overloads are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "LowestKnownDegree"
@@ -2090,9 +2090,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_f
 [[bindings]]
 qpa_name = "Shift"
 status = "partial"
-target = "qpa.ModuleComplex.shift"
-tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
-notes = "The complex overload is exposed; half- and full-infinite-list overloads remain."
+target = "qpa.ModuleComplex.shift; qpa.HalfInfiniteList.shift; qpa.InfiniteList.shift"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
+notes = "The complex and both infinite-list overloads are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "ShiftUnsigned"
@@ -2134,9 +2134,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_f
 [[bindings]]
 qpa_name = "UpperBound"
 status = "partial"
-target = "qpa.ModuleComplex.upper_bound"
-tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
-notes = "The complex overload is exposed; the infinite-list overload remains."
+target = "qpa.ModuleComplex.upper_bound; qpa.InfiniteList.upper_bound"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+notes = "The complex and infinite-list overloads are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "ZeroComplex"
@@ -3552,9 +3552,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_f
 [[bindings]]
 qpa_name = "\"\\^\""
 status = "partial"
-target = "qpa.ModuleComplex.differential; qpa.ModuleChainMap.morphism; qpa.ModuleMorphismList.value"
-tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
-notes = "Complex, chain-map, and the exposed module-morphism infinite-list indexing surfaces are available; general QPA infinite-list classes remain internal."
+target = "qpa.HalfInfiniteList.value; qpa.InfiniteList.value; qpa.ModuleComplex.differential; qpa.ModuleChainMap.morphism; qpa.ModuleMorphismList.value"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+notes = "General half/full infinite lists plus the complex, chain-map, and module-morphism indexing surfaces are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "ComplexAndChainMaps"
@@ -5083,3 +5083,250 @@ qpa_name = "ProjectivePresentationFamily"
 status = "exposed"
 target = "qpa.ProjectivePresentation; qpa.ProjectivePresentation.family_name"
 tests = ["python/tests/test_projective_presentations.py::test_projective_presentation_representation_follows_qpa"]
+
+# Infinite lists
+
+[[bindings]]
+qpa_name = "\\^"
+status = "exposed"
+target = "qpa.HalfInfiniteList.value; qpa.InfiniteList.value"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+notes = "The parser records QPA's half/full infinite-list exponentiation spelling separately from the quoted grouped operator entry; both map to mathematical-position lookup."
+
+[[bindings]]
+qpa_name = "ConstantInfList"
+status = "exposed"
+target = "qpa.InfiniteList.constant"
+tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
+
+[[bindings]]
+qpa_name = "Cut"
+status = "exposed"
+target = "qpa.HalfInfiniteList.cut"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
+
+[[bindings]]
+qpa_name = "Direction"
+status = "exposed"
+target = "qpa.HalfInfiniteList.direction"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ElementFunction"
+status = "exposed"
+target = "qpa.HalfInfiniteList.element_function; qpa.InfiniteListElementFunction"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FiniteInfList"
+status = "exposed"
+target = "qpa.InfiniteList.finite"
+tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FinitePartAsList"
+status = "exposed"
+target = "qpa.InfiniteList.finite_part_as_list"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "FunctionInfList"
+status = "exposed"
+target = "qpa.InfiniteList.function"
+tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
+
+[[bindings]]
+qpa_name = "HalfInfList"
+status = "exposed"
+target = "qpa.HalfInfiniteList.map"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "HighestKnownPosition"
+status = "exposed"
+target = "qpa.HalfInfiniteList.highest_known_position; qpa.InfiniteList.highest_known_position"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+notes = "QPA infinity and none sentinels are returned as the strings 'infinity', '-infinity', and 'none'."
+
+[[bindings]]
+qpa_name = "InfConcatenation"
+status = "exposed"
+target = "qpa.InfiniteList.concatenate"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InfList"
+status = "exposed"
+target = "qpa.InfiniteList; qpa.InfiniteList.map"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InfListType"
+status = "exposed"
+target = "qpa.HalfInfiniteList.list_type"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InitialValue"
+status = "exposed"
+target = "qpa.HalfInfiniteList.initial_value"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+notes = "Python None represents QPA fail for non-next half lists."
+
+[[bindings]]
+qpa_name = "IntegersList"
+status = "exposed"
+target = "qpa.integers_list"
+tests = ["python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsHalfInfList"
+status = "exposed"
+target = "qpa.HalfInfiniteList.is_half_infinite_list"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsHalfInfListDefaultRep"
+status = "exposed"
+target = "qpa.HalfInfiniteList.is_default_rep"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsInfList"
+status = "exposed"
+target = "qpa.InfiniteList.is_infinite_list"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsInfListDefaultRep"
+status = "exposed"
+target = "qpa.InfiniteList.is_default_rep"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsRepeating"
+status = "exposed"
+target = "qpa.HalfInfiniteList.is_repeating"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsStoringValues"
+status = "exposed"
+target = "qpa.HalfInfiniteList.is_storing_values"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LowestKnownPosition"
+status = "exposed"
+target = "qpa.HalfInfiniteList.lowest_known_position; qpa.InfiniteList.lowest_known_position"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MakeHalfInfList"
+status = "exposed"
+target = "qpa.HalfInfiniteList"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+notes = "Accepts QPA's tagged repeat, next, next/repeat, and pos specifications with Python callables."
+
+[[bindings]]
+qpa_name = "MakeInfList"
+status = "exposed"
+target = "qpa.InfiniteList"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MakeInfListFromHalfInfLists"
+status = "exposed"
+target = "qpa.InfiniteList.from_half_lists"
+tests = ["python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MakeRepeatingList"
+status = "exposed"
+target = "qpa.HalfInfiniteList.make_repeating_list"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MiddleEnd"
+status = "exposed"
+target = "qpa.InfiniteList.middle_end"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MiddlePart"
+status = "exposed"
+target = "qpa.InfiniteList.middle_part"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MiddleStart"
+status = "exposed"
+target = "qpa.InfiniteList.middle_start"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NegativeInfinity"
+status = "exposed"
+target = "qpa.NegativeInfinity"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NegativePart"
+status = "exposed"
+target = "qpa.InfiniteList.negative_part"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NegativePartFrom"
+status = "exposed"
+target = "qpa.InfiniteList.negative_part_from"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NewValueCallback"
+status = "exposed"
+target = "qpa.HalfInfiniteList.new_value_callback; qpa.InfiniteListNewValueCallback"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PositiveInfinity"
+status = "exposed"
+target = "qpa.PositiveInfinity"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PositivePart"
+status = "exposed"
+target = "qpa.InfiniteList.positive_part"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PositivePartFrom"
+status = "exposed"
+target = "qpa.InfiniteList.positive_part_from"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RepeatingList"
+status = "exposed"
+target = "qpa.HalfInfiniteList.repeating_list"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa","python/tests/test_infinite_lists.py::test_infinite_list_constructors_and_repeat_conversion_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ShiftedSplice"
+status = "exposed"
+target = "qpa.InfiniteList.shifted_splice"
+tests = ["python/tests/test_infinite_lists.py::test_infinite_list_source_failures_follow_qpa"]
+notes = "Preserves QPA's declared-but-uninstalled operation as InvalidInputError rather than inventing an implementation."
+
+[[bindings]]
+qpa_name = "Splice"
+status = "exposed"
+target = "qpa.InfiniteList.splice"
+tests = ["python/tests/test_infinite_lists.py::test_full_infinite_lists_and_transformations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "StartPosition"
+status = "exposed"
+target = "qpa.HalfInfiniteList.start_position"
+tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_follow_qpa"]
