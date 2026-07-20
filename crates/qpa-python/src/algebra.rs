@@ -44,9 +44,9 @@ pub(crate) use fp_projective::{
 pub(crate) use homological::py_complex_and_chain_maps;
 pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
 pub(crate) use predefined::{
-    PyNakayamaAlgebraResult, PyPredefinedAlgebra, py_admissible_sequence_generator,
+    PyNakayamaAlgebraResult, PyPosetAlgebra, PyPredefinedAlgebra, py_admissible_sequence_generator,
     py_canonical_algebra, py_finite_global_dim_green, py_finite_global_dim_kirk_kuz,
-    py_kronecker_algebra, py_nakayama_algebra,
+    py_kronecker_algebra, py_nakayama_algebra, py_poset_algebra,
 };
 pub(crate) use projective::{
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,

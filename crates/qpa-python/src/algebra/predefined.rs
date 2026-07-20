@@ -11,6 +11,7 @@ use crate::field::{
     parse_python_integer, parse_python_integer_vector, wrap_python_integer_matrix,
     wrap_python_integer_vector,
 };
+use crate::poset::{PyPoset, PyPosetElement};
 
 /// A QPA predefined algebra together with its constructor-installed filters.
 #[pyclass(name = "PredefinedAlgebra", frozen, skip_from_py_object)]
@@ -79,6 +80,44 @@ pub(crate) struct PyNakayamaAlgebraResult {
     algebra: Option<PyPredefinedAlgebra>,
     invalid_sequence: Option<Vec<Integer>>,
     diagnostic: Option<&'static str>,
+}
+
+/// A QPA poset algebra together with its identity-preserving poset attribute.
+#[pyclass(name = "PosetAlgebra", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyPosetAlgebra {
+    algebra: PyQuiverAlgebra,
+    poset: PyPoset,
+}
+
+#[pymethods]
+impl PyPosetAlgebra {
+    #[getter]
+    fn algebra(&self) -> PyQuiverAlgebra {
+        self.algebra.clone()
+    }
+
+    #[getter]
+    fn poset(&self) -> PyPoset {
+        self.poset.clone()
+    }
+
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_poset_algebra(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_finite_global_dimension_algebra(&self) -> bool {
+        true
+    }
+
+    #[allow(clippy::unused_self)]
+    fn __repr__(&self) -> &'static str {
+        "<QPA poset algebra>"
+    }
 }
 
 #[pymethods]
@@ -242,6 +281,29 @@ pub(crate) fn py_kronecker_algebra(
         FieldKind::Prime(characteristic) => {
             kronecker_for(Zp::new(characteristic), &number_of_arrows)
         }
+    }
+}
+
+fn poset_algebra_for<F: runtime::PythonField>(field: F, poset: &PyPoset) -> PyResult<PyPosetAlgebra>
+where
+    super::conversion::QuiverAlgebraKind: runtime::Wrap<QuiverAlgebra<F>>,
+{
+    let algebra =
+        qpa_gbnp::poset_algebra::<F, PyPosetElement>(field, &poset.inner).map_err(invalid)?;
+    Ok(PyPosetAlgebra {
+        algebra: super::conversion::wrap_quiver_algebra(algebra.into_algebra()),
+        poset: poset.clone(),
+    })
+}
+
+/// Construct QPA's incidence algebra while preserving the source poset identity.
+#[pyfunction]
+#[pyo3(name = "poset_algebra")]
+pub(crate) fn py_poset_algebra(field: &PyField, poset: &PyPoset) -> PyResult<PyPosetAlgebra> {
+    match field.kind {
+        FieldKind::Rational => poset_algebra_for(Q, poset),
+        FieldKind::Binary => poset_algebra_for(Z2, poset),
+        FieldKind::Prime(characteristic) => poset_algebra_for(Zp::new(characteristic), poset),
     }
 }
 

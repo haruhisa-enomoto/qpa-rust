@@ -5,6 +5,7 @@
 
 mod algebra;
 mod field;
+mod poset;
 mod quiver;
 mod runtime;
 
@@ -27,7 +28,7 @@ use algebra::{
     PyNaturalSubmoduleHomomorphism, PyNonisomorphicDirectSummandData,
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector,
-    PyPathAlgebraVectorBasis, PyPathAlgebraVectorSpace, PyPathAlgebraVectorXSet,
+    PyPathAlgebraVectorBasis, PyPathAlgebraVectorSpace, PyPathAlgebraVectorXSet, PyPosetAlgebra,
     PyPredecessorValuation, PyPredecessorsOfModuleResult, PyPredefinedAlgebra,
     PyPredefinedArQuiverData, PyProjectiveIsomorphismComponent,
     PyProjectivePathAlgebraPresentation, PyProjectiveResolution, PyQuiverAlgebra,
@@ -40,7 +41,7 @@ use algebra::{
     py_admissible_sequence_generator, py_canonical_algebra, py_complex_and_chain_maps,
     py_compute_lps_array, py_cyclic_permutations_of_band, py_finite_global_dim_green,
     py_finite_global_dim_kirk_kuz, py_format_multiplicity_vector, py_format_multiplicity_vectors,
-    py_kronecker_algebra, py_nakayama_algebra, py_predefined_ar_quiver_catalog,
+    py_kronecker_algebra, py_nakayama_algebra, py_poset_algebra, py_predefined_ar_quiver_catalog,
     py_predefined_ar_quiver_data, py_string_quiver_rho,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
@@ -50,6 +51,7 @@ use quiver::{
     py_unique_quiver_name,
 };
 
+use poset::{PyPoset, PyPosetOrder};
 use pyo3::{
     PyErr, PyResult, create_exception, exceptions::PyException, prelude::*, types::PyModule,
 };
@@ -77,6 +79,8 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyQuiverProduct>()?;
     module.add_class::<PyQuiverProductDecomposition>()?;
     module.add_class::<PyPath>()?;
+    module.add_class::<PyPoset>()?;
+    module.add_class::<PyPosetOrder>()?;
     module.add_function(wrap_pyfunction!(py_unique_quiver_name, module)?)?;
     module.add_function(wrap_pyfunction!(py_complex_and_chain_maps, module)?)?;
     module.add_function(wrap_pyfunction!(py_compute_lps_array, module)?)?;
@@ -92,6 +96,7 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_kronecker_algebra, module)?)?;
     module.add_function(wrap_pyfunction!(py_finite_global_dim_green, module)?)?;
     module.add_function(wrap_pyfunction!(py_finite_global_dim_kirk_kuz, module)?)?;
+    module.add_function(wrap_pyfunction!(py_poset_algebra, module)?)?;
     Ok(())
 }
 
@@ -118,6 +123,7 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyStringSigmaEpsilon>()?;
     module.add_class::<PyPredefinedAlgebra>()?;
     module.add_class::<PyNakayamaAlgebraResult>()?;
+    module.add_class::<PyPosetAlgebra>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;

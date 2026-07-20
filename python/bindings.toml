@@ -173,9 +173,9 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "Size"
 status = "partial"
-target = "qpa.Quiver.cardinality; qpa.CombinatorialMap.size"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core", "python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa"]
-notes = "The QPA quiver and combinatorial-map overloads are exposed; the poset overload remains."
+target = "qpa.Quiver.cardinality; qpa.CombinatorialMap.size; qpa.Poset.__len__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core", "python/tests/test_architecture_spike.py::test_combinatorial_map_foundation_follows_qpa","python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+notes = "The QPA quiver, combinatorial-map, and poset overloads are exposed; other GAP collection overloads remain."
 
 [[bindings]]
 qpa_name = "IncomingArrowsOfVertex"
@@ -401,9 +401,9 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 [[bindings]]
 qpa_name = "ViewObj"
 status = "partial"
-target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__; qpa.ArQuiverNumerical.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa"]
-notes = "The quiver, quiver-ordering, algebra Groebner-basis, projective-module Groebner-basis, unit-form, and numerical AR-quiver overloads are exposed; grouped display overloads remain."
+target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__; qpa.ArQuiverNumerical.__repr__; qpa.Poset.__repr__"
+tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa","python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+notes = "The quiver, quiver-ordering, Groebner-basis, unit-form, numerical AR-quiver, and poset overloads are exposed; grouped display overloads remain."
 
 [[bindings]]
 qpa_name = "\\[\\]"
@@ -691,10 +691,9 @@ notes = "Structure-constant known-property dispatch and the path-algebra constru
 
 [[bindings]]
 qpa_name = "IsFiniteGlobalDimensionAlgebra"
-status = "partial"
-target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension; qpa.PredefinedAlgebra.is_finite_global_dimension_algebra"
-tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
-notes = "Known-property implications are exposed for structure-constant, path, quotient, and tagged predefined algebras; the poset-algebra protocol remains."
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.is_finite_global_dimension_from_known_properties; qpa.PathAlgebra.is_finite_global_dimension; qpa.QuotientAlgebra.is_finite_global_dimension; qpa.PredefinedAlgebra.is_finite_global_dimension_algebra; qpa.PosetAlgebra.is_finite_global_dimension_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_structure_constants_algebra_operations_follow_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa","python/tests/test_posets.py::test_poset_algebra_follows_qpa"]
 
 [[bindings]]
 qpa_name = "IsGorensteinAlgebra"
@@ -4099,3 +4098,76 @@ status = "partial"
 target = "qpa.PredefinedAlgebra.is_finite_type_algebra"
 tests = ["python/tests/test_predefined_algebras.py::test_nakayama_canonical_and_kronecker_follow_qpa"]
 notes = "The Nakayama-constructor implication is exposed; the general representation-type recognition methods remain."
+
+# Posets and poset algebras
+
+[[bindings]]
+qpa_name = "Poset"
+status = "exposed"
+target = "qpa.Poset"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa","python/tests/test_posets.py::test_poset_errors_follow_qpa"]
+notes = "The Python boundary accepts exact arbitrary-precision integers and strings as finite poset points."
+
+[[bindings]]
+qpa_name = "IsPoset"
+status = "exposed"
+target = "qpa.Poset"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsPosetRep"
+status = "exposed"
+target = "qpa.Poset.is_default_rep"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+
+[[bindings]]
+qpa_name = "UnderlyingSet"
+status = "exposed"
+target = "qpa.Poset.underlying_set"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+
+[[bindings]]
+qpa_name = "PartialOrderOfPoset"
+status = "exposed"
+target = "qpa.Poset.partial_order; qpa.PosetOrder"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa","python/tests/test_posets.py::test_poset_errors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TheFamilyOfPosets"
+status = "exposed"
+target = "qpa.Poset.family_name"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+notes = "Represented as metadata on the concrete Python Poset type rather than a separate GAP family object."
+
+[[bindings]]
+qpa_name = "TheTypePoset"
+status = "exposed"
+target = "qpa.Poset.type_name"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+notes = "Represented as metadata on the concrete Python Poset type rather than a separate GAP type object."
+
+[[bindings]]
+qpa_name = "PosetAlgebra"
+status = "exposed"
+target = "qpa.poset_algebra; qpa.PosetAlgebra"
+tests = ["python/tests/test_posets.py::test_poset_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "IsPosetAlgebra"
+status = "exposed"
+target = "qpa.PosetAlgebra.is_poset_algebra"
+tests = ["python/tests/test_posets.py::test_poset_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "PosetOfPosetAlgebra"
+status = "exposed"
+target = "qpa.PosetAlgebra.poset"
+tests = ["python/tests/test_posets.py::test_poset_algebra_follows_qpa"]
+notes = "Preserves QPA object identity with the Poset supplied to the constructor."
+
+[[bindings]]
+qpa_name = "Display"
+status = "partial"
+target = "qpa.Poset.display"
+tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+notes = "The exact poset display overload is exposed; module, homomorphism, and tensor display overloads remain."
