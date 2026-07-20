@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 194
+exposed_or_partial_count = 200
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2801,8 +2801,8 @@ python_tests = []
 qpa_name = "FiniteChainMap"
 python_name = "finite_chain_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.finite_chain_map_to"
 notes = ""
 entry_ids = ["complex:DeclareOperation:FiniteChainMap:1","complex:InstallMethod:FiniteChainMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2810,7 +2810,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::finite_chain_map"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "FiniteComplex"
@@ -3446,16 +3446,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "HighestKnownDegree"
 python_name = "highest_known_degree"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.ModuleComplex.highest_known_degree"
-notes = "The complex overload is exposed; the chain-map overload remains."
+status = "exposed"
+python_target = "qpa.ModuleComplex.highest_known_degree; qpa.ModuleChainMap.highest_known_degree"
+notes = ""
 entry_ids = ["complex:DeclareOperation:HighestKnownDegree:1","complex:DeclareOperation:HighestKnownDegree:2","complex:InstallMethod:HighestKnownDegree:1","complex:InstallMethod:HighestKnownDegree:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::highest_known_degree; qpa_gbnp::QpaChainMap::highest_known_degree"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "HighestKnownPosition"
@@ -4481,8 +4481,8 @@ python_tests = []
 qpa_name = "IsChainMap"
 python_name = "is_chain_map"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleChainMap"
 notes = ""
 entry_ids = ["complex:DeclareCategory:IsChainMap:1","complex:DeclareCategoryFamily:IsChainMap:1"]
 constructs = ["DeclareCategory","DeclareCategoryFamily"]
@@ -4490,14 +4490,14 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsChainMapDefaultRep"
 python_name = "is_chain_map_default_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleChainMap"
 notes = ""
 entry_ids = ["complex:DeclareRepresentation:IsChainMapDefaultRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4505,7 +4505,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsCombinatorialMap"
@@ -7841,16 +7841,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "LowestKnownDegree"
 python_name = "lowest_known_degree"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.ModuleComplex.lowest_known_degree"
-notes = "The complex overload is exposed; the chain-map overload remains."
+status = "exposed"
+python_target = "qpa.ModuleComplex.lowest_known_degree; qpa.ModuleChainMap.lowest_known_degree"
+notes = ""
 entry_ids = ["complex:DeclareOperation:LowestKnownDegree:1","complex:DeclareOperation:LowestKnownDegree:2","complex:InstallMethod:LowestKnownDegree:1","complex:InstallMethod:LowestKnownDegree:2"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::lowest_known_degree; qpa_gbnp::QpaChainMap::lowest_known_degree"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "LowestKnownPosition"
@@ -8006,8 +8006,8 @@ python_tests = []
 qpa_name = "MappingCone"
 python_name = "mapping_cone"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleChainMap.mapping_cone"
 notes = ""
 entry_ids = ["complex:DeclareOperation:MappingCone:1","complex:InstallMethod:MappingCone:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8015,7 +8015,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::mapping_cone"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "Maps"
@@ -8456,8 +8456,8 @@ python_tests = []
 qpa_name = "MorphismOfChainMap"
 python_name = "morphism_of_chain_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleChainMap.morphism"
 notes = ""
 entry_ids = ["complex:DeclareOperation:MorphismOfChainMap:1","complex:InstallMethod:MorphismOfChainMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8465,7 +8465,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaChainMap::morphism"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "MorphismOnCoKernel"
@@ -10782,7 +10782,7 @@ qpa_name = "Range"
 python_name = "range"
 disposition = "operation"
 status = "exposed"
-python_target = "qpa.ModuleHomomorphism.range"
+python_target = "qpa.ModuleHomomorphism.range; qpa.ModuleChainMap.range"
 notes = ""
 entry_ids = ["complex:DeclareAttribute:Range:1"]
 constructs = ["DeclareAttribute"]
@@ -10790,7 +10790,7 @@ source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap::range"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "ReadAlgebra"
@@ -11652,15 +11652,15 @@ qpa_name = "Source"
 python_name = "source"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.ModuleHomomorphism.source"
-notes = "The module-homomorphism overload is exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
+python_target = "qpa.ModuleHomomorphism.source; qpa.ModuleChainMap.source"
+notes = "The module-homomorphism and chain-map overloads are exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
 entry_ids = ["complex:DeclareAttribute:Source:1"]
 constructs = ["DeclareAttribute"]
 source_files = ["upstream/qpa/lib/complex.gd"]
 rust_symbols = ["qpa_gbnp::QpaChainMap::source"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "SourceOfArrow"
@@ -13091,8 +13091,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "ZeroChainMap"
 python_name = "zero_chain_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.zero_chain_map_to"
 notes = ""
 entry_ids = ["complex:DeclareOperation:ZeroChainMap:1","complex:InstallMethod:ZeroChainMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -13100,7 +13100,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::zero_chain_map"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[operations]]
 qpa_name = "ZeroComplex"

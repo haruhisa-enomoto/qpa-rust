@@ -294,6 +294,20 @@ pub(crate) struct PyModuleComplex {
     kind: ModuleComplexKind,
 }
 
+#[derive(Clone)]
+enum ModuleChainMapKind {
+    Rational(qpa_gbnp::ModuleChainMap<RationalField>),
+    Binary(qpa_gbnp::ModuleChainMap<Z2>),
+    Prime(qpa_gbnp::ModuleChainMap<Zp>),
+}
+
+/// A QPA chain map between complexes of right modules.
+#[pyclass(name = "ModuleChainMap", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyModuleChainMap {
+    kind: ModuleChainMapKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -361,12 +375,28 @@ macro_rules! impl_resolution_runtime {
                 Self::$variant(value)
             }
         }
+
+        impl runtime::Wrap<qpa_gbnp::ModuleChainMap<$field>> for ModuleChainMapKind {
+            fn wrap(value: qpa_gbnp::ModuleChainMap<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
     };
 }
 
 impl_resolution_runtime!(RationalField, Rational);
 impl_resolution_runtime!(Z2, Binary);
 impl_resolution_runtime!(Zp, Prime);
+
+fn clone_module_homomorphisms(
+    py: Python<'_>,
+    homomorphisms: Vec<Py<PyModuleHomomorphism>>,
+) -> Vec<ModuleHomomorphismKind> {
+    homomorphisms
+        .into_iter()
+        .map(|homomorphism| homomorphism.borrow(py).kind.clone())
+        .collect()
+}
 
 fn clone_relations(
     py: Python<'_>,

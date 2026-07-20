@@ -139,16 +139,6 @@ fn clone_module_elements(
         .collect()
 }
 
-fn clone_module_homomorphisms(
-    py: Python<'_>,
-    homomorphisms: Vec<Py<PyModuleHomomorphism>>,
-) -> Vec<ModuleHomomorphismKind> {
-    homomorphisms
-        .into_iter()
-        .map(|homomorphism| homomorphism.borrow(py).kind.clone())
-        .collect()
-}
-
 fn wrap_module_submodule<F: runtime::PythonField>(
     submodule: PathAlgebraModuleSubmodule<F>,
 ) -> PyModuleSubmodule

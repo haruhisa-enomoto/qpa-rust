@@ -64,6 +64,38 @@ fn integer_text(values: Vec<Integer>) -> Vec<String> {
     values.into_iter().map(|value| value.to_string()).collect()
 }
 
+fn wrap_mapping_cone<F>(
+    result: qpa_gbnp::ComplexAndChainMaps<qpa_gbnp::RightModuleCategory<F>>,
+) -> PyResult<(PyModuleComplex, PyModuleChainMap, PyModuleChainMap)>
+where
+    F: runtime::PythonField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+    ModuleComplexKind: runtime::Wrap<qpa_gbnp::ModuleComplex<F>>,
+    ModuleChainMapKind: runtime::Wrap<qpa_gbnp::ModuleChainMap<F>>,
+{
+    let inclusion = result
+        .incoming
+        .into_iter()
+        .next()
+        .ok_or_else(|| invalid("QPA mapping cone did not return its inclusion chain map"))?;
+    let projection = result
+        .outgoing
+        .into_iter()
+        .next()
+        .ok_or_else(|| invalid("QPA mapping cone did not return its projection chain map"))?;
+    Ok((
+        PyModuleComplex {
+            kind: runtime::Wrap::wrap(result.complex),
+        },
+        PyModuleChainMap {
+            kind: runtime::Wrap::wrap(inclusion),
+        },
+        PyModuleChainMap {
+            kind: runtime::Wrap::wrap(projection),
+        },
+    ))
+}
+
 #[pymethods]
 impl PyModuleComplex {
     #[getter]
@@ -298,6 +330,69 @@ impl PyModuleComplex {
         Ok(Self { kind })
     }
 
+    fn finite_chain_map_to(
+        &self,
+        py: Python<'_>,
+        range: &Self,
+        base_degree: i64,
+        morphisms: Vec<Py<PyModuleHomomorphism>>,
+    ) -> PyResult<PyModuleChainMap> {
+        let morphisms = clone_module_homomorphisms(py, morphisms);
+        let kind = match (&self.kind, &range.kind) {
+            (ModuleComplexKind::Rational(source), ModuleComplexKind::Rational(range)) => {
+                ModuleChainMapKind::Rational(
+                    qpa_gbnp::finite_chain_map(
+                        source.clone(),
+                        range.clone(),
+                        Integer::from(base_degree),
+                        runtime::extract_all(morphisms)?,
+                    )
+                    .map_err(invalid)?,
+                )
+            }
+            (ModuleComplexKind::Binary(source), ModuleComplexKind::Binary(range)) => {
+                ModuleChainMapKind::Binary(
+                    qpa_gbnp::finite_chain_map(
+                        source.clone(),
+                        range.clone(),
+                        Integer::from(base_degree),
+                        runtime::extract_all(morphisms)?,
+                    )
+                    .map_err(invalid)?,
+                )
+            }
+            (ModuleComplexKind::Prime(source), ModuleComplexKind::Prime(range)) => {
+                ModuleChainMapKind::Prime(
+                    qpa_gbnp::finite_chain_map(
+                        source.clone(),
+                        range.clone(),
+                        Integer::from(base_degree),
+                        runtime::extract_all(morphisms)?,
+                    )
+                    .map_err(invalid)?,
+                )
+            }
+            _ => {
+                return Err(invalid(
+                    "source and range complexes belong to different coefficient fields",
+                ));
+            }
+        };
+        Ok(PyModuleChainMap { kind })
+    }
+
+    fn zero_chain_map_to(&self, range: &Self) -> PyResult<PyModuleChainMap> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &range.kind,
+            ModuleComplexKind => ModuleChainMapKind,
+            |source, range| qpa_gbnp::zero_chain_map(source.clone(), range.clone())
+                .map_err(invalid)?,
+            invalid("source and range complexes belong to different coefficient fields")
+        )?;
+        Ok(PyModuleChainMap { kind })
+    }
+
     fn is_identical(&self, right: &Self) -> bool {
         dispatch_pair_ref!(
             &self.kind,
@@ -316,5 +411,78 @@ impl PyModuleComplex {
         dispatch_ref!(&self.kind, ModuleComplexKind, |complex| complex
             .qpa_string()
             .map_err(invalid))
+    }
+}
+
+#[pymethods]
+impl PyModuleChainMap {
+    #[getter]
+    fn source(&self) -> PyModuleComplex {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleChainMapKind => ModuleComplexKind,
+            |map| map.source().clone()
+        );
+        PyModuleComplex { kind }
+    }
+
+    #[getter]
+    fn range(&self) -> PyModuleComplex {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleChainMapKind => ModuleComplexKind,
+            |map| map.range().clone()
+        );
+        PyModuleComplex { kind }
+    }
+
+    fn morphism(&self, degree: i64) -> PyResult<PyModuleHomomorphism> {
+        let degree = Integer::from(degree);
+        let kind = map_ref!(
+            &self.kind,
+            ModuleChainMapKind => ModuleHomomorphismKind,
+            |map| map.morphism(&degree).map_err(invalid)?
+        );
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    #[getter]
+    fn highest_known_degree(&self) -> PyResult<Option<String>> {
+        dispatch_ref!(&self.kind, ModuleChainMapKind, |map| Ok(map
+            .highest_known_degree()
+            .map_err(invalid)?
+            .map(extended_integer_text)))
+    }
+
+    #[getter]
+    fn lowest_known_degree(&self) -> PyResult<Option<String>> {
+        dispatch_ref!(&self.kind, ModuleChainMapKind, |map| Ok(map
+            .lowest_known_degree()
+            .map_err(invalid)?
+            .map(extended_integer_text)))
+    }
+
+    fn mapping_cone(&self) -> PyResult<(PyModuleComplex, PyModuleChainMap, PyModuleChainMap)> {
+        dispatch_ref!(&self.kind, ModuleChainMapKind, |map| wrap_mapping_cone(
+            qpa_gbnp::mapping_cone(map).map_err(invalid)?
+        ))
+    }
+
+    fn is_identical(&self, right: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &right.kind,
+            ModuleChainMapKind,
+            |left, right| left == right,
+            false
+        )
+    }
+
+    fn __eq__(&self, right: &Self) -> bool {
+        self.is_identical(right)
+    }
+
+    fn __repr__(&self) -> &'static str {
+        dispatch_ref!(&self.kind, ModuleChainMapKind, |map| map.qpa_string())
     }
 }

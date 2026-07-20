@@ -805,8 +805,8 @@ tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorp
 [[bindings]]
 qpa_name = "Range"
 status = "exposed"
-target = "qpa.ModuleHomomorphism.range"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
+target = "qpa.ModuleHomomorphism.range; qpa.ModuleChainMap.range"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[bindings]]
 qpa_name = "RightInverseOfHomomorphism"
@@ -829,9 +829,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorp
 [[bindings]]
 qpa_name = "Source"
 status = "partial"
-target = "qpa.ModuleHomomorphism.source"
-tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa"]
-notes = "The module-homomorphism overload is exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
+target = "qpa.ModuleHomomorphism.source; qpa.ModuleChainMap.source"
+tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+notes = "The module-homomorphism and chain-map overloads are exposed; PathAlgebraModule.right_acting_algebra still needs a unified Python algebra wrapper."
 
 [[bindings]]
 qpa_name = "SupportModuleElement"
@@ -1127,10 +1127,9 @@ tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_f
 
 [[bindings]]
 qpa_name = "HighestKnownDegree"
-status = "partial"
-target = "qpa.ModuleComplex.highest_known_degree"
-tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
-notes = "The complex overload is exposed; the chain-map overload remains."
+status = "exposed"
+target = "qpa.ModuleComplex.highest_known_degree; qpa.ModuleChainMap.highest_known_degree"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[bindings]]
 qpa_name = "HomologyOfComplex"
@@ -1201,10 +1200,9 @@ notes = "The complex overload is exposed; the infinite-list overload remains."
 
 [[bindings]]
 qpa_name = "LowestKnownDegree"
-status = "partial"
-target = "qpa.ModuleComplex.lowest_known_degree"
-tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
-notes = "The complex overload is exposed; the chain-map overload remains."
+status = "exposed"
+target = "qpa.ModuleComplex.lowest_known_degree; qpa.ModuleChainMap.lowest_known_degree"
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 
 [[bindings]]
 qpa_name = "NegativeRepeatDegrees"
@@ -1256,3 +1254,41 @@ qpa_name = "ZeroComplex"
 status = "exposed"
 target = "qpa.MatrixModule.zero_complex"
 tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+
+# Chain maps and mapping cones
+
+[[bindings]]
+qpa_name = "FiniteChainMap"
+status = "exposed"
+target = "qpa.ModuleComplex.finite_chain_map_to"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsChainMap"
+status = "exposed"
+target = "qpa.ModuleChainMap"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsChainMapDefaultRep"
+status = "exposed"
+target = "qpa.ModuleChainMap"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MappingCone"
+status = "exposed"
+target = "qpa.ModuleChainMap.mapping_cone"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MorphismOfChainMap"
+status = "exposed"
+target = "qpa.ModuleChainMap.morphism"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ZeroChainMap"
+status = "exposed"
+target = "qpa.ModuleComplex.zero_chain_map_to"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]

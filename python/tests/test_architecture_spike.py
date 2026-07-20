@@ -443,3 +443,34 @@ def test_module_complex_surface_follows_qpa(field: qpa.Field) -> None:
     assert injective.object(-2).is_zero
     assert injective.object(-3).is_zero
     assert injective.is_negative_repeating
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_module_chain_maps_and_mapping_cones_follow_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    algebra = qpa.PathAlgebra(field, quiver)
+    module = algebra.indecomposable_projectives()[0]
+    complex = module.finite_complex(0, [module.top_projection(), module.radical_inclusion()])
+
+    components = [complex.object(degree).identity() for degree in (-1, 0, 1)]
+    identity = complex.finite_chain_map_to(complex, -1, components)
+    assert identity.source.is_identical(complex)
+    assert identity.range.is_identical(complex)
+    assert identity.morphism(0).is_isomorphism
+    assert identity.highest_known_degree == "1"
+    assert identity.lowest_known_degree == "-1"
+    assert identity.is_identical(identity)
+    assert repr(identity) == "<chain map>"
+
+    zero = complex.zero_chain_map_to(complex)
+    assert zero.morphism(50).is_zero
+    assert zero.morphism(-50).is_zero
+
+    cone, inclusion, projection = identity.mapping_cone()
+    assert cone.object(0).dimension_vector == [2, 1]
+    assert inclusion.source.is_identical(complex)
+    assert inclusion.range.is_identical(cone)
+    assert projection.source.is_identical(cone)
+    assert projection.range.object(0).dimension_vector == complex.object(-1).dimension_vector
+    assert inclusion.morphism(0).range.is_identical(cone.object(0))
+    assert projection.morphism(0).source.is_identical(cone.object(0))
