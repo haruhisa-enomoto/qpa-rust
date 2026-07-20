@@ -344,3 +344,40 @@ def test_submodules_projectives_and_injectives_follow_qpa(field: qpa.Field) -> N
     assert [module.dimension_vector for module in quotient.simple_modules()] == [[1]]
     assert [module.dimension_vector for module in quotient.indecomposable_projectives()] == [[2]]
     assert [module.dimension_vector for module in quotient.indecomposable_injectives()] == [[2]]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_lazy_resolutions_and_syzygies_follow_qpa(field: qpa.Field) -> None:
+    quiver = qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    algebra = qpa.PathAlgebra(field, quiver)
+    first_simple, second_simple = algebra.simple_modules()
+
+    assert first_simple.nth_syzygy(0).is_identical(first_simple)
+    assert first_simple.first_syzygy().dimension_vector == [0, 1]
+    assert first_simple.nth_syzygy(1).dimension_vector == [0, 1]
+    assert first_simple.nth_syzygy(2).is_zero
+    with pytest.raises(qpa.InvalidInputError, match="negative"):
+        first_simple.nth_syzygy(-1)
+
+    projective = first_simple.projective_resolution()
+    assert projective.object(-1).is_identical(first_simple)
+    assert projective.object(0).dimension_vector == [1, 1]
+    assert projective.object(1).dimension_vector == [0, 1]
+    assert projective.object(2).is_zero
+    differential_zero = projective.differential(0)
+    differential_one = projective.differential(1)
+    assert differential_zero.range.is_identical(first_simple)
+    assert differential_one.compose(differential_zero).is_zero
+
+    injective = second_simple.injective_resolution()
+    assert injective.object(0).is_identical(second_simple)
+    assert injective.differential(0).source.is_identical(second_simple)
+    assert injective.differential(0).range.dimension_vector == [1, 1]
+    assert injective.differential(0).compose(injective.differential(-1)).is_zero
+
+    loop = qpa.Quiver(["w"], [("w", "w", "x")])
+    quotient = qpa.QuotientAlgebra.truncated(field, loop, 2)
+    simple = quotient.simple_modules()[0]
+    periodic = simple.projective_resolution()
+    assert periodic.object(0).dimension_vector == [2]
+    assert periodic.object(1).dimension_vector == [2]

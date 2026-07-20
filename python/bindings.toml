@@ -1033,3 +1033,43 @@ status = "exposed"
 target = "qpa.PathAlgebra.zero_module"
 tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
 notes = "Exposed for both path algebras and quotient path algebras."
+
+# Lazy homological resolutions
+
+[[bindings]]
+qpa_name = "1stSyzygy"
+status = "exposed"
+target = "qpa.MatrixModule.first_syzygy"
+tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DifferentialOfComplex"
+status = "partial"
+target = "qpa.ProjectiveResolution.differential"
+tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+notes = "Projective and injective resolution differentials are exposed; general QPA complexes remain."
+
+[[bindings]]
+qpa_name = "InjectiveResolution"
+status = "exposed"
+target = "qpa.MatrixModule.injective_resolution"
+tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NthSyzygy"
+status = "exposed"
+target = "qpa.MatrixModule.nth_syzygy"
+tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ObjectOfComplex"
+status = "partial"
+target = "qpa.ProjectiveResolution.object"
+tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
+notes = "Projective and injective resolution objects are exposed; general QPA complexes remain."
+
+[[bindings]]
+qpa_name = "ProjectiveResolution"
+status = "exposed"
+target = "qpa.MatrixModule.projective_resolution"
+tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]

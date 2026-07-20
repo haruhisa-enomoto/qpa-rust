@@ -428,6 +428,37 @@ impl PyMatrixModule {
         ))
     }
 
+    fn first_syzygy(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(wrap_module(
+            qpa_gbnp::first_syzygy(module).map_err(invalid)?,
+        )))
+    }
+
+    fn nth_syzygy(&self, degree: i64) -> PyResult<Self> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(wrap_module(
+            qpa_gbnp::nth_syzygy(module, &degree).map_err(invalid)?,
+        )))
+    }
+
+    fn projective_resolution(&self) -> PyResult<PyProjectiveResolution> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ProjectiveResolutionKind,
+            |module| qpa_gbnp::projective_resolution(module).map_err(invalid)?
+        );
+        Ok(PyProjectiveResolution { kind })
+    }
+
+    fn injective_resolution(&self) -> PyResult<PyInjectiveResolution> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => InjectiveResolutionKind,
+            |module| qpa_gbnp::injective_resolution(module).map_err(invalid)?
+        );
+        Ok(PyInjectiveResolution { kind })
+    }
+
     fn is_identical(&self, other: &Self) -> bool {
         dispatch_pair_ref!(
             &self.kind,

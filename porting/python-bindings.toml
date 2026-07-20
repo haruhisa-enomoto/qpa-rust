@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 159
+exposed_or_partial_count = 165
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -41,8 +41,8 @@ python_tests = []
 qpa_name = "1stSyzygy"
 python_name = "first_syzygy"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.first_syzygy"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:1stSyzygy:1","modulehomalg:InstallMethod:1stSyzygy:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -50,7 +50,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["first_syzygy"]
 rust_tests = ["tests/fixtures/modulehom_syzygy_injective.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
 
 [[operations]]
 qpa_name = "ADRAlgebraOfAlgebra"
@@ -2036,16 +2036,16 @@ python_tests = []
 qpa_name = "DifferentialOfComplex"
 python_name = "differential_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ProjectiveResolution.differential"
+notes = "Projective and injective resolution differentials are exposed; general QPA complexes remain."
 entry_ids = ["complex:DeclareOperation:DifferentialOfComplex:1","complex:InstallMethod:DifferentialOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::differential"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
 
 [[operations]]
 qpa_name = "DifferentialsOfComplex"
@@ -4061,8 +4061,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "InjectiveResolution"
 python_name = "injective_resolution"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.injective_resolution"
 notes = ""
 entry_ids = ["complex:DeclareOperation:InjectiveResolution:1","complex:InstallMethod:InjectiveResolution:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4070,7 +4070,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["injective_resolution; InjectiveResolution"]
 rust_tests = ["tests/fixtures/complex_injective_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
 
 [[operations]]
 qpa_name = "InsertPatternIntoSuffixTree"
@@ -8906,8 +8906,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "NthSyzygy"
 python_name = "nth_syzygy"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.nth_syzygy"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:NthSyzygy:1","modulehomalg:InstallMethod:NthSyzygy:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8915,7 +8915,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["nth_syzygy"]
 rust_tests = ["tests/fixtures/complex_projective_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
 
 [[operations]]
 qpa_name = "NullList"
@@ -9071,16 +9071,16 @@ python_tests = []
 qpa_name = "ObjectOfComplex"
 python_name = "object_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.ProjectiveResolution.object"
+notes = "Projective and injective resolution objects are exposed; general QPA complexes remain."
 entry_ids = ["complex:DeclareOperation:ObjectOfComplex:1","complex:InstallMethod:ObjectOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::QpaComplex::object"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
 
 [[operations]]
 qpa_name = "OneOp"
@@ -10121,8 +10121,8 @@ python_tests = []
 qpa_name = "ProjectiveResolution"
 python_name = "projective_resolution"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.projective_resolution"
 notes = ""
 entry_ids = ["complex:DeclareOperation:ProjectiveResolution:1","complex:InstallMethod:ProjectiveResolution:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10130,7 +10130,7 @@ source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["projective_resolution; ProjectiveResolution"]
 rust_tests = ["tests/fixtures/complex_projective_resolution.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_and_syzygies_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveResolutionFpPathAlgebraModule"

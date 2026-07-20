@@ -1,6 +1,7 @@
 //! Python wrappers for path algebras, ideals, Gröbner bases, and quotients.
 
 mod groebner;
+mod homological;
 mod ideal;
 mod module;
 mod quotient;
@@ -251,6 +252,34 @@ pub(crate) struct PyModuleSubmodule {
     kind: ModuleSubmoduleKind,
 }
 
+#[derive(Clone)]
+enum ProjectiveResolutionKind {
+    Rational(qpa_gbnp::ProjectiveResolution<RationalField>),
+    Binary(qpa_gbnp::ProjectiveResolution<Z2>),
+    Prime(qpa_gbnp::ProjectiveResolution<Zp>),
+}
+
+/// QPA's lazy projective resolution, including the resolved module in degree -1.
+#[pyclass(name = "ProjectiveResolution", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyProjectiveResolution {
+    kind: ProjectiveResolutionKind,
+}
+
+#[derive(Clone)]
+enum InjectiveResolutionKind {
+    Rational(qpa_gbnp::InjectiveResolution<RationalField>),
+    Binary(qpa_gbnp::InjectiveResolution<Z2>),
+    Prime(qpa_gbnp::InjectiveResolution<Zp>),
+}
+
+/// QPA's lazy injective resolution, including the resolved module in degree zero.
+#[pyclass(name = "InjectiveResolution", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyInjectiveResolution {
+    kind: InjectiveResolutionKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -287,6 +316,26 @@ macro_rules! impl_module_value_runtime {
 impl_module_value_runtime!(RationalField, Rational);
 impl_module_value_runtime!(Z2, Binary);
 impl_module_value_runtime!(Zp, Prime);
+
+macro_rules! impl_resolution_runtime {
+    ($field:ty, $variant:ident) => {
+        impl runtime::Wrap<qpa_gbnp::ProjectiveResolution<$field>> for ProjectiveResolutionKind {
+            fn wrap(value: qpa_gbnp::ProjectiveResolution<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::InjectiveResolution<$field>> for InjectiveResolutionKind {
+            fn wrap(value: qpa_gbnp::InjectiveResolution<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+    };
+}
+
+impl_resolution_runtime!(RationalField, Rational);
+impl_resolution_runtime!(Z2, Binary);
+impl_resolution_runtime!(Zp, Prime);
 
 fn clone_relations(
     py: Python<'_>,
