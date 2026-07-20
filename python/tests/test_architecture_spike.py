@@ -137,6 +137,66 @@ def test_extended_quiver_domain_delegates_to_qpa_core() -> None:
     assert qpa.Quiver.from_adjacency([[0, 1], [0, 0]]).is_acyclic
 
 
+def test_quiver_product_and_path_tensor_helpers_follow_qpa() -> None:
+    left = qpa.Quiver(["u1", "u2"], [("u1", "u2", "a")])
+    right = qpa.Quiver(
+        ["v1", "v2", "v3"],
+        [("v1", "v2", "b"), ("v2", "v3", "c")],
+    )
+    product = left.product(right)
+    assert product.quiver.vertices == [
+        "u1_v1",
+        "u1_v2",
+        "u1_v3",
+        "u2_v1",
+        "u2_v2",
+        "u2_v3",
+    ]
+    assert [name for _source, _target, name in product.quiver.arrows] == [
+        "u1_b",
+        "u1_c",
+        "u2_b",
+        "u2_c",
+        "a_v1",
+        "a_v2",
+        "a_v3",
+    ]
+
+    decomposition = product.decomposition
+    assert decomposition.is_quiver_product_decomposition
+    assert decomposition.is_default_rep
+    assert len(decomposition) == 2
+    assert [decomposition.is_bound(i) for i in (1, 2, 3)] == [True, True, False]
+    assert decomposition.factor(1).is_identical(left)
+    assert decomposition.factor(2).is_identical(right)
+    assert repr(decomposition) == "<quiver product decomposition>"
+
+    a = left.arrow_path("a")
+    b = right.arrow_path("b")
+    bc = b * right.arrow_path("c")
+    assert [generator.name for generator in left.vertex_path("u1").walk_or_vertex()] == [
+        "u1"
+    ]
+    assert [generator.name for generator in a.walk_or_vertex()] == ["a"]
+    assert [generator.name for generator in bc.walk_or_vertex()] == ["b", "c"]
+
+    included = a.include_in_product_quiver(bc, product)
+    assert repr(included) == "a_v1*u2_b*u2_c"
+    assert repr(included.project_from_product_quiver(1, product)) == "a"
+    assert repr(included.project_from_product_quiver(2, product)) == "b*c"
+    included_vertex = left.vertex_path("u1").include_in_product_quiver(
+        right.vertex_path("v2"), product
+    )
+    assert repr(included_vertex) == "u1_v2"
+
+    assert repr(a.reverse_path()) == "a"
+    assert bc.reverse_path().is_zero
+    loops = qpa.Quiver(["w"], [("w", "w", "s"), ("w", "w", "t")])
+    assert repr((loops.arrow_path("s") * loops.arrow_path("t")).reverse_path()) == "t*s"
+    with pytest.raises(qpa.InvalidInputError, match="zero path"):
+        left.zero_path().walk_or_vertex()
+
+
 def test_quiver_orderings_follow_qpa_comparison_closures() -> None:
     quiver = qpa.Quiver.indexed(
         2,

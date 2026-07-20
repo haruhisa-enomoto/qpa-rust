@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 535
+exposed_or_partial_count = 544
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -3791,8 +3791,8 @@ python_tests = []
 qpa_name = "IncludeInProductQuiver"
 python_name = "include_in_product_quiver"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Path.include_in_product_quiver"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareOperation:IncludeInProductQuiver:1","pathalgtensor:InstallMethod:IncludeInProductQuiver:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3800,7 +3800,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["include_in_product_quiver"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "IncomingArrowsOfVertex"
@@ -4421,8 +4421,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "IsBound\\[\\]"
 python_name = "is_bound"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverProductDecomposition.is_bound"
 notes = ""
 entry_ids = ["pathalgtensor:InstallMethod:IsBound\\[\\]:1"]
 constructs = ["InstallMethod"]
@@ -4430,7 +4430,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["QuiverProductDecomposition::is_bound"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsCanonicalAlgebra"
@@ -6101,8 +6101,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "IsQuiverProductDecomposition"
 python_name = "is_quiver_product_decomposition"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverProductDecomposition.is_quiver_product_decomposition"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareCategory:IsQuiverProductDecomposition:1"]
 constructs = ["DeclareCategory"]
@@ -6110,14 +6110,14 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd"]
 rust_symbols = ["QuiverProductDecomposition"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsQuiverProductDecompositionRep"
 python_name = "is_quiver_product_decomposition_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverProductDecomposition.is_default_rep"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareRepresentation:IsQuiverProductDecompositionRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -6125,7 +6125,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["QuiverProductDecomposition"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsQuiverRep"
@@ -10046,8 +10046,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimen
 qpa_name = "ProjectFromProductQuiver"
 python_name = "project_from_product_quiver"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Path.project_from_product_quiver"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareOperation:ProjectFromProductQuiver:1","pathalgtensor:InstallMethod:ProjectFromProductQuiver:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10055,7 +10055,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["project_from_product_quiver"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveCover"
@@ -10601,8 +10601,8 @@ python_tests = []
 qpa_name = "QuiverProduct"
 python_name = "quiver_product"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Quiver.product; qpa.QuiverProduct"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareOperation:QuiverProduct:1","pathalgtensor:InstallMethod:QuiverProduct:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10610,14 +10610,14 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["quiver_product"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuiverProductDecomposition"
 python_name = "quiver_product_decomposition"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverProduct.decomposition; qpa.QuiverProductDecomposition"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareAttribute:QuiverProductDecomposition:1"]
 constructs = ["DeclareAttribute"]
@@ -10625,7 +10625,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd"]
 rust_symbols = ["QuiverProduct::decomposition"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuiverStaticDictionary"
@@ -11066,8 +11066,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "ReversePath"
 python_name = "reverse_path"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Path.reverse_path"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareOperation:ReversePath:1","pathalgtensor:InstallMethod:ReversePath:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11075,7 +11075,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["reverse_path"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightAlgebraModuleToPathAlgebraMatModule"
@@ -12971,8 +12971,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "WalkOfPathOrVertex"
 python_name = "walk_of_path_or_vertex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.Path.walk_or_vertex"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareOperation:WalkOfPathOrVertex:1","pathalgtensor:InstallMethod:WalkOfPathOrVertex:1","pathalgtensor:InstallMethod:WalkOfPathOrVertex:2"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12980,7 +12980,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["walk_of_path_or_vertex"]
 rust_tests = ["tests/fixtures/pathalgtensor_quiver.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
 
 [[operations]]
 qpa_name = "WeightOrdering"

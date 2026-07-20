@@ -8,7 +8,9 @@ use std::cmp::Ordering;
 use pyo3::{Py, PyAny, prelude::*};
 use qpa_core::{
     Arrow, ArrowIndex, ArrowSpec, DynkinOrientation, Generator, NamedArrowSpec, Path, PathEndpoint,
-    Quiver, QuiverCardinality, QuiverOrdering, Vertex, VertexIndex, unique_quiver_name,
+    Quiver, QuiverCardinality, QuiverOrdering, QuiverProduct, QuiverProductDecomposition, Vertex,
+    VertexIndex, include_in_product_quiver, project_from_product_quiver, quiver_product,
+    reverse_path, unique_quiver_name, walk_of_path_or_vertex,
 };
 
 pub(crate) use objects::{
@@ -35,6 +37,20 @@ pub(crate) struct PyQuiver {
     ordering: Option<QuiverOrdering>,
 }
 
+/// A quiver constructed by QPA's Cartesian `QuiverProduct` method.
+#[pyclass(name = "QuiverProduct", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyQuiverProduct {
+    inner: QuiverProduct,
+}
+
+/// QPA's two-factor decomposition attached to a product quiver.
+#[pyclass(name = "QuiverProductDecomposition", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyQuiverProductDecomposition {
+    inner: QuiverProductDecomposition,
+}
+
 #[pymethods]
 impl PyQuiver {
     #[new]
@@ -49,6 +65,12 @@ impl PyQuiver {
         )
         .map_err(invalid)?;
         Ok(Self::from_inner(inner))
+    }
+
+    fn product(&self, right: &Self) -> PyResult<PyQuiverProduct> {
+        Ok(PyQuiverProduct {
+            inner: quiver_product(&self.inner, &right.inner).map_err(invalid)?,
+        })
     }
 
     #[staticmethod]
@@ -470,6 +492,60 @@ impl PyQuiver {
     }
 }
 
+#[pymethods]
+impl PyQuiverProduct {
+    #[getter]
+    fn quiver(&self) -> PyQuiver {
+        PyQuiver::from_inner(self.inner.quiver().clone())
+    }
+
+    #[getter]
+    fn decomposition(&self) -> PyQuiverProductDecomposition {
+        PyQuiverProductDecomposition {
+            inner: self.inner.decomposition().clone(),
+        }
+    }
+
+    fn __repr__(&self) -> String {
+        self.inner.quiver().to_string()
+    }
+}
+
+#[pymethods]
+impl PyQuiverProductDecomposition {
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_quiver_product_decomposition(&self) -> bool {
+        true
+    }
+
+    #[getter]
+    #[allow(clippy::unused_self)]
+    fn is_default_rep(&self) -> bool {
+        true
+    }
+
+    fn is_bound(&self, one_based_index: usize) -> bool {
+        self.inner.is_bound(one_based_index)
+    }
+
+    fn factor(&self, one_based_index: usize) -> PyResult<PyQuiver> {
+        Ok(PyQuiver::from_inner(
+            self.inner.factor(one_based_index).map_err(invalid)?.clone(),
+        ))
+    }
+
+    #[allow(clippy::unused_self)]
+    fn __len__(&self) -> usize {
+        2
+    }
+
+    #[allow(clippy::unused_self)]
+    fn __repr__(&self) -> &'static str {
+        "<quiver product decomposition>"
+    }
+}
+
 impl PyQuiver {
     pub(crate) const fn from_inner(inner: Quiver) -> Self {
         Self {
@@ -640,6 +716,38 @@ impl PyPath {
                 .inner
                 .quiver()
                 .opposite_path(&self.inner)
+                .map_err(invalid)?,
+        })
+    }
+
+    fn walk_or_vertex(&self, py: Python<'_>) -> PyResult<Vec<Py<PyAny>>> {
+        walk_of_path_or_vertex(&self.inner)
+            .map_err(invalid)?
+            .into_iter()
+            .map(|generator| generator_to_python(py, generator))
+            .collect()
+    }
+
+    fn reverse_path(&self) -> PyResult<Self> {
+        Ok(Self {
+            inner: reverse_path(&self.inner).map_err(invalid)?,
+        })
+    }
+
+    fn include_in_product_quiver(&self, right: &Self, product: &PyQuiverProduct) -> PyResult<Self> {
+        Ok(Self {
+            inner: include_in_product_quiver([&self.inner, &right.inner], &product.inner)
+                .map_err(invalid)?,
+        })
+    }
+
+    fn project_from_product_quiver(
+        &self,
+        one_based_factor: usize,
+        product: &PyQuiverProduct,
+    ) -> PyResult<Self> {
+        Ok(Self {
+            inner: project_from_product_quiver(one_based_factor, &self.inner, &product.inner)
                 .map_err(invalid)?,
         })
     }

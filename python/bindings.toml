@@ -3373,3 +3373,57 @@ status = "exposed"
 target = "qpa.MatrixModule.projective_resolution_of_simple_module_over_endo; qpa.ProjectiveResolutionOfSimpleModuleOverEndoResult"
 tests = ["python/tests/test_architecture_spike.py::test_simple_endo_projective_resolution_follows_qpa"]
 notes = "Preserves QPA's integer-or-'projdim > t' first result component and the source's one-based module-index convention."
+
+[[bindings]]
+qpa_name = "QuiverProduct"
+status = "exposed"
+target = "qpa.Quiver.product; qpa.QuiverProduct"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QuiverProductDecomposition"
+status = "exposed"
+target = "qpa.QuiverProduct.decomposition; qpa.QuiverProductDecomposition"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsQuiverProductDecomposition"
+status = "exposed"
+target = "qpa.QuiverProductDecomposition.is_quiver_product_decomposition"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsQuiverProductDecompositionRep"
+status = "exposed"
+target = "qpa.QuiverProductDecomposition.is_default_rep"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsBound\\[\\]"
+status = "exposed"
+target = "qpa.QuiverProductDecomposition.is_bound"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "WalkOfPathOrVertex"
+status = "exposed"
+target = "qpa.Path.walk_or_vertex"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IncludeInProductQuiver"
+status = "exposed"
+target = "qpa.Path.include_in_product_quiver"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectFromProductQuiver"
+status = "exposed"
+target = "qpa.Path.project_from_product_quiver"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ReversePath"
+status = "exposed"
+target = "qpa.Path.reverse_path"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_tensor_helpers_follow_qpa"]
