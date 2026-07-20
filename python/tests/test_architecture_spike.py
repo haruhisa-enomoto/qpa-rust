@@ -673,3 +673,26 @@ def test_homological_dimensions_and_periods_follow_qpa(field: qpa.Field) -> None
     assert periodic_simple.is_nth_syzygy(1)
     assert periodic_simple.omega_period(3) == "1"
     assert periodic_simple.tau_period(3) == "1"
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_ext_results_and_generators_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    first_simple, second_simple = algebra.simple_modules()
+    ext = first_simple.ext1(second_simple)
+    assert ext.dimension == 1
+    assert ext.syzygy_inclusion.source.dimension_vector == [0, 1]
+    assert len(ext.basis) == 1
+    coordinates = ext.coefficients(ext.basis[0])
+    assert coordinates is not None and len(coordinates) == 1
+    assert coordinates[0].field.characteristic == field.characteristic
+    zero_ext = second_simple.ext1(first_simple)
+    assert zero_ext.dimension == 0 and zero_ext.basis == []
+
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["v"], [("v", "v", "x")]), 2
+    )
+    generators = dual_numbers.simple_modules()[0].ext_algebra_generators(3)
+    assert generators.dimensions == [1, 1, 1, 1]
+    assert generators.generator_counts == [1, 1, 0, 0]
+    assert [len(degree) for degree in generators.generators] == [1, 1, 0, 0]

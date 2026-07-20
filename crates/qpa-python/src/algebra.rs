@@ -322,6 +322,34 @@ pub(crate) struct PyProjectiveIsomorphismComponent {
     kind: ProjectiveIsomorphismComponentKind,
 }
 
+#[derive(Clone)]
+enum ExtOverAlgebraKind {
+    Rational(qpa_gbnp::ExtOverAlgebraResult<RationalField>),
+    Binary(qpa_gbnp::ExtOverAlgebraResult<Z2>),
+    Prime(qpa_gbnp::ExtOverAlgebraResult<Zp>),
+}
+
+/// QPA's syzygy inclusion, ordered basis, and coefficient closure for Ext^1.
+#[pyclass(name = "ExtOverAlgebraResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyExtOverAlgebraResult {
+    kind: ExtOverAlgebraKind,
+}
+
+#[derive(Clone)]
+enum ExtAlgebraGeneratorsKind {
+    Rational(qpa_gbnp::ExtAlgebraGeneratorsResult<RationalField>),
+    Binary(qpa_gbnp::ExtAlgebraGeneratorsResult<Z2>),
+    Prime(qpa_gbnp::ExtAlgebraGeneratorsResult<Zp>),
+}
+
+/// QPA's degreewise dimensions and retained Ext-algebra generators.
+#[pyclass(name = "ExtAlgebraGeneratorsResult", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyExtAlgebraGeneratorsResult {
+    kind: ExtAlgebraGeneratorsKind,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -414,6 +442,20 @@ macro_rules! impl_resolution_runtime {
                         "isomorphism component belongs to another coefficient field",
                     )),
                 }
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::ExtOverAlgebraResult<$field>> for ExtOverAlgebraKind {
+            fn wrap(value: qpa_gbnp::ExtOverAlgebraResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_gbnp::ExtAlgebraGeneratorsResult<$field>>
+            for ExtAlgebraGeneratorsKind
+        {
+            fn wrap(value: qpa_gbnp::ExtAlgebraGeneratorsResult<$field>) -> Self {
+                Self::$variant(value)
             }
         }
     };

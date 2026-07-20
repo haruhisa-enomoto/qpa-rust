@@ -691,3 +691,112 @@ impl PyProjectiveIsomorphismComponent {
         )
     }
 }
+
+#[pymethods]
+impl PyExtOverAlgebraResult {
+    #[getter]
+    fn syzygy_inclusion(&self) -> PyModuleHomomorphism {
+        let kind = map_ref!(
+            &self.kind,
+            ExtOverAlgebraKind => ModuleHomomorphismKind,
+            |result| result.syzygy_inclusion().clone()
+        );
+        PyModuleHomomorphism { kind }
+    }
+
+    #[getter]
+    fn basis(&self) -> Vec<PyModuleHomomorphism> {
+        dispatch_ref!(&self.kind, ExtOverAlgebraKind, |result| result
+            .basis()
+            .iter()
+            .cloned()
+            .map(|homomorphism| PyModuleHomomorphism {
+                kind: runtime::Wrap::wrap(homomorphism),
+            })
+            .collect())
+    }
+
+    #[getter]
+    fn dimension(&self) -> usize {
+        dispatch_ref!(&self.kind, ExtOverAlgebraKind, |result| result.dimension())
+    }
+
+    fn coefficients(&self, homomorphism: &PyModuleHomomorphism) -> PyResult<Option<Vec<PyScalar>>> {
+        match (&self.kind, &homomorphism.kind) {
+            (ExtOverAlgebraKind::Rational(result), ModuleHomomorphismKind::Rational(map)) => {
+                let field = result
+                    .syzygy_inclusion()
+                    .source()
+                    .right_acting_algebra()
+                    .field();
+                Ok(result.coefficients(map).map_err(invalid)?.map(|values| {
+                    values
+                        .iter()
+                        .map(|value| field.wrap_scalar(value))
+                        .collect()
+                }))
+            }
+            (ExtOverAlgebraKind::Binary(result), ModuleHomomorphismKind::Binary(map)) => {
+                let field = result
+                    .syzygy_inclusion()
+                    .source()
+                    .right_acting_algebra()
+                    .field();
+                Ok(result.coefficients(map).map_err(invalid)?.map(|values| {
+                    values
+                        .iter()
+                        .map(|value| field.wrap_scalar(value))
+                        .collect()
+                }))
+            }
+            (ExtOverAlgebraKind::Prime(result), ModuleHomomorphismKind::Prime(map)) => {
+                let field = result
+                    .syzygy_inclusion()
+                    .source()
+                    .right_acting_algebra()
+                    .field();
+                Ok(result.coefficients(map).map_err(invalid)?.map(|values| {
+                    values
+                        .iter()
+                        .map(|value| field.wrap_scalar(value))
+                        .collect()
+                }))
+            }
+            _ => Err(invalid(
+                "Ext result and homomorphism belong to different coefficient fields",
+            )),
+        }
+    }
+}
+
+#[pymethods]
+impl PyExtAlgebraGeneratorsResult {
+    #[getter]
+    fn dimensions(&self) -> Vec<usize> {
+        dispatch_ref!(&self.kind, ExtAlgebraGeneratorsKind, |result| result
+            .dimensions()
+            .to_vec())
+    }
+
+    #[getter]
+    fn generator_counts(&self) -> Vec<usize> {
+        dispatch_ref!(&self.kind, ExtAlgebraGeneratorsKind, |result| result
+            .generator_counts()
+            .to_vec())
+    }
+
+    #[getter]
+    fn generators(&self) -> Vec<Vec<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, ExtAlgebraGeneratorsKind, |result| result
+            .generators()
+            .iter()
+            .map(|degree| degree
+                .iter()
+                .cloned()
+                .map(|homomorphism| PyModuleHomomorphism {
+                    kind: runtime::Wrap::wrap(homomorphism),
+                })
+                .collect())
+            .collect())
+    }
+}

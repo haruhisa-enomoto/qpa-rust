@@ -622,6 +622,30 @@ impl PyMatrixModule {
         ))
     }
 
+    fn ext1(&self, coefficients_in: &Self) -> PyResult<PyExtOverAlgebraResult> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &coefficients_in.kind,
+            MatrixModuleKind => ExtOverAlgebraKind,
+            |module, coefficients_in| qpa_gbnp::ext_over_algebra(module, coefficients_in)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyExtOverAlgebraResult { kind })
+    }
+
+    fn ext_algebra_generators(
+        &self,
+        maximum_degree: usize,
+    ) -> PyResult<PyExtAlgebraGeneratorsResult> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ExtAlgebraGeneratorsKind,
+            |module| qpa_gbnp::ext_algebra_generators(module, maximum_degree).map_err(invalid)?
+        );
+        Ok(PyExtAlgebraGeneratorsResult { kind })
+    }
+
     fn is_identical(&self, other: &Self) -> bool {
         dispatch_pair_ref!(
             &self.kind,

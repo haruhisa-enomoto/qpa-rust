@@ -1583,3 +1583,17 @@ qpa_name = "ProjDimensionOfModule"
 status = "exposed"
 target = "qpa.MatrixModule.projective_dimension"
 tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+# Extension groups and Ext-algebra generators
+
+[[bindings]]
+qpa_name = "ExtAlgebraGenerators"
+status = "exposed"
+target = "qpa.MatrixModule.ext_algebra_generators; qpa.ExtAlgebraGeneratorsResult"
+tests = ["python/tests/test_architecture_spike.py::test_ext_results_and_generators_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ExtOverAlgebra"
+status = "exposed"
+target = "qpa.MatrixModule.ext1; qpa.ExtOverAlgebraResult"
+tests = ["python/tests/test_architecture_spike.py::test_ext_results_and_generators_follow_qpa"]

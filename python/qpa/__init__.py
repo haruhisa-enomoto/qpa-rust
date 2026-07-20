@@ -6,6 +6,8 @@ operation ledger record the exact exposed and remaining QPA surface.
 
 from ._qpa import (
     AlgebraElement,
+    ExtAlgebraGeneratorsResult,
+    ExtOverAlgebraResult,
     Field,
     GroebnerBasis,
     InjectiveResolution,
@@ -31,6 +33,8 @@ from ._qpa import (
 
 __all__ = [
     "AlgebraElement",
+    "ExtAlgebraGeneratorsResult",
+    "ExtOverAlgebraResult",
     "Field",
     "GroebnerBasis",
     "InjectiveResolution",

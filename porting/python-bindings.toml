@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 247
+exposed_or_partial_count = 249
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2651,8 +2651,8 @@ python_tests = []
 qpa_name = "ExtAlgebraGenerators"
 python_name = "ext_algebra_generators"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.ext_algebra_generators; qpa.ExtAlgebraGeneratorsResult"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:ExtAlgebraGenerators:1","modulehomalg:InstallMethod:ExtAlgebraGenerators:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2660,14 +2660,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["ext_algebra_generators; ExtAlgebraGeneratorsResult"]
 rust_tests = ["tests/fixtures/modulehomalg_ext_algebra_generators.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_ext_results_and_generators_follow_qpa"]
 
 [[operations]]
 qpa_name = "ExtOverAlgebra"
 python_name = "ext_over_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.ext1; qpa.ExtOverAlgebraResult"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:ExtOverAlgebra:1","modulehomalg:InstallMethod:ExtOverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2675,7 +2675,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["ext_over_algebra; ExtOverAlgebraResult"]
 rust_tests = ["tests/fixtures/modulehom_ext.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_ext_results_and_generators_follow_qpa"]
 
 [[operations]]
 qpa_name = "ExtRepOfObj"
