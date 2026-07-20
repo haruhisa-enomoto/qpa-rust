@@ -9,6 +9,7 @@ mod conversion;
 mod corner;
 mod degeneration;
 mod element_utilities;
+mod finite_structures;
 mod fp_projective;
 mod groebner;
 mod homological;
@@ -49,6 +50,9 @@ pub(crate) use degeneration::{
     py_predefined_ar_quiver_data,
 };
 pub(crate) use element_utilities::py_opposite_relations;
+pub(crate) use finite_structures::{
+    PyPathAlgebraCentre, PyQuiverAlgebraUnitGroup, PyQuotientPathAlgebraCentre,
+};
 pub(crate) use fp_projective::{
     PyFpPathAlgebraByImagesHomomorphism, PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector,
     PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
@@ -1629,6 +1633,31 @@ impl PyPathAlgebra {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
             qpa_gbnp::complexity_of_algebra(&QuiverAlgebra::Path(algebra.clone()), &degree)
                 .map_err(invalid)
+        })
+    }
+
+    fn centre(&self) -> PyResult<PyPathAlgebraCentre> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            finite_structures::path_centre_for(algebra)
+        })
+    }
+
+    fn units(&self) -> PyResult<PyQuiverAlgebraUnitGroup> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            finite_structures::units_for(&QuiverAlgebra::Path(algebra.clone()))
+        })
+    }
+
+    #[getter]
+    fn has_elements_of_units(&self) -> bool {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            QuiverAlgebra::Path(algebra.clone()).has_elements_of_units()
+        })
+    }
+
+    fn elements_of_units(&self) -> PyResult<Vec<PyQuiverAlgebraElement>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            finite_structures::elements_of_units_for(&QuiverAlgebra::Path(algebra.clone()))
         })
     }
 

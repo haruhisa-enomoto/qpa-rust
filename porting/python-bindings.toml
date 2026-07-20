@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 696
+exposed_or_partial_count = 699
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -941,8 +941,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "Centre"
 python_name = "centre"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.centre; qpa.PathAlgebraCentre; qpa.QuotientAlgebra.centre; qpa.QuotientPathAlgebraCentre"
 notes = ""
 entry_ids = ["pathalg:InstallMethod:Centre:1","pathalg:InstallMethod:Centre:2"]
 constructs = ["InstallMethod"]
@@ -950,7 +950,7 @@ source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::centre","qpa_gbnp::quotient_centre; QuotientPathAlgebra::centre"]
 rust_tests = ["tests/fixtures/pathalg_centre.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_centres_and_units.py::test_path_and_quotient_centres_follow_qpa"]
 
 [[operations]]
 qpa_name = "ChainMap"
@@ -2501,8 +2501,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the
 qpa_name = "ElementsOfUnits"
 python_name = "elements_of_units"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.elements_of_units; qpa.QuotientAlgebra.elements_of_units; qpa.QuiverAlgebra.elements_of_units; qpa.QuiverAlgebraUnitGroup.elements"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:ElementsOfUnits:1"]
 constructs = ["DeclareAttribute"]
@@ -2510,7 +2510,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["QuiverAlgebra::has_elements_of_units; QuiverAlgebra::elements_of_units"]
 rust_tests = ["tests/fixtures/pathalg_units.schema-v1.json"]
 deviations = ["PATHALG-006"]
-python_tests = []
+python_tests = ["python/tests/test_centres_and_units.py::test_finite_unit_groups_follow_qpa"]
 
 [[operations]]
 qpa_name = "End"
@@ -12821,8 +12821,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_unit_forms_follow
 qpa_name = "Units"
 python_name = "units"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.units; qpa.QuotientAlgebra.units; qpa.QuiverAlgebra.units; qpa.QuiverAlgebraUnitGroup"
 notes = ""
 entry_ids = ["pathalg:InstallOtherMethod:Units:1"]
 constructs = ["InstallOtherMethod"]
@@ -12830,7 +12830,7 @@ source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["units; QuiverAlgebra::units; QuiverAlgebraUnitGroup"]
 rust_tests = ["tests/fixtures/pathalg_units.schema-v1.json"]
 deviations = ["PATHALG-006"]
-python_tests = []
+python_tests = ["python/tests/test_centres_and_units.py::test_finite_unit_groups_follow_qpa","python/tests/test_centres_and_units.py::test_unit_group_errors_follow_qpa"]
 
 [[operations]]
 qpa_name = "UpperBound"

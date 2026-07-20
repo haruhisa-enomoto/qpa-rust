@@ -1143,6 +1143,24 @@ target = "qpa.PathAlgebra.quiver"
 tests = ["python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[bindings]]
+qpa_name = "Centre"
+status = "exposed"
+target = "qpa.PathAlgebra.centre; qpa.PathAlgebraCentre; qpa.QuotientAlgebra.centre; qpa.QuotientPathAlgebraCentre"
+tests = ["python/tests/test_centres_and_units.py::test_path_and_quotient_centres_follow_qpa"]
+
+[[bindings]]
+qpa_name = "Units"
+status = "exposed"
+target = "qpa.PathAlgebra.units; qpa.QuotientAlgebra.units; qpa.QuiverAlgebra.units; qpa.QuiverAlgebraUnitGroup"
+tests = ["python/tests/test_centres_and_units.py::test_finite_unit_groups_follow_qpa","python/tests/test_centres_and_units.py::test_unit_group_errors_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ElementsOfUnits"
+status = "exposed"
+target = "qpa.PathAlgebra.elements_of_units; qpa.QuotientAlgebra.elements_of_units; qpa.QuiverAlgebra.elements_of_units; qpa.QuiverAlgebraUnitGroup.elements"
+tests = ["python/tests/test_centres_and_units.py::test_finite_unit_groups_follow_qpa"]
+
+[[bindings]]
 qpa_name = "IsElementOfQuotientOfPathAlgebra"
 status = "exposed"
 target = "qpa.QuotientElement"

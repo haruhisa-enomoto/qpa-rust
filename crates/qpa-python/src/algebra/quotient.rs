@@ -66,6 +66,31 @@ impl PyQuotientAlgebra {
         })
     }
 
+    fn centre(&self) -> PyResult<PyQuotientPathAlgebraCentre> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            finite_structures::quotient_centre_for(algebra)
+        })
+    }
+
+    fn units(&self) -> PyResult<PyQuiverAlgebraUnitGroup> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            finite_structures::units_for(&QuiverAlgebra::Quotient(algebra.clone()))
+        })
+    }
+
+    #[getter]
+    fn has_elements_of_units(&self) -> bool {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            QuiverAlgebra::Quotient(algebra.clone()).has_elements_of_units()
+        })
+    }
+
+    fn elements_of_units(&self) -> PyResult<Vec<PyQuiverAlgebraElement>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            finite_structures::elements_of_units_for(&QuiverAlgebra::Quotient(algebra.clone()))
+        })
+    }
+
     fn left_support_of_quiver_algebra_element(
         &self,
         element: &PyQuotientElement,

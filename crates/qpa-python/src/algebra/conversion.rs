@@ -1449,6 +1449,24 @@ impl PyQuiverAlgebra {
         })
     }
 
+    fn units(&self) -> PyResult<super::PyQuiverAlgebraUnitGroup> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::finite_structures::units_for(algebra)
+        })
+    }
+
+    #[getter]
+    fn has_elements_of_units(&self) -> bool {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| algebra
+            .has_elements_of_units())
+    }
+
+    fn elements_of_units(&self) -> PyResult<Vec<super::PyQuiverAlgebraElement>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::finite_structures::elements_of_units_for(algebra)
+        })
+    }
+
     #[getter]
     fn original_path_algebra(&self) -> PyPathAlgebra {
         let kind = map_ref!(
