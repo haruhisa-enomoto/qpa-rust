@@ -777,3 +777,65 @@ def test_tilting_and_cotilting_results_follow_qpa(field: qpa.Field) -> None:
     assert len(cotilting.resolutions) == 2
     assert all(result.is_in_add for result in cotilting.resolutions)
     assert injective_generator.cached_is_cotilting is True
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_approximation_operations_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projective = algebra.indecomposable_projectives()[0]
+    injectives = algebra.indecomposable_injectives()
+    simples = algebra.simple_modules()
+    simple = simples[0]
+
+    right = projective.right_approximation_by_add(simple)
+    assert right.source.dimension_vector == [1, 1]
+    assert right.range.dimension_vector == [1, 0]
+    right_list = qpa.MatrixModule.right_approximation_by_add_list(
+        [projective, simple], simple
+    )
+    assert right_list.source.dimension_vector == [2, 1]
+    assert right_list.range.dimension_vector == [1, 0]
+    minimal_right = projective.minimal_right_approximation(simple)
+    assert minimal_right.source.dimension_vector == [1, 1]
+    assert projective.minimal_right_add_approximation(simple) == minimal_right
+
+    left = projective.left_approximation_by_add(simple)
+    assert left.source.dimension_vector == [1, 1]
+    assert left.range.dimension_vector == [1, 0]
+    minimal_left = projective.minimal_left_approximation(simple)
+    assert minimal_left.range.dimension_vector == [1, 0]
+    assert projective.minimal_left_add_approximation(simple) == minimal_left
+
+    right_fac = projective.right_fac_approximation(simple)
+    assert right_fac.source.dimension_vector == [1, 0]
+    assert right_fac.range.dimension_vector == [1, 0]
+    assert projective.right_fac_m_approximation(simple) == right_fac
+    assert projective.minimal_right_fac_m_approximation(simple) == right_fac
+    left_fac = projective.left_fac_approximation(simple)
+    assert left_fac.source.dimension_vector == [1, 1]
+    assert left_fac.range.dimension_vector == [1, 0]
+    assert projective.minimal_left_fac_approximation(simple) == left_fac
+
+    right_sub = projective.right_sub_approximation(simple)
+    assert right_sub.source.dimension_vector == [1, 1]
+    assert right_sub.range.dimension_vector == [1, 0]
+    assert projective.minimal_right_sub_approximation(simple) == right_sub
+    left_sub = projective.left_sub_approximation(simple)
+    assert left_sub.source.dimension_vector == [1, 1]
+    assert left_sub.range.dimension_vector == [1, 0]
+    assert projective.minimal_left_sub_approximation(simple) == left_sub
+
+    radical = qpa.MatrixModule.radical_right_approximation_by_add(
+        [projective, simple], 2
+    )
+    assert radical.source.dimension_vector == [1, 1]
+    assert radical.range.dimension_vector == [1, 0]
+
+    cotilting = qpa.MatrixModule.direct_sum([injectives[1], simples[1]])
+    assert cotilting is not None and cotilting.cotilting(1) is not None
+    perpendicular = cotilting.right_approximation_by_perp(simple)
+    assert perpendicular.source.dimension_vector == [1, 1]
+    assert perpendicular.range.dimension_vector == [1, 0]
+    t_hat = cotilting.left_approximation_by_add_t_hat(simple)
+    assert t_hat.source.dimension_vector == [1, 0]
+    assert t_hat.range.dimension_vector == [1, 0]

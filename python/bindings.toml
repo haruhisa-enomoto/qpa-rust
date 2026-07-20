@@ -1741,3 +1741,113 @@ qpa_name = "TiltingModule"
 status = "exposed"
 target = "qpa.MatrixModule.tilting; qpa.TiltingModuleResult"
 tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotilting_results_follow_qpa"]
+
+# Module approximations
+
+[[bindings]]
+qpa_name = "RightApproximationByAddM"
+status = "exposed"
+target = "qpa.MatrixModule.right_approximation_by_add; qpa.MatrixModule.right_approximation_by_add_list"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalRightApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_right_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalRightAddMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_right_add_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftApproximationByAddM"
+status = "exposed"
+target = "qpa.MatrixModule.left_approximation_by_add"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalLeftApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_left_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalLeftAddMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_left_add_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightFacApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.right_fac_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightFacMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.right_fac_m_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalRightFacMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_right_fac_m_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftFacMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.left_fac_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalLeftFacMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_left_fac_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightSubMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.right_sub_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalRightSubMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_right_sub_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftSubMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.left_sub_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MinimalLeftSubMApproximation"
+status = "exposed"
+target = "qpa.MatrixModule.minimal_left_sub_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightApproximationByPerpT"
+status = "exposed"
+target = "qpa.MatrixModule.right_approximation_by_perp"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftApproximationByAddTHat"
+status = "exposed"
+target = "qpa.MatrixModule.left_approximation_by_add_t_hat"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RadicalRightApproximationByAddM"
+status = "exposed"
+target = "qpa.MatrixModule.radical_right_approximation_by_add"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]

@@ -129,6 +129,34 @@ where
     )
 }
 
+fn right_approximation_by_add_list_for<F: runtime::PythonField>(
+    modules: Vec<MatrixModuleKind>,
+    target: &PathAlgebraModule<F>,
+) -> PyResult<PyModuleHomomorphism>
+where
+    MatrixModuleKind: runtime::Extract<PathAlgebraModule<F>>,
+    ModuleHomomorphismKind: runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    Ok(wrap_module_homomorphism(
+        qpa_gbnp::right_approximation_by_add_m_list(&runtime::extract_all(modules)?, target)
+            .map_err(invalid)?,
+    ))
+}
+
+fn radical_right_approximation_by_add_for<F: runtime::PythonField>(
+    modules: Vec<MatrixModuleKind>,
+    index: &Integer,
+) -> PyResult<PyModuleHomomorphism>
+where
+    MatrixModuleKind: runtime::Extract<PathAlgebraModule<F>>,
+    ModuleHomomorphismKind: runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    Ok(wrap_module_homomorphism(
+        qpa_gbnp::radical_right_approximation_by_add_m(&runtime::extract_all(modules)?, index)
+            .map_err(invalid)?,
+    ))
+}
+
 fn clone_module_elements(
     py: Python<'_>,
     elements: Vec<Py<PyModuleElement>>,
@@ -750,6 +778,220 @@ impl PyMatrixModule {
                     kind: runtime::Wrap::wrap(result),
                 })
         ))
+    }
+
+    fn right_approximation_by_add(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &target.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |module, target| qpa_gbnp::right_approximation_by_add_m(module, target)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    #[staticmethod]
+    fn right_approximation_by_add_list(
+        py: Python<'_>,
+        modules: Vec<Py<PyMatrixModule>>,
+        target: &Self,
+    ) -> PyResult<PyModuleHomomorphism> {
+        let modules = modules
+            .into_iter()
+            .map(|module| module.borrow(py).kind.clone())
+            .collect::<Vec<_>>();
+        match &target.kind {
+            MatrixModuleKind::Rational(target) => {
+                right_approximation_by_add_list_for::<RationalField>(modules, target)
+            }
+            MatrixModuleKind::Binary(target) => {
+                right_approximation_by_add_list_for::<Z2>(modules, target)
+            }
+            MatrixModuleKind::Prime(target) => {
+                right_approximation_by_add_list_for::<Zp>(modules, target)
+            }
+        }
+    }
+
+    fn minimal_right_approximation(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &target.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |module, target| qpa_gbnp::minimal_right_approximation(module, target)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn minimal_right_add_approximation(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        self.minimal_right_approximation(target)
+    }
+
+    fn left_approximation_by_add(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |source, module| qpa_gbnp::left_approximation_by_add_m(source, module)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn minimal_left_approximation(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |source, module| qpa_gbnp::minimal_left_approximation(source, module)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn minimal_left_add_approximation(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        self.minimal_left_approximation(module)
+    }
+
+    fn right_fac_approximation(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &target.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |module, target| qpa_core::right_fac_approximation(module, target).map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn right_fac_m_approximation(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        self.right_fac_approximation(target)
+    }
+
+    fn minimal_right_fac_m_approximation(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        self.right_fac_approximation(target)
+    }
+
+    fn left_fac_approximation(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |source, module| qpa_gbnp::left_fac_m_approximation(source, module)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn minimal_left_fac_approximation(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |source, module| qpa_gbnp::minimal_left_fac_m_approximation(source, module)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn right_sub_approximation(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &target.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |module, target| qpa_gbnp::right_sub_m_approximation(module, target)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn minimal_right_sub_approximation(&self, target: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &target.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |module, target| qpa_gbnp::minimal_right_sub_m_approximation(module, target)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn left_sub_approximation(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |source, module| qpa_gbnp::left_sub_m_approximation(source, module)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn minimal_left_sub_approximation(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        self.left_sub_approximation(module)
+    }
+
+    fn right_approximation_by_perp(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |cotilting, module| qpa_gbnp::right_approximation_by_perp_t(cotilting, module)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    fn left_approximation_by_add_t_hat(&self, module: &Self) -> PyResult<PyModuleHomomorphism> {
+        let kind = map_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind => ModuleHomomorphismKind,
+            |cotilting, module| qpa_gbnp::left_approximation_by_add_t_hat(cotilting, module)
+                .map_err(invalid)?,
+            invalid("modules belong to different coefficient fields")
+        )?;
+        Ok(PyModuleHomomorphism { kind })
+    }
+
+    #[staticmethod]
+    fn radical_right_approximation_by_add(
+        py: Python<'_>,
+        modules: Vec<Py<PyMatrixModule>>,
+        one_based_index: i64,
+    ) -> PyResult<PyModuleHomomorphism> {
+        let modules = modules
+            .into_iter()
+            .map(|module| module.borrow(py).kind.clone())
+            .collect::<Vec<_>>();
+        let index = Integer::from(one_based_index);
+        match modules.first() {
+            Some(MatrixModuleKind::Rational(_)) => {
+                radical_right_approximation_by_add_for::<RationalField>(modules, &index)
+            }
+            Some(MatrixModuleKind::Binary(_)) => {
+                radical_right_approximation_by_add_for::<Z2>(modules, &index)
+            }
+            Some(MatrixModuleKind::Prime(_)) => {
+                radical_right_approximation_by_add_for::<Zp>(modules, &index)
+            }
+            // The Rust translation rejects the one-based index before it needs
+            // a coefficient field, so any monomorphization preserves QPA's
+            // empty-list error instead of inventing a binding-only shortcut.
+            None => radical_right_approximation_by_add_for::<RationalField>(modules, &index),
+        }
     }
 
     fn dual(&self) -> PyResult<Self> {

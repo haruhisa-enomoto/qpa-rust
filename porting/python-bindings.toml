@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 272
+exposed_or_partial_count = 290
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -7346,8 +7346,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "LeftApproximationByAddM"
 python_name = "left_approximation_by_add_m"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.left_approximation_by_add"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:LeftApproximationByAddM:1","modulehomalg:InstallMethod:LeftApproximationByAddM:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7355,14 +7355,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["left_approximation_by_add_m"]
 rust_tests = ["tests/fixtures/modulehomalg_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftApproximationByAddTHat"
 python_name = "left_approximation_by_add_t_hat"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.left_approximation_by_add_t_hat"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:LeftApproximationByAddTHat:1","modulehomalg:InstallMethod:LeftApproximationByAddTHat:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7370,7 +7370,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["left_approximation_by_add_t_hat"]
 rust_tests = ["tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftDivision"
@@ -7391,8 +7391,8 @@ python_tests = []
 qpa_name = "LeftFacMApproximation"
 python_name = "left_fac_m_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.left_fac_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:LeftFacMApproximation:1","modulehomalg:InstallMethod:LeftFacMApproximation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7400,7 +7400,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["left_fac_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_left_fac.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftInverseOfHomomorphism"
@@ -7496,8 +7496,8 @@ python_tests = []
 qpa_name = "LeftSubMApproximation"
 python_name = "left_sub_m_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.left_sub_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:LeftSubMApproximation:1","modulehomalg:InstallMethod:LeftSubMApproximation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7505,7 +7505,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["left_sub_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftSupportOfQuiverAlgebraElement"
@@ -8291,8 +8291,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "MinimalLeftAddMApproximation"
 python_name = "minimal_left_add_m_approximation"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_left_add_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:MinimalLeftAddMApproximation:1"]
 constructs = ["DeclareSynonym"]
@@ -8300,14 +8300,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["minimal_left_add_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalLeftApproximation"
 python_name = "minimal_left_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_left_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:MinimalLeftApproximation:1","modulehomalg:InstallMethod:MinimalLeftApproximation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8315,14 +8315,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["minimal_left_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalLeftFacMApproximation"
 python_name = "minimal_left_fac_m_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_left_fac_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:MinimalLeftFacMApproximation:1","modulehomalg:InstallMethod:MinimalLeftFacMApproximation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8330,14 +8330,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["minimal_left_fac_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_left_fac.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalLeftSubMApproximation"
 python_name = "minimal_left_sub_m_approximation"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_left_sub_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:MinimalLeftSubMApproximation:1"]
 constructs = ["DeclareSynonym"]
@@ -8345,14 +8345,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["minimal_left_sub_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalRightAddMApproximation"
 python_name = "minimal_right_add_m_approximation"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_right_add_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:MinimalRightAddMApproximation:1"]
 constructs = ["DeclareSynonym"]
@@ -8360,14 +8360,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["minimal_right_add_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalRightApproximation"
 python_name = "minimal_right_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_right_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:MinimalRightApproximation:1","modulehomalg:InstallMethod:MinimalRightApproximation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8375,14 +8375,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["minimal_right_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalRightFacMApproximation"
 python_name = "minimal_right_fac_m_approximation"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_right_fac_m_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:MinimalRightFacMApproximation:1"]
 constructs = ["DeclareSynonym"]
@@ -8390,14 +8390,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["minimal_right_fac_m_approximation"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MinimalRightSubMApproximation"
 python_name = "minimal_right_sub_m_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.minimal_right_sub_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:MinimalRightSubMApproximation:1","modulehomalg:InstallMethod:MinimalRightSubMApproximation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -8405,7 +8405,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["minimal_right_sub_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "ModulesOfDimVect"
@@ -10721,8 +10721,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "RadicalRightApproximationByAddM"
 python_name = "radical_right_approximation_by_add_m"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.radical_right_approximation_by_add"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:RadicalRightApproximationByAddM:1","modulehomalg:InstallMethod:RadicalRightApproximationByAddM:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10730,7 +10730,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["radical_right_approximation_by_add_m"]
 rust_tests = ["tests/fixtures/modulehomalg_radical_list_approximation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RadicalSeries"
@@ -11096,8 +11096,8 @@ python_tests = []
 qpa_name = "RightApproximationByAddM"
 python_name = "right_approximation_by_add_m"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_approximation_by_add; qpa.MatrixModule.right_approximation_by_add_list"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:RightApproximationByAddM:1","modulehomalg:DeclareOperation:RightApproximationByAddM:2","modulehomalg:InstallMethod:RightApproximationByAddM:1","modulehomalg:InstallMethod:RightApproximationByAddM:2"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11105,14 +11105,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["right_approximation_by_add_m","right_approximation_by_add_m_list"]
 rust_tests = ["tests/fixtures/modulehomalg_approximations.schema-v1.json","tests/fixtures/modulehomalg_list_approximation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightApproximationByPerpT"
 python_name = "right_approximation_by_perp_t"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_approximation_by_perp"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:RightApproximationByPerpT:1","modulehomalg:InstallMethod:RightApproximationByPerpT:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11120,14 +11120,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["right_approximation_by_perp_t"]
 rust_tests = ["tests/fixtures/modulehomalg_cotilting_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightFacApproximation"
 python_name = "right_fac_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_fac_approximation"
 notes = ""
 entry_ids = ["modulehom:InstallMethod:RightFacApproximation:1","modulehomalg:DeclareSynonym:RightFacApproximation:1"]
 constructs = ["DeclareSynonym","InstallMethod"]
@@ -11135,14 +11135,14 @@ source_files = ["upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/modulehomalg.g
 rust_symbols = ["right_fac_approximation","right_fac_approximation_via_all_basis_images"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightFacMApproximation"
 python_name = "right_fac_m_approximation"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_fac_m_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareSynonym:RightFacMApproximation:1"]
 constructs = ["DeclareSynonym"]
@@ -11150,7 +11150,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["right_fac_m_approximation"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightGroebnerBasis"
@@ -11336,8 +11336,8 @@ python_tests = []
 qpa_name = "RightSubMApproximation"
 python_name = "right_sub_m_approximation"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_sub_approximation"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:RightSubMApproximation:1","modulehomalg:InstallMethod:RightSubMApproximation:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11345,7 +11345,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["right_sub_m_approximation"]
 rust_tests = ["tests/fixtures/modulehomalg_sub_approximations.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightSupportOfQuiverAlgebraElement"
