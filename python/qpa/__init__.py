@@ -97,6 +97,7 @@ from ._qpa import (
     QuiverVertex,
     QuotientAlgebra,
     QuotientElement,
+    QuotientNiceBasis,
     QuotientPathAlgebraVector,
     QuotientPathAlgebraCentre,
     QuotientVectorCoefficientsResult,
@@ -134,6 +135,7 @@ from ._qpa import (
     predefined_ar_quiver_catalog,
     predefined_ar_quiver_data,
     poset_algebra,
+    read_algebra,
     string_quiver_rho,
     unique_quiver_name,
 )
@@ -233,6 +235,7 @@ __all__ = [
     "QuiverVertex",
     "QuotientAlgebra",
     "QuotientElement",
+    "QuotientNiceBasis",
     "QuotientPathAlgebraVector",
     "QuotientPathAlgebraCentre",
     "QuotientVectorCoefficientsResult",
@@ -268,6 +271,7 @@ __all__ = [
     "predefined_ar_quiver_catalog",
     "predefined_ar_quiver_data",
     "poset_algebra",
+    "read_algebra",
     "string_quiver_rho",
     "unique_quiver_name",
 ]

@@ -766,10 +766,9 @@ notes = "Opposite-, path-, quotient-, and both vertex-projective algebra canonic
 
 [[bindings]]
 qpa_name = "OppositePathAlgebra"
-status = "partial"
-target = "qpa.PathAlgebra.opposite"
+status = "exposed"
+target = "qpa.PathAlgebra.opposite; qpa.QuotientAlgebra.opposite"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Path and quotient opposite constructions are exposed through their classes."
 
 [[bindings]]
 qpa_name = "MakeUniformOnRight"
@@ -905,24 +904,21 @@ tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quoti
 
 [[bindings]]
 qpa_name = "LeadingTerm"
-status = "partial"
-target = "qpa.AlgebraElement.leading_term; qpa.PathAlgebraVector.leading_term; qpa.QuotientPathAlgebraVector.leading_term"
+status = "exposed"
+target = "qpa.AlgebraElement.leading_term; qpa.QuotientElement.leading_term; qpa.PathAlgebraVector.leading_term; qpa.QuotientPathAlgebraVector.leading_term"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
-notes = "Path, quotient, and both projective vector overloads are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "LeadingCoefficient"
-status = "partial"
-target = "qpa.AlgebraElement.leading_coefficient; qpa.PathAlgebraVector.leading_coefficient; qpa.QuotientPathAlgebraVector.leading_coefficient"
+status = "exposed"
+target = "qpa.AlgebraElement.leading_coefficient; qpa.QuotientElement.leading_coefficient; qpa.PathAlgebraVector.leading_coefficient; qpa.QuotientPathAlgebraVector.leading_coefficient"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
-notes = "Path, quotient, and both projective vector overloads are exposed; grouped overloads remain."
 
 [[bindings]]
 qpa_name = "LeadingMonomial"
-status = "partial"
-target = "qpa.AlgebraElement.leading_monomial"
+status = "exposed"
+target = "qpa.AlgebraElement.leading_monomial; qpa.QuotientElement.leading_monomial"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Path and quotient element overloads are exposed."
 
 [[bindings]]
 qpa_name = "IsLeftUniform"
@@ -947,17 +943,15 @@ notes = "Path, quotient, and both projective vector overloads are exposed; finit
 
 [[bindings]]
 qpa_name = "VertexPosition"
-status = "partial"
-target = "qpa.AlgebraElement.vertex_position"
+status = "exposed"
+target = "qpa.AlgebraElement.vertex_position; qpa.QuotientElement.vertex_position"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Path and quotient element overloads are exposed."
 
 [[bindings]]
 qpa_name = "OppositePathAlgebraElement"
-status = "partial"
-target = "qpa.AlgebraElement.opposite"
+status = "exposed"
+target = "qpa.AlgebraElement.opposite; qpa.QuotientElement.opposite"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "Path and quotient element overloads are exposed."
 
 [[bindings]]
 qpa_name = "TwoSidedIdealByGenerators"
@@ -1290,10 +1284,9 @@ notes = "Both path and quotient algebra methods are exposed."
 
 [[bindings]]
 qpa_name = "IsTriangularReduced"
-status = "partial"
-target = "qpa.QuotientAlgebra.is_triangular_reduced"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The default GBNP-backed quotient overload is exposed."
+status = "exposed"
+target = "qpa.PathAlgebra.is_triangular_reduced; qpa.QuotientAlgebra.is_triangular_reduced"
+tests = ["python/tests/test_persistence_and_nice_basis.py::test_path_algebra_triangular_reduced_property_follows_qpa","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
 
 [[bindings]]
 qpa_name = "IsSemisimpleAlgebra"
@@ -1495,10 +1488,10 @@ tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quoti
 
 [[bindings]]
 qpa_name = "Inverse"
-status = "partial"
+status = "exposed"
 target = "qpa.QuotientElement.inverse"
 tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The quotient-element overload is exposed, with QPA fail represented by None."
+notes = "QPA fail is represented by None."
 
 # Matrix modules, elements, and homomorphisms
 
@@ -1727,7 +1720,7 @@ notes = "Opposite-, matrix-module-, and both vertex-projective zero overloads ar
 [[bindings]]
 qpa_name = "AdditiveInverseOp"
 status = "partial"
-target = "qpa.ModuleElement.negate; qpa.PathAlgebraVector.negate; qpa.QuotientPathAlgebraVector.negate"
+target = "qpa.ModuleElement.negate; qpa.ModuleHomomorphism.negate; qpa.QuotientElement.negate; qpa.PathAlgebraVector.negate; qpa.QuotientPathAlgebraVector.negate"
 tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_quotient_projective_path_vectors_follow_qpa"]
 notes = "Module-element, module-homomorphism, and both projective vector overloads are exposed; grouped overloads remain."
 
@@ -4466,3 +4459,57 @@ qpa_name = "IsWeaklySymmetricAlgebra"
 status = "exposed"
 target = "qpa.QuiverAlgebra.is_weakly_symmetric_algebra"
 tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
+
+[[bindings]]
+qpa_name = "GroebnerBasisOfLeftIdeal"
+status = "unavailable"
+notes = "Pinned QPA declares this attribute but installs no method; the Rust port preserves that no-method boundary instead of inventing a computation."
+
+[[bindings]]
+qpa_name = "GroebnerBasisOfRightIdeal"
+status = "unavailable"
+notes = "Pinned QPA declares this attribute but installs no method; the Rust port preserves that no-method boundary instead of inventing a computation."
+
+[[bindings]]
+qpa_name = "InfoElementOfQuotientOfPathAlgebra"
+status = "unavailable"
+notes = "Pinned QPA declares this InfoClass but never emits a message through it, so there is no observable diagnostic channel to expose."
+
+[[bindings]]
+qpa_name = "IsElementOfPathRing"
+status = "represented"
+target = "qpa.AlgebraElement"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
+notes = "Represented by the concrete path-algebra element wrapper under PATHALG-002's exact field-backed contract."
+
+[[bindings]]
+qpa_name = "IsFpPathAlgebraElementsSpace"
+status = "exposed"
+target = "qpa.QuotientAlgebra.nice_basis; qpa.QuotientNiceBasis"
+tests = ["python/tests/test_persistence_and_nice_basis.py::test_quotient_nice_basis_follows_qpa"]
+
+[[bindings]]
+qpa_name = "PathRing"
+status = "represented"
+target = "qpa.PathAlgebra"
+tests = ["python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]
+notes = "PATHALG-002 represents QPA's path ring by the same field-backed PathAlgebra wrapper used by its immediately following PathAlgebra constructor."
+
+[[bindings]]
+qpa_name = "ReadAlgebra"
+status = "exposed"
+target = "qpa.read_algebra"
+tests = ["python/tests/test_persistence_and_nice_basis.py::test_save_and_read_path_algebra_follow_qpa","python/tests/test_persistence_and_nice_basis.py::test_save_and_read_quotients_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SaveAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.save_algebra; qpa.QuiverAlgebra.qpa_text"
+tests = ["python/tests/test_persistence_and_nice_basis.py::test_save_and_read_path_algebra_follow_qpa","python/tests/test_persistence_and_nice_basis.py::test_save_and_read_quotients_follow_qpa","python/tests/test_persistence_and_nice_basis.py::test_save_algebra_overwrite_branches_preserve_qpa_behavior"]
+notes = "The interactive query branch takes an explicit Python Boolean response while preserving QPA's keep/delete/query outcomes and its new-file query bug."
+
+[[bindings]]
+qpa_name = "\\/"
+status = "exposed"
+target = "qpa.PathAlgebra.quotient; qpa.PathAlgebra.quotient_high_level; qpa.PathAlgebraIdeal.quotient"
+tests = ["python/tests/test_architecture_spike.py::test_quotient_runs_the_existing_high_level_groebner_route","python/tests/test_external_representations.py::test_external_representation_round_trips_and_normal_forms_follow_qpa"]

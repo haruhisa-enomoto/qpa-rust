@@ -383,6 +383,17 @@ where
     }
 }
 
+/// Read the exact line-oriented format emitted by QPA `SaveAlgebra`.
+#[pyfunction(name = "read_algebra")]
+pub(crate) fn py_read_algebra(file: &str) -> PyResult<PyQuiverAlgebra> {
+    let kind = match qpa_gbnp::read_qpa_algebra_file(file).map_err(invalid)? {
+        qpa_gbnp::LoadedQpaAlgebra::Rational(algebra) => QuiverAlgebraKind::Rational(algebra),
+        qpa_gbnp::LoadedQpaAlgebra::Binary(algebra) => QuiverAlgebraKind::Binary(algebra),
+        qpa_gbnp::LoadedQpaAlgebra::Prime(algebra) => QuiverAlgebraKind::Prime(algebra),
+    };
+    Ok(PyQuiverAlgebra { kind })
+}
+
 pub(super) fn adr_algebra_of_basic_module_for<F: runtime::PythonField>(
     modules: Vec<MatrixModuleKind>,
 ) -> PyResult<PyQuiverAlgebra>
@@ -1159,6 +1170,24 @@ impl PyQuiverAlgebra {
                 |algebra| QuiverAlgebra::Quotient(algebra.clone())
             ),
         }
+    }
+
+    /// Return the exact text produced after QPA `SaveAlgebra`'s file branch.
+    fn qpa_text(&self) -> PyResult<String> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            qpa_gbnp::qpa_algebra_text(algebra).map_err(invalid)
+        })
+    }
+
+    /// Save using QPA's `delete`, `keep`, or `query` overwrite semantics.
+    ///
+    /// Python supplies the response to QPA's interactive query explicitly.
+    #[pyo3(signature = (file, overwrite, query_existing=false))]
+    fn save_algebra(&self, file: &str, overwrite: &str, query_existing: bool) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            qpa_gbnp::save_qpa_algebra_file(algebra, file, overwrite, || Ok(query_existing))
+                .map_err(invalid)
+        })
     }
 
     /// Apply QPA's name-based `IncludeInPathAlgebra` operation.

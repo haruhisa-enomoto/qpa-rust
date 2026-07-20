@@ -18,6 +18,7 @@ mod invariants;
 mod mapping;
 mod module;
 mod nakayama;
+mod nice_basis;
 mod predefined;
 mod projective;
 mod projective_gsz;
@@ -43,7 +44,7 @@ pub(crate) use conversion::{
     PyAdrAlgebraOfAlgebraResult, PyAlgebraAsQuiverAlgebraResult,
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyQuiverAlgebra,
     PyStructureConstantsAlgebra, PyStructureConstantsElement, PyStructureConstantsHomomorphism,
-    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
+    PyStructureConstantsQuotient, PyStructureConstantsSubalgebra, py_read_algebra,
 };
 pub(crate) use degeneration::{
     PyArQuiverNumerical, PyCodimensionConjectureReport, PyPredefinedArQuiverData,
@@ -64,6 +65,7 @@ pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresen
 pub(crate) use nakayama::{
     PyFrobeniusForm, PyFrobeniusLinearFunctional, PyNakayamaAutomorphism, PyNakayamaPermutation,
 };
+pub(crate) use nice_basis::PyQuotientNiceBasis;
 pub(crate) use predefined::{
     PyNakayamaAlgebraResult, PyPosetAlgebra, PyPredefinedAlgebra, py_admissible_sequence_generator,
     py_canonical_algebra, py_finite_global_dim_green, py_finite_global_dim_kirk_kuz,
@@ -95,8 +97,8 @@ use qpa_core::{
     AlgebraDimension, DenseMatrix, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix, PathAlgebra,
     PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal, PathAlgebraModule,
     PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule,
-    QuiverAlgebra, QuiverAlgebraElement, QuotientPathAlgebra, QuotientPathAlgebraElement,
-    right_module_over_path_algebra,
+    QuiverAlgebra, QuiverAlgebraElement, QuotientNiceBasis, QuotientPathAlgebra,
+    QuotientPathAlgebraElement, right_module_over_path_algebra,
 };
 
 use crate::field::parse_python_integer;
@@ -1813,6 +1815,13 @@ impl PyPathAlgebra {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
             qpa_gbnp::path_algebra_is_gentle(algebra)
         })
+    }
+
+    #[getter]
+    fn is_triangular_reduced(&self) -> PyResult<bool> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
+            .is_triangular_reduced()
+            .map_err(invalid))
     }
 
     #[getter]

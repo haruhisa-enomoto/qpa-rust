@@ -91,6 +91,21 @@ impl PyQuotientAlgebra {
         })
     }
 
+    /// Construct QPA's nice-basis conversion data for a quotient-element space.
+    fn nice_basis(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyQuotientElement>>,
+    ) -> PyResult<PyQuotientNiceBasis> {
+        let generators = generators
+            .into_iter()
+            .map(|element| element.borrow(py).kind.clone())
+            .collect();
+        dispatch_ref!(&self.kind, QuotientKind, |quotient| {
+            nice_basis::nice_basis_for(quotient, generators)
+        })
+    }
+
     fn left_support_of_quiver_algebra_element(
         &self,
         element: &PyQuotientElement,
