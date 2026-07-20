@@ -1433,3 +1433,47 @@ qpa_name = "MatricesOfDualMap"
 status = "exposed"
 target = "qpa.ModuleHomomorphism.dual_vertex_matrices"
 tests = ["python/tests/test_architecture_spike.py::test_derived_category_foundations_follow_qpa"]
+
+# Derived-category transformations
+
+[[bindings]]
+qpa_name = "ProjectiveResolutionOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.projective_resolution"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectiveToInjectiveComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.projective_to_injective"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjectiveToInjectiveFiniteComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.projective_to_injective_finite"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "StarOfMapBetweenDecompProjectives"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.star_between_decomposable_projectives"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "StarOfMapBetweenIndecProjectives"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.star_between_indecomposable_projectives"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "StarOfMapBetweenProjectives"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.star_between_projectives"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TauOfComplex"
+status = "exposed"
+target = "qpa.ModuleComplex.tau"
+tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]

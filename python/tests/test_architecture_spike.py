@@ -557,3 +557,39 @@ def test_derived_category_foundations_follow_qpa(field: qpa.Field) -> None:
     inclusion, projection = projective_sum.direct_sum_minus_summands([2])
     assert inclusion.source.dimension_vector == [2, 2]
     assert projection.range.dimension_vector == [2, 2]
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_derived_category_transforms_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projectives = algebra.indecomposable_projectives()
+    simple = algebra.simple_modules()[0]
+
+    indecomposable_star = projectives[0].identity().star_between_indecomposable_projectives(1, [1])
+    assert indecomposable_star.is_isomorphism
+    projective_sum = qpa.MatrixModule.direct_sum(projectives)
+    assert projective_sum is not None
+    description = projective_sum.projective_description()
+    identity = projective_sum.identity()
+    decomposable_star = identity.star_between_decomposable_projectives(description, description)
+    dispatched_star = identity.star_between_projectives(description, description)
+    assert decomposable_star.is_isomorphism and dispatched_star == decomposable_star
+
+    projective_stalk = projectives[0].stalk_complex(2)
+    assert projective_stalk.projective_resolution().is_identical(projective_stalk)
+    resolved_stalk = simple.stalk_complex(2).projective_resolution()
+    assert resolved_stalk.object(2).dimension_vector == [1, 1]
+    assert resolved_stalk.object(3).dimension_vector == [0, 1]
+    assert resolved_stalk.object(4).is_zero
+    assert resolved_stalk.is_projective_complex
+
+    finite_injective = projective_stalk.projective_to_injective_finite()
+    general_injective = projective_stalk.projective_to_injective()
+    assert finite_injective.object(2).dimension_vector == [1, 0]
+    assert finite_injective.is_injective_complex and general_injective.is_injective_complex
+
+    semisimple = qpa.PathAlgebra(field, qpa.Quiver(["v"], []))
+    tau = semisimple.indecomposable_projectives()[0].stalk_complex(0).tau()
+    assert tau.lower_bound == "-1" and tau.upper_bound == "-1"
+    assert tau.object(-1).dimension_vector == [1]
+    assert tau.is_projective_complex

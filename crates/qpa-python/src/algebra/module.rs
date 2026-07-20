@@ -831,6 +831,57 @@ impl PyModuleHomomorphism {
         ))
     }
 
+    fn star_between_indecomposable_projectives(
+        &self,
+        source_vertex: usize,
+        range_description: Vec<usize>,
+    ) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::star_of_map_between_indec_projectives(
+                    homomorphism,
+                    source_vertex,
+                    &range_description,
+                )
+                .map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn star_between_decomposable_projectives(
+        &self,
+        source_description: Vec<usize>,
+        range_description: Vec<usize>,
+    ) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::star_of_map_between_decomp_projectives(
+                    homomorphism,
+                    &source_description,
+                    &range_description,
+                )
+                .map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn star_between_projectives(
+        &self,
+        source_description: Vec<usize>,
+        range_description: Vec<usize>,
+    ) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
+            wrap_module_homomorphism(
+                qpa_gbnp::star_of_map_between_projectives(
+                    homomorphism,
+                    &source_description,
+                    &range_description,
+                )
+                .map_err(invalid)?,
+            )
+        ))
+    }
+
     fn image(&self, element: &PyModuleElement) -> PyResult<PyModuleElement> {
         let kind = match (&self.kind, &element.kind) {
             (ModuleHomomorphismKind::Rational(map), ModuleElementKind::Rational(element)) => {

@@ -449,6 +449,43 @@ impl PyModuleComplex {
         Ok(Self { kind })
     }
 
+    fn projective_resolution(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| qpa_gbnp::projective_resolution_of_complex(complex).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn projective_to_injective_finite(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| qpa_gbnp::projective_to_injective_finite_complex(complex)
+                .map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn projective_to_injective(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| qpa_gbnp::projective_to_injective_complex(complex).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    fn tau(&self) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleComplexKind => ModuleComplexKind,
+            |complex| qpa_gbnp::tau_of_complex(complex).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
     fn finite_chain_map_to(
         &self,
         py: Python<'_>,

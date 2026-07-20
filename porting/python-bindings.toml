@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 223
+exposed_or_partial_count = 230
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -10166,8 +10166,8 @@ python_tests = []
 qpa_name = "ProjectiveResolutionOfComplex"
 python_name = "projective_resolution_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.projective_resolution"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:ProjectiveResolutionOfComplex:1","derivedcat:InstallMethod:ProjectiveResolutionOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10175,7 +10175,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["projective_resolution_of_complex"]
 rust_tests = ["tests/fixtures/derivedcat_projective_resolution.schema-v1.json","tests/fixtures/derivedcat_resolution_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveResolutionOfPathAlgebraModule"
@@ -10211,8 +10211,8 @@ python_tests = []
 qpa_name = "ProjectiveToInjectiveComplex"
 python_name = "projective_to_injective_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.projective_to_injective"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:ProjectiveToInjectiveComplex:1","derivedcat:InstallMethod:ProjectiveToInjectiveComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10220,14 +10220,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["projective_to_injective_complex"]
 rust_tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProjectiveToInjectiveFiniteComplex"
 python_name = "projective_to_injective_finite_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.projective_to_injective_finite"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:ProjectiveToInjectiveFiniteComplex:1","derivedcat:InstallMethod:ProjectiveToInjectiveFiniteComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10235,7 +10235,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["projective_to_injective_finite_complex"]
 rust_tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
 
 [[operations]]
 qpa_name = "Projectives"
@@ -11771,8 +11771,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "StarOfMapBetweenDecompProjectives"
 python_name = "star_of_map_between_decomp_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.star_between_decomposable_projectives"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:StarOfMapBetweenDecompProjectives:1","derivedcat:InstallMethod:StarOfMapBetweenDecompProjectives:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11780,14 +11780,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["star_of_map_between_decomp_projectives"]
 rust_tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
 
 [[operations]]
 qpa_name = "StarOfMapBetweenIndecProjectives"
 python_name = "star_of_map_between_indec_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.star_between_indecomposable_projectives"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:StarOfMapBetweenIndecProjectives:1","derivedcat:InstallMethod:StarOfMapBetweenIndecProjectives:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11795,14 +11795,14 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["star_of_map_between_indec_projectives"]
 rust_tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
 
 [[operations]]
 qpa_name = "StarOfMapBetweenProjectives"
 python_name = "star_of_map_between_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.star_between_projectives"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:StarOfMapBetweenProjectives:1","derivedcat:InstallMethod:StarOfMapBetweenProjectives:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11810,7 +11810,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["star_of_map_between_projectives"]
 rust_tests = ["tests/fixtures/derivedcat_tau.schema-v1.json","tests/fixtures/derivedcat_tau_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
 
 [[operations]]
 qpa_name = "StarOfModule"
@@ -12116,8 +12116,8 @@ python_tests = []
 qpa_name = "TauOfComplex"
 python_name = "tau_of_complex"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleComplex.tau"
 notes = ""
 entry_ids = ["derivedcat:DeclareOperation:TauOfComplex:1","derivedcat:InstallMethod:TauOfComplex:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12125,7 +12125,7 @@ source_files = ["upstream/qpa/lib/derivedcat.gd","upstream/qpa/lib/derivedcat.gi
 rust_symbols = ["tau_of_complex"]
 rust_tests = ["tests/fixtures/derivedcat_tau.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_derived_category_transforms_follow_qpa"]
 
 [[operations]]
 qpa_name = "TensorAlgebraInclusion"
