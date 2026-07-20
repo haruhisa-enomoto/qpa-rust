@@ -14,6 +14,7 @@ mod groebner;
 mod homological;
 mod ideal;
 mod invariants;
+mod mapping;
 mod module;
 mod nakayama;
 mod predefined;
@@ -53,6 +54,7 @@ pub(crate) use fp_projective::{
     PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
 };
 pub(crate) use homological::py_complex_and_chain_maps;
+pub(crate) use mapping::PyNaturalQuotientMap;
 pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
 pub(crate) use nakayama::{
     PyFrobeniusForm, PyFrobeniusLinearFunctional, PyNakayamaAutomorphism, PyNakayamaPermutation,
@@ -1324,6 +1326,22 @@ impl PyAlgebraHomomorphism {
         })
     }
 
+    /// Python spelling of QPA's retained-generator `MappedExpression` route.
+    fn mapped_expression(
+        &self,
+        element: &PyQuiverAlgebraElement,
+    ) -> PyResult<PyQuiverAlgebraElement> {
+        self.image(element)
+    }
+
+    /// Python spelling of QPA's `ImagesRepresentative` method.
+    fn images_representative(
+        &self,
+        element: &PyQuiverAlgebraElement,
+    ) -> PyResult<PyQuiverAlgebraElement> {
+        self.image(element)
+    }
+
     #[staticmethod]
     #[pyo3(signature = (source, range, generator_images, generators_with_one=false))]
     fn path_to_path(
@@ -1656,6 +1674,12 @@ impl PyPathAlgebra {
         PyQuiver::from_inner_with_ordering(inner, ordering)
     }
 
+    /// QPA's `OriginalPathAlgebra(A)` returns a path algebra unchanged.
+    #[getter]
+    fn original_path_algebra(&self) -> Self {
+        self.clone()
+    }
+
     #[getter]
     fn ordering(&self) -> PyQuiverOrdering {
         let inner = dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
@@ -1949,6 +1973,20 @@ impl PyPathAlgebra {
                     .generators_times_arrows_on_right(&generators)
                     .map_err(invalid)?,
             ))
+        })
+    }
+
+    /// Return QPA's generator-global assignment plan without mutating Python globals.
+    #[pyo3(signature = (read_only_names=Vec::new()))]
+    fn generator_variable_assignments(
+        &self,
+        read_only_names: Vec<String>,
+    ) -> PyResult<Vec<(String, PyQuiverAlgebraElement)>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            mapping::generator_variable_assignments_for(
+                &QuiverAlgebra::Path(algebra.clone()),
+                &read_only_names,
+            )
         })
     }
 

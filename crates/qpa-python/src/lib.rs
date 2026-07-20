@@ -26,7 +26,7 @@ use algebra::{
     PyModuleEndomorphismAlgebra, PyModuleEndomorphismQuotientAlgebra,
     PyModuleEndomorphismQuotientElement, PyModuleEndomorphismQuotientMap, PyModuleHomomorphism,
     PyModuleHomomorphismBasis, PyModuleMorphismList, PyModuleSubmodule, PyMoreMinimalVersionResult,
-    PyNakayamaAlgebraResult, PyNakayamaAutomorphism, PyNakayamaPermutation,
+    PyNakayamaAlgebraResult, PyNakayamaAutomorphism, PyNakayamaPermutation, PyNaturalQuotientMap,
     PyNaturalSubmoduleHomomorphism, PyNonisomorphicDirectSummandData,
     PyOppositeStructureConstantsAlgebra, PyOppositeStructureConstantsElement, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector,
@@ -109,6 +109,7 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;
+    module.add_class::<PyNaturalQuotientMap>()?;
     module.add_class::<PyStructureConstantsAlgebra>()?;
     module.add_class::<PyStructureConstantsElement>()?;
     module.add_class::<PyStructureConstantsSubalgebra>()?;

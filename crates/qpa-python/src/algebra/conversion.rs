@@ -1449,6 +1449,26 @@ impl PyQuiverAlgebra {
         })
     }
 
+    #[getter]
+    fn original_path_algebra(&self) -> PyPathAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            QuiverAlgebraKind => AlgebraKind,
+            |algebra| algebra.original_path_algebra().clone()
+        );
+        PyPathAlgebra { kind }
+    }
+
+    #[pyo3(signature = (read_only_names=Vec::new()))]
+    fn generator_variable_assignments(
+        &self,
+        read_only_names: Vec<String>,
+    ) -> PyResult<Vec<(String, super::PyQuiverAlgebraElement)>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::mapping::generator_variable_assignments_for(algebra, &read_only_names)
+        })
+    }
+
     fn cartan_matrix(&self) -> PyResult<Option<Vec<Vec<usize>>>> {
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
             super::invariants::cartan_for(algebra)

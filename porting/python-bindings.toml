@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 689
+exposed_or_partial_count = 696
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -476,16 +476,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "AssignGeneratorVariables"
 python_name = "assign_generator_variables"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.generator_variable_assignments; qpa.QuotientAlgebra.generator_variable_assignments; qpa.QuiverAlgebra.generator_variable_assignments"
+notes = "Returns the explicit ordered namespace plan documented by PATHALG-005 instead of mutating process-wide Python globals."
 entry_ids = ["pathalg:InstallMethod:AssignGeneratorVariables:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["QuiverAlgebra::generator_variable_assignments; QuiverAlgebra::generator_variable_assignments_with_read_only; GeneratorVariableAssignment"]
 rust_tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json"]
 deviations = ["PATHALG-005"]
-python_tests = []
+python_tests = ["python/tests/test_pathalgebra_mappings.py::test_generator_variable_assignments_follow_qpa_namespace_plan"]
 
 [[operations]]
 qpa_name = "AssociatedGradedAlgebra"
@@ -3101,16 +3101,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "GeneratorsTimesArrowsOnRight"
 python_name = "generators_times_arrows_on_right"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.PathAlgebra.generators_times_arrows_on_right"
-notes = "The path-algebra-element list overload is exposed."
+status = "exposed"
+python_target = "qpa.PathAlgebra.generators_times_arrows_on_right; qpa.QuotientAlgebra.generators_times_arrows_on_right"
+notes = ""
 entry_ids = ["pathalg:DeclareOperation:GeneratorsTimesArrowsOnRight:1","pathalg:InstallMethod:GeneratorsTimesArrowsOnRight:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::generators_times_arrows_on_right; QuotientPathAlgebra::generators_times_arrows_on_right"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[operations]]
 qpa_name = "GenusOfCombinatorialMap"
@@ -3716,16 +3716,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "ImagesRepresentative"
 python_name = "images_representative"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.AlgebraHomomorphism.images_representative; qpa.NaturalQuotientMap.images_representative"
+notes = "Natural projections use the documented PATHALG-001 compatibility repair."
 entry_ids = ["pathalg:InstallMethod:ImagesRepresentative:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["QuiverAlgebraHomomorphism::image"]
 rust_tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json","tests/gap-reference/natural_map_image_error.g"]
 deviations = ["PATHALG-001"]
-python_tests = []
+python_tests = ["python/tests/test_pathalgebra_mappings.py::test_mapped_expression_and_images_representative_follow_qpa","python/tests/test_pathalgebra_mappings.py::test_natural_homomorphism_by_ideal_follows_qpa"]
 
 [[operations]]
 qpa_name = "ImagesSet"
@@ -7976,23 +7976,23 @@ python_tests = []
 qpa_name = "MakeUniformOnRight"
 python_name = "make_uniform_on_right"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.PathAlgebra.make_uniform_on_right"
-notes = "The path-algebra-element list overload is exposed."
+status = "exposed"
+python_target = "qpa.PathAlgebra.make_uniform_on_right; qpa.QuotientAlgebra.make_uniform_on_right"
+notes = ""
 entry_ids = ["pathalg:DeclareOperation:MakeUniformOnRight:1","pathalg:InstallMethod:MakeUniformOnRight:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::make_uniform_on_right; QuotientPathAlgebra::make_uniform_on_right"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[operations]]
 qpa_name = "MappedExpression"
 python_name = "mapped_expression"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraHomomorphism.mapped_expression; qpa.NaturalQuotientMap.mapped_expression"
 notes = ""
 entry_ids = ["pathalg:InstallOtherMethod:MappedExpression:1","pathalg:InstallOtherMethod:MappedExpression:2"]
 constructs = ["InstallOtherMethod"]
@@ -8000,7 +8000,7 @@ source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["QuiverAlgebraHomomorphism::image"]
 rust_tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_pathalgebra_mappings.py::test_mapped_expression_and_images_representative_follow_qpa","python/tests/test_pathalgebra_mappings.py::test_natural_homomorphism_by_ideal_follows_qpa"]
 
 [[operations]]
 qpa_name = "MappingCone"
@@ -8636,16 +8636,16 @@ python_tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_permutat
 qpa_name = "NaturalHomomorphismByIdeal"
 python_name = "natural_homomorphism_by_ideal"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebraIdeal.natural_homomorphism; qpa.NaturalQuotientMap"
+notes = "Applies the intended source map despite pinned QPA's obsolete GAP mapping-record access, as documented by PATHALG-001."
 entry_ids = ["pathalg:InstallOtherMethod:NaturalHomomorphismByIdeal:1"]
 constructs = ["InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebraIdeal::natural_homomorphism; NaturalQuotientMap"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json","tests/gap-reference/natural_map_image_error.g"]
 deviations = ["PATHALG-001"]
-python_tests = []
+python_tests = ["python/tests/test_pathalgebra_mappings.py::test_natural_homomorphism_by_ideal_follows_qpa"]
 
 [[operations]]
 qpa_name = "NaturalHomomorphismBySubAlgebraModule"
@@ -9296,16 +9296,16 @@ python_tests = ["python/tests/test_nakayama_frobenius.py::test_nakayama_automorp
 qpa_name = "OrderedBy"
 python_name = "ordered_by"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.Quiver.ordered_by"
-notes = "The quiver and ordered path-algebra route is exposed; the quotient-path-algebra overload remains."
+status = "exposed"
+python_target = "qpa.Quiver.ordered_by; qpa.QuotientAlgebra.ordered_by"
+notes = "The quotient overload preserves QPA's ordinary unbound-relators failure."
 entry_ids = ["pathalg:InstallOtherMethod:OrderedBy:1","quiver:DeclareOperation:OrderedBy:1","quiver:InstallMethod:OrderedBy:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/quiver.gd","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Quiver::ordered_by; OrderedQuiver","QuotientPathAlgebra::ordered_by"]
 rust_tests = ["tests/fixtures/pathalg_mapping_ordering.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json"]
 deviations = ["PATHALG-004"]
-python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
+python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_pathalgebra_mappings.py::test_mapped_expression_and_images_representative_follow_qpa"]
 
 [[operations]]
 qpa_name = "OrderingName"
@@ -9372,7 +9372,7 @@ qpa_name = "OriginalPathAlgebra"
 python_name = "original_path_algebra"
 disposition = "operation"
 status = "exposed"
-python_target = "qpa.QuotientAlgebra.original_path_algebra"
+python_target = "qpa.PathAlgebra.original_path_algebra; qpa.QuotientAlgebra.original_path_algebra; qpa.QuiverAlgebra.original_path_algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:OriginalPathAlgebra:1","pathalg:InstallMethod:OriginalPathAlgebra:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -9380,7 +9380,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra; QuotientPathAlgebra::original_path_algebra"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[operations]]
 qpa_name = "OutDegreeOfVertex"
@@ -9551,8 +9551,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_path_algebra_uses
 qpa_name = "PathAlgebraContainingElement"
 python_name = "path_algebra_containing_element"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.AlgebraElement.algebra; qpa.QuotientElement.algebra"
 notes = ""
 entry_ids = ["pathalg:DeclareGlobalFunction:PathAlgebraContainingElement:1","pathalg:InstallGlobalFunction:PathAlgebraContainingElement:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -9560,7 +9560,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebraElement::algebra; QuotientPathAlgebraElement::algebra"]
 rust_tests = ["tests/fixtures/pathalg_foundational.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[operations]]
 qpa_name = "PathAlgebraElementTerms"
@@ -10571,8 +10571,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "QuiverOfPathAlgebra"
 python_name = "quiver_of_path_algebra"
 disposition = "alias"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.quiver; qpa.QuotientAlgebra.quiver; qpa.QuiverAlgebra.quiver"
 notes = ""
 entry_ids = ["pathalg:DeclareSynonymAttr:QuiverOfPathAlgebra:1"]
 constructs = ["DeclareSynonymAttr"]
@@ -10580,14 +10580,14 @@ source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["PathAlgebra::quiver; QuotientPathAlgebra::quiver"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuiverOfPathRing"
 python_name = "quiver_of_path_ring"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.quiver"
 notes = ""
 entry_ids = ["pathalg:DeclareAttribute:QuiverOfPathRing:1","pathalg:InstallMethod:QuiverOfPathRing:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -10595,7 +10595,7 @@ source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["PathAlgebra::quiver"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuiverProduct"

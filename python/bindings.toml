@@ -645,10 +645,10 @@ tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_
 
 [[bindings]]
 qpa_name = "OrderedBy"
-status = "partial"
-target = "qpa.Quiver.ordered_by"
-tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures"]
-notes = "The quiver and ordered path-algebra route is exposed; the quotient-path-algebra overload remains."
+status = "exposed"
+target = "qpa.Quiver.ordered_by; qpa.QuotientAlgebra.ordered_by"
+tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_pathalgebra_mappings.py::test_mapped_expression_and_images_representative_follow_qpa"]
+notes = "The quotient overload preserves QPA's ordinary unbound-relators failure."
 
 [[bindings]]
 qpa_name = "PathFromArrowList"
@@ -731,17 +731,15 @@ notes = "Path and quotient opposite constructions are exposed through their clas
 
 [[bindings]]
 qpa_name = "MakeUniformOnRight"
-status = "partial"
-target = "qpa.PathAlgebra.make_uniform_on_right"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The path-algebra-element list overload is exposed."
+status = "exposed"
+target = "qpa.PathAlgebra.make_uniform_on_right; qpa.QuotientAlgebra.make_uniform_on_right"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[bindings]]
 qpa_name = "GeneratorsTimesArrowsOnRight"
-status = "partial"
-target = "qpa.PathAlgebra.generators_times_arrows_on_right"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
-notes = "The path-algebra-element list overload is exposed."
+status = "exposed"
+target = "qpa.PathAlgebra.generators_times_arrows_on_right; qpa.QuotientAlgebra.generators_times_arrows_on_right"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[bindings]]
 qpa_name = "NthPowerOfArrowIdeal"
@@ -1096,8 +1094,53 @@ notes = "Basis and ideal entry points are exposed; left/right module variants re
 [[bindings]]
 qpa_name = "OriginalPathAlgebra"
 status = "exposed"
-target = "qpa.QuotientAlgebra.original_path_algebra"
-tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms"]
+target = "qpa.PathAlgebra.original_path_algebra; qpa.QuotientAlgebra.original_path_algebra; qpa.QuiverAlgebra.original_path_algebra"
+tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NaturalHomomorphismByIdeal"
+status = "exposed"
+target = "qpa.PathAlgebraIdeal.natural_homomorphism; qpa.NaturalQuotientMap"
+tests = ["python/tests/test_pathalgebra_mappings.py::test_natural_homomorphism_by_ideal_follows_qpa"]
+notes = "Applies the intended source map despite pinned QPA's obsolete GAP mapping-record access, as documented by PATHALG-001."
+
+[[bindings]]
+qpa_name = "MappedExpression"
+status = "exposed"
+target = "qpa.AlgebraHomomorphism.mapped_expression; qpa.NaturalQuotientMap.mapped_expression"
+tests = ["python/tests/test_pathalgebra_mappings.py::test_mapped_expression_and_images_representative_follow_qpa","python/tests/test_pathalgebra_mappings.py::test_natural_homomorphism_by_ideal_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ImagesRepresentative"
+status = "exposed"
+target = "qpa.AlgebraHomomorphism.images_representative; qpa.NaturalQuotientMap.images_representative"
+tests = ["python/tests/test_pathalgebra_mappings.py::test_mapped_expression_and_images_representative_follow_qpa","python/tests/test_pathalgebra_mappings.py::test_natural_homomorphism_by_ideal_follows_qpa"]
+notes = "Natural projections use the documented PATHALG-001 compatibility repair."
+
+[[bindings]]
+qpa_name = "AssignGeneratorVariables"
+status = "exposed"
+target = "qpa.PathAlgebra.generator_variable_assignments; qpa.QuotientAlgebra.generator_variable_assignments; qpa.QuiverAlgebra.generator_variable_assignments"
+tests = ["python/tests/test_pathalgebra_mappings.py::test_generator_variable_assignments_follow_qpa_namespace_plan"]
+notes = "Returns the explicit ordered namespace plan documented by PATHALG-005 instead of mutating process-wide Python globals."
+
+[[bindings]]
+qpa_name = "PathAlgebraContainingElement"
+status = "exposed"
+target = "qpa.AlgebraElement.algebra; qpa.QuotientElement.algebra"
+tests = ["python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QuiverOfPathAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.quiver; qpa.QuotientAlgebra.quiver; qpa.QuiverAlgebra.quiver"
+tests = ["python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QuiverOfPathRing"
+status = "exposed"
+target = "qpa.PathAlgebra.quiver"
+tests = ["python/tests/test_pathalgebra_mappings.py::test_quotient_uniformization_and_path_parent_aliases_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsElementOfQuotientOfPathAlgebra"

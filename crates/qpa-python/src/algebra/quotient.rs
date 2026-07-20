@@ -109,6 +109,66 @@ impl PyQuotientAlgebra {
         })
     }
 
+    fn make_uniform_on_right(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyQuotientElement>>,
+    ) -> PyResult<Vec<PyQuotientElement>> {
+        let generators = generators
+            .into_iter()
+            .map(|element| element.borrow(py).kind.clone())
+            .collect();
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            let generators = runtime::extract_all(generators)?;
+            Ok(wrap_quotient_elements(
+                algebra
+                    .make_uniform_on_right(&generators)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn generators_times_arrows_on_right(
+        &self,
+        py: Python<'_>,
+        generators: Vec<Py<PyQuotientElement>>,
+    ) -> PyResult<Vec<PyQuotientElement>> {
+        let generators = generators
+            .into_iter()
+            .map(|element| element.borrow(py).kind.clone())
+            .collect();
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            let generators = runtime::extract_all(generators)?;
+            Ok(wrap_quotient_elements(
+                algebra
+                    .generators_times_arrows_on_right(&generators)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn ordered_by(&self, ordering: &PyQuiverOrdering) -> PyResult<Self> {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientKind => QuotientKind,
+            |algebra| algebra.ordered_by(&ordering.inner).map_err(invalid)?
+        );
+        Ok(Self { kind })
+    }
+
+    #[pyo3(signature = (read_only_names=Vec::new()))]
+    fn generator_variable_assignments(
+        &self,
+        read_only_names: Vec<String>,
+    ) -> PyResult<Vec<(String, PyQuiverAlgebraElement)>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            mapping::generator_variable_assignments_for(
+                &QuiverAlgebra::Quotient(algebra.clone()),
+                &read_only_names,
+            )
+        })
+    }
+
     #[staticmethod]
     fn truncated(
         field: PyRef<'_, PyField>,

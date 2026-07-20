@@ -127,6 +127,12 @@ impl PyPathAlgebraIdeal {
         Ok(PyQuotientAlgebra { kind })
     }
 
+    fn natural_homomorphism(&self) -> PyResult<PyNaturalQuotientMap> {
+        dispatch_ref!(&self.kind, IdealKind, |ideal| {
+            mapping::natural_quotient_map_for(ideal)
+        })
+    }
+
     fn is_identical(&self, other: &Self) -> bool {
         dispatch_pair_ref!(
             &self.kind,
