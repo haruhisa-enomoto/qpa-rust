@@ -4,6 +4,7 @@
 #![allow(missing_docs)] // PyO3 exception structs cannot receive rustdoc attributes.
 
 mod algebra;
+mod dynamic_tree;
 mod field;
 mod poset;
 mod quiver;
@@ -51,6 +52,7 @@ use algebra::{
     py_nakayama_algebra, py_opposite_relations, py_poset_algebra, py_predefined_ar_quiver_catalog,
     py_predefined_ar_quiver_data, py_read_algebra, py_string_quiver_rho,
 };
+use dynamic_tree::{PyDynamicForest, PyDynamicTree};
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
     PyPath, PyQuiver, PyQuiverArrow, PyQuiverOrdering, PyQuiverPathEnumerator,
@@ -79,6 +81,8 @@ fn invalid(error: impl std::fmt::Display) -> PyErr {
 }
 
 fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add_class::<PyDynamicForest>()?;
+    module.add_class::<PyDynamicTree>()?;
     module.add_class::<PyField>()?;
     module.add_class::<PyScalar>()?;
     module.add_class::<PyQuiver>()?;

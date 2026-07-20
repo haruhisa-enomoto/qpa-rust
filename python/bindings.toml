@@ -1748,9 +1748,9 @@ notes = "Matrix-module element and projective-vector subtraction and negation ar
 [[bindings]]
 qpa_name = "\\="
 status = "partial"
-target = "qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
-notes = "Opposite-element equality and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
+target = "qpa.DynamicTree.__eq__; qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+notes = "Dynamic-tree identity equality, opposite-element equality, and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
 
 [[bindings]]
 qpa_name = "CoKernelProjection"
@@ -4802,3 +4802,73 @@ qpa_name = "PrefixSearch"
 status = "exposed"
 target = "qpa.QuiverStaticDictionary.prefix_search"
 tests = ["python/tests/test_static_dictionaries.py::test_quiver_static_dictionary_follows_qpa"]
+
+# Dynamic trees
+
+[[bindings]]
+qpa_name = "CreateDynamicTree"
+status = "exposed"
+target = "qpa.DynamicForest.create"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
+notes = "A DynamicForest explicitly owns the arena that GAP's garbage collector supplies implicitly; nodes intended to link together must be created by the same forest."
+
+[[bindings]]
+qpa_name = "CutDynamicTree"
+status = "exposed"
+target = "qpa.DynamicTree.cut"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DynamicTreeFamily"
+status = "exposed"
+target = "qpa.DynamicForest; qpa.DynamicForest.family_name"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
+notes = "The Python arena makes QPA's process-global object family an explicit ownership domain."
+
+[[bindings]]
+qpa_name = "IsDefaultDynamicTreeRep"
+status = "exposed"
+target = "qpa.DynamicTree.is_default_rep"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsDynamicTree"
+status = "exposed"
+target = "qpa.DynamicTree.is_dynamic_tree"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LeftRotateDynamicTree"
+status = "exposed"
+target = "qpa.DynamicTree.left_rotate"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_rotations_and_splice_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "LinkDynamicTrees"
+status = "exposed"
+target = "qpa.DynamicTree.link"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RightRotateDynamicTree"
+status = "exposed"
+target = "qpa.DynamicTree.right_rotate"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_rotations_and_splice_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
+
+[[bindings]]
+qpa_name = "RootOfDynamicTree"
+status = "exposed"
+target = "qpa.DynamicTree.root"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SplayDynamicTree"
+status = "exposed"
+target = "qpa.DynamicTree.splay"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SpliceDynamicTree"
+status = "exposed"
+target = "qpa.DynamicTree.splice"
+tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_rotations_and_splice_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]

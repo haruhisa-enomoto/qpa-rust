@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 762
+exposed_or_partial_count = 773
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -1451,16 +1451,16 @@ python_tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxete
 qpa_name = "CreateDynamicTree"
 python_name = "create_dynamic_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.DynamicForest.create"
+notes = "A DynamicForest explicitly owns the arena that GAP's garbage collector supplies implicitly; nodes intended to link together must be created by the same forest."
 entry_ids = ["groebnerdyntree:DeclareGlobalFunction:CreateDynamicTree:1","groebnerdyntree:InstallGlobalFunction:CreateDynamicTree:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebnerdyntree.gi"]
 rust_symbols = ["DynamicForest::create"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = ["DT-001"]
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
 
 [[operations]]
 qpa_name = "CreateExternalSuffixTreeNode"
@@ -1571,8 +1571,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "CutDynamicTree"
 python_name = "cut_dynamic_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.cut"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareOperation:CutDynamicTree:1","groebnerdyntree:InstallMethod:CutDynamicTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1580,7 +1580,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebner
 rust_symbols = ["DynamicTree::cut"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa"]
 
 [[operations]]
 qpa_name = "CutJoinCurveCombinatorialMap"
@@ -2351,16 +2351,16 @@ python_tests = []
 qpa_name = "DynamicTreeFamily"
 python_name = "dynamic_tree_family"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.DynamicForest; qpa.DynamicForest.family_name"
+notes = "The Python arena makes QPA's process-global object family an explicit ownership domain."
 entry_ids = ["groebnerdyntree:BindGlobal:DynamicTreeFamily:1"]
 constructs = ["BindGlobal"]
 source_files = ["upstream/qpa/lib/groebnerdyntree.gd"]
 rust_symbols = ["DynamicForest"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
 
 [[operations]]
 qpa_name = "DynkinQuiver"
@@ -4601,8 +4601,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_tilting_and_cotil
 qpa_name = "IsDefaultDynamicTreeRep"
 python_name = "is_default_dynamic_tree_rep"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.is_default_rep"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareRepresentation:IsDefaultDynamicTreeRep:1"]
 constructs = ["DeclareRepresentation"]
@@ -4610,7 +4610,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd"]
 rust_symbols = ["DynamicTree"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsDefaultInternalSuffixTreeNodeRep"
@@ -4751,8 +4751,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IsDynamicTree"
 python_name = "is_dynamic_tree"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.is_dynamic_tree"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareCategory:IsDynamicTree:1"]
 constructs = ["DeclareCategory"]
@@ -4760,7 +4760,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd"]
 rust_symbols = ["DynamicTree"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsDynkinQuiver"
@@ -7481,8 +7481,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_m
 qpa_name = "LeftRotateDynamicTree"
 python_name = "left_rotate_dynamic_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.left_rotate"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareOperation:LeftRotateDynamicTree:1","groebnerdyntree:InstallMethod:LeftRotateDynamicTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7490,7 +7490,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebner
 rust_symbols = ["DynamicTree::left_rotate"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_rotations_and_splice_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "LeftSubMApproximation"
@@ -7781,8 +7781,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_hom_spaces_catego
 qpa_name = "LinkDynamicTrees"
 python_name = "link_dynamic_trees"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.link"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareOperation:LinkDynamicTrees:1","groebnerdyntree:InstallMethod:LinkDynamicTrees:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7790,7 +7790,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebner
 rust_symbols = ["DynamicTree::link"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = ["DT-001"]
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "LocalARQuiver"
@@ -11321,8 +11321,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective
 qpa_name = "RightRotateDynamicTree"
 python_name = "right_rotate_dynamic_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.right_rotate"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareOperation:RightRotateDynamicTree:1","groebnerdyntree:InstallMethod:RightRotateDynamicTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11330,7 +11330,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebner
 rust_symbols = ["DynamicTree::right_rotate"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_rotations_and_splice_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightSubMApproximation"
@@ -11396,8 +11396,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_gsz_projective_re
 qpa_name = "RootOfDynamicTree"
 python_name = "root_of_dynamic_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.root"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareOperation:RootOfDynamicTree:1","groebnerdyntree:InstallMethod:RootOfDynamicTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11405,7 +11405,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebner
 rust_symbols = ["DynamicTree::root"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa"]
 
 [[operations]]
 qpa_name = "SaveAlgebra"
@@ -11711,8 +11711,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective
 qpa_name = "SplayDynamicTree"
 python_name = "splay_dynamic_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.splay"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareOperation:SplayDynamicTree:1","groebnerdyntree:InstallMethod:SplayDynamicTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11720,7 +11720,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebner
 rust_symbols = ["DynamicTree::splay"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_link_root_cut_and_relink_follow_qpa"]
 
 [[operations]]
 qpa_name = "Splice"
@@ -11741,8 +11741,8 @@ python_tests = []
 qpa_name = "SpliceDynamicTree"
 python_name = "splice_dynamic_tree"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.DynamicTree.splice"
 notes = ""
 entry_ids = ["groebnerdyntree:DeclareOperation:SpliceDynamicTree:1","groebnerdyntree:InstallMethod:SpliceDynamicTree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -11750,7 +11750,7 @@ source_files = ["upstream/qpa/lib/groebnerdyntree.gd","upstream/qpa/lib/groebner
 rust_symbols = ["DynamicTree::splice"]
 rust_tests = ["tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/dynamic_tree_errors.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_rotations_and_splice_follow_qpa","python/tests/test_dynamic_trees.py::test_dynamic_tree_error_boundaries_follow_qpa"]
 
 [[operations]]
 qpa_name = "StalkComplex"
@@ -13257,15 +13257,15 @@ qpa_name = "\\="
 python_name = "equal"
 disposition = "operation"
 status = "partial"
-python_target = "qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
-notes = "Opposite-element equality and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
+python_target = "qpa.DynamicTree.__eq__; qpa.OppositeStructureConstantsElement.__eq__; qpa.ModuleElement.__eq__; qpa.PathAlgebraVector.__eq__"
+notes = "Dynamic-tree identity equality, opposite-element equality, and structural equality for matrix modules, their elements, homomorphisms, and projective vectors are exposed among the grouped QPA overloads."
 entry_ids = ["algebra:InstallMethod:\\=:1","complex:InstallMethod:\\=:1","groebnerdyndict:InstallMethod:\\=:1","groebnerdyntree:InstallMethod:\\=:1","module:InstallMethod:\\=:1","module:InstallMethod:\\=:2","modulehom:InstallMethod:\\=:1","pathalg:InstallMethod:\\=:1","projpathalgmodule:InstallMethod:\\=:1","quiver:InstallMethod:\\=:1","quiver:InstallMethod:\\=:2","quiver:InstallMethod:\\=:3","quiver:InstallMethod:\\=:4","quiver:InstallMethod:\\=:5","quiver:InstallMethod:\\=:6"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/groebnerdyndict.gi","upstream/qpa/lib/groebnerdyntree.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["DynamicTree::is_identical; DynamicTree::eq","OppositeStructureConstantsAlgebraElement::eq","PartialEq for PathAlgebraModuleElement","Path::eq","PathAlgebraModule::eq; PathAlgebraModule::is_identical","PathAlgebraModuleHomomorphism::eq","PathAlgebraVector::eq; QuotientPathAlgebraVector::eq","QuotientPathAlgebraElement::eq","SuffixTreeNodeId::eq; SuffixTreeEdgeId::eq","qpa_gbnp::CallbackCategory::eq"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/dynamic_tree.schema-v1.json","tests/fixtures/final_declared_surface.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/modulehom_foundation.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/projpathalgmodule_quotient_vectors.schema-v1.json","tests/fixtures/projpathalgmodule_vectors.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/suffix_tree_surface.schema-v1.json"]
 deviations = ["SUFFIX-001"]
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+python_tests = ["python/tests/test_dynamic_trees.py::test_dynamic_tree_construction_and_identity_follow_qpa","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
 
 [[operations]]
 qpa_name = "\\[\\]"

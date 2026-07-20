@@ -145,6 +145,42 @@ impl<Item> DynamicTree<Item> {
         self.related(self.right_index())
     }
 
+    /// Replace QPA's mutable `parent` representation component.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DynamicTreeError::DifferentForests`] when a nonempty value
+    /// belongs to another arena.
+    pub fn set_parent(&self, parent: Option<&Self>) -> Result<(), DynamicTreeError> {
+        let parent = self.related_index(parent)?;
+        self.forest.borrow_mut().nodes[self.index].parent = parent;
+        Ok(())
+    }
+
+    /// Replace QPA's mutable `left` representation component.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DynamicTreeError::DifferentForests`] when a nonempty value
+    /// belongs to another arena.
+    pub fn set_left(&self, left: Option<&Self>) -> Result<(), DynamicTreeError> {
+        let left = self.related_index(left)?;
+        self.forest.borrow_mut().nodes[self.index].left = left;
+        Ok(())
+    }
+
+    /// Replace QPA's mutable `right` representation component.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DynamicTreeError::DifferentForests`] when a nonempty value
+    /// belongs to another arena.
+    pub fn set_right(&self, right: Option<&Self>) -> Result<(), DynamicTreeError> {
+        let right = self.related_index(right)?;
+        self.forest.borrow_mut().nodes[self.index].right = right;
+        Ok(())
+    }
+
     /// Translate QPA's `RightRotateDynamicTree`.
     ///
     /// # Errors
@@ -264,6 +300,15 @@ impl<Item> DynamicTree<Item> {
         } else {
             Err(DynamicTreeError::DifferentForests)
         }
+    }
+
+    fn related_index(&self, other: Option<&Self>) -> Result<Option<usize>, DynamicTreeError> {
+        other
+            .map(|other| {
+                self.ensure_same_forest(other)?;
+                Ok(other.index)
+            })
+            .transpose()
     }
 
     fn related(&self, index: Option<usize>) -> Option<Self> {
