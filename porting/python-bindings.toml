@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 235
+exposed_or_partial_count = 247
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -2231,8 +2231,8 @@ python_tests = []
 qpa_name = "DominantDimensionOfAlgebra"
 python_name = "dominant_dimension_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.dominant_dimension_bounded; qpa.QuotientAlgebra.dominant_dimension_bounded"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:DominantDimensionOfAlgebra:1","modulehomalg:InstallMethod:DominantDimensionOfAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2240,14 +2240,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["dominant_dimension_of_algebra; DominantDimensionResult"]
 rust_tests = ["tests/fixtures/modulehomalg_dominant_dimension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "DominantDimensionOfModule"
 python_name = "dominant_dimension_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.dominant_dimension"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:DominantDimensionOfModule:1","modulehomalg:InstallMethod:DominantDimensionOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2255,7 +2255,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["dominant_dimension_of_module; DominantDimensionResult"]
 rust_tests = ["tests/fixtures/modulehomalg_dominant_dimension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "DoubleQuiver"
@@ -3146,8 +3146,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "GlobalDimensionOfAlgebra"
 python_name = "global_dimension_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.global_dimension_bounded; qpa.QuotientAlgebra.global_dimension_bounded"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:GlobalDimensionOfAlgebra:1","modulehomalg:InstallMethod:GlobalDimensionOfAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3155,7 +3155,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["global_dimension_of_algebra; GlobalDimensionOfAlgebraResult"]
 rust_tests = ["tests/fixtures/modulehom_global_dimension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "GoodTruncation"
@@ -3206,8 +3206,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_su
 qpa_name = "GorensteinDimension"
 python_name = "gorenstein_dimension"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.cached_gorenstein_dimension; qpa.QuotientAlgebra.cached_gorenstein_dimension"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:GorensteinDimension:1"]
 constructs = ["DeclareAttribute"]
@@ -3215,14 +3215,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["gorenstein_dimension"]
 rust_tests = ["tests/fixtures/modulehomalg_gorenstein_dimension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "GorensteinDimensionOfAlgebra"
 python_name = "gorenstein_dimension_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.gorenstein_dimension_bounded; qpa.QuotientAlgebra.gorenstein_dimension_bounded"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:GorensteinDimensionOfAlgebra:1","modulehomalg:InstallMethod:GorensteinDimensionOfAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -3230,7 +3230,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["gorenstein_dimension_of_algebra; gorenstein_dimension_of_algebra_with_progress"]
 rust_tests = ["tests/fixtures/modulehomalg_gorenstein_dimension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "GroebnerBasis"
@@ -4016,8 +4016,8 @@ python_tests = []
 qpa_name = "InjDimension"
 python_name = "inj_dimension"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.cached_injective_dimension"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:InjDimension:1"]
 constructs = ["DeclareAttribute"]
@@ -4025,14 +4025,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["inj_dimension; PathAlgebraModule::cached_injective_dimension"]
 rust_tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "InjDimensionOfModule"
 python_name = "inj_dimension_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.injective_dimension"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:InjDimensionOfModule:1","modulehomalg:InstallMethod:InjDimensionOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4040,7 +4040,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["inj_dimension_of_module"]
 rust_tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "InjectiveEnvelope"
@@ -5576,8 +5576,8 @@ python_tests = []
 qpa_name = "IsNthSyzygy"
 python_name = "is_nth_syzygy"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_nth_syzygy"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:IsNthSyzygy:1","modulehomalg:InstallMethod:IsNthSyzygy:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -5585,14 +5585,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["is_nth_syzygy"]
 rust_tests = ["tests/fixtures/modulehomalg_is_nth_syzygy.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsOmegaPeriodic"
 python_name = "is_omega_periodic"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.omega_period"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:IsOmegaPeriodic:1","modulehomalg:InstallMethod:IsOmegaPeriodic:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -5600,7 +5600,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["is_omega_periodic; is_omega_periodic_with_progress"]
 rust_tests = ["tests/fixtures/modulehomalg_periodicity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsOppositeAlgebra"
@@ -6701,8 +6701,8 @@ python_tests = []
 qpa_name = "IsTauPeriodic"
 python_name = "is_tau_periodic"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.tau_period"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:IsTauPeriodic:1","modulehomalg:InstallMethod:IsTauPeriodic:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -6710,7 +6710,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["is_tau_periodic"]
 rust_tests = ["tests/fixtures/modulehomalg_periodicity.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsTauRigidModule"
@@ -10016,8 +10016,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "ProjDimension"
 python_name = "proj_dimension"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.cached_projective_dimension"
 notes = ""
 entry_ids = ["modulehomalg:DeclareAttribute:ProjDimension:1"]
 constructs = ["DeclareAttribute"]
@@ -10025,14 +10025,14 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd"]
 rust_symbols = ["proj_dimension; PathAlgebraModule::cached_projective_dimension"]
 rust_tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProjDimensionOfModule"
 python_name = "proj_dimension_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.projective_dimension"
 notes = ""
 entry_ids = ["modulehomalg:DeclareOperation:ProjDimensionOfModule:1","modulehomalg:InstallMethod:ProjDimensionOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10040,7 +10040,7 @@ source_files = ["upstream/qpa/lib/modulehomalg.gd","upstream/qpa/lib/modulehomal
 rust_symbols = ["proj_dimension_of_module"]
 rust_tests = ["tests/fixtures/modulehomalg_dimensions.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
 
 [[operations]]
 qpa_name = "ProjectFromProductQuiver"

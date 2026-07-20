@@ -60,6 +60,49 @@ impl PyQuotientAlgebra {
         PyQuiver { inner }
     }
 
+    fn global_dimension_bounded(&self, bound: usize) -> PyResult<Option<String>> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(
+            global_dimension_text(
+                qpa_gbnp::global_dimension_of_algebra(
+                    &QuiverAlgebra::Quotient(algebra.clone()),
+                    bound,
+                )
+                .map_err(invalid)?,
+            )
+        ))
+    }
+
+    #[getter]
+    fn cached_gorenstein_dimension(&self) -> Option<usize> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            qpa_gbnp::gorenstein_dimension(&QuiverAlgebra::Quotient(algebra.clone()))
+        })
+    }
+
+    fn gorenstein_dimension_bounded(&self, bound: i64) -> PyResult<Option<usize>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            qpa_gbnp::gorenstein_dimension_of_algebra(
+                &QuiverAlgebra::Quotient(algebra.clone()),
+                &bound,
+            )
+            .map_err(invalid)
+        })
+    }
+
+    fn dominant_dimension_bounded(&self, bound: i64) -> PyResult<Option<String>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(
+            dominant_dimension_text(
+                qpa_gbnp::dominant_dimension_of_algebra(
+                    &QuiverAlgebra::Quotient(algebra.clone()),
+                    &bound,
+                )
+                .map_err(invalid)?,
+            )
+        ))
+    }
+
     #[getter]
     fn ideal(&self) -> PyPathAlgebraIdeal {
         let kind = map_ref!(

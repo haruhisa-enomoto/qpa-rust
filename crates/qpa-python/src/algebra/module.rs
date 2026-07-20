@@ -560,6 +560,68 @@ impl PyMatrixModule {
         Ok(PyModuleComplex { kind })
     }
 
+    #[getter]
+    fn cached_projective_dimension(&self) -> Option<usize> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::proj_dimension(module)
+        })
+    }
+
+    fn projective_dimension(&self, bound: i64) -> PyResult<Option<usize>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::proj_dimension_of_module(module, &bound).map_err(invalid)
+        })
+    }
+
+    #[getter]
+    fn cached_injective_dimension(&self) -> Option<usize> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::inj_dimension(module)
+        })
+    }
+
+    fn injective_dimension(&self, bound: i64) -> PyResult<Option<usize>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::inj_dimension_of_module(module, &bound).map_err(invalid)
+        })
+    }
+
+    fn dominant_dimension(&self, bound: i64) -> PyResult<Option<String>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            dominant_dimension_text(
+                qpa_gbnp::dominant_dimension_of_module(module, &bound).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn is_nth_syzygy(&self, degree: i64) -> PyResult<bool> {
+        let degree = Integer::from(degree);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_gbnp::is_nth_syzygy(module, &degree).map_err(invalid)
+        })
+    }
+
+    fn omega_period(&self, bound: i64) -> PyResult<Option<String>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            qpa_gbnp::is_omega_periodic(module, &bound)
+                .map_err(invalid)?
+                .map(|degree| degree.to_string())
+        ))
+    }
+
+    fn tau_period(&self, bound: i64) -> PyResult<Option<String>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            qpa_gbnp::is_tau_periodic(module, &bound)
+                .map_err(invalid)?
+                .map(|degree| degree.to_string())
+        ))
+    }
+
     fn is_identical(&self, other: &Self) -> bool {
         dispatch_pair_ref!(
             &self.kind,

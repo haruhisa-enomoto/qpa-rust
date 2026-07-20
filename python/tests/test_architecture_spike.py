@@ -633,3 +633,43 @@ def test_derived_category_reductions_follow_qpa(field: qpa.Field) -> None:
     source_projections = source.direct_sum_projections()
     previous_t = source_projections[0].add(source_projections[1])
     assert previous_t.reduce_previous_t_map(source_inclusion).is_isomorphism
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_homological_dimensions_and_periods_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    first_simple, second_simple = algebra.simple_modules()
+    assert algebra.global_dimension_bounded(0) == "1"
+    assert algebra.cached_gorenstein_dimension is None
+    assert algebra.gorenstein_dimension_bounded(0) == 1
+    assert algebra.cached_gorenstein_dimension == 1
+    assert algebra.dominant_dimension_bounded(3) == "1"
+
+    assert first_simple.cached_projective_dimension is None
+    assert first_simple.cached_injective_dimension is None
+    assert first_simple.projective_dimension(3) == 1
+    assert first_simple.injective_dimension(3) == 0
+    assert first_simple.cached_projective_dimension == 1
+    assert first_simple.cached_injective_dimension == 0
+    assert first_simple.dominant_dimension(3) == "0"
+    assert first_simple.is_nth_syzygy(0)
+    assert not first_simple.is_nth_syzygy(1)
+    assert first_simple.omega_period(3) is None
+    assert first_simple.tau_period(3) is None
+    assert second_simple.projective_dimension(3) == 0
+    assert second_simple.injective_dimension(3) == 1
+
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["v"], [("v", "v", "x")]), 2
+    )
+    periodic_simple = dual_numbers.simple_modules()[0]
+    assert dual_numbers.global_dimension_bounded(3) == "infinity"
+    assert dual_numbers.gorenstein_dimension_bounded(3) == 0
+    assert dual_numbers.cached_gorenstein_dimension == 0
+    assert dual_numbers.dominant_dimension_bounded(3) == "infinity"
+    assert periodic_simple.projective_dimension(3) is None
+    assert periodic_simple.injective_dimension(3) is None
+    assert periodic_simple.dominant_dimension(3) == "exceeds_bound"
+    assert periodic_simple.is_nth_syzygy(1)
+    assert periodic_simple.omega_period(3) == "1"
+    assert periodic_simple.tau_period(3) == "1"

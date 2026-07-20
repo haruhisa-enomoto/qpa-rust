@@ -433,6 +433,24 @@ fn clone_module_homomorphisms(
         .collect()
 }
 
+fn global_dimension_text(
+    result: Option<qpa_gbnp::GlobalDimensionOfAlgebraResult>,
+) -> Option<String> {
+    result.map(|result| match result {
+        qpa_gbnp::GlobalDimensionOfAlgebraResult::Finite(dimension) => dimension.to_string(),
+        qpa_gbnp::GlobalDimensionOfAlgebraResult::Infinite => "infinity".into(),
+        qpa_gbnp::GlobalDimensionOfAlgebraResult::ExceedsBound => "exceeds_bound".into(),
+    })
+}
+
+fn dominant_dimension_text(result: Option<qpa_gbnp::DominantDimensionResult>) -> Option<String> {
+    result.map(|result| match result {
+        qpa_gbnp::DominantDimensionResult::Finite(dimension) => dimension.to_string(),
+        qpa_gbnp::DominantDimensionResult::Infinite => "infinity".into(),
+        qpa_gbnp::DominantDimensionResult::ExceedsBound => "exceeds_bound".into(),
+    })
+}
+
 fn clone_relations(
     py: Python<'_>,
     relations: Vec<Py<PyAlgebraElement>>,
@@ -545,6 +563,43 @@ impl PyPathAlgebra {
     fn global_dimension(&self) -> usize {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
             .qpa_global_dimension())
+    }
+
+    fn global_dimension_bounded(&self, bound: usize) -> PyResult<Option<String>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(global_dimension_text(
+                qpa_gbnp::global_dimension_of_algebra(&QuiverAlgebra::Path(algebra.clone()), bound)
+                    .map_err(invalid)?,
+            ))
+        })
+    }
+
+    #[getter]
+    fn cached_gorenstein_dimension(&self) -> Option<usize> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_gbnp::gorenstein_dimension(&QuiverAlgebra::Path(algebra.clone()))
+        })
+    }
+
+    fn gorenstein_dimension_bounded(&self, bound: i64) -> PyResult<Option<usize>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_gbnp::gorenstein_dimension_of_algebra(&QuiverAlgebra::Path(algebra.clone()), &bound)
+                .map_err(invalid)
+        })
+    }
+
+    fn dominant_dimension_bounded(&self, bound: i64) -> PyResult<Option<String>> {
+        let bound = Integer::from(bound);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| Ok(
+            dominant_dimension_text(
+                qpa_gbnp::dominant_dimension_of_algebra(
+                    &QuiverAlgebra::Path(algebra.clone()),
+                    &bound,
+                )
+                .map_err(invalid)?,
+            )
+        ))
     }
 
     #[getter]

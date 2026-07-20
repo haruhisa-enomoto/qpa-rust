@@ -1509,3 +1509,77 @@ qpa_name = "ReduceTMap"
 status = "exposed"
 target = "qpa.ModuleHomomorphism.reduce_t_map"
 tests = ["python/tests/test_architecture_spike.py::test_derived_category_reductions_follow_qpa"]
+
+# Homological dimensions and periodicity
+
+[[bindings]]
+qpa_name = "DominantDimensionOfAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.dominant_dimension_bounded; qpa.QuotientAlgebra.dominant_dimension_bounded"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DominantDimensionOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.dominant_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "GlobalDimensionOfAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.global_dimension_bounded; qpa.QuotientAlgebra.global_dimension_bounded"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "GorensteinDimension"
+status = "exposed"
+target = "qpa.PathAlgebra.cached_gorenstein_dimension; qpa.QuotientAlgebra.cached_gorenstein_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "GorensteinDimensionOfAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.gorenstein_dimension_bounded; qpa.QuotientAlgebra.gorenstein_dimension_bounded"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InjDimension"
+status = "exposed"
+target = "qpa.MatrixModule.cached_injective_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "InjDimensionOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.injective_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsNthSyzygy"
+status = "exposed"
+target = "qpa.MatrixModule.is_nth_syzygy"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsOmegaPeriodic"
+status = "exposed"
+target = "qpa.MatrixModule.omega_period"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsTauPeriodic"
+status = "exposed"
+target = "qpa.MatrixModule.tau_period"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjDimension"
+status = "exposed"
+target = "qpa.MatrixModule.cached_projective_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
+
+[[bindings]]
+qpa_name = "ProjDimensionOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.projective_dimension"
+tests = ["python/tests/test_architecture_spike.py::test_homological_dimensions_and_periods_follow_qpa"]
