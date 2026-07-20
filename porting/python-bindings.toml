@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 661
+exposed_or_partial_count = 663
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -776,16 +776,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_combinatorial_map
 qpa_name = "BrauerConfigurationAlgebra"
 python_name = "brauer_configuration_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.brauer_configuration_algebra; qpa.BrauerConfiguration; qpa.BrauerConfigurationAlgebraResult; qpa.BrauerConfigurationAlgebra"
+notes = "Preserves QPA's algebra-or-fail result, exact diagnostics, and in-place sorting of orientation rows."
 entry_ids = ["pathalgpredef:DeclareOperation:BrauerConfigurationAlgebra:1","pathalgpredef:InstallMethod:BrauerConfigurationAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgpredef.gd","upstream/qpa/lib/pathalgpredef.gi"]
 rust_symbols = ["brauer_configuration_algebra"]
 rust_tests = ["tests/fixtures/pathalg_brauer_configuration.schema-v1.json","tests/gap-reference/pathalg_brauer_configuration_invalid.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa","python/tests/test_brauer_configurations.py::test_brauer_configuration_failures_and_mutation_follow_qpa"]
 
 [[operations]]
 qpa_name = "BridgeQuiver"
@@ -6686,16 +6686,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IsSymmetricAlgebra"
 python_name = "is_symmetric_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "partial"
+python_target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra"
+notes = "The Brauer-constructor installed property is exposed; the general finite-dimensional recognition method remains."
 entry_ids = ["pathalg:DeclareProperty:IsSymmetricAlgebra:1","pathalg:InstallMethod:IsSymmetricAlgebra:1"]
 constructs = ["DeclareProperty","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd","upstream/qpa/lib/pathalg.gi"]
 rust_symbols = ["is_symmetric_algebra"]
 rust_tests = ["tests/fixtures/pathalg_symmetry_dispatch.schema-v1.json","tests/fixtures/pathalg_symmetry_properties.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsTauPeriodic"

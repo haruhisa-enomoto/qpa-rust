@@ -1,5 +1,6 @@
 //! Python wrappers for path algebras, ideals, Gröbner bases, and quotients.
 
+mod brauer;
 mod combinatorial;
 mod combinatorial_rep;
 mod complex_foundation;
@@ -19,6 +20,10 @@ mod string;
 mod tensor;
 mod validity;
 
+pub(crate) use brauer::{
+    PyBrauerConfiguration, PyBrauerConfigurationAlgebra, PyBrauerConfigurationAlgebraResult,
+    py_brauer_configuration_algebra,
+};
 pub(crate) use combinatorial::PyCombinatorialMap;
 pub(crate) use combinatorial_rep::{PyEulerBilinearForm, PyUnitForm};
 pub(crate) use complex_foundation::{PyModuleCategory, PyModuleMorphismList};

@@ -13,6 +13,7 @@ use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAdrAlgebraOfAlgebraResult,
     PyAlgebraAsQuiverAlgebraResult, PyAlgebraElement, PyAlgebraHomomorphism,
     PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyArQuiverNumerical,
+    PyBrauerConfiguration, PyBrauerConfigurationAlgebra, PyBrauerConfigurationAlgebraResult,
     PyCodimensionConjectureReport, PyCombinatorialMap, PyCommonDirectSummandResult,
     PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
     PyEndOfModuleAsQuiverAlgebraResult, PyEulerBilinearForm, PyExtAlgebraGeneratorsResult,
@@ -38,11 +39,11 @@ use algebra::{
     PySimpleEndoProjectiveResolutionResult, PyStringSigmaEpsilon, PyStructureConstantsAlgebra,
     PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
     PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult, PyUnitForm,
-    py_admissible_sequence_generator, py_canonical_algebra, py_complex_and_chain_maps,
-    py_compute_lps_array, py_cyclic_permutations_of_band, py_finite_global_dim_green,
-    py_finite_global_dim_kirk_kuz, py_format_multiplicity_vector, py_format_multiplicity_vectors,
-    py_kronecker_algebra, py_nakayama_algebra, py_poset_algebra, py_predefined_ar_quiver_catalog,
-    py_predefined_ar_quiver_data, py_string_quiver_rho,
+    py_admissible_sequence_generator, py_brauer_configuration_algebra, py_canonical_algebra,
+    py_complex_and_chain_maps, py_compute_lps_array, py_cyclic_permutations_of_band,
+    py_finite_global_dim_green, py_finite_global_dim_kirk_kuz, py_format_multiplicity_vector,
+    py_format_multiplicity_vectors, py_kronecker_algebra, py_nakayama_algebra, py_poset_algebra,
+    py_predefined_ar_quiver_catalog, py_predefined_ar_quiver_data, py_string_quiver_rho,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -97,6 +98,7 @@ fn register_foundation(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_finite_global_dim_green, module)?)?;
     module.add_function(wrap_pyfunction!(py_finite_global_dim_kirk_kuz, module)?)?;
     module.add_function(wrap_pyfunction!(py_poset_algebra, module)?)?;
+    module.add_function(wrap_pyfunction!(py_brauer_configuration_algebra, module)?)?;
     Ok(())
 }
 
@@ -124,6 +126,9 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPredefinedAlgebra>()?;
     module.add_class::<PyNakayamaAlgebraResult>()?;
     module.add_class::<PyPosetAlgebra>()?;
+    module.add_class::<PyBrauerConfiguration>()?;
+    module.add_class::<PyBrauerConfigurationAlgebra>()?;
+    module.add_class::<PyBrauerConfigurationAlgebraResult>()?;
     module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
     module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;

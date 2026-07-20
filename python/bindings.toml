@@ -4171,3 +4171,17 @@ status = "partial"
 target = "qpa.Poset.display"
 tests = ["python/tests/test_posets.py::test_poset_objects_follow_qpa"]
 notes = "The exact poset display overload is exposed; module, homomorphism, and tensor display overloads remain."
+
+[[bindings]]
+qpa_name = "BrauerConfigurationAlgebra"
+status = "exposed"
+target = "qpa.brauer_configuration_algebra; qpa.BrauerConfiguration; qpa.BrauerConfigurationAlgebraResult; qpa.BrauerConfigurationAlgebra"
+tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa","python/tests/test_brauer_configurations.py::test_brauer_configuration_failures_and_mutation_follow_qpa"]
+notes = "Preserves QPA's algebra-or-fail result, exact diagnostics, and in-place sorting of orientation rows."
+
+[[bindings]]
+qpa_name = "IsSymmetricAlgebra"
+status = "partial"
+target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra"
+tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa"]
+notes = "The Brauer-constructor installed property is exposed; the general finite-dimensional recognition method remains."
