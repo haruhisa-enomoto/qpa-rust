@@ -9,6 +9,7 @@ mod quotient;
 
 use conversion::{
     AdrAlgebraOfAlgebraResultKind, StructureConstantsAlgebraKind, adr_algebra_of_basic_module_for,
+    wrap_quiver_algebra,
 };
 pub(crate) use conversion::{
     PyAdrAlgebraOfAlgebraResult, PyAlgebraAsQuiverAlgebraResult, PyQuiverAlgebra,

@@ -1184,6 +1184,8 @@ def test_endomorphism_as_quiver_algebra_follows_qpa(characteristic: int) -> None
 
     result = regular.endomorphism_as_quiver_algebra()
     assert result.endomorphism_algebra.dimension == 2
+    assert result.algebra.is_quotient
+    assert result.algebra.quiver.adjacency_matrix == [[1]]
     assert result.adjacency_matrix == [[1]]
     assert result.quiver.adjacency_matrix == [[1]]
     assert result.is_quotient
@@ -1211,6 +1213,7 @@ def test_basic_endomorphism_as_quiver_algebra_follows_qpa(field: qpa.Field) -> N
 
     result = qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic(modules)
     assert result.search_bound == 2
+    assert result.algebra.is_quotient
     assert result.final_search_length == 2
     assert not result.relations_may_be_incomplete
     assert result.quiver.adjacency_matrix == [
