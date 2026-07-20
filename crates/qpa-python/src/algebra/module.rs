@@ -729,6 +729,24 @@ impl PyMatrixModule {
         }
     }
 
+    #[staticmethod]
+    fn adr_algebra_of_basic(
+        py: Python<'_>,
+        modules: Vec<Py<PyMatrixModule>>,
+    ) -> PyResult<PyQuiverAlgebra> {
+        let modules = modules
+            .into_iter()
+            .map(|module| module.borrow(py).kind.clone())
+            .collect::<Vec<_>>();
+        match modules.first() {
+            Some(MatrixModuleKind::Rational(_)) | None => {
+                adr_algebra_of_basic_module_for::<RationalField>(modules)
+            }
+            Some(MatrixModuleKind::Binary(_)) => adr_algebra_of_basic_module_for::<Z2>(modules),
+            Some(MatrixModuleKind::Prime(_)) => adr_algebra_of_basic_module_for::<Zp>(modules),
+        }
+    }
+
     fn stable_endomorphism_quotient(&self) -> PyResult<PyModuleEndomorphismQuotientMap> {
         let kind = map_ref!(
             &self.kind,
@@ -2225,6 +2243,15 @@ impl PyModuleEndomorphismAlgebra {
             |left, right| left.is_identical(right),
             false
         )
+    }
+
+    fn structure_constants_algebra(&self) -> PyResult<PyStructureConstantsAlgebra> {
+        let kind = map_ref!(
+            &self.kind,
+            ModuleEndomorphismAlgebraKind => StructureConstantsAlgebraKind,
+            |algebra| algebra.structure_constants_algebra().map_err(invalid)?
+        );
+        Ok(PyStructureConstantsAlgebra { kind })
     }
 }
 

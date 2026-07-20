@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 359
+exposed_or_partial_count = 362
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -56,8 +56,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_lazy_resolutions_
 qpa_name = "ADRAlgebraOfAlgebra"
 python_name = "adr_algebra_of_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.adr_algebra; qpa.QuotientAlgebra.adr_algebra; qpa.AdrAlgebraOfAlgebraResult; qpa.QuiverAlgebra"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:ADRAlgebraOfAlgebra:1","modulehom:InstallMethod:ADRAlgebraOfAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -65,14 +65,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["adr_algebra_of_algebra; AdrAlgebraOfAlgebraResult; AdrAlgebraError"]
 rust_tests = ["tests/fixtures/modulehom_adr.schema-v1.json","tests/gap-reference/modulehom_adr_algebra_infinite_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_adr_algebra_of_algebra_follows_qpa"]
 
 [[operations]]
 qpa_name = "ADRAlgebraOfBasicModule"
 python_name = "adr_algebra_of_basic_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.adr_algebra_of_basic; qpa.QuiverAlgebra"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:ADRAlgebraOfBasicModule:1","modulehom:InstallMethod:ADRAlgebraOfBasicModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -80,7 +80,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["adr_algebra_of_basic_module; AdrAlgebraError"]
 rust_tests = ["tests/fixtures/modulehom_adr.schema-v1.json","tests/gap-reference/modulehom_adr_basic_different_error.g","tests/gap-reference/modulehom_adr_basic_empty_error.g","tests/gap-reference/modulehom_adr_basic_infinite_error.g","tests/gap-reference/modulehom_adr_basic_rational_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_adr_algebra_of_basic_module_follows_qpa"]
 
 [[operations]]
 qpa_name = "ARQuiverNumerical"
@@ -251,8 +251,8 @@ python_tests = []
 qpa_name = "AlgebraAsQuiverAlgebra"
 python_name = "algebra_as_quiver_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.as_quiver_algebra; qpa.AlgebraAsQuiverAlgebraResult; qpa.QuiverAlgebra"
 notes = ""
 entry_ids = ["algebra:DeclareOperation:AlgebraAsQuiverAlgebra:1","algebra:InstallMethod:AlgebraAsQuiverAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -260,7 +260,7 @@ source_files = ["upstream/qpa/lib/algebra.gd","upstream/qpa/lib/algebra.gi"]
 rust_symbols = ["algebra_as_quiver_algebra"]
 rust_tests = ["tests/fixtures/pathalg_module_preprojective_structure.schema-v1.json","tests/gap-reference/algebra_as_quiver_decomposable_error.g","tests/gap-reference/algebra_as_quiver_nonbasic_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_algebra_as_quiver_algebra_follows_qpa"]
 
 [[operations]]
 qpa_name = "AllComplementsOfAlmostCompleteCotiltingModule"

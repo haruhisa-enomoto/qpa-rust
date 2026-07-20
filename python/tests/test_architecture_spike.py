@@ -1124,6 +1124,9 @@ def test_endomorphism_algebras_and_stable_quotients_follow_qpa(field: qpa.Field)
     assert endomorphisms.dimension == 5
     assert len(endomorphisms.basis_matrices) == 5
     assert endomorphisms.is_identical(module.endomorphism_algebra())
+    structure_constants = endomorphisms.structure_constants_algebra()
+    assert structure_constants.dimension == 5
+    assert len(structure_constants.multiplication_tensor) == 5
     one_coordinates = endomorphisms.coefficients(endomorphisms.one)
     assert one_coordinates is not None and len(one_coordinates) == 5
     assert endomorphisms.matrix_from_coefficients(one_coordinates) == endomorphisms.one
@@ -1244,6 +1247,153 @@ def test_endomorphism_quiver_algebra_validation_follows_qpa() -> None:
         dual_numbers.indecomposable_projectives()[
             0
         ].endomorphism_as_quiver_algebra()
+
+
+def _structure_constants_tensor(
+    field: qpa.Field,
+    dimension: int,
+    nonzero_products: list[tuple[int, int, int]],
+) -> list[list[list[qpa.Scalar]]]:
+    zero = field.element(0)
+    one = field.element(1)
+    products = [
+        [[zero for _ in range(dimension)] for _ in range(dimension)]
+        for _ in range(dimension)
+    ]
+    for left, right, output in nonzero_products:
+        products[left][right][output] = one
+    return products
+
+
+def test_algebra_as_quiver_algebra_follows_qpa() -> None:
+    field2 = qpa.Field.prime(2)
+    upper_tensor = _structure_constants_tensor(
+        field2,
+        3,
+        [(0, 0, 0), (0, 1, 1), (1, 2, 1), (2, 2, 2)],
+    )
+    upper = qpa.StructureConstantsAlgebra(field2, upper_tensor)
+    assert upper.field == field2
+    assert upper.dimension == 3
+    assert upper.multiplication_tensor == upper_tensor
+
+    converted = upper.as_quiver_algebra()
+    assert isinstance(converted, qpa.AlgebraAsQuiverAlgebraResult)
+    assert converted.loewy_length == 2
+    assert converted.algebra.quiver.adjacency_matrix == [[0, 0], [1, 0]]
+    assert not converted.algebra.is_quotient
+    assert converted.algebra.quotient_algebra is None
+    assert converted.algebra.path_algebra is not None
+    assert len(converted.algebra.path_algebra.canonical_basis()) == 3
+    assert [
+        [coefficient.representative for coefficient in row]
+        for row in converted.generator_images
+    ] == [[0, 0, 1], [1, 0, 0], [0, 1, 0]]
+
+    field5 = qpa.Field.prime(5)
+    dual_numbers = qpa.StructureConstantsAlgebra(
+        field5,
+        _structure_constants_tensor(
+            field5, 2, [(0, 0, 0), (0, 1, 1), (1, 0, 1)]
+        ),
+    )
+    dual_converted = dual_numbers.as_quiver_algebra()
+    assert dual_converted.loewy_length == 2
+    assert dual_converted.algebra.quiver.adjacency_matrix == [[1]]
+    assert dual_converted.algebra.is_quotient
+    assert dual_converted.algebra.path_algebra is None
+    assert dual_converted.algebra.quotient_algebra is not None
+    assert dual_converted.algebra.quotient_algebra.dimension() == "2"
+    assert [
+        [coefficient.representative for coefficient in row]
+        for row in dual_converted.generator_images
+    ] == [[1, 0], [0, 1]]
+
+    rational = qpa.Field.rational()
+    rational_dual = qpa.StructureConstantsAlgebra(
+        rational,
+        _structure_constants_tensor(
+            rational, 2, [(0, 0, 0), (0, 1, 1), (1, 0, 1)]
+        ),
+    )
+    with pytest.raises(qpa.InvalidInputError, match="finite field"):
+        rational_dual.as_quiver_algebra()
+
+    product = qpa.StructureConstantsAlgebra(
+        field2,
+        _structure_constants_tensor(field2, 2, [(0, 0, 0), (1, 1, 1)]),
+    )
+    with pytest.raises(qpa.InvalidInputError, match="indecomposable"):
+        product.as_quiver_algebra()
+
+    with pytest.raises(qpa.InvalidInputError, match="tensor"):
+        qpa.StructureConstantsAlgebra(field2, upper_tensor[:-1])
+
+
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_adr_algebra_of_algebra_follows_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    result = algebra.adr_algebra()
+    assert isinstance(result, qpa.AdrAlgebraOfAlgebraResult)
+    assert result.is_finite_global_dimension_algebra
+    assert result.algebra.is_quotient
+    assert result.algebra.quiver.adjacency_matrix == [
+        [0, 0, 1],
+        [1, 0, 0],
+        [0, 0, 0],
+    ]
+    assert result.algebra.quotient_algebra is not None
+    assert result.algebra.quotient_algebra.dimension() == "5"
+
+    dual_numbers = qpa.QuotientAlgebra.truncated(
+        field, qpa.Quiver(["v"], [("v", "v", "x")]), 2
+    )
+    dual_result = dual_numbers.adr_algebra()
+    assert dual_result.is_finite_global_dimension_algebra
+    assert dual_result.algebra.quiver.adjacency_matrix == [[0, 1], [1, 0]]
+    assert dual_result.algebra.quotient_algebra is not None
+    assert dual_result.algebra.quotient_algebra.dimension() == "5"
+
+
+@pytest.mark.parametrize("characteristic", [2, 5])
+def test_adr_algebra_of_basic_module_follows_qpa(characteristic: int) -> None:
+    field = qpa.Field.prime(characteristic)
+    algebra = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")])
+    )
+    first_projective = algebra.indecomposable_projectives()[0]
+    result = qpa.MatrixModule.adr_algebra_of_basic([first_projective])
+    assert isinstance(result, qpa.QuiverAlgebra)
+    assert result.is_quotient
+    assert result.quiver.adjacency_matrix == [[0, 1], [0, 0]]
+    assert result.quotient_algebra is not None
+    assert result.quotient_algebra.dimension() == "3"
+
+
+def test_adr_algebra_validation_follows_qpa() -> None:
+    with pytest.raises(qpa.InvalidInputError, match="empty"):
+        qpa.MatrixModule.adr_algebra_of_basic([])
+
+    rational_algebra = qpa.PathAlgebra(
+        qpa.Field.rational(),
+        qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]),
+    )
+    with pytest.raises(qpa.InvalidInputError, match="finite field"):
+        qpa.MatrixModule.adr_algebra_of_basic(
+            [rational_algebra.indecomposable_projectives()[0]]
+        )
+
+    loop_algebra = qpa.PathAlgebra(
+        qpa.Field.prime(2), qpa.Quiver(["v"], [("v", "v", "x")])
+    )
+    with pytest.raises(qpa.InvalidInputError, match="finite-dimensional"):
+        loop_algebra.adr_algebra()
+    with pytest.raises(qpa.InvalidInputError, match="finite-dimensional"):
+        qpa.MatrixModule.adr_algebra_of_basic([loop_algebra.simple_modules()[0]])
 
 
 @pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])

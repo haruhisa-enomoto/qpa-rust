@@ -9,7 +9,8 @@ mod quiver;
 mod runtime;
 
 use algebra::{
-    PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAlgebraHomomorphism,
+    PyAddMCoresolution, PyAddMResolution, PyAdrAlgebraOfAlgebraResult,
+    PyAlgebraAsQuiverAlgebraResult, PyAlgebraElement, PyAlgebraHomomorphism,
     PyAllComplementsResult, PyAllSubmodulesOfModuleResult, PyCommonDirectSummandResult,
     PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
     PyEndOfModuleAsQuiverAlgebraResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
@@ -20,8 +21,8 @@ use algebra::{
     PyModuleEndomorphismQuotientMap, PyModuleHomomorphism, PyModuleHomomorphismBasis,
     PyModuleSubmodule, PyMoreMinimalVersionResult, PyNonisomorphicDirectSummandData, PyPathAlgebra,
     PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
-    PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuotientAlgebra, PyQuotientElement,
-    PyTiltingModuleResult,
+    PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuiverAlgebra, PyQuotientAlgebra,
+    PyQuotientElement, PyStructureConstantsAlgebra, PyTiltingModuleResult,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{PyPath, PyQuiver};
@@ -59,6 +60,10 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;
+    module.add_class::<PyStructureConstantsAlgebra>()?;
+    module.add_class::<PyQuiverAlgebra>()?;
+    module.add_class::<PyAlgebraAsQuiverAlgebraResult>()?;
+    module.add_class::<PyAdrAlgebraOfAlgebraResult>()?;
     module.add_class::<PyPathAlgebraIdeal>()?;
     module.add_class::<PyGroebnerBasis>()?;
     module.add_class::<PyQuotientAlgebra>()?;

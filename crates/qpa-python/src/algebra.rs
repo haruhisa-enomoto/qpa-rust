@@ -1,10 +1,19 @@
 //! Python wrappers for path algebras, ideals, Gröbner bases, and quotients.
 
+mod conversion;
 mod groebner;
 mod homological;
 mod ideal;
 mod module;
 mod quotient;
+
+use conversion::{
+    AdrAlgebraOfAlgebraResultKind, StructureConstantsAlgebraKind, adr_algebra_of_basic_module_for,
+};
+pub(crate) use conversion::{
+    PyAdrAlgebraOfAlgebraResult, PyAlgebraAsQuiverAlgebraResult, PyQuiverAlgebra,
+    PyStructureConstantsAlgebra,
+};
 
 use numerica::domains::{
     finite_field::{Z2, Zp},
@@ -1430,6 +1439,16 @@ impl PyPathAlgebra {
     fn quiver(&self) -> PyQuiver {
         let inner = dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra.quiver().clone());
         PyQuiver { inner }
+    }
+
+    fn adr_algebra(&self) -> PyResult<PyAdrAlgebraOfAlgebraResult> {
+        let kind = map_ref!(
+            &self.kind,
+            AlgebraKind => AdrAlgebraOfAlgebraResultKind,
+            |algebra| qpa_gbnp::adr_algebra_of_algebra(&QuiverAlgebra::Path(algebra.clone()))
+                .map_err(invalid)?
+        );
+        Ok(PyAdrAlgebraOfAlgebraResult { kind })
     }
 
     #[getter]

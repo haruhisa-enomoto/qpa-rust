@@ -2276,3 +2276,21 @@ qpa_name = "EndOfBasicModuleAsQuiverAlgebra"
 status = "exposed"
 target = "qpa.MatrixModule.endomorphism_as_quiver_algebra_of_basic; qpa.EndOfBasicModuleAsQuiverAlgebraResult"
 tests = ["python/tests/test_architecture_spike.py::test_basic_endomorphism_as_quiver_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "AlgebraAsQuiverAlgebra"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.as_quiver_algebra; qpa.AlgebraAsQuiverAlgebraResult; qpa.QuiverAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_algebra_as_quiver_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ADRAlgebraOfAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.adr_algebra; qpa.QuotientAlgebra.adr_algebra; qpa.AdrAlgebraOfAlgebraResult; qpa.QuiverAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_adr_algebra_of_algebra_follows_qpa"]
+
+[[bindings]]
+qpa_name = "ADRAlgebraOfBasicModule"
+status = "exposed"
+target = "qpa.MatrixModule.adr_algebra_of_basic; qpa.QuiverAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_adr_algebra_of_basic_module_follows_qpa"]

@@ -92,6 +92,16 @@ impl PyQuotientAlgebra {
         PyQuiver { inner }
     }
 
+    fn adr_algebra(&self) -> PyResult<PyAdrAlgebraOfAlgebraResult> {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientKind => AdrAlgebraOfAlgebraResultKind,
+            |algebra| qpa_gbnp::adr_algebra_of_algebra(&QuiverAlgebra::Quotient(algebra.clone()))
+                .map_err(invalid)?
+        );
+        Ok(PyAdrAlgebraOfAlgebraResult { kind })
+    }
+
     fn global_dimension_bounded(&self, bound: usize) -> PyResult<Option<String>> {
         dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(
             global_dimension_text(
