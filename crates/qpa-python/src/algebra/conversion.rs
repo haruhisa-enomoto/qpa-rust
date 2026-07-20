@@ -1161,6 +1161,21 @@ impl PyQuiverAlgebra {
         }
     }
 
+    /// Apply QPA's name-based `IncludeInPathAlgebra` operation.
+    fn include_path(&self, path: &PyPath) -> PyResult<super::PyQuiverAlgebraElement> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::tensor::include_path_for(path, algebra)
+        })
+    }
+
+    /// Return QPA's ordered `VerticesOfPathAlgebra` idempotents.
+    #[getter]
+    fn vertex_elements(&self) -> PyResult<Vec<super::PyQuiverAlgebraElement>> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            super::tensor::vertices_for(algebra)
+        })
+    }
+
     /// Apply QPA's binary `TensorProductOfAlgebras` method.
     fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
         dispatch_pair_ref!(

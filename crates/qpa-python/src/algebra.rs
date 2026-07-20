@@ -39,7 +39,7 @@ pub(crate) use quotient_projective::{
     PyLiftedProjectivePathAlgebraModule, PyQuotientPathAlgebraVector,
     PyRightProjectiveQuotientModule,
 };
-pub(crate) use tensor::PyTensorProductAlgebra;
+pub(crate) use tensor::{PyQuiverAlgebraElement, PyTensorProductAlgebra};
 
 use numerica::domains::{
     finite_field::{Z2, Zp},

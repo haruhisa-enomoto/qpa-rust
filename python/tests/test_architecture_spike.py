@@ -275,6 +275,94 @@ def test_tensor_products_and_enveloping_algebras_follow_qpa(field: qpa.Field) ->
         left.tensor_product(other)
 
 
+@pytest.mark.parametrize(
+    "field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)]
+)
+def test_tensor_elements_follow_qpa(field: qpa.Field) -> None:
+    left_path = qpa.PathAlgebra(
+        field, qpa.Quiver(["u1", "u2"], [("u1", "u2", "a")])
+    )
+    right_path = qpa.PathAlgebra(
+        field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "b")])
+    )
+    left = qpa.QuiverAlgebra.from_path_algebra(left_path)
+    right = qpa.QuiverAlgebra.from_path_algebra(right_path)
+    tensor = left.tensor_product(right)
+
+    included_arrow = left.include_path(left.quiver.arrow_path("a"))
+    lifted_arrow = qpa.QuiverAlgebraElement.from_path_element(
+        left_path.generator("a")
+    )
+    assert isinstance(included_arrow, qpa.QuiverAlgebraElement)
+    assert included_arrow == lifted_arrow
+    assert included_arrow.algebra.is_identical(left)
+    assert included_arrow.path_element == left_path.generator("a")
+    assert included_arrow.quotient_element is None
+    assert [repr(vertex) for vertex in left.vertex_elements] == ["(1)*u1", "(1)*u2"]
+
+    left_element = qpa.QuiverAlgebraElement.from_path_element(
+        left_path.generator("u1").scale_left(field.element(2))
+        + left_path.generator("a").scale_left(field.element(3))
+    )
+    right_element = qpa.QuiverAlgebraElement.from_path_element(
+        right_path.generator("v1").scale_left(field.element(5))
+        + right_path.generator("b").scale_left(field.element(7))
+    )
+    simple = tensor.simple_tensor(left_element, right_element)
+
+    characteristic = field.characteristic
+    expected = {
+        "u1_b*a_v2": 21,
+        "a_v1": 15,
+        "u1_b": 14,
+        "u1_v1": 10,
+    }
+    if characteristic is not None:
+        expected = {
+            path: coefficient % characteristic
+            for path, coefficient in expected.items()
+            if coefficient % characteristic != 0
+        }
+    actual = {
+        repr(path): (
+            int(coefficient.numerator)
+            if characteristic is None
+            else coefficient.representative
+        )
+        for path, coefficient in simple.terms
+    }
+    assert actual == expected
+    assert simple.quotient_element is not None
+    assert simple.path_element is None
+    assert simple.leading_term.algebra.is_identical(tensor.algebra)
+    assert simple.leading_monomial.quiver.is_identical(tensor.product_quiver.quiver)
+
+    zero = qpa.QuiverAlgebraElement.from_path_element(left_path.zero())
+    assert tensor.simple_tensor(zero, right_element).is_zero
+
+    loop_path = qpa.PathAlgebra(field, qpa.Quiver(["w"], [("w", "w", "x")]))
+    square_path = loop_path.quiver.arrow_path("x") * loop_path.quiver.arrow_path("x")
+    square_zero = loop_path.quotient(
+        [loop_path.generator("x") * loop_path.generator("x")]
+    )
+    quotient = qpa.QuiverAlgebra.from_quotient_algebra(square_zero)
+    included_zero = quotient.include_path(square_path)
+    assert included_zero.is_zero
+    assert included_zero.quotient_element is not None
+    assert [repr(vertex) for vertex in quotient.vertex_elements] == ["[(1)*w]"]
+    lifted_quotient = qpa.QuiverAlgebraElement.from_quotient_element(
+        square_zero.generator("x")
+    )
+    assert lifted_quotient.algebra.is_identical(quotient)
+    assert lifted_quotient.quotient_element == square_zero.generator("x")
+
+    foreign = qpa.QuiverAlgebraElement.from_path_element(
+        qpa.PathAlgebra(qpa.Field.prime(7), qpa.Quiver(["z"], [])).one()
+    )
+    with pytest.raises(qpa.InvalidInputError, match="coefficient field"):
+        tensor.simple_tensor(left_element, foreign)
+
+
 def test_quiver_orderings_follow_qpa_comparison_closures() -> None:
     quiver = qpa.Quiver.indexed(
         2,

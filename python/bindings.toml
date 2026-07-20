@@ -3467,3 +3467,30 @@ qpa_name = "IsEnvelopingAlgebra"
 status = "exposed"
 target = "qpa.QuiverAlgebra.is_enveloping_algebra"
 tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsQuiverAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
+notes = "Represented by the unified path-algebra-or-quotient Python wrapper."
+
+[[bindings]]
+qpa_name = "IncludeInPathAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.include_path"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
+notes = "Delegates to QPA's name-based record-component inclusion, including quotient reduction."
+
+[[bindings]]
+qpa_name = "VerticesOfPathAlgebra"
+status = "exposed"
+target = "qpa.QuiverAlgebra.vertex_elements"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
+
+[[bindings]]
+qpa_name = "SimpleTensor"
+status = "exposed"
+target = "qpa.TensorProductAlgebra.simple_tensor; qpa.QuiverAlgebraElement"
+tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
+notes = "Uses QPA's retained tensor-product metadata and source-translated bilinear tip expansion."

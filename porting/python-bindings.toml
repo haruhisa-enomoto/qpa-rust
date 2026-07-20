@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 550
+exposed_or_partial_count = 554
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -3776,16 +3776,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IncludeInPathAlgebra"
 python_name = "include_in_path_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.include_path"
+notes = "Delegates to QPA's name-based record-component inclusion, including quotient reduction."
 entry_ids = ["pathalgtensor:DeclareOperation:IncludeInPathAlgebra:1","pathalgtensor:InstallMethod:IncludeInPathAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["include_in_path_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
 
 [[operations]]
 qpa_name = "IncludeInProductQuiver"
@@ -6041,16 +6041,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_identity_a
 qpa_name = "IsQuiverAlgebra"
 python_name = "is_quiver_algebra"
 disposition = "runtime_type_or_protocol"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra"
+notes = "Represented by the unified path-algebra-or-quotient Python wrapper."
 entry_ids = ["pathalg:DeclareCategory:IsQuiverAlgebra:1","pathalg:InstallTrueMethod:IsQuiverAlgebra:1"]
 constructs = ["DeclareCategory","InstallTrueMethod"]
 source_files = ["upstream/qpa/lib/pathalg.gd"]
 rust_symbols = ["PathAlgebra::is_quiver_algebra","QuiverAlgebra; PathAlgebra::is_quiver_algebra; QuotientPathAlgebra::is_quiver_algebra"]
 rust_tests = ["tests/fixtures/pathalg_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsQuiverEnumerator"
@@ -11576,16 +11576,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "SimpleTensor"
 python_name = "simple_tensor"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.TensorProductAlgebra.simple_tensor; qpa.QuiverAlgebraElement"
+notes = "Uses QPA's retained tensor-product metadata and source-translated bilinear tip expansion."
 entry_ids = ["pathalgtensor:DeclareOperation:SimpleTensor:1","pathalgtensor:InstallMethod:SimpleTensor:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgtensor.gi"]
 rust_symbols = ["simple_tensor"]
 rust_tests = ["tests/fixtures/pathalgtensor_simple.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
 
 [[operations]]
 qpa_name = "Size"
@@ -12911,8 +12911,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective
 qpa_name = "VerticesOfPathAlgebra"
 python_name = "vertices_of_path_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.vertex_elements"
 notes = ""
 entry_ids = ["pathalgtensor:DeclareOperation:VerticesOfPathAlgebra:1","pathalgtensor:InstallMethod:VerticesOfPathAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12920,7 +12920,7 @@ source_files = ["upstream/qpa/lib/pathalgtensor.gd","upstream/qpa/lib/pathalgten
 rust_symbols = ["vertices_of_path_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_elements.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
 
 [[operations]]
 qpa_name = "VerticesOfQuiver"
