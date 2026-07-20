@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 737
+exposed_or_partial_count = 741
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -10406,16 +10406,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_string_validity_a
 qpa_name = "QPA_Cohen2Path"
 python_name = "qpa_cohen2_path"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.qpa_cohen_to_path"
+notes = "Accepts the same two-list data shape returned by the Python Cohen conversion methods; missing coefficients become a typed InvalidInputError instead of GAP's unbound-list access."
 entry_ids = ["gbnp:DeclareOperation:QPA_Cohen2Path:1","gbnp:InstallMethod:QPA_Cohen2Path:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["cohen_to_path"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_qpa_cohen_conversions_follow_qpa","python/tests/test_groebner_helpers.py::test_qpa_path_algebra_structure_relations_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPA_InArrowIdeal"
@@ -10436,23 +10436,23 @@ python_tests = ["python/tests/test_groebner_helpers.py::test_unchecked_gbnp_brid
 qpa_name = "QPA_Path2Cohen"
 python_name = "qpa_path2_cohen"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.qpa_path_to_cohen"
+notes = "Returns QPA's two-list representation as (monomials, coefficients) tuples with exact Scalar coefficients."
 entry_ids = ["gbnp:DeclareOperation:QPA_Path2Cohen:1","gbnp:InstallMethod:QPA_Path2Cohen:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["path_to_cohen; CohenPolynomial"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_qpa_cohen_conversions_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPA_Path2CohenFree"
 python_name = "qpa_path2_cohen_free"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.qpa_path_to_cohen_free"
 notes = ""
 entry_ids = ["gbnp:DeclareOperation:QPA_Path2CohenFree:1","gbnp:InstallMethod:QPA_Path2CohenFree:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10460,14 +10460,14 @@ source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["path_to_cohen_free; CohenPolynomial"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_qpa_cohen_conversions_follow_qpa","python/tests/test_groebner_helpers.py::test_qpa_path_algebra_structure_relations_follow_qpa"]
 
 [[operations]]
 qpa_name = "QPA_RelationsForPathAlgebra"
 python_name = "qpa_relations_for_path_algebra"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.PathAlgebra.qpa_relations_for_path_algebra"
 notes = ""
 entry_ids = ["gbnp:DeclareOperation:QPA_RelationsForPathAlgebra:1","gbnp:InstallMethod:QPA_RelationsForPathAlgebra:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -10475,7 +10475,7 @@ source_files = ["upstream/qpa/lib/gbnp.gd","upstream/qpa/lib/gbnp.gi"]
 rust_symbols = ["relations_for_path_algebra"]
 rust_tests = ["tests/fixtures/qpa_gbnp.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_groebner_helpers.py::test_qpa_path_algebra_structure_relations_follow_qpa"]
 
 [[operations]]
 qpa_name = "QuadraticFormOfUnitForm"

@@ -25,6 +25,35 @@ pub struct CohenPolynomial<F: Field> {
 }
 
 impl<F: Field> CohenPolynomial<F> {
+    /// Construct the raw two-list representation accepted by
+    /// `QPA_Cohen2Path`.
+    ///
+    /// QPA indexes one coefficient for every monomial and ignores trailing
+    /// coefficients. Rust reports the corresponding missing-list-entry
+    /// failure before conversion instead of allowing an out-of-bounds access.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`QpaGbnpError::MissingCohenCoefficient`] when the coefficient
+    /// list is shorter than the monomial list.
+    pub fn from_raw(
+        field: F,
+        monomials: Vec<Vec<i32>>,
+        coefficients: Vec<F::Element>,
+    ) -> Result<Self, QpaGbnpError> {
+        if coefficients.len() < monomials.len() {
+            return Err(QpaGbnpError::MissingCohenCoefficient {
+                monomials: monomials.len(),
+                coefficients: coefficients.len(),
+            });
+        }
+        Ok(Self {
+            field,
+            monomials: monomials.into_iter().map(NpMonomial::from).collect(),
+            coefficients,
+        })
+    }
+
     /// Coefficient field carried by this Cohen representation.
     #[must_use]
     pub const fn field(&self) -> &F {
@@ -399,6 +428,14 @@ pub enum QpaGbnpError {
     /// Relations do not all belong to the supplied path algebra family.
     #[error("the relations do not all belong to the supplied path algebra")]
     DifferentPathAlgebras,
+    /// QPA would index an unbound coefficient-list position.
+    #[error("Cohen representation has {monomials} monomials but only {coefficients} coefficients")]
+    MissingCohenCoefficient {
+        /// Number of monomial entries.
+        monomials: usize,
+        /// Number of coefficient entries.
+        coefficients: usize,
+    },
     /// QPA high-level validation/uniformization failed.
     #[error(transparent)]
     Groebner(#[from] GroebnerError),

@@ -37,6 +37,18 @@ def _named_element_data(element: qpa.AlgebraElement) -> list[dict[str, Any]]:
     ]
 
 
+def _cohen_data(
+    representations: list[tuple[list[list[int]], list[qpa.Scalar]]],
+) -> list[list[dict[str, Any]]]:
+    return [
+        [
+            {"monomial": monomial, "coefficient": _coefficient_data(coefficient)}
+            for monomial, coefficient in zip(monomials, coefficients, strict=True)
+        ]
+        for monomials, coefficients in representations
+    ]
+
+
 def _loop_algebra(
     field: qpa.Field, arrow_names: tuple[str, ...] = ("x",)
 ) -> qpa.PathAlgebra:
@@ -172,6 +184,53 @@ def test_unchecked_gbnp_bridge_follows_qpa(
             _external_element_data(value)
             for value in ideal.gbnp_groebner_basis()
         ] == fixture["checked_basis"]
+
+
+@pytest.mark.parametrize(
+    ("field", "key"),
+    [
+        (qpa.Field.rational(), "rational"),
+        (qpa.Field.prime(5), "f5"),
+        (qpa.Field.prime(2), "f2"),
+    ],
+)
+def test_qpa_cohen_conversions_follow_qpa(field: qpa.Field, key: str) -> None:
+    fixture = json.loads(
+        (FIXTURES / "qpa_gbnp.schema-v1.json").read_text(encoding="utf-8")
+    )[key]
+    algebra = _loop_algebra(field, ("a", "b"))
+    vertex, a, b = (algebra.generator(name) for name in ("v1", "a", "b"))
+    relations = [a * a * b - vertex, a * b * b - vertex]
+
+    free = algebra.qpa_path_to_cohen_free(relations)
+    assert _cohen_data(free) == fixture["free"]
+    assert algebra.qpa_cohen_to_path(free) == relations
+    if key == "rational":
+        raw = algebra.qpa_path_to_cohen(relations)
+        assert _cohen_data(raw) == fixture["raw"]
+        assert algebra.qpa_cohen_to_path(raw) == relations
+
+
+def test_qpa_path_algebra_structure_relations_follow_qpa() -> None:
+    fixture = json.loads(
+        (FIXTURES / "qpa_gbnp.schema-v1.json").read_text(encoding="utf-8")
+    )["multi_vertex"]
+    algebra = qpa.PathAlgebra(
+        qpa.Field.rational(),
+        qpa.Quiver(["v1", "v2"], [("v1", "v2", "c")]),
+    )
+    structure = algebra.qpa_relations_for_path_algebra()
+
+    assert _cohen_data(structure) == fixture["structure_relations"]
+    assert [
+        _external_element_data(value) for value in algebra.qpa_cohen_to_path(structure)
+    ] == fixture["structure_as_paths"]
+    with pytest.raises(qpa.InvalidInputError, match="one-vertex"):
+        algebra.qpa_path_to_cohen_free([algebra.generator("c")])
+    with pytest.raises(qpa.InvalidInputError, match="only 0 coefficients"):
+        algebra.qpa_cohen_to_path([([[3]], [])])
+    with pytest.raises(qpa.InvalidInputError, match="belongs to a prime field"):
+        algebra.qpa_cohen_to_path([([[3]], [qpa.Field.prime(2).element(1)])])
 
 
 def _inverse_fixture_element(

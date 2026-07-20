@@ -4634,3 +4634,31 @@ qpa_name = "BiggestHomogeneousPartInvLenInvLex"
 status = "exposed"
 target = "qpa.AlgebraElement.biggest_homogeneous_part_inv_len_inv_lex; qpa.PathAlgebra.biggest_homogeneous_parts_inv_len_inv_lex"
 tests = ["python/tests/test_groebner_helpers.py::test_inverse_length_inverse_lex_element_operations_follow_qpa"]
+
+# Raw QPA/GBNP Cohen conversion surface
+
+[[bindings]]
+qpa_name = "QPA_Path2Cohen"
+status = "exposed"
+target = "qpa.PathAlgebra.qpa_path_to_cohen"
+tests = ["python/tests/test_groebner_helpers.py::test_qpa_cohen_conversions_follow_qpa"]
+notes = "Returns QPA's two-list representation as (monomials, coefficients) tuples with exact Scalar coefficients."
+
+[[bindings]]
+qpa_name = "QPA_Path2CohenFree"
+status = "exposed"
+target = "qpa.PathAlgebra.qpa_path_to_cohen_free"
+tests = ["python/tests/test_groebner_helpers.py::test_qpa_cohen_conversions_follow_qpa","python/tests/test_groebner_helpers.py::test_qpa_path_algebra_structure_relations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "QPA_Cohen2Path"
+status = "exposed"
+target = "qpa.PathAlgebra.qpa_cohen_to_path"
+tests = ["python/tests/test_groebner_helpers.py::test_qpa_cohen_conversions_follow_qpa","python/tests/test_groebner_helpers.py::test_qpa_path_algebra_structure_relations_follow_qpa"]
+notes = "Accepts the same two-list data shape returned by the Python Cohen conversion methods; missing coefficients become a typed InvalidInputError instead of GAP's unbound-list access."
+
+[[bindings]]
+qpa_name = "QPA_RelationsForPathAlgebra"
+status = "exposed"
+target = "qpa.PathAlgebra.qpa_relations_for_path_algebra"
+tests = ["python/tests/test_groebner_helpers.py::test_qpa_path_algebra_structure_relations_follow_qpa"]

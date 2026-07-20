@@ -148,6 +148,7 @@ use qpa_core::{
     reduced_list_qpa, remainder_of_division, right_module_over_path_algebra, tip_reduced_list,
     tip_walk,
 };
+use qpa_gbnp::CohenPolynomial;
 
 use crate::field::parse_python_integer;
 use crate::{
@@ -1205,6 +1206,77 @@ where
         .collect()
 }
 
+type PyCohenRepresentation = (Vec<Vec<i32>>, Vec<PyScalar>);
+type PyCohenInput = (Vec<Vec<i32>>, Vec<Py<PyScalar>>);
+
+fn wrap_cohen_representations<F: runtime::PythonField>(
+    representations: Vec<CohenPolynomial<F>>,
+) -> Vec<PyCohenRepresentation> {
+    representations
+        .into_iter()
+        .map(|representation| {
+            (
+                representation
+                    .monomials()
+                    .iter()
+                    .map(|monomial| monomial.generators().to_vec())
+                    .collect(),
+                representation
+                    .coefficients()
+                    .iter()
+                    .map(|coefficient| representation.field().wrap_scalar(coefficient))
+                    .collect(),
+            )
+        })
+        .collect()
+}
+
+fn path_to_cohen_for<F: runtime::PythonField>(
+    algebra: &PathAlgebra<F>,
+    elements: Vec<AlgebraElementKind>,
+    free: bool,
+) -> PyResult<Vec<PyCohenRepresentation>>
+where
+    AlgebraElementKind: runtime::Extract<PathAlgebraElement<F>>,
+{
+    let elements = runtime::extract_all(elements)?;
+    let representations = if free {
+        qpa_gbnp::path_to_cohen_free(&elements)
+    } else {
+        qpa_gbnp::path_to_cohen(&elements)
+    }
+    .map_err(invalid)?;
+    let _ = algebra;
+    Ok(wrap_cohen_representations(representations))
+}
+
+fn cohen_to_path_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    algebra: &PathAlgebra<F>,
+    representations: Vec<PyCohenInput>,
+) -> PyResult<Vec<PyAlgebraElement>>
+where
+    AlgebraElementKind: runtime::Wrap<PathAlgebraElement<F>>,
+{
+    let representations = representations
+        .into_iter()
+        .map(|(monomials, coefficients)| {
+            CohenPolynomial::from_raw(
+                algebra.field().clone(),
+                monomials,
+                coefficients
+                    .into_iter()
+                    .map(|coefficient| algebra.field().scalar_value(&coefficient.borrow(py)))
+                    .collect::<PyResult<_>>()?,
+            )
+            .map_err(invalid)
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    Ok(wrap_algebra_elements(
+        qpa_gbnp::cohen_to_path(&representations, algebra).map_err(invalid)?,
+    ))
+}
+
 fn biggest_homogeneous_parts_for<F: runtime::PythonField>(
     _algebra: &PathAlgebra<F>,
     elements: Vec<AlgebraElementKind>,
@@ -2097,6 +2169,50 @@ impl PyPathAlgebra {
             let relations = runtime::extract_all(relations)?;
             Ok(wrap_algebra_elements(
                 qpa_gbnp::gbnp_groebner_basis_nc(&relations, algebra).map_err(invalid)?,
+            ))
+        })
+    }
+
+    /// Convert path-algebra elements to QPA's raw Cohen/GBNP representation.
+    fn qpa_path_to_cohen(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyCohenRepresentation>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            path_to_cohen_for(algebra, elements, false)
+        })
+    }
+
+    /// Convert one-vertex path-algebra elements to the free Cohen format.
+    fn qpa_path_to_cohen_free(
+        &self,
+        py: Python<'_>,
+        elements: Vec<Py<PyAlgebraElement>>,
+    ) -> PyResult<Vec<PyCohenRepresentation>> {
+        let elements = clone_relations(py, elements);
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            path_to_cohen_for(algebra, elements, true)
+        })
+    }
+
+    /// Convert QPA's raw Cohen/GBNP representation back to path elements.
+    fn qpa_cohen_to_path(
+        &self,
+        py: Python<'_>,
+        representations: Vec<PyCohenInput>,
+    ) -> PyResult<Vec<PyAlgebraElement>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            cohen_to_path_for(py, algebra, representations)
+        })
+    }
+
+    /// Return QPA's structural free-algebra relations for this path algebra.
+    fn qpa_relations_for_path_algebra(&self) -> PyResult<Vec<PyCohenRepresentation>> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            Ok(wrap_cohen_representations(
+                qpa_gbnp::relations_for_path_algebra(algebra).map_err(invalid)?,
             ))
         })
     }
