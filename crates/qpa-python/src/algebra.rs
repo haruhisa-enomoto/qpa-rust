@@ -455,6 +455,31 @@ pub(crate) struct PyPredecessorValuation {
     value: qpa_gbnp::PredecessorValuation,
 }
 
+#[derive(Clone)]
+enum ModuleDecompositionWithMultiplicitiesKind {
+    Rational(qpa_core::ModuleDecompositionWithMultiplicities<RationalField>),
+    Binary(qpa_core::ModuleDecompositionWithMultiplicities<Z2>),
+    Prime(qpa_core::ModuleDecompositionWithMultiplicities<Zp>),
+}
+
+/// QPA's basic summands paired with their multiplicities.
+#[pyclass(
+    name = "ModuleDecompositionWithMultiplicities",
+    frozen,
+    skip_from_py_object
+)]
+#[derive(Clone)]
+pub(crate) struct PyModuleDecompositionWithMultiplicities {
+    kind: ModuleDecompositionWithMultiplicitiesKind,
+}
+
+/// QPA's number and semisimple-block dimensions of nonisomorphic summands.
+#[pyclass(name = "NonisomorphicDirectSummandData", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyNonisomorphicDirectSummandData {
+    value: qpa_core::NonisomorphicDirectSummandData,
+}
+
 macro_rules! impl_module_value_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Extract<PathAlgebraModuleElement<$field>> for ModuleElementKind {
@@ -606,6 +631,14 @@ macro_rules! impl_resolution_runtime {
             for PredecessorsOfModuleResultKind
         {
             fn wrap(value: qpa_gbnp::PredecessorsOfModuleResult<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+
+        impl runtime::Wrap<qpa_core::ModuleDecompositionWithMultiplicities<$field>>
+            for ModuleDecompositionWithMultiplicitiesKind
+        {
+            fn wrap(value: qpa_core::ModuleDecompositionWithMultiplicities<$field>) -> Self {
                 Self::$variant(value)
             }
         }

@@ -160,6 +160,21 @@ where
     ))
 }
 
+fn make_basic_list_for<F: runtime::PythonField>(
+    modules: Vec<MatrixModuleKind>,
+) -> PyResult<Vec<PyMatrixModule>>
+where
+    MatrixModuleKind: runtime::Extract<PathAlgebraModule<F>> + runtime::Wrap<PathAlgebraModule<F>>,
+{
+    Ok(
+        qpa_core::make_basic_list_of_modules(&runtime::extract_all(modules)?)
+            .map_err(invalid)?
+            .into_iter()
+            .map(wrap_module)
+            .collect(),
+    )
+}
+
 fn radical_right_approximation_by_add_for<F: runtime::PythonField>(
     modules: Vec<MatrixModuleKind>,
     index: &Integer,
@@ -320,6 +335,137 @@ impl PyMatrixModule {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
             wrap_module_homomorphisms(qpa_core::direct_sum_inclusions(module).map_err(invalid)?,)
         ))
+    }
+
+    fn decompose(&self) -> PyResult<Vec<Self>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            qpa_core::decompose_module(module,)
+                .map_err(invalid)?
+                .into_iter()
+                .map(wrap_module)
+                .collect()
+        ))
+    }
+
+    #[getter]
+    fn is_indecomposable(&self) -> PyResult<Option<bool>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_core::is_indecomposable_module(module).map_err(invalid)
+        })
+    }
+
+    fn decompose_with_inclusions(&self) -> PyResult<Vec<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphisms(
+                qpa_core::decompose_module_with_inclusions(module).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn decompose_with_multiplicities(
+        &self,
+    ) -> PyResult<Option<PyModuleDecompositionWithMultiplicities>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            qpa_core::decompose_module_with_multiplicities(module)
+                .map_err(invalid)?
+                .map(|result| PyModuleDecompositionWithMultiplicities {
+                    kind: runtime::Wrap::wrap(result),
+                })
+        ))
+    }
+
+    fn block_splitting_idempotents(&self) -> PyResult<Vec<PyModuleHomomorphism>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            wrap_module_homomorphisms(
+                qpa_core::block_splitting_idempotents(module).map_err(invalid)?,
+            )
+        ))
+    }
+
+    fn block_decomposition(&self) -> PyResult<Vec<Self>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            qpa_core::block_decomposition_of_module(module)
+                .map_err(invalid)?
+                .into_iter()
+                .map(wrap_module)
+                .collect()
+        ))
+    }
+
+    fn basic_version(&self) -> PyResult<Self> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(wrap_module(
+            qpa_core::basic_version_of_module(module).map_err(invalid)?,
+        )))
+    }
+
+    #[staticmethod]
+    fn make_basic(
+        py: Python<'_>,
+        modules: Vec<Py<PyMatrixModule>>,
+    ) -> PyResult<Vec<PyMatrixModule>> {
+        let modules = modules
+            .into_iter()
+            .map(|module| module.borrow(py).kind.clone())
+            .collect::<Vec<_>>();
+        match modules.first() {
+            Some(MatrixModuleKind::Rational(_)) | None => {
+                make_basic_list_for::<RationalField>(modules)
+            }
+            Some(MatrixModuleKind::Binary(_)) => make_basic_list_for::<Z2>(modules),
+            Some(MatrixModuleKind::Prime(_)) => make_basic_list_for::<Zp>(modules),
+        }
+    }
+
+    fn nonisomorphic_direct_summand_data(&self) -> PyResult<PyNonisomorphicDirectSummandData> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
+            PyNonisomorphicDirectSummandData {
+                value: qpa_core::number_of_nonisomorphic_direct_summands(module)
+                    .map_err(invalid)?,
+            }
+        ))
+    }
+
+    fn isomorphic_to(&self, other: &Self) -> PyResult<bool> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            MatrixModuleKind,
+            |source, range| qpa_core::isomorphic_modules(source, range).map_err(invalid),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn isomorphism_to(&self, other: &Self) -> PyResult<Option<PyModuleHomomorphism>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            MatrixModuleKind,
+            |source, range| Ok(qpa_core::isomorphism_of_modules(source, range)
+                .map_err(invalid)?
+                .map(wrap_module_homomorphism)),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn is_direct_summand_of(&self, module: &Self) -> PyResult<bool> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &module.kind,
+            MatrixModuleKind,
+            |candidate, module| qpa_core::is_direct_summand(candidate, module).map_err(invalid),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    fn is_in_additive_closure_of(&self, generator: &Self) -> PyResult<Option<bool>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &generator.kind,
+            MatrixModuleKind,
+            |candidate, generator| qpa_core::is_in_additive_closure(candidate, generator)
+                .map_err(invalid),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
     }
 
     fn identity(&self) -> PyResult<PyModuleHomomorphism> {
@@ -1399,6 +1545,45 @@ impl PyPredecessorsOfModuleResult {
                 ),
             }
         )
+    }
+}
+
+#[pymethods]
+impl PyModuleDecompositionWithMultiplicities {
+    #[getter]
+    fn basic_summands(&self) -> Vec<PyMatrixModule> {
+        dispatch_ref!(
+            &self.kind,
+            ModuleDecompositionWithMultiplicitiesKind,
+            |result| result
+                .basic_summands()
+                .iter()
+                .cloned()
+                .map(wrap_module)
+                .collect()
+        )
+    }
+
+    #[getter]
+    fn multiplicities(&self) -> Vec<usize> {
+        dispatch_ref!(
+            &self.kind,
+            ModuleDecompositionWithMultiplicitiesKind,
+            |result| result.multiplicities().to_vec()
+        )
+    }
+}
+
+#[pymethods]
+impl PyNonisomorphicDirectSummandData {
+    #[getter]
+    fn count(&self) -> usize {
+        self.value.count()
+    }
+
+    #[getter]
+    fn block_dimensions(&self) -> Vec<usize> {
+        self.value.block_dimensions().to_vec()
     }
 }
 

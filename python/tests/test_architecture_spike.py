@@ -932,3 +932,60 @@ def test_irreducible_morphisms_preserve_qpa_finite_field_requirement() -> None:
     )
     with pytest.raises(qpa.InvalidInputError, match="finite field"):
         algebra.simple_modules()[0].irreducible_morphisms_ending_in()
+
+
+@pytest.mark.parametrize("field", [qpa.Field.rational(), qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_module_comparison_operations_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projective = algebra.indecomposable_projectives()[0]
+    first_simple, second_simple = algebra.simple_modules()
+    mixed = qpa.MatrixModule.direct_sum([first_simple, projective])
+    repeated = qpa.MatrixModule.direct_sum([first_simple, first_simple])
+    assert mixed is not None and repeated is not None
+
+    assert first_simple.isomorphic_to(first_simple)
+    assert not first_simple.isomorphic_to(second_simple)
+    isomorphism = first_simple.isomorphism_to(first_simple)
+    assert isomorphism is not None and isomorphism.is_isomorphism
+    assert first_simple.isomorphism_to(second_simple) is None
+    assert first_simple.is_direct_summand_of(mixed)
+    assert first_simple.is_in_additive_closure_of(repeated) is True
+    assert first_simple.is_indecomposable is True
+    if field.characteristic is None:
+        assert mixed.is_indecomposable is None
+        with pytest.raises(qpa.InvalidInputError, match="finite field"):
+            mixed.decompose()
+    else:
+        assert mixed.is_indecomposable is False
+
+
+@pytest.mark.parametrize("field", [qpa.Field.prime(2), qpa.Field.prime(5)])
+def test_module_decomposition_operations_follow_qpa(field: qpa.Field) -> None:
+    algebra = qpa.PathAlgebra(field, qpa.Quiver(["v1", "v2"], [("v1", "v2", "a")]))
+    projective = algebra.indecomposable_projectives()[0]
+    simple = algebra.simple_modules()[0]
+    mixed = qpa.MatrixModule.direct_sum([simple, projective])
+    repeated = qpa.MatrixModule.direct_sum([simple, simple])
+    assert mixed is not None and repeated is not None
+
+    assert [module.dimension_vector for module in mixed.decompose()] == [[1, 0], [1, 1]]
+    inclusions = mixed.decompose_with_inclusions()
+    assert len(inclusions) == 2
+    assert all(inclusion.range == mixed for inclusion in inclusions)
+    multiplicities = repeated.decompose_with_multiplicities()
+    assert multiplicities is not None
+    assert [module.dimension_vector for module in multiplicities.basic_summands] == [[1, 0]]
+    assert multiplicities.multiplicities == [2]
+    assert repeated.basic_version().dimension_vector == [1, 0]
+
+    idempotents = mixed.block_splitting_idempotents()
+    blocks = mixed.block_decomposition()
+    assert len(idempotents) == 2
+    assert [module.dimension_vector for module in blocks] == [[1, 1], [1, 0]]
+    assert [module.dimension_vector for module in qpa.MatrixModule.make_basic([simple, simple])] == [
+        [1, 0]
+    ]
+    summand_data = mixed.nonisomorphic_direct_summand_data()
+    assert summand_data.count == 2
+    assert summand_data.block_dimensions == [1, 1]
+    assert algebra.zero_module().decompose_with_multiplicities() is None

@@ -12,8 +12,9 @@ use algebra::{
     PyAddMCoresolution, PyAddMResolution, PyAlgebraElement, PyAllComplementsResult,
     PyCotiltingModuleResult, PyExtAlgebraGeneratorsResult, PyExtOverAlgebraResult,
     PyFiniteAddMResolutionResult, PyGroebnerBasis, PyInjectiveResolution, PyMatrixModule,
-    PyModuleChainMap, PyModuleComplex, PyModuleElement, PyModuleHomomorphism, PyModuleSubmodule,
-    PyPathAlgebra, PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
+    PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
+    PyModuleHomomorphism, PyModuleSubmodule, PyNonisomorphicDirectSummandData, PyPathAlgebra,
+    PyPathAlgebraIdeal, PyPredecessorValuation, PyPredecessorsOfModuleResult,
     PyProjectiveIsomorphismComponent, PyProjectiveResolution, PyQuotientAlgebra, PyQuotientElement,
     PyTiltingModuleResult,
 };
@@ -75,5 +76,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyAllComplementsResult>()?;
     module.add_class::<PyPredecessorValuation>()?;
     module.add_class::<PyPredecessorsOfModuleResult>()?;
+    module.add_class::<PyModuleDecompositionWithMultiplicities>()?;
+    module.add_class::<PyNonisomorphicDirectSummandData>()?;
     Ok(())
 }

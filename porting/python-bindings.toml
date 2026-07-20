@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 304
+exposed_or_partial_count = 318
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -551,8 +551,8 @@ python_tests = []
 qpa_name = "BasicVersionOfModule"
 python_name = "basic_version_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.basic_version"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:BasicVersionOfModule:1","moduledecomp:InstallMethod:BasicVersionOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -560,7 +560,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["basic_version_of_module"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "Basis"
@@ -671,8 +671,8 @@ python_tests = []
 qpa_name = "BlockDecompositionOfModule"
 python_name = "block_decomposition_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.block_decomposition"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:BlockDecompositionOfModule:1","moduledecomp:InstallMethod:BlockDecompositionOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -680,7 +680,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["block_decomposition_of_module"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "BlockOrdering"
@@ -701,8 +701,8 @@ python_tests = []
 qpa_name = "BlockSplittingIdempotents"
 python_name = "block_splitting_idempotents"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.block_splitting_idempotents"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:BlockSplittingIdempotents:1","moduledecomp:InstallMethod:BlockSplittingIdempotents:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -710,7 +710,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["block_splitting_idempotents"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "BlocksOfAlgebra"
@@ -1661,8 +1661,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_
 qpa_name = "DecomposeModule"
 python_name = "decompose_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.decompose"
 notes = ""
 entry_ids = ["moduledecomp:DeclareAttribute:DecomposeModule:1","moduledecomp:InstallMethod:DecomposeModule:1","moduledecomp:InstallOtherMethod:DecomposeModule:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -1670,7 +1670,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["decompose_module"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa; python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DecomposeModuleProbabilistic"
@@ -1721,8 +1721,8 @@ python_tests = []
 qpa_name = "DecomposeModuleWithInclusions"
 python_name = "decompose_module_with_inclusions"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.decompose_with_inclusions"
 notes = ""
 entry_ids = ["moduledecomp:DeclareAttribute:DecomposeModuleWithInclusions:1","moduledecomp:InstallMethod:DecomposeModuleWithInclusions:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -1730,14 +1730,14 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["decompose_module_with_inclusions"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DecomposeModuleWithMultiplicities"
 python_name = "decompose_module_with_multiplicities"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.decompose_with_multiplicities; qpa.ModuleDecompositionWithMultiplicities"
 notes = ""
 entry_ids = ["moduledecomp:DeclareAttribute:DecomposeModuleWithMultiplicities:1","moduledecomp:InstallMethod:DecomposeModuleWithMultiplicities:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -1745,7 +1745,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["decompose_module_with_multiplicities; ModuleDecompositionWithMultiplicities"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "DegOrderDirectPredecessors"
@@ -4691,8 +4691,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "IsDirectSummand"
 python_name = "is_direct_summand"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_direct_summand_of"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:IsDirectSummand:1","modulehom:InstallMethod:IsDirectSummand:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -4700,7 +4700,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["is_direct_summand"]
 rust_tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsDistributiveAlgebra"
@@ -5216,8 +5216,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "IsInAdditiveClosure"
 python_name = "is_in_additive_closure"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_in_additive_closure_of"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:IsInAdditiveClosure:1","modulehom:InstallMethod:IsInAdditiveClosure:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -5225,7 +5225,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["is_in_additive_closure"]
 rust_tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsInFullMatrixRing"
@@ -5246,8 +5246,8 @@ python_tests = []
 qpa_name = "IsIndecomposableModule"
 python_name = "is_indecomposable_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.is_indecomposable"
 notes = ""
 entry_ids = ["module:DeclareProperty:IsIndecomposableModule:1","module:InstallTrueMethod:IsIndecomposableModule:1","module:InstallMethod:IsIndecomposableModule:1"]
 constructs = ["DeclareProperty","InstallMethod","InstallTrueMethod"]
@@ -5255,7 +5255,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["PathAlgebraModule::cache_is_simple_qpa_module","is_indecomposable_module"]
 rust_tests = ["tests/fixtures/module_families_properties.schema-v1.json","tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsInfList"
@@ -7106,8 +7106,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "IsomorphicModules"
 python_name = "isomorphic_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.isomorphic_to"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:IsomorphicModules:1","modulehom:InstallMethod:IsomorphicModules:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7115,14 +7115,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["isomorphic_modules"]
 rust_tests = ["tests/fixtures/modulehom_common_summand.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "IsomorphismOfModules"
 python_name = "isomorphism_of_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.isomorphism_to"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:IsomorphismOfModules:1","modulehom:InstallMethod:IsomorphismOfModules:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7130,7 +7130,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["isomorphism_of_modules"]
 rust_tests = ["tests/fixtures/modulehom_isomorphism.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "Iterator"
@@ -7871,8 +7871,8 @@ python_tests = []
 qpa_name = "MakeBasicListOfModules"
 python_name = "make_basic_list_of_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.make_basic"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:MakeBasicListOfModules:1","modulehom:InstallMethod:MakeBasicListOfModules:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -7880,7 +7880,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["make_basic_list_of_modules"]
 rust_tests = ["tests/fixtures/modulehom_make_basic.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "MakeHalfInfList"
@@ -9011,8 +9011,8 @@ python_tests = []
 qpa_name = "NumberOfNonIsoDirSummands"
 python_name = "number_of_non_iso_dir_summands"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.nonisomorphic_direct_summand_data; qpa.NonisomorphicDirectSummandData"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:NumberOfNonIsoDirSummands:1","modulehom:InstallMethod:NumberOfNonIsoDirSummands:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -9020,7 +9020,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["number_of_nonisomorphic_direct_summands; NonisomorphicDirectSummandData"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = ["MODULEHOM-001"]
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "NumberOfProjectives"
@@ -12566,8 +12566,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_
 qpa_name = "TraceOfModule"
 python_name = "trace_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.right_fac_approximation"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:TraceOfModule:1","modulehom:InstallMethod:TraceOfModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12575,7 +12575,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["trace_of_module"]
 rust_tests = ["tests/fixtures/modulehom_functors.schema-v1.json","tests/gap-reference/modulehom_trace_different_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
 
 [[operations]]
 qpa_name = "TransposeOfDual"

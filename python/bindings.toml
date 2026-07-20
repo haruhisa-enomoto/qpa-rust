@@ -1939,3 +1939,89 @@ qpa_name = "PredecessorsOfModule"
 status = "exposed"
 target = "qpa.MatrixModule.predecessors; qpa.PredecessorsOfModuleResult; qpa.PredecessorValuation"
 tests = ["python/tests/test_architecture_spike.py::test_irreducible_morphisms_and_predecessors_follow_qpa"]
+
+# Module decomposition and categorical comparison
+
+[[bindings]]
+qpa_name = "DecomposeModule"
+status = "exposed"
+target = "qpa.MatrixModule.decompose"
+tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa; python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsIndecomposableModule"
+status = "exposed"
+target = "qpa.MatrixModule.is_indecomposable"
+tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DecomposeModuleWithInclusions"
+status = "exposed"
+target = "qpa.MatrixModule.decompose_with_inclusions"
+tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "DecomposeModuleWithMultiplicities"
+status = "exposed"
+target = "qpa.MatrixModule.decompose_with_multiplicities; qpa.ModuleDecompositionWithMultiplicities"
+tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "BlockSplittingIdempotents"
+status = "exposed"
+target = "qpa.MatrixModule.block_splitting_idempotents"
+tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "BlockDecompositionOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.block_decomposition"
+tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "BasicVersionOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.basic_version"
+tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "MakeBasicListOfModules"
+status = "exposed"
+target = "qpa.MatrixModule.make_basic"
+tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "NumberOfNonIsoDirSummands"
+status = "exposed"
+target = "qpa.MatrixModule.nonisomorphic_direct_summand_data; qpa.NonisomorphicDirectSummandData"
+tests = ["python/tests/test_architecture_spike.py::test_module_decomposition_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsomorphicModules"
+status = "exposed"
+target = "qpa.MatrixModule.isomorphic_to"
+tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsomorphismOfModules"
+status = "exposed"
+target = "qpa.MatrixModule.isomorphism_to"
+tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsDirectSummand"
+status = "exposed"
+target = "qpa.MatrixModule.is_direct_summand_of"
+tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "IsInAdditiveClosure"
+status = "exposed"
+target = "qpa.MatrixModule.is_in_additive_closure_of"
+tests = ["python/tests/test_architecture_spike.py::test_module_comparison_operations_follow_qpa"]
+
+[[bindings]]
+qpa_name = "TraceOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.right_fac_approximation"
+tests = ["python/tests/test_architecture_spike.py::test_approximation_operations_follow_qpa"]
