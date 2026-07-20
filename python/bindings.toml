@@ -3334,3 +3334,10 @@ status = "partial"
 target = "qpa.ModuleComplex.differential; qpa.ModuleChainMap.morphism; qpa.ModuleMorphismList.value"
 tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa", "python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
 notes = "Complex, chain-map, and the exposed module-morphism infinite-list indexing surfaces are available; general QPA infinite-list classes remain internal."
+
+[[bindings]]
+qpa_name = "ComplexAndChainMaps"
+status = "partial"
+target = "qpa.complex_and_chain_maps"
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+notes = "QPA's zero and repeating combined half-list specifications are exposed with the flattened GAP result separated into the complex, incoming maps, and outgoing maps; callback-based next, next/repeat, and position specifications remain."

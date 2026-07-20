@@ -505,6 +505,16 @@ class Path:
 def unique_quiver_name() -> str: ...
 
 
+def complex_and_chain_maps(
+    source_complexes: list[ModuleComplex],
+    range_complexes: list[ModuleComplex],
+    base_degree: int,
+    middle: list[list[ModuleHomomorphism]],
+    positive: list[list[ModuleHomomorphism]] | None = ...,
+    negative: list[list[ModuleHomomorphism]] | None = ...,
+) -> tuple[ModuleComplex, list[ModuleChainMap], list[ModuleChainMap]]: ...
+
+
 class PathAlgebra:
     def __init__(self, field: Field, quiver: Quiver) -> None: ...
     @property

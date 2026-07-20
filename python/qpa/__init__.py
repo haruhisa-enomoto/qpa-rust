@@ -88,6 +88,7 @@ from ._qpa import (
     StructureConstantsQuotient,
     StructureConstantsSubalgebra,
     TiltingModuleResult,
+    complex_and_chain_maps,
     unique_quiver_name,
 )
 
@@ -175,5 +176,6 @@ __all__ = [
     "StructureConstantsQuotient",
     "StructureConstantsSubalgebra",
     "TiltingModuleResult",
+    "complex_and_chain_maps",
     "unique_quiver_name",
 ]

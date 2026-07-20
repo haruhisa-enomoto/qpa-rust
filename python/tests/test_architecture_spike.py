@@ -727,6 +727,51 @@ def test_module_chain_maps_and_mapping_cones_follow_qpa(field: qpa.Field) -> Non
     assert periodic_map.morphism(20).is_isomorphism
     assert periodic_map.morphism(-20).is_isomorphism
 
+    combined, incoming, outgoing = qpa.complex_and_chain_maps(
+        [periodic_complex],
+        [periodic_complex],
+        0,
+        [[simple_zero, simple_identity, simple_identity]],
+        positive=[[simple_zero, simple_identity, simple_identity]],
+        negative=[[simple_zero, simple_identity, simple_identity]],
+    )
+    assert combined.object(20).is_identical(simple)
+    assert combined.object(-20).is_identical(simple)
+    assert len(incoming) == 1 and incoming[0].morphism(-20).is_isomorphism
+    assert len(outgoing) == 1 and outgoing[0].morphism(20).is_isomorphism
+
+    finite_rows = [
+        [
+            complex.differential(degree),
+            complex.object(degree).identity(),
+            complex.object(degree).identity(),
+        ]
+        for degree in (-1, 0, 1)
+    ]
+    combined_finite, finite_incoming, finite_outgoing = qpa.complex_and_chain_maps(
+        [complex], [complex], -1, finite_rows
+    )
+    assert [combined_finite.object(i).dimension_vector for i in (-1, 0, 1)] == [
+        complex.object(i).dimension_vector for i in (-1, 0, 1)
+    ]
+    assert all(finite_incoming[0].morphism(i).is_isomorphism for i in (-1, 0, 1))
+    assert all(finite_outgoing[0].morphism(i).is_isomorphism for i in (-1, 0, 1))
+    with pytest.raises(qpa.InvalidInputError, match="at least one source or range"):
+        qpa.complex_and_chain_maps([], [], 0, [])
+    with pytest.raises(qpa.InvalidInputError, match="tuple at degree 0 has no element 3"):
+        qpa.complex_and_chain_maps(
+            [periodic_complex],
+            [periodic_complex],
+            0,
+            [[simple_zero, simple_identity]],
+        )
+    other_algebra = qpa.PathAlgebra(qpa.Field.prime(7), quiver)
+    other_complex = other_algebra.simple_modules()[0].stalk_complex(0)
+    with pytest.raises(
+        qpa.InvalidInputError, match="another coefficient field|complexes over the same cat"
+    ):
+        qpa.complex_and_chain_maps([periodic_complex], [other_complex], 0, [])
+
     zero = complex.zero_chain_map_to(complex)
     assert zero.morphism(50).is_zero
     assert zero.morphism(-50).is_zero

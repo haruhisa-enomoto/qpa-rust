@@ -27,6 +27,7 @@ pub(crate) use fp_projective::{
     PyFpPathAlgebraByImagesHomomorphism, PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector,
     PyNaturalSubmoduleHomomorphism, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
 };
+pub(crate) use homological::py_complex_and_chain_maps;
 pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
 pub(crate) use projective::{
     PyPathAlgebraModuleGroebnerBasis, PyPathAlgebraVector, PyPathAlgebraVectorBasis,
@@ -867,6 +868,15 @@ macro_rules! impl_resolution_runtime {
         impl runtime::Wrap<qpa_gbnp::ModuleComplex<$field>> for ModuleComplexKind {
             fn wrap(value: qpa_gbnp::ModuleComplex<$field>) -> Self {
                 Self::$variant(value)
+            }
+        }
+
+        impl runtime::Extract<qpa_gbnp::ModuleComplex<$field>> for ModuleComplexKind {
+            fn extract(self) -> PyResult<qpa_gbnp::ModuleComplex<$field>> {
+                match self {
+                    Self::$variant(value) => Ok(value),
+                    _ => Err(invalid("complex belongs to another coefficient field")),
+                }
             }
         }
 

@@ -33,7 +33,7 @@ use algebra::{
     PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule, PyRightProjectiveQuotientModule,
     PyRightProjectiveSubmodule, PyStructureConstantsAlgebra, PyStructureConstantsElement,
     PyStructureConstantsHomomorphism, PyStructureConstantsQuotient, PyStructureConstantsSubalgebra,
-    PyTiltingModuleResult,
+    PyTiltingModuleResult, py_complex_and_chain_maps,
 };
 pub(crate) use field::{FieldKind, PyField, PyScalar, ScalarKind};
 use quiver::{
@@ -77,6 +77,7 @@ fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyQuiverOrdering>()?;
     module.add_class::<PyPath>()?;
     module.add_function(wrap_pyfunction!(py_unique_quiver_name, module)?)?;
+    module.add_function(wrap_pyfunction!(py_complex_and_chain_maps, module)?)?;
     module.add_class::<PyPathAlgebra>()?;
     module.add_class::<PyAlgebraElement>()?;
     module.add_class::<PyAlgebraHomomorphism>()?;

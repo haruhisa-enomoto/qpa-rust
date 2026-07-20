@@ -1,10 +1,36 @@
 //! Lazy projective and injective resolutions.
 
-use pyo3::{PyAny, pymethods};
+use pyo3::{PyAny, pyfunction, pymethods};
 
 #[allow(clippy::wildcard_imports)]
 // Private runtime enums and helpers form one binding domain.
 use super::*;
+
+#[pyfunction(name = "complex_and_chain_maps")]
+#[pyo3(signature = (source_complexes, range_complexes, base_degree, middle, positive=None, negative=None))]
+pub(crate) fn py_complex_and_chain_maps(
+    py: Python<'_>,
+    source_complexes: Vec<Py<PyModuleComplex>>,
+    range_complexes: Vec<Py<PyModuleComplex>>,
+    base_degree: i64,
+    middle: Vec<Vec<Py<PyModuleHomomorphism>>>,
+    positive: Option<Vec<Vec<Py<PyModuleHomomorphism>>>>,
+    negative: Option<Vec<Vec<Py<PyModuleHomomorphism>>>>,
+) -> PyResult<(
+    PyModuleComplex,
+    Vec<PyModuleChainMap>,
+    Vec<PyModuleChainMap>,
+)> {
+    complex_foundation::complex_and_chain_maps(
+        py,
+        source_complexes,
+        range_complexes,
+        base_degree,
+        middle,
+        positive,
+        negative,
+    )
+}
 
 #[pymethods]
 impl PyProjectiveResolution {
