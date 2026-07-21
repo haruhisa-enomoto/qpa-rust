@@ -1,11 +1,16 @@
 //! Matrix modules, module elements, and module homomorphisms.
 
+mod generic_hom;
 mod homomorphism;
 mod remaining;
 mod results;
 mod submodule;
 mod values;
 
+pub(crate) use generic_hom::{
+    PyGenericModuleEndomorphismAlgebra, PyGenericModuleHomSpace, PyGenericModuleHomomorphism,
+};
+pub(super) use generic_hom::{generic_end, generic_hom};
 pub(crate) use remaining::{
     PyBasedRightAlgebraModule, PyBongartzTestDecision, PyFiniteTypeDecision, PyModuleTensorProduct,
     py_complement_in_full_row_space,

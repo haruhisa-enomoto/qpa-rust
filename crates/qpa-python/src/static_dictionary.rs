@@ -89,6 +89,10 @@ impl PyStaticDictionary {
     fn __repr__(&self) -> String {
         self.inner.to_string()
     }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
 }
 
 /// QPA's path-specialized finite-automaton dictionary.
@@ -166,6 +170,10 @@ impl PyQuiverStaticDictionary {
 
     fn __repr__(&self) -> String {
         self.inner.view_string()
+    }
+
+    fn view(&self) -> String {
+        self.__repr__()
     }
 }
 

@@ -190,4 +190,8 @@ impl PyPoset {
     fn __repr__(&self) -> String {
         self.inner.to_string()
     }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
 }

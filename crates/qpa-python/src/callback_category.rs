@@ -269,6 +269,14 @@ impl PyCallbackCategory {
     fn __repr__(&self) -> String {
         format!("<cat: {}>", self.inner.name())
     }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
 }
 
 /// Construct QPA's generic `Cat(identity, properties)` callback record.

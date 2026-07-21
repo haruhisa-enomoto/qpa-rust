@@ -946,6 +946,10 @@ impl PyOppositeStructureConstantsAlgebra {
             |algebra| algebra.to_string()
         )
     }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
 }
 
 #[pymethods]
@@ -1100,6 +1104,10 @@ impl PyOppositeStructureConstantsElement {
             OppositeStructureConstantsElementKind,
             |element| element.to_string()
         )
+    }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
     }
 }
 

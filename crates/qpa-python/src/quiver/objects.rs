@@ -105,6 +105,10 @@ impl PyQuiverVertex {
         self.inner.to_string()
     }
 
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
+
     fn __eq__(&self, other: &Self) -> bool {
         self.inner == other.inner
     }
@@ -167,6 +171,10 @@ impl PyQuiverArrow {
 
     fn __repr__(&self) -> String {
         self.inner.to_string()
+    }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
     }
 
     fn __eq__(&self, other: &Self) -> bool {

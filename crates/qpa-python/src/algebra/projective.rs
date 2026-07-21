@@ -767,6 +767,10 @@ impl PyPathAlgebraVector {
                 .field()
                 .scalar_text(value)))
     }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
 }
 
 #[pymethods]
@@ -1169,6 +1173,22 @@ impl PyPathAlgebraModuleGroebnerBasis {
                     .python_kind()
                     .display(),
                 |value| basis.parent_module().algebra().field().scalar_text(value),
+            ))
+    }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
+
+    fn view_without_basis(&self) -> String {
+        dispatch_ref!(&self.kind, ProjectiveGroebnerKind, |basis| basis
+            .view_obj_without_basis(
+                &basis
+                    .parent_module()
+                    .algebra()
+                    .field()
+                    .python_kind()
+                    .display(),
             ))
     }
 }

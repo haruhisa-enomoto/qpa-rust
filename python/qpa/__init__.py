@@ -1,7 +1,8 @@
 """Python interface to the source-faithful Rust port of QPA.
 
-The binding campaign is incremental; ``python/bindings.toml`` and the generated
-operation ledger record the exact exposed and remaining QPA surface.
+``python/bindings.toml`` and the generated operation ledger account for the
+complete pinned QPA surface, including explicit represented and unavailable
+boundaries.
 """
 
 from ._qpa import (
@@ -39,6 +40,9 @@ from ._qpa import (
     FpPathAlgebraVector,
     FrobeniusForm,
     FrobeniusLinearFunctional,
+    GenericModuleEndomorphismAlgebra,
+    GenericModuleHomSpace,
+    GenericModuleHomomorphism,
     GroebnerBasis,
     GroebnerBasisIterator,
     GszProjectiveResolution,
@@ -216,6 +220,9 @@ __all__ = [
     "FpPathAlgebraVector",
     "FrobeniusForm",
     "FrobeniusLinearFunctional",
+    "GenericModuleEndomorphismAlgebra",
+    "GenericModuleHomSpace",
+    "GenericModuleHomomorphism",
     "GroebnerBasis",
     "GroebnerBasisIterator",
     "GszProjectiveResolution",

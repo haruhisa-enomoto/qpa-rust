@@ -210,6 +210,10 @@ impl PyModuleElement {
             element.qpa_print_string_with(|value| field.scalar_text(value))
         })
     }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
 }
 
 fn clone_element_kinds(

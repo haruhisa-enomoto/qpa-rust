@@ -160,4 +160,8 @@ impl PyPathAlgebraIdeal {
         dispatch_ref!(&self.kind, IdealKind, |ideal| ideal
             .view_obj_with(&ideal.algebra().field().python_kind().display()))
     }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
 }

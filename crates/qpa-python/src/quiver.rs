@@ -559,6 +559,10 @@ impl PyQuiver {
         self.inner.to_string()
     }
 
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
+
     fn view(&self) -> String {
         self.inner.view_string()
     }
@@ -853,6 +857,10 @@ impl PyPath {
 
     fn __repr__(&self) -> String {
         self.inner.to_string()
+    }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
     }
 
     fn __eq__(&self, other: &Self) -> bool {

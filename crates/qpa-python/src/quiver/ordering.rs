@@ -422,6 +422,14 @@ impl PyQuiverOrdering {
         self.inner.to_string()
     }
 
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
+
     fn __eq__(&self, other: &Self) -> bool {
         self.is_identical(other)
     }

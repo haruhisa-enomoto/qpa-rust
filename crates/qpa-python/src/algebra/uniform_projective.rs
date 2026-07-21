@@ -487,4 +487,17 @@ impl PyRightUniformPathAlgebraVector {
             false
         )
     }
+
+    fn __repr__(&self) -> String {
+        dispatch_ref!(&self.kind, UniformVectorKind, |vector| vector
+            .print_obj_with(|value| vector
+                .module()
+                .algebra()
+                .field()
+                .scalar_text(value)))
+    }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
 }

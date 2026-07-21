@@ -2402,6 +2402,7 @@ def test_opposite_structure_constants_algebra_follows_qpa() -> None:
     assert opposite.is_finite_dimensional
     assert opposite.underlying_algebra.dimension == upper.dimension
     assert opposite.multiplication_algebra.dimension == upper.dimension
+    assert opposite.print_obj() == repr(opposite)
 
     basis = opposite.basis_elements
     canonical = opposite.canonical_basis_elements
@@ -2454,6 +2455,7 @@ def test_opposite_structure_constants_algebra_follows_qpa() -> None:
     assert identity is not None
     assert [coefficient.representative for coefficient in identity.coordinates] == [1, 0, 1]
     assert repr(y) == "op( v.2 )"
+    assert y.print_obj() == "op( v.2 )"
     assert repr(y + z) == "op( v.2+v.3 )"
     assert repr(y.scale(field5.element(2))) == "op( (Z(5))*v.2 )"
     assert repr(-y) == "op( (Z(5)^2)*v.2 )"

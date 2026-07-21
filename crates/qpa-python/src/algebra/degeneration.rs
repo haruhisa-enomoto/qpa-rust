@@ -458,6 +458,14 @@ impl PyArQuiverNumerical {
     fn __repr__(&self) -> String {
         self.inner.to_string()
     }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
 }
 
 /// Raw QPA predefined AR-quiver data before numerical construction.

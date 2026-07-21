@@ -5,11 +5,15 @@ complete operation-oriented inventory for Python exposure. It groups all 1,839
 QPA declarations and installed overloads into 888 distinct QPA names. Every
 source-ledger entry ID occurs in exactly one group.
 
-The compact [`python/bindings.toml`](../../python/bindings.toml) manifest only
-records operations with implemented Python exposure. Regeneration combines it
-with [`porting/qpa-operations.toml`](../../porting/qpa-operations.toml); entries
-absent from the compact manifest remain explicitly `planned`, never silently
-unaccounted for.
+The compact [`python/bindings.toml`](../../python/bindings.toml) manifest records
+the exposure decision for every grouped QPA name. Regeneration combines it with
+[`porting/qpa-operations.toml`](../../porting/qpa-operations.toml); an omitted
+entry would remain explicitly `planned`, never silently unaccounted for.
+
+The completed initial-field binding has 883 `exposed`, two `represented`, and
+three `unavailable` groups. It has no `planned` or `partial` groups. The three
+unavailable groups are pinned QPA declarations with no installed callable
+method, not replacement algorithms or silently omitted behavior.
 
 ## Dispositions
 

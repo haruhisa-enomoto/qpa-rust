@@ -1,6 +1,6 @@
 # Post-port roadmap
 
-Last updated: 2026-07-19
+Last updated: 2026-07-21
 
 Status: all five campaigns below have passed their exit gates. The verification
 evidence is recorded in
@@ -85,6 +85,7 @@ without reading implementation modules.
 
 ## Later campaigns
 
-The full Python operation ledger, wheel production, performance optimization,
-finite extension fields, and adoption of newer upstream revisions begin only
-after the five campaigns above pass their exit gates.
+The full Python operation-ledger campaign completed on 2026-07-21 with no
+planned or partial groups. Wheel production, performance optimization, finite
+extension fields, and adoption of newer upstream revisions remain later
+campaigns.

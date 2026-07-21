@@ -1,6 +1,6 @@
 # Post-port completion audit
 
-Audit date: 2026-07-19
+Audit date: 2026-07-21
 
 The five campaigns in [`POST_PORT_ROADMAP.md`](../../POST_PORT_ROADMAP.md)
 have passed their exit gates. This audit records the evidence available in the
@@ -25,7 +25,7 @@ upstream lock is [`porting/upstream-lock.toml`](../../porting/upstream-lock.toml
 | --- | --- | --- |
 | `scripts/verify rust` | Pass | Formatting, all default-backend targets, strict Clippy, strict rustdoc, and the complete operation ledger |
 | `scripts/verify gmp` | Pass | All workspace targets, strict Clippy, and strict rustdoc with Numerica's GMP backend |
-| `scripts/verify python` | Pass | maturin development build and 7 Python integration tests |
+| `scripts/verify python` | Pass | complete Python binding ledger, maturin development build, and 338 Python tests |
 | `scripts/verify oracle` | Pass | Pinned GAP/QPA/GBNP metadata, fixture contract, and all compatibility reproducers |
 | Clean source-tree audit | Pass | All default-backend workspace targets from a fresh copy with `.git`, `target`, `.venv`, and `upstream` absent |
 
@@ -38,8 +38,10 @@ production algorithm changed.
 
 - The source-faithful root APIs remain available for compatibility and audit.
 - `qpa_core::api` and `qpa_gbnp::api` are the supported Rust facades.
-- The Python package is an architecture spike over a foundational vertical
-  slice, not yet a complete binding of the 1,839-entry operation ledger.
+- The Python package exposes the complete grouped operation ledger for the
+  initial Numerica field contract: 883 groups are callable, two are represented
+  directly by types, three preserve QPA's own no-method boundaries, and none
+  remain planned or partial.
 - Upstream issue reports are local review drafts and have not been submitted.
-- Full Python coverage, wheel production, performance work, finite extension
-  fields, and upstream-version adoption remain later campaigns.
+- Wheel production, performance work, finite extension fields, and
+  upstream-version adoption remain later campaigns.

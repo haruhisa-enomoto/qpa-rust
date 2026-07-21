@@ -437,10 +437,10 @@ tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_d
 
 [[bindings]]
 qpa_name = "ViewObj"
-status = "partial"
-target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__; qpa.ArQuiverNumerical.__repr__; qpa.Poset.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa","python/tests/test_posets.py::test_poset_objects_follow_qpa"]
-notes = "The quiver, quiver-ordering, Groebner-basis, unit-form, numerical AR-quiver, and poset overloads are exposed; grouped display overloads remain."
+status = "exposed"
+target = "qpa.UnitForm.view; qpa.CallbackCategory.view; qpa.ModuleCategory.view; qpa.ArQuiverNumerical.view; qpa.GroebnerBasis.view; qpa.QuiverOrdering.view; qpa.StaticDictionary.view; qpa.QuiverStaticDictionary.view; qpa.MatrixModule.view; qpa.ModuleHomomorphism.view; qpa.PathAlgebra.view; qpa.PathAlgebraIdeal.view; qpa.QuotientAlgebra.view; qpa.QuiverProductDecomposition.view; qpa.PathAlgebraModuleGroebnerBasis.view; qpa.PathAlgebraModuleGroebnerBasis.view_without_basis; qpa.Poset.view; qpa.Quiver.view"
+tests = ["python/tests/test_partial_overload_completion.py::test_print_obj_and_view_obj_overloads_preserve_qpa_rendering","python/tests/test_partial_overload_completion.py::test_path_vector_print_obj_overloads_cover_every_python_family","python/tests/test_partial_overload_completion.py::test_display_overloads_preserve_qpa_rendering"]
+notes = "All QPA ViewObj source overloads represented by Python receiver types are exposed explicitly, including both category wrappers, both static dictionaries, and both path-module Groebner-basis branches."
 
 [[bindings]]
 qpa_name = "\\[\\]"
@@ -1406,10 +1406,10 @@ tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_const
 
 [[bindings]]
 qpa_name = "PrintObj"
-status = "partial"
-target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.print; qpa.RightProjectiveModule.__repr__; qpa.PathAlgebraVector.__repr__"
-tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
-notes = "Exact opposite-algebra, quiver, generator, quiver-ordering, Groebner-basis, vertex-projective, and projective-vector printing is exposed; grouped QPA printing overloads remain incomplete."
+status = "exposed"
+target = "qpa.OppositeStructureConstantsAlgebra.print_obj; qpa.OppositeStructureConstantsElement.print_obj; qpa.CallbackCategory.print_obj; qpa.ModuleCategory.print_obj; qpa.ModuleComplex.print_obj; qpa.ModuleChainMap.print_obj; qpa.ArQuiverNumerical.print_obj; qpa.GroebnerBasis.print_obj; qpa.QuiverOrdering.print_obj; qpa.ModuleElement.print_obj; qpa.MatrixModule.print_obj; qpa.ModuleHomomorphism.print_obj; qpa.PathAlgebra.print_obj; qpa.AlgebraElement.print_obj; qpa.QuotientAlgebra.print_obj; qpa.QuotientElement.print_obj; qpa.QuiverProductDecomposition.print_obj; qpa.PathAlgebraVector.print_obj; qpa.RightUniformPathAlgebraVector.print_obj; qpa.QuotientPathAlgebraVector.print_obj; qpa.FpPathAlgebraVector.print_obj; qpa.Quiver.print_obj; qpa.QuiverVertex.print_obj; qpa.QuiverArrow.print_obj; qpa.Path.print_obj"
+tests = ["python/tests/test_partial_overload_completion.py::test_print_obj_and_view_obj_overloads_preserve_qpa_rendering","python/tests/test_partial_overload_completion.py::test_path_vector_print_obj_overloads_cover_every_python_family","python/tests/test_partial_overload_completion.py::test_complex_print_obj_overloads_cover_qpa_dispatch_priority","python/tests/test_partial_overload_completion.py::test_display_overloads_preserve_qpa_rendering","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
+notes = "All QPA PrintObj source overloads represented by Python receiver types are exposed explicitly; complex dispatch preserves projective-before-injective priority, and every represented path-vector family uses the source list printer."
 
 [[bindings]]
 qpa_name = "UnderlyingAlgebra"
@@ -3362,17 +3362,17 @@ notes = "Returns a distinct GSZ resolution wrapper retaining QPA's quotient/path
 
 [[bindings]]
 qpa_name = "Hom"
-status = "partial"
-target = "qpa.PathAlgebra.hom_of_fp_path_algebra_modules"
-tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
-notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
+status = "exposed"
+target = "qpa.PathAlgebra.hom; qpa.GenericModuleHomSpace; qpa.GenericModuleHomomorphism; qpa.PathAlgebra.hom_of_fp_path_algebra_modules"
+tests = ["python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_follow_qpa_hopf_oracle","python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_preserve_qpa_failures","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+notes = "The generic path-ring overload exposes QPA's exact HOPF_MatrixModuleHom generators for ambient modules and submodules; the f.p. overload preserves QPA's reachable packed-element Coefficients dispatch failure."
 
 [[bindings]]
 qpa_name = "End"
-status = "partial"
-target = "qpa.PathAlgebra.end_of_fp_path_algebra_module"
-tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
-notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
+status = "exposed"
+target = "qpa.PathAlgebra.end; qpa.GenericModuleEndomorphismAlgebra; qpa.PathAlgebra.end_of_fp_path_algebra_module"
+tests = ["python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_follow_qpa_hopf_oracle","python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_preserve_qpa_failures","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+notes = "The generic path-ring overload exposes QPA's exact algebra-with-one over its HOPF_MatrixModuleHom basis; the f.p. overload preserves QPA's reachable packed-element Coefficients dispatch failure."
 
 [[bindings]]
 qpa_name = "LeftDivision"
@@ -3531,17 +3531,17 @@ tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_f
 
 [[bindings]]
 qpa_name = "Complex"
-status = "partial"
+status = "exposed"
 target = "qpa.ModuleComplex.from_parts"
-tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
-notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
+tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_partial_overload_completion.py::test_complex_and_chain_map_callback_half_specs_follow_qpa","python/tests/test_partial_overload_completion.py::test_complex_callback_specs_reject_invalid_python_results"]
+notes = "Exposes QPA's zero, repeat, next, next/repeat, and position half-list specifications with Python callbacks and the same lazy validation route."
 
 [[bindings]]
 qpa_name = "ChainMap"
-status = "partial"
+status = "exposed"
 target = "qpa.ModuleChainMap.from_parts"
-tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
-notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa","python/tests/test_partial_overload_completion.py::test_complex_and_chain_map_callback_half_specs_follow_qpa"]
+notes = "Exposes QPA's zero, repeat, next, next/repeat, and position half-list specifications with Python callbacks and the same lazy commutativity checks."
 
 [[bindings]]
 qpa_name = "ForEveryDegree"
@@ -3558,10 +3558,10 @@ notes = "Both QPA declarations are exposed for half/full infinite lists and for 
 
 [[bindings]]
 qpa_name = "ComplexAndChainMaps"
-status = "partial"
+status = "exposed"
 target = "qpa.complex_and_chain_maps"
-tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
-notes = "QPA's zero and repeating combined half-list specifications are exposed with the flattened GAP result separated into the complex, incoming maps, and outgoing maps; callback-based next, next/repeat, and position specifications remain."
+tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa","python/tests/test_partial_overload_completion.py::test_combined_complex_callback_half_specs_follow_qpa"]
+notes = "Exposes QPA's zero, repeat, next, next/repeat, and position tuple specifications; the flattened GAP result is separated into the complex, incoming maps, and outgoing maps."
 
 [[bindings]]
 qpa_name = "ComplexityOfModule"

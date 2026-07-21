@@ -324,6 +324,21 @@ impl<F: Field> QuotientPathAlgebraVector<F> {
         &self.components
     }
 
+    /// Translate QPA's generic path-vector `PrintObj` method.
+    ///
+    /// GAP prints the stored coordinate list; quotient coordinates therefore
+    /// retain the brackets supplied by their own `PrintObj` overload.
+    #[must_use]
+    pub fn print_obj_with(&self, coefficient: impl Fn(&F::Element) -> String + Copy) -> String {
+        let entries = self
+            .components()
+            .iter()
+            .map(|component| component.print_obj_with(coefficient))
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!("[ {entries} ]")
+    }
+
     /// Return QPA's cached one-based leading position.
     #[must_use]
     pub const fn leading_position(&self) -> usize {

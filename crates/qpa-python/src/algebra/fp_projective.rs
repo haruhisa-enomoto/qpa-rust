@@ -898,4 +898,8 @@ impl PyFpPathAlgebraVector {
             |value| vector.module().algebra().field().scalar_text(value)
         ))
     }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
 }

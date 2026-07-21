@@ -238,6 +238,10 @@ impl PyUnitForm {
     fn __repr__(&self) -> String {
         self.inner.to_string()
     }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
 }
 
 /// QPA's captured Euler bilinear closure with its inverse Cartan matrix.

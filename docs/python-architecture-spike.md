@@ -2,8 +2,9 @@
 
 The `qpa-python` crate is the PyO3/maturin interface to the source-faithful Rust
 port. It calls existing `qpa-core` and `qpa-gbnp` operations; it contains no
-representation-theory algorithm of its own. The API is still pre-alpha while
-the complete Python operation-ledger campaign proceeds.
+independent representation-theory algorithm of its own. The complete Python
+operation ledger is exposed for the initial Numerica field contract. Packaging
+and API-version stability remain pre-release concerns.
 
 ## Architecture decisions
 

@@ -1,6 +1,6 @@
 # QPA Rust Port Roadmap
 
-Last updated: 2026-07-19
+Last updated: 2026-07-21
 
 The Rust-only port described here is complete and frozen at
 `rust-port-reference-0.1.0`. The active work is tracked in
@@ -10,8 +10,9 @@ as historical scope and longer-term release gates.
 ## Rust-port completion audit
 
 The Rust-only campaign is complete for the agreed initial Numerica coefficient
-contract: the rational field and Numerica-backed prime fields. Python bindings
-and finite extension fields remain later campaigns.
+contract: the rational field and Numerica-backed prime fields. The complete
+Python exposure follow-up finished on 2026-07-21; finite extension fields remain
+a later coefficient campaign.
 
 - All 78 pinned QPA `.gd`/`.gi` files regenerate to 1,839 ledger entries, and
   every entry is `verified` with a nonempty Rust-symbol and test mapping.

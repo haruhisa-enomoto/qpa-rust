@@ -65,6 +65,7 @@ pub(crate) use homological::py_complex_and_chain_maps;
 pub(crate) use mapping::PyNaturalQuotientMap;
 pub(crate) use module::{
     PyBasedRightAlgebraModule, PyBongartzTestDecision, PyFiniteTypeDecision,
+    PyGenericModuleEndomorphismAlgebra, PyGenericModuleHomSpace, PyGenericModuleHomomorphism,
     PyGszProjectiveResolution, PyModuleTensorProduct, PyProjectivePathAlgebraPresentation,
     py_complement_in_full_row_space, py_is_in_full_matrix_ring,
 };
@@ -149,7 +150,11 @@ use numerica::domains::{
     integer::Integer,
     rational::{Q, RationalField},
 };
-use pyo3::{Py, PyRef, PyResult, Python, prelude::*, types::PyList};
+use pyo3::{
+    Py, PyRef, PyResult, Python,
+    prelude::*,
+    types::{PyAny, PyList},
+};
 use qpa_core::{
     AlgebraDimension, DenseMatrix, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix, PathAlgebra,
     PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal, PathAlgebraModule,
@@ -2702,6 +2707,21 @@ impl PyPathAlgebra {
         Ok(PyMatrixModule { kind })
     }
 
+    fn hom(
+        &self,
+        source: &Bound<'_, PyAny>,
+        range: &Bound<'_, PyAny>,
+    ) -> PyResult<module::PyGenericModuleHomSpace> {
+        module::generic_hom(self, source, range)
+    }
+
+    fn end(
+        &self,
+        module: &Bound<'_, PyAny>,
+    ) -> PyResult<module::PyGenericModuleEndomorphismAlgebra> {
+        module::generic_end(self, module)
+    }
+
     fn hom_of_fp_path_algebra_modules(
         &self,
         source: &PyRightFpPathAlgebraModule,
@@ -2779,9 +2799,18 @@ impl PyPathAlgebra {
         )
     }
 
-    fn __repr__(&self) -> String {
+    fn view(&self) -> String {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
             .view_obj_with(&algebra.field().python_kind().display()))
+    }
+
+    fn print_obj(&self) -> String {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
+            .print_obj_with(&algebra.field().python_kind().display(), None,))
+    }
+
+    fn __repr__(&self) -> String {
+        self.view()
     }
 }
 
@@ -3208,6 +3237,10 @@ impl PyAlgebraElement {
     fn __repr__(&self) -> String {
         dispatch_ref!(&self.kind, AlgebraElementKind, |element| element
             .print_obj_with(|value| element.algebra().field().scalar_text(value)))
+    }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
     }
 
     fn __eq__(&self, other: &Self) -> bool {

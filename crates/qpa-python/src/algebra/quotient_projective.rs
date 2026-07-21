@@ -518,6 +518,20 @@ impl PyQuotientPathAlgebraVector {
             false
         )
     }
+
+    fn __repr__(&self) -> String {
+        dispatch_ref!(&self.kind, QuotientProjectiveVectorKind, |vector| vector
+            .print_obj_with(|value| vector
+                .module()
+                .algebra()
+                .original_path_algebra()
+                .field()
+                .scalar_text(value)))
+    }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
+    }
 }
 
 #[pymethods]

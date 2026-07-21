@@ -251,6 +251,14 @@ impl PyGroebnerBasis {
             .map_err(invalid))
     }
 
+    fn print_obj(&self) -> PyResult<String> {
+        self.print()
+    }
+
+    fn view(&self) -> String {
+        self.__repr__()
+    }
+
     fn __len__(&self) -> usize {
         dispatch_ref!(&self.kind, GroebnerKind, |basis| basis.relations().len())
     }

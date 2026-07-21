@@ -956,16 +956,16 @@ python_tests = ["python/tests/test_centres_and_units.py::test_path_and_quotient_
 qpa_name = "ChainMap"
 python_name = "chain_map"
 disposition = "operation"
-status = "partial"
+status = "exposed"
 python_target = "qpa.ModuleChainMap.from_parts"
-notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
+notes = "Exposes QPA's zero, repeat, next, next/repeat, and position half-list specifications with Python callbacks and the same lazy commutativity checks."
 entry_ids = ["complex:DeclareOperation:ChainMap:1","complex:InstallMethod:ChainMap:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::chain_map"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa","python/tests/test_partial_overload_completion.py::test_complex_and_chain_map_callback_half_specs_follow_qpa"]
 
 [[operations]]
 qpa_name = "CheckBlocksForCycles"
@@ -1286,31 +1286,31 @@ python_tests = ["python/tests/test_architecture_spike.py::test_vertex_projective
 qpa_name = "Complex"
 python_name = "complex"
 disposition = "operation"
-status = "partial"
+status = "exposed"
 python_target = "qpa.ModuleComplex.from_parts"
-notes = "QPA's zero and repeating half-list specifications are exposed; callback-based next, next/repeat, and position specifications remain."
+notes = "Exposes QPA's zero, repeat, next, next/repeat, and position half-list specifications with Python callbacks and the same lazy validation route."
 entry_ids = ["complex:DeclareGlobalFunction:Complex:1","complex:InstallGlobalFunction:Complex:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::complex"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_complex_surface_follows_qpa","python/tests/test_partial_overload_completion.py::test_complex_and_chain_map_callback_half_specs_follow_qpa","python/tests/test_partial_overload_completion.py::test_complex_callback_specs_reject_invalid_python_results"]
 
 [[operations]]
 qpa_name = "ComplexAndChainMaps"
 python_name = "complex_and_chain_maps"
 disposition = "operation"
-status = "partial"
+status = "exposed"
 python_target = "qpa.complex_and_chain_maps"
-notes = "QPA's zero and repeating combined half-list specifications are exposed with the flattened GAP result separated into the complex, incoming maps, and outgoing maps; callback-based next, next/repeat, and position specifications remain."
+notes = "Exposes QPA's zero, repeat, next, next/repeat, and position tuple specifications; the flattened GAP result is separated into the complex, incoming maps, and outgoing maps."
 entry_ids = ["complex:DeclareGlobalFunction:ComplexAndChainMaps:1","complex:InstallGlobalFunction:ComplexAndChainMaps:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/complex.gd","upstream/qpa/lib/complex.gi"]
 rust_symbols = ["qpa_gbnp::complex_and_chain_maps"]
 rust_tests = ["tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt"]
 deviations = []
-python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa"]
+python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps_and_mapping_cones_follow_qpa","python/tests/test_partial_overload_completion.py::test_combined_complex_callback_half_specs_follow_qpa"]
 
 [[operations]]
 qpa_name = "ComplexByDifferentialList"
@@ -2516,16 +2516,16 @@ python_tests = ["python/tests/test_centres_and_units.py::test_finite_unit_groups
 qpa_name = "End"
 python_name = "end"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.PathAlgebra.end_of_fp_path_algebra_module"
-notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
+status = "exposed"
+python_target = "qpa.PathAlgebra.end; qpa.GenericModuleEndomorphismAlgebra; qpa.PathAlgebra.end_of_fp_path_algebra_module"
+notes = "The generic path-ring overload exposes QPA's exact algebra-with-one over its HOPF_MatrixModuleHom basis; the f.p. overload preserves QPA's reachable packed-element Coefficients dispatch failure."
 entry_ids = ["module:InstallOtherMethod:End:1","projpathalgmodule:InstallMethod:End:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["end_of_fp_path_algebra_module; FpPathAlgebraEndomorphismAlgebra","generic_end_over_path_ring; GenericPathAlgebraModuleEndomorphismAlgebra"]
 rust_tests = ["tests/fixtures/module_generic_hom.txt","tests/fixtures/module_generic_hom_errors.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = ["MODULE-005"]
-python_tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+python_tests = ["python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_follow_qpa_hopf_oracle","python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_preserve_qpa_failures","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "EndModuloProjOverAlgebra"
@@ -3476,16 +3476,16 @@ python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_f
 qpa_name = "Hom"
 python_name = "hom"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.PathAlgebra.hom_of_fp_path_algebra_modules"
-notes = "The f.p. path-module overload preserves QPA's reachable packed-element Coefficients dispatch failure; the generic module overload remains."
+status = "exposed"
+python_target = "qpa.PathAlgebra.hom; qpa.GenericModuleHomSpace; qpa.GenericModuleHomomorphism; qpa.PathAlgebra.hom_of_fp_path_algebra_modules"
+notes = "The generic path-ring overload exposes QPA's exact HOPF_MatrixModuleHom generators for ambient modules and submodules; the f.p. overload preserves QPA's reachable packed-element Coefficients dispatch failure."
 entry_ids = ["module:InstallOtherMethod:Hom:1","projpathalgmodule:InstallMethod:Hom:1"]
 constructs = ["InstallMethod","InstallOtherMethod"]
 source_files = ["upstream/qpa/lib/module.gi","upstream/qpa/lib/projpathalgmodule.gi"]
 rust_symbols = ["generic_hom_over_path_ring; GenericPathAlgebraModuleHomSpace","hom_of_fp_path_algebra_modules; FpPathAlgebraHomSpace"]
 rust_tests = ["tests/fixtures/module_generic_hom.txt","tests/fixtures/module_generic_hom_errors.schema-v1.json","tests/fixtures/projpathalgmodule_fp_hom.schema-v1.json"]
 deviations = ["MODULE-005"]
-python_tests = ["python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
+python_tests = ["python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_follow_qpa_hopf_oracle","python/tests/test_partial_overload_completion.py::test_generic_path_ring_hom_and_end_preserve_qpa_failures","python/tests/test_architecture_spike.py::test_finitely_presented_path_modules_follow_qpa"]
 
 [[operations]]
 qpa_name = "HomFactoringThroughProjOverAlgebra"
@@ -9986,16 +9986,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_predefined_ar_orb
 qpa_name = "PrintObj"
 python_name = "print_obj"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.OppositeStructureConstantsAlgebra.__repr__; qpa.OppositeStructureConstantsElement.__repr__; qpa.Quiver.__repr__; qpa.QuiverVertex.__repr__; qpa.QuiverArrow.__repr__; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.print; qpa.RightProjectiveModule.__repr__; qpa.PathAlgebraVector.__repr__"
-notes = "Exact opposite-algebra, quiver, generator, quiver-ordering, Groebner-basis, vertex-projective, and projective-vector printing is exposed; grouped QPA printing overloads remain incomplete."
+status = "exposed"
+python_target = "qpa.OppositeStructureConstantsAlgebra.print_obj; qpa.OppositeStructureConstantsElement.print_obj; qpa.CallbackCategory.print_obj; qpa.ModuleCategory.print_obj; qpa.ModuleComplex.print_obj; qpa.ModuleChainMap.print_obj; qpa.ArQuiverNumerical.print_obj; qpa.GroebnerBasis.print_obj; qpa.QuiverOrdering.print_obj; qpa.ModuleElement.print_obj; qpa.MatrixModule.print_obj; qpa.ModuleHomomorphism.print_obj; qpa.PathAlgebra.print_obj; qpa.AlgebraElement.print_obj; qpa.QuotientAlgebra.print_obj; qpa.QuotientElement.print_obj; qpa.QuiverProductDecomposition.print_obj; qpa.PathAlgebraVector.print_obj; qpa.RightUniformPathAlgebraVector.print_obj; qpa.QuotientPathAlgebraVector.print_obj; qpa.FpPathAlgebraVector.print_obj; qpa.Quiver.print_obj; qpa.QuiverVertex.print_obj; qpa.QuiverArrow.print_obj; qpa.Path.print_obj"
+notes = "All QPA PrintObj source overloads represented by Python receiver types are exposed explicitly; complex dispatch preserves projective-before-injective priority, and every represented path-vector family uses the source list printer."
 entry_ids = ["algebra:InstallMethod:PrintObj:1","algebra:InstallMethod:PrintObj:2","complex:InstallMethod:PrintObj:1","complex:InstallMethod:PrintObj:2","complex:InstallMethod:PrintObj:3","complex:InstallMethod:PrintObj:4","degorderfinitetype:InstallMethod:PrintObj:1","derivedcat:InstallMethod:PrintObj:1","derivedcat:InstallMethod:PrintObj:2","groebner:InstallMethod:PrintObj:1","groebnerordering:InstallMethod:PrintObj:1","module:InstallMethod:PrintObj:1","module:InstallMethod:PrintObj:2","modulehom:InstallMethod:PrintObj:1","pathalg:InstallMethod:PrintObj:1","pathalg:InstallMethod:PrintObj:2","pathalg:InstallMethod:PrintObj:3","pathalgtensor:InstallMethod:PrintObj:1","projpathalgmodule:InstallMethod:PrintObj:1","projpathalgmodule:InstallMethod:PrintObj:2","quiver:InstallMethod:PrintObj:1","quiver:InstallMethod:PrintObj:2","quiver:InstallMethod:PrintObj:3","quiver:InstallMethod:PrintObj:4","quiver:InstallMethod:PrintObj:5"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/algebra.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/derivedcat.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","FpPathAlgebraVector::print_obj_with","GroebnerBasis::print_string_with","OppositeStructureConstantsAlgebra::fmt","OppositeStructureConstantsAlgebraElement::fmt","PathAlgebra::print_obj_with","PathAlgebraModule::qpa_print_string","PathAlgebraModuleElement::qpa_print_string_with; Display for PathAlgebraModuleElement","PathAlgebraModuleHomomorphism::qpa_print_string","PathAlgebraVector::print_obj_with","Quiver::fmt; Path::fmt; Vertex::fmt; Arrow::fmt","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuotientPathAlgebra::print_obj_with; PathAlgebraIdeal::view_obj_with","QuotientPathAlgebraElement::print_obj_with; PathAlgebraElement::print_obj_with","qpa_gbnp::QpaComplex::qpa_string; qpa_gbnp::QpaChainMap::qpa_string","qpa_injective_complex_string","qpa_projective_complex_string"]
 rust_tests = ["tests/fixtures/algebra_opposite.schema-v1.json","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/derivedcat_foundation_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_elements.txt","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/gap-reference/algebra_opposite_print.g"]
 deviations = ["ALG-001","DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa","python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa"]
+python_tests = ["python/tests/test_partial_overload_completion.py::test_print_obj_and_view_obj_overloads_preserve_qpa_rendering","python/tests/test_partial_overload_completion.py::test_path_vector_print_obj_overloads_cover_every_python_family","python/tests/test_partial_overload_completion.py::test_complex_print_obj_overloads_cover_qpa_dispatch_priority","python/tests/test_partial_overload_completion.py::test_display_overloads_preserve_qpa_rendering","python/tests/test_architecture_spike.py::test_opposite_structure_constants_algebra_follows_qpa"]
 
 [[operations]]
 qpa_name = "ProductOfIdeals"
@@ -12941,16 +12941,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_d
 qpa_name = "ViewObj"
 python_name = "view_obj"
 disposition = "operation"
-status = "partial"
-python_target = "qpa.Quiver.view; qpa.QuiverOrdering.__repr__; qpa.GroebnerBasis.__repr__; qpa.PathAlgebraModuleGroebnerBasis.__repr__; qpa.UnitForm.__repr__; qpa.ArQuiverNumerical.__repr__; qpa.Poset.__repr__"
-notes = "The quiver, quiver-ordering, Groebner-basis, unit-form, numerical AR-quiver, and poset overloads are exposed; grouped display overloads remain."
+status = "exposed"
+python_target = "qpa.UnitForm.view; qpa.CallbackCategory.view; qpa.ModuleCategory.view; qpa.ArQuiverNumerical.view; qpa.GroebnerBasis.view; qpa.QuiverOrdering.view; qpa.StaticDictionary.view; qpa.QuiverStaticDictionary.view; qpa.MatrixModule.view; qpa.ModuleHomomorphism.view; qpa.PathAlgebra.view; qpa.PathAlgebraIdeal.view; qpa.QuotientAlgebra.view; qpa.QuiverProductDecomposition.view; qpa.PathAlgebraModuleGroebnerBasis.view; qpa.PathAlgebraModuleGroebnerBasis.view_without_basis; qpa.Poset.view; qpa.Quiver.view"
+notes = "All QPA ViewObj source overloads represented by Python receiver types are exposed explicitly, including both category wrappers, both static dictionaries, and both path-module Groebner-basis branches."
 entry_ids = ["combinatorialrep:InstallMethod:ViewObj:1","complex:InstallMethod:ViewObj:1","degorderfinitetype:InstallMethod:ViewObj:1","groebner:InstallMethod:ViewObj:1","groebnerordering:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:1","groebnerstadict:InstallMethod:ViewObj:2","groebnerstadict:InstallMethod:ViewObj:3","groebnerstadict:InstallMethod:ViewObj:4","module:InstallMethod:ViewObj:1","modulehom:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:1","pathalg:InstallMethod:ViewObj:2","pathalgtensor:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:1","projpathalgmodule:InstallMethod:ViewObj:2","qpaposet:InstallMethod:ViewObj:1","quiver:InstallMethod:ViewObj:1"]
 constructs = ["InstallMethod"]
 source_files = ["upstream/qpa/lib/combinatorialrep.gi","upstream/qpa/lib/complex.gi","upstream/qpa/lib/degorderfinitetype.gi","upstream/qpa/lib/groebner.gi","upstream/qpa/lib/groebnerordering.gi","upstream/qpa/lib/groebnerstadict.gi","upstream/qpa/lib/module.gi","upstream/qpa/lib/modulehom.gi","upstream/qpa/lib/pathalg.gi","upstream/qpa/lib/pathalgtensor.gi","upstream/qpa/lib/projpathalgmodule.gi","upstream/qpa/lib/qpaposet.gi","upstream/qpa/lib/quiver.gi"]
 rust_symbols = ["Display for ArQuiverNumerical","Display for PathAlgebraModule","Display for PathAlgebraModuleHomomorphism","Display for UnitForm","GroebnerBasis::view_string","PathAlgebra::view_obj_with","Poset::fmt","Quiver::view_string","QuiverOrdering::fmt","QuiverProductDecomposition::fmt","QuiverStaticDictionary::fmt; QuiverStaticDictionary::view_string","QuotientPathAlgebra::view_obj_with; PathAlgebraIdeal::view_obj_with","RightPathAlgebraModuleGroebnerBasis::view_obj_with_basis","RightPathAlgebraModuleGroebnerBasis::view_obj_without_basis","StaticDictionary::fmt","qpa_gbnp::QpaCategory::name"]
 rust_tests = ["tests/fixtures/combinatorialrep_unit_form_view.txt","tests/fixtures/complex.schema-v1.json","tests/fixtures/complex_errors.schema-v1.json","tests/fixtures/complex_print.txt","tests/fixtures/degorderfinitetype.schema-v1.json","tests/fixtures/degorderfinitetype_print.txt","tests/fixtures/groebner_objects.schema-v1.json","tests/fixtures/module_presentation.txt","tests/fixtures/ordering_surface.schema-v1.json","tests/fixtures/pathalg_surface.schema-v1.json","tests/fixtures/pathalgtensor_quiver.schema-v1.json","tests/fixtures/poset_output.txt","tests/fixtures/projpathalgmodule_display.schema-v1.json","tests/fixtures/quiver_dispatch.schema-v1.json","tests/fixtures/quiver_dynkin_output.txt","tests/fixtures/quiver_graph.schema-v1.json","tests/fixtures/quiver_paths.schema-v1.json","tests/fixtures/quiver_surface.schema-v1.json","tests/fixtures/static_dictionary_output.txt"]
 deviations = ["DEGORDER-001","DEGORDER-002"]
-python_tests = ["python/tests/test_architecture_spike.py::test_extended_quiver_domain_delegates_to_qpa_core","python/tests/test_architecture_spike.py::test_quiver_orderings_follow_qpa_comparison_closures","python/tests/test_architecture_spike.py::test_ideal_groebner_and_quotient_domain_uses_qpa_algorithms","python/tests/test_architecture_spike.py::test_vertex_projective_path_vectors_follow_qpa","python/tests/test_architecture_spike.py::test_unit_forms_follow_qpa","python/tests/test_architecture_spike.py::test_finite_type_degeneration_order_follows_qpa","python/tests/test_posets.py::test_poset_objects_follow_qpa"]
+python_tests = ["python/tests/test_partial_overload_completion.py::test_print_obj_and_view_obj_overloads_preserve_qpa_rendering","python/tests/test_partial_overload_completion.py::test_path_vector_print_obj_overloads_cover_every_python_family","python/tests/test_partial_overload_completion.py::test_display_overloads_preserve_qpa_rendering"]
 
 [[operations]]
 qpa_name = "WalkOfPath"

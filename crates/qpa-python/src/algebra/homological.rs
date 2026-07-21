@@ -32,8 +32,8 @@ pub(crate) fn py_complex_and_chain_maps(
     range_complexes: Vec<Py<PyModuleComplex>>,
     base_degree: i64,
     middle: Vec<Vec<Py<PyModuleHomomorphism>>>,
-    positive: Option<Vec<Vec<Py<PyModuleHomomorphism>>>>,
-    negative: Option<Vec<Vec<Py<PyModuleHomomorphism>>>>,
+    positive: Option<Py<PyAny>>,
+    negative: Option<Py<PyAny>>,
 ) -> PyResult<(
     PyModuleComplex,
     Vec<PyModuleChainMap>,
@@ -188,6 +188,20 @@ where
         .map_err(invalid)
 }
 
+fn complex_print_obj_for<F>(complex: &qpa_gbnp::ModuleComplex<F>) -> PyResult<String>
+where
+    F: runtime::PythonField + Send + Sync + 'static,
+    F::Element: Send + Sync,
+{
+    if qpa_gbnp::is_projective_complex(complex).map_err(invalid)? {
+        qpa_gbnp::qpa_projective_complex_string(complex).map_err(invalid)
+    } else if qpa_gbnp::is_injective_complex(complex).map_err(invalid)? {
+        qpa_gbnp::qpa_injective_complex_string(complex).map_err(invalid)
+    } else {
+        complex.qpa_string().map_err(invalid)
+    }
+}
+
 #[pymethods]
 impl PyModuleComplex {
     #[getter]
@@ -221,8 +235,8 @@ impl PyModuleComplex {
         py: Python<'_>,
         base_degree: i64,
         middle: Vec<Py<PyModuleHomomorphism>>,
-        positive: Option<Vec<Py<PyModuleHomomorphism>>>,
-        negative: Option<Vec<Py<PyModuleHomomorphism>>>,
+        positive: Option<Py<PyAny>>,
+        negative: Option<Py<PyAny>>,
     ) -> PyResult<Self> {
         complex_foundation::complex_from_parts(
             category,
@@ -705,10 +719,14 @@ impl PyModuleComplex {
         self.is_identical(right)
     }
 
+    fn print_obj(&self) -> PyResult<String> {
+        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| {
+            complex_print_obj_for(complex)
+        })
+    }
+
     fn __repr__(&self) -> PyResult<String> {
-        dispatch_ref!(&self.kind, ModuleComplexKind, |complex| complex
-            .qpa_string()
-            .map_err(invalid))
+        self.print_obj()
     }
 }
 
@@ -722,8 +740,8 @@ impl PyModuleChainMap {
         py: Python<'_>,
         base_degree: i64,
         middle: Vec<Py<PyModuleHomomorphism>>,
-        positive: Option<Vec<Py<PyModuleHomomorphism>>>,
-        negative: Option<Vec<Py<PyModuleHomomorphism>>>,
+        positive: Option<Py<PyAny>>,
+        negative: Option<Py<PyAny>>,
     ) -> PyResult<Self> {
         complex_foundation::chain_map_from_parts(
             source,
@@ -807,8 +825,12 @@ impl PyModuleChainMap {
         self.is_identical(right)
     }
 
-    fn __repr__(&self) -> &'static str {
+    fn print_obj(&self) -> &'static str {
         dispatch_ref!(&self.kind, ModuleChainMapKind, |map| map.qpa_string())
+    }
+
+    fn __repr__(&self) -> &'static str {
+        self.print_obj()
     }
 }
 

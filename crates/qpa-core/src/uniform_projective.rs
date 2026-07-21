@@ -11,6 +11,7 @@ use std::{cmp::Ordering, fmt, sync::Arc};
 use numerica::domains::Field;
 use thiserror::Error;
 
+use crate::projective_path_module::qpa_path_algebra_components_string;
 use crate::{Path, PathAlgebra, PathAlgebraElement, PathEndpoint};
 
 struct RightUniformPathAlgebraModuleData<F: Field> {
@@ -223,6 +224,15 @@ impl<F: Field> RightUniformPathAlgebraVector<F> {
     #[must_use]
     pub fn components(&self) -> &[PathAlgebraElement<F>] {
         &self.components
+    }
+
+    /// Translate QPA's generic path-vector `PrintObj` method.
+    ///
+    /// The caller supplies GAP-facing coefficient spelling because Numerica
+    /// owns exact arithmetic values rather than GAP presentation syntax.
+    #[must_use]
+    pub fn print_obj_with(&self, coefficient: impl Fn(&F::Element) -> String + Copy) -> String {
+        qpa_path_algebra_components_string(self.components(), coefficient)
     }
 
     /// Return QPA's cached one-based leading position.

@@ -27,7 +27,8 @@ use algebra::{
     PyEndOfModuleAsQuiverAlgebraResult, PyEulerBilinearForm, PyExtAlgebraGeneratorsResult,
     PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyFiniteTypeDecision,
     PyFpPathAlgebraByImagesHomomorphism, PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector,
-    PyFrobeniusForm, PyFrobeniusLinearFunctional, PyGroebnerBasis, PyGroebnerBasisIterator,
+    PyFrobeniusForm, PyFrobeniusLinearFunctional, PyGenericModuleEndomorphismAlgebra,
+    PyGenericModuleHomSpace, PyGenericModuleHomomorphism, PyGroebnerBasis, PyGroebnerBasisIterator,
     PyGszProjectiveResolution, PyInjectiveResolution, PyLiftedProjectivePathAlgebraModule,
     PyMatrixModule, PyMaximalCommonDirectSummand, PyModuleBasisMapping, PyModuleCategory,
     PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
@@ -263,6 +264,9 @@ fn register_modules(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyModuleElementSpace>()?;
     module.add_class::<PyModuleElementBasis>()?;
     module.add_class::<PyModuleHomomorphism>()?;
+    module.add_class::<PyGenericModuleHomomorphism>()?;
+    module.add_class::<PyGenericModuleHomSpace>()?;
+    module.add_class::<PyGenericModuleEndomorphismAlgebra>()?;
     module.add_class::<PyModuleBasisMapping>()?;
     module.add_class::<PyModuleHomomorphismBasis>()?;
     module.add_class::<PyModuleEndomorphismAlgebra>()?;

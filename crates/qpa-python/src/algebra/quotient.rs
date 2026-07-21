@@ -793,7 +793,7 @@ impl PyQuotientAlgebra {
         )
     }
 
-    fn __repr__(&self) -> String {
+    fn view(&self) -> String {
         dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra.view_obj_with(
             &algebra
                 .original_path_algebra()
@@ -801,6 +801,20 @@ impl PyQuotientAlgebra {
                 .python_kind()
                 .display()
         ))
+    }
+
+    fn print_obj(&self) -> String {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra.print_obj_with(
+            &algebra
+                .original_path_algebra()
+                .field()
+                .python_kind()
+                .display()
+        ))
+    }
+
+    fn __repr__(&self) -> String {
+        self.view()
     }
 }
 
@@ -1102,6 +1116,10 @@ impl PyQuotientElement {
                 .original_path_algebra()
                 .field()
                 .scalar_text(value)))
+    }
+
+    fn print_obj(&self) -> String {
+        self.__repr__()
     }
 
     fn __eq__(&self, other: &Self) -> bool {
