@@ -52,6 +52,7 @@ pub(crate) fn py_complex_and_chain_maps(
 
 #[pymethods]
 impl PyProjectiveResolution {
+    /// Compute or retrieve the differential at the requested degree.
     fn differential(&self, degree: i64) -> PyResult<PyModuleHomomorphism> {
         let degree = Integer::from(degree);
         let kind = map_ref!(
@@ -62,6 +63,7 @@ impl PyProjectiveResolution {
         Ok(PyModuleHomomorphism { kind })
     }
 
+    /// Compute or retrieve the resolution object at the requested degree.
     fn object(&self, degree: i64) -> PyResult<PyMatrixModule> {
         let degree = Integer::from(degree);
         let kind = map_ref!(

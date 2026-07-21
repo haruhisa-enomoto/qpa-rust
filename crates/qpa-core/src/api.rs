@@ -5,6 +5,26 @@
 //! intended for ordinary Rust programs and receives the stronger stability
 //! commitment. Adding more translated QPA operations here is non-breaking;
 //! removing or renaming an item follows the crate's versioning policy.
+//!
+//! # Example
+//!
+//! ```
+//! # use std::error::Error;
+//! # fn main() -> Result<(), Box<dyn Error>> {
+//! use qpa_core::api::prelude::*;
+//!
+//! let v1 = VertexIndex::new(1).expect("one-based vertex");
+//! let v2 = VertexIndex::new(2).expect("one-based vertex");
+//! let quiver = Quiver::from_indexed(
+//!     2,
+//!     vec![ArrowSpec::named(v1, v2, "a")],
+//! )?;
+//! let path_algebra = PathAlgebra::new(Q, quiver)?;
+//!
+//! assert_eq!(path_algebra.quiver().number_of_vertices(), 2);
+//! # Ok(())
+//! # }
+//! ```
 
 /// Exact coefficient fields and scalar operations supplied by Numerica.
 pub mod coefficients {

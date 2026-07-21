@@ -1328,6 +1328,7 @@ impl PyMatrixModule {
         Ok(PyModuleHomomorphism { kind })
     }
 
+    /// Return QPA's ordered basis of homomorphisms to `range`, or `None`.
     fn hom_basis_to(&self, range: &Self) -> PyResult<Option<Vec<PyModuleHomomorphism>>> {
         dispatch_pair_ref!(
             &self.kind,
@@ -1688,6 +1689,7 @@ impl PyMatrixModule {
         })
     }
 
+    /// Return QPA's projective-cover map onto this module.
     fn projective_cover(&self) -> PyResult<PyModuleHomomorphism> {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(
             wrap_module_homomorphism(qpa_gbnp::projective_cover(module).map_err(invalid)?,)
@@ -1700,6 +1702,7 @@ impl PyMatrixModule {
         ))
     }
 
+    /// Return the kernel of QPA's projective cover.
     fn first_syzygy(&self) -> PyResult<Self> {
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| Ok(wrap_module(
             qpa_gbnp::first_syzygy(module).map_err(invalid)?,
@@ -1713,6 +1716,7 @@ impl PyMatrixModule {
         )))
     }
 
+    /// Return QPA's lazy projective resolution, with this module in degree `-1`.
     fn projective_resolution(&self) -> PyResult<PyProjectiveResolution> {
         let kind = map_ref!(
             &self.kind,
@@ -1807,6 +1811,7 @@ impl PyMatrixModule {
         })
     }
 
+    /// Compute projective dimension up to `bound`, or return `None` if unresolved.
     fn projective_dimension(&self, bound: i64) -> PyResult<Option<usize>> {
         let bound = Integer::from(bound);
         dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
@@ -1862,6 +1867,7 @@ impl PyMatrixModule {
         ))
     }
 
+    /// Compute QPA's degree-one Ext result with coefficients in the argument.
     fn ext1(&self, coefficients_in: &Self) -> PyResult<PyExtOverAlgebraResult> {
         let kind = map_pair_ref!(
             &self.kind,

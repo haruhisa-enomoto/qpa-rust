@@ -3,6 +3,28 @@
 //! The crate root remains the complete compatibility and source-audit surface.
 //! This facade groups the operations most useful to application code while
 //! preserving their source-faithful implementations.
+//!
+//! # Example
+//!
+//! ```
+//! # use std::error::Error;
+//! # fn main() -> Result<(), Box<dyn Error>> {
+//! use qpa_gbnp::api::prelude::*;
+//!
+//! let vertex = VertexIndex::new(1).expect("one-based vertex");
+//! let quiver = Quiver::from_indexed(
+//!     1,
+//!     vec![ArrowSpec::named(vertex, vertex, "x")],
+//! )?;
+//! let path_algebra = PathAlgebra::new(Z2, quiver.clone())?;
+//! let x_path = quiver.arrows().next().expect("one loop").path();
+//! let x = path_algebra.element(x_path)?;
+//! let quotient = quotient_by_relations(path_algebra, &[x.multiply(&x)?])?;
+//!
+//! assert!(matches!(quotient_dimension(&quotient)?, AlgebraDimension::Finite(_)));
+//! # Ok(())
+//! # }
+//! ```
 
 /// The supported foundational facade from `qpa-core`.
 pub use qpa_core::api as core;

@@ -287,6 +287,7 @@ impl PyQuotientAlgebra {
         })
     }
 
+    /// Construct QPA's quotient by the indicated power of the arrow ideal.
     #[staticmethod]
     fn truncated(
         field: PyRef<'_, PyField>,
@@ -461,6 +462,7 @@ impl PyQuotientAlgebra {
             .has_normal_form_function())
     }
 
+    /// Return the residue class of the named vertex or arrow generator.
     fn generator(&self, name: &str) -> PyResult<PyQuotientElement> {
         let path = dispatch_ref!(&self.kind, QuotientKind, |algebra| algebra
             .quiver()
@@ -567,6 +569,7 @@ impl PyQuotientAlgebra {
         Ok(PyQuotientElement { kind })
     }
 
+    /// Return the finite dimension as a decimal string, or `None`.
     fn dimension(&self) -> PyResult<Option<String>> {
         let dimension = dispatch_ref!(&self.kind, QuotientKind, |algebra| {
             qpa_gbnp::quotient_dimension(algebra).map_err(invalid)?
@@ -711,6 +714,7 @@ impl PyQuotientAlgebra {
         Ok(Self { kind })
     }
 
+    /// Construct a right module and verify all quotient relations.
     fn module_from_integer_matrices(
         &self,
         dimension_vector: Vec<usize>,
@@ -763,12 +767,14 @@ impl PyQuotientAlgebra {
         Ok(PyMatrixModule { kind })
     }
 
+    /// Return standard simple modules in QPA vertex order.
     fn simple_modules(&self) -> PyResult<Vec<PyMatrixModule>> {
         dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(wrap_matrix_modules(
             qpa_gbnp::simple_modules(&QuiverAlgebra::Quotient(algebra.clone())).map_err(invalid)?,
         )))
     }
 
+    /// Return indecomposable projectives in QPA vertex order.
     fn indecomposable_projectives(&self) -> PyResult<Vec<PyMatrixModule>> {
         dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(wrap_matrix_modules(
             qpa_gbnp::indec_projective_modules(&QuiverAlgebra::Quotient(algebra.clone()))

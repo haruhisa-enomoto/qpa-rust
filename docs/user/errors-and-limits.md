@@ -1,5 +1,23 @@
 # Errors, source sentinels, and limits
 
+## Python exceptions and return values
+
+The Python binding uses three public exception classes:
+
+| Python exception | Meaning |
+| --- | --- |
+| `qpa.QpaError` | Base class for binding failures |
+| `qpa.InvalidInputError` | Malformed input, incompatible families or fields, or an unavailable QPA method boundary |
+| `qpa.RelationNotSatisfiedError` | Checked module actions do not satisfy the algebra relations |
+
+QPA's ordinary `fail`, `false`, or `TryNextMethod()` results are represented by
+`None`, `False`, or a documented result object rather than by one universal
+exception. Check the type stub or API reference for the exact return type. For
+example, `Quiver.dynkin(...)` can return `None`, and bounded dimensions can
+return `None` when QPA does not establish a value.
+
+## Rust result types
+
 The Rust API separates conditions that GAP represents with the same dynamic
 value.
 
@@ -37,7 +55,8 @@ not silently replace a failing QPA method with another mathematical algorithm.
 ## Resource limits
 
 - Exact integers and rationals are arbitrary precision, but container sizes,
-  matrix dimensions, and Rust indices are bounded by `usize`.
+  matrix dimensions, Python-to-Rust positions, and Rust indices are bounded by
+  `usize`.
 - The supported odd-prime `Zp` backend uses a `u32` characteristic. Algorithms
   that enumerate every field element can additionally fail when the cardinality
   cannot be addressed or allocated.

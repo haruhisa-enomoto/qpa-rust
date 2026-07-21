@@ -28,6 +28,7 @@ verify_gmp() {
 
 verify_python() {
     scripts/check-python-ledger
+    scripts/check-python-docs
     test -x .venv/bin/maturin || {
         echo "error: create .venv and install maturin plus pytest; see docs/python-architecture-spike.md" >&2
         exit 127

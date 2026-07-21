@@ -19,10 +19,36 @@ The initial exact coefficient contract uses Numerica and admits the rational
 field and supported prime fields. Finite extension fields are a later
 coefficient tier.
 
+## Python quick start
+
+The distribution is named `qpa-rust` and the import package is named `qpa`.
+From another project on this machine, add the checkout with `uv`:
+
+```console
+uv add --editable /mnt/c/ai/qpa_rust_python
+```
+
+Then run an exact computation through the Rust extension:
+
+```python
+import qpa
+
+field = qpa.Field.prime(5)
+quiver = qpa.Quiver(["v"], [("v", "v", "x")])
+algebra = qpa.QuotientAlgebra.truncated(field, quiver, 3)
+
+assert algebra.dimension() == "3"
+assert algebra.generator("x").pow(3).is_zero
+```
+
+Begin with the [Python installation guide](docs/user/python-installation.md)
+and [Python quickstart](docs/user/python-quickstart.md). The examples under
+[`docs/examples/python`](docs/examples/python) are executable and tested.
+
 See [ROADMAP.md](ROADMAP.md) for the completed source-port campaign and
 [POST_PORT_ROADMAP.md](POST_PORT_ROADMAP.md) for the completed stabilization,
 refactor, and API campaigns. Maintainer verification is documented in
 [docs/development/verification.md](docs/development/verification.md), and
-[NOTICE.md](NOTICE.md) records source provenance and attribution. Rust users
-should begin with the [supported facade guide](docs/user/README.md) and its
-[quickstart](docs/user/quickstart.md).
+[NOTICE.md](NOTICE.md) records source provenance and attribution. The
+[user-guide index](docs/user/README.md) separates shared mathematical
+conventions, the primary Python workflow, and the supported Rust facades.

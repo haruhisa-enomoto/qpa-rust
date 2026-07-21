@@ -2,7 +2,7 @@
 
 Last updated: 2026-07-21
 
-Status: all five campaigns below have passed their exit gates. The verification
+Status: all six campaigns below have passed their exit gates. The verification
 evidence is recorded in
 [`docs/development/completion-audit.md`](docs/development/completion-audit.md).
 
@@ -83,9 +83,26 @@ Exit gate: a Rust user can select a supported field, construct basic QPA
 objects, understand failures and conventions, and write a small computation
 without reading implementation modules.
 
+## Campaign 6 — Python user documentation
+
+- [x] Make Python the primary onboarding path and document local `uv`
+      installation.
+- [x] Provide task guides for algebras, modules, homological calculations, and
+      Gröbner bases.
+- [x] Add executable Python examples and run them in the Python verification
+      gate.
+- [x] Generate a complete Python signature reference from the shipped stub.
+- [x] Generate a complete QPA-to-Python source and port-note index from the
+      binding ledger.
+- [x] Link the pinned QPA manual and document primary Python methods in runtime
+      help and the type stub.
+- [x] Add compile-checked examples to the supported Rust facade documentation.
+
+Exit gate: a Python user can install the local package, perform representative
+algebra and module computations, locate every Python signature and QPA source
+mapping, and run all published examples as tests.
+
 ## Later campaigns
 
-The full Python operation-ledger campaign completed on 2026-07-21 with no
-planned or partial groups. Wheel production, performance optimization, finite
-extension fields, and adoption of newer upstream revisions remain later
-campaigns.
+Wheel production, performance optimization, finite extension fields, and
+adoption of newer upstream revisions remain later campaigns.

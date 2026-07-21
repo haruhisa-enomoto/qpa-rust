@@ -18,8 +18,9 @@ scripts/verify oracle
 `rust` checks formatting, default-backend tests, strict Clippy, strict rustdoc,
 and regeneration of the complete QPA operation ledger. `gmp` repeats tests and
 linting with Numerica's GMP backend. `python` verifies complete binding-ledger
-accounting, rebuilds the PyO3 extension into `.venv`, and runs its Python
-tests. `oracle` validates the pinned upstream
+accounting, proves that the generated Python API and QPA-operation references
+are current, rebuilds the PyO3 extension into `.venv`, and runs its Python
+tests, including every published Python example. `oracle` validates the pinned upstream
 versions, the complete checked-in GAP/QPA/GBNP fixture contract, and the
 prepared compatibility reproducers. `all` runs all four modes.
 

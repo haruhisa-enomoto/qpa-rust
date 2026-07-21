@@ -573,6 +573,7 @@ impl PyModuleHomomorphism {
         Ok(Self { kind })
     }
 
+    /// Apply this map first and `right` second, following QPA's row-action order.
     fn compose(&self, right: &Self) -> PyResult<Self> {
         let kind = map_pair_ref!(
             &self.kind,
@@ -676,18 +677,21 @@ impl PyModuleHomomorphism {
         ))
     }
 
+    /// Return the kernel module computed by QPA's map routine.
     fn kernel(&self) -> PyResult<PyMatrixModule> {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
             wrap_module(qpa_core::kernel_of_module_homomorphism(homomorphism).map_err(invalid)?,)
         ))
     }
 
+    /// Return the image module computed by QPA's map routine.
     fn image_module(&self) -> PyResult<PyMatrixModule> {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
             wrap_module(qpa_core::image_of_module_homomorphism(homomorphism).map_err(invalid)?,)
         ))
     }
 
+    /// Return the cokernel module computed by QPA's map routine.
     fn cokernel(&self) -> PyResult<PyMatrixModule> {
         dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| Ok(
             wrap_module(qpa_core::cokernel_of_module_homomorphism(homomorphism).map_err(invalid)?,)

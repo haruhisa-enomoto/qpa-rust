@@ -1831,6 +1831,7 @@ impl PyAlgebraHomomorphism {
 
 #[pymethods]
 impl PyPathAlgebra {
+    /// Construct the path algebra of `quiver` over the exact coefficient field.
     #[new]
     fn new(field: PyRef<'_, PyField>, quiver: PyRef<'_, PyQuiver>) -> PyResult<Self> {
         let kind = match field.kind {
@@ -2122,6 +2123,7 @@ impl PyPathAlgebra {
         Ok(Self { kind })
     }
 
+    /// Return the vertex or arrow generator with the given name.
     fn generator(&self, name: &str) -> PyResult<PyAlgebraElement> {
         let path = dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
             .quiver()
@@ -2199,6 +2201,7 @@ impl PyPathAlgebra {
         PyAlgebraElement { kind }
     }
 
+    /// Form a quotient through QPA's configured default GBNP route.
     fn quotient(
         &self,
         py: Python<'_>,
@@ -2241,6 +2244,7 @@ impl PyPathAlgebra {
         Ok(PyPathAlgebraIdeal { kind })
     }
 
+    /// Compute QPA's translated high-level Gröbner basis for the relations.
     fn groebner_basis(
         &self,
         py: Python<'_>,
@@ -2407,6 +2411,7 @@ impl PyPathAlgebra {
         })
     }
 
+    /// Reduce an element by the given divisors using QPA's division route.
     fn remainder_of_division(
         &self,
         py: Python<'_>,
@@ -2694,6 +2699,7 @@ impl PyPathAlgebra {
         Ok(relations.clone().unbind())
     }
 
+    /// Construct a checked right module from a dimension vector and arrow actions.
     fn module_from_integer_matrices(
         &self,
         dimension_vector: Vec<usize>,
@@ -2769,12 +2775,14 @@ impl PyPathAlgebra {
         Ok(PyMatrixModule { kind })
     }
 
+    /// Return standard simple modules in QPA vertex order.
     fn simple_modules(&self) -> PyResult<Vec<PyMatrixModule>> {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| Ok(wrap_matrix_modules(
             qpa_gbnp::simple_modules(&QuiverAlgebra::Path(algebra.clone())).map_err(invalid)?,
         )))
     }
 
+    /// Return indecomposable projectives in QPA vertex order.
     fn indecomposable_projectives(&self) -> PyResult<Vec<PyMatrixModule>> {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| Ok(wrap_matrix_modules(
             qpa_gbnp::indec_projective_modules(&QuiverAlgebra::Path(algebra.clone()))

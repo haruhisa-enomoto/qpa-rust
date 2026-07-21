@@ -104,6 +104,7 @@ pub(crate) struct PyField {
 
 #[pymethods]
 impl PyField {
+    /// Return the exact rational field.
     #[staticmethod]
     fn rational() -> Self {
         Self {
@@ -111,6 +112,7 @@ impl PyField {
         }
     }
 
+    /// Return the prime field `F_p` after verifying that `p` is prime.
     #[staticmethod]
     fn prime(characteristic: u32) -> PyResult<Self> {
         let kind = match characteristic {
@@ -144,6 +146,7 @@ impl PyField {
         !matches!(self.kind, FieldKind::Rational)
     }
 
+    /// Construct an exact field element from an integer numerator and denominator.
     #[pyo3(signature = (numerator, denominator=None))]
     fn element(
         &self,

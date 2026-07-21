@@ -73,6 +73,7 @@ pub(crate) struct PyQuiverProductDecomposition {
 
 #[pymethods]
 impl PyQuiver {
+    /// Construct a named quiver from `(source, target, arrow_name)` triples.
     #[new]
     fn new(vertices: Vec<String>, arrows: Vec<(String, String, String)>) -> PyResult<Self> {
         let arrows = arrows
@@ -135,6 +136,7 @@ impl PyQuiver {
         Ok(Self::from_inner(inner))
     }
 
+    /// Construct a quiver using QPA's one-based vertex indices.
     #[staticmethod]
     fn indexed(
         number_of_vertices: usize,
@@ -419,6 +421,7 @@ impl PyQuiver {
         }
     }
 
+    /// Build a path from arrow names in left-to-right traversal order.
     fn path(&self, arrows: Vec<String>) -> PyResult<PyPath> {
         let mut arrows = arrows.into_iter();
         let first = arrows
@@ -803,6 +806,7 @@ impl PyPath {
         }
     }
 
+    /// Traverse this path first and `right` second.
     fn multiply(&self, right: &Self) -> PyResult<Self> {
         Ok(Self {
             inner: self.inner.multiply(&right.inner).map_err(invalid)?,
