@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 873
+exposed_or_partial_count = 888
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -296,8 +296,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_complements_and_m
 qpa_name = "AllIndecModulesOfLengthAtMost"
 python_name = "all_indec_modules_of_length_at_most"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.all_indec_modules_of_length_at_most"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:AllIndecModulesOfLengthAtMost:1","modulehom:InstallMethod:AllIndecModulesOfLengthAtMost:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -305,14 +305,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["all_indec_modules_of_length_at_most"]
 rust_tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_length_enumeration_operations_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "AllModulesOfLengthAtMost"
 python_name = "all_modules_of_length_at_most"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.all_modules_of_length_at_most"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:AllModulesOfLengthAtMost:1","modulehom:InstallMethod:AllModulesOfLengthAtMost:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -320,14 +320,14 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["all_modules_of_length_at_most"]
 rust_tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_length_enumeration_operations_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "AllModulesOfLengthPlusOne"
 python_name = "all_modules_of_length_plus_one"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.all_modules_of_length_plus_one"
 notes = ""
 entry_ids = ["modulehom:DeclareOperation:AllModulesOfLengthPlusOne:1","modulehom:InstallMethod:AllModulesOfLengthPlusOne:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -335,7 +335,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd","upstream/qpa/lib/modulehom.gi"]
 rust_symbols = ["all_modules_of_length_plus_one"]
 rust_tests = ["tests/fixtures/modulehom_length.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_length_enumeration_operations_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "AllPatternsInSequence"
@@ -611,8 +611,8 @@ python_tests = ["python/tests/test_metadata_categories.py::test_path_module_elem
 qpa_name = "BasisOfProjectives"
 python_name = "basis_of_projectives"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.basis_of_projectives"
 notes = ""
 entry_ids = ["modulespecial:DeclareAttribute:BasisOfProjectives:1","modulespecial:InstallMethod:BasisOfProjectives:1","modulespecial:InstallOtherMethod:BasisOfProjectives:1"]
 constructs = ["DeclareAttribute","InstallMethod","InstallOtherMethod"]
@@ -620,7 +620,7 @@ source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespec
 rust_symbols = ["basis_of_projectives"]
 rust_tests = ["tests/fixtures/modulehom_projectives.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_projective_basis_and_element_conversions_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "BasisVectors"
@@ -731,8 +731,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structure_constan
 qpa_name = "BongartzTest"
 python_name = "bongartz_test"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.bongartz_test; qpa.BongartzTestDecision"
 notes = ""
 entry_ids = ["pathalgreptype:DeclareOperation:BongartzTest:1","pathalgreptype:InstallMethod:BongartzTest:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -740,7 +740,7 @@ source_files = ["upstream/qpa/lib/pathalgreptype.gd","upstream/qpa/lib/pathalgre
 rust_symbols = ["bongartz_test; BongartzTestDecision"]
 rust_tests = ["tests/fixtures/reptype_bongartz.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_bongartz_and_random_module_follow_gap_qpa_oracles"]
 
 [[operations]]
 qpa_name = "BoundariesOfComplex"
@@ -1226,8 +1226,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_chain_maps
 qpa_name = "ComplementInFullRowSpace"
 python_name = "complement_in_full_row_space"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.complement_in_full_row_space"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:ComplementInFullRowSpace:1","moduledecomp:InstallMethod:ComplementInFullRowSpace:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1235,7 +1235,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["complement_in_full_row_space"]
 rust_tests = ["tests/fixtures/moduledecomp_foundation.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_complement_in_full_row_space_follows_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "CompletelyReduce"
@@ -1676,23 +1676,23 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison
 qpa_name = "DecomposeModuleProbabilistic"
 python_name = "decompose_module_probabilistic"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.decompose_probabilistic"
+notes = "Preserves QPA's heterogeneous result: an unsplit module or a list of split summands."
 entry_ids = ["moduledecomp:DeclareOperation:DecomposeModuleProbabilistic:1","moduledecomp:InstallMethod:DecomposeModuleProbabilistic:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecomp.gi"]
 rust_symbols = ["decompose_module_probabilistic; decompose_module_probabilistic_with_rng; ProbabilisticModuleDecomposition"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_alternative_decompositions_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "DecomposeModuleViaCharPoly"
 python_name = "decompose_module_via_char_poly"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.decompose_via_char_poly"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:DecomposeModuleViaCharPoly:1","moduledecomp:InstallMethod:DecomposeModuleViaCharPoly:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1700,14 +1700,14 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["decompose_module_via_char_poly; decompose_module_via_char_poly_with_rng"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_alternative_decompositions_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "DecomposeModuleViaTop"
 python_name = "decompose_module_via_top"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.decompose_via_top"
 notes = ""
 entry_ids = ["moduledecomp:DeclareOperation:DecomposeModuleViaTop:1","moduledecomp:InstallMethod:DecomposeModuleViaTop:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -1715,7 +1715,7 @@ source_files = ["upstream/qpa/lib/moduledecomp.gd","upstream/qpa/lib/moduledecom
 rust_symbols = ["decompose_module_via_top"]
 rust_tests = ["tests/fixtures/moduledecomp_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_alternative_decompositions_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "DecomposeModuleWithInclusions"
@@ -2441,8 +2441,8 @@ python_tests = ["python/tests/test_infinite_lists.py::test_half_infinite_lists_f
 qpa_name = "ElementInIndecProjective"
 python_name = "element_in_indec_projective"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleElement.element_in_indec_projective"
 notes = ""
 entry_ids = ["modulespecial:DeclareOperation:ElementInIndecProjective:1","modulespecial:InstallMethod:ElementInIndecProjective:1","modulespecial:InstallOtherMethod:ElementInIndecProjective:1"]
 constructs = ["DeclareOperation","InstallMethod","InstallOtherMethod"]
@@ -2450,14 +2450,14 @@ source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespec
 rust_symbols = ["element_in_indec_projective"]
 rust_tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_projective_basis_and_element_conversions_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "ElementIn_vA_AsElementInIndecProj"
 python_name = "element_in_v_a_as_element_in_indec_proj"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.element_as_indec_projective"
 notes = ""
 entry_ids = ["modulespecial:DeclareOperation:ElementIn_vA_AsElementInIndecProj:1","modulespecial:InstallMethod:ElementIn_vA_AsElementInIndecProj:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -2465,7 +2465,7 @@ source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespec
 rust_symbols = ["element_in_v_a_as_element_in_indec_proj"]
 rust_tests = ["tests/fixtures/modulehom_projective_matrices.schema-v1.json","tests/gap-reference/modulehom_projective_scaled_tip_error.g","tests/gap-reference/modulehom_projective_zero_element_error.g"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_projective_basis_and_element_conversions_follow_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "ElementOfPathAlgebra"
@@ -10766,16 +10766,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structure_constan
 qpa_name = "RandomModule"
 python_name = "random_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.random_module"
+notes = "The explicit seed makes QPA's randomized construction reproducible."
 entry_ids = ["modulespecial:DeclareOperation:RandomModule:1","modulespecial:InstallMethod:RandomModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/modulespecial.gd","upstream/qpa/lib/modulespecial.gi"]
 rust_symbols = ["random_module; QpaRandomScalar"]
 rust_tests = ["tests/fixtures/module_random.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_bongartz_and_random_module_follow_gap_qpa_oracles"]
 
 [[operations]]
 qpa_name = "Range"
@@ -11081,16 +11081,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_product_an
 qpa_name = "RightAlgebraModuleToPathAlgebraMatModule"
 python_name = "right_algebra_module_to_path_algebra_mat_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.BasedRightAlgebraModule.to_path_algebra_matrix_module; qpa.MatrixModule.as_based_right_algebra_module"
+notes = "BasedRightAlgebraModule.from_actions supplies the finite based action data read by QPA's method under MODULE-006."
 entry_ids = ["module:DeclareOperation:RightAlgebraModuleToPathAlgebraMatModule:1","module:InstallMethod:RightAlgebraModuleToPathAlgebraMatModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["right_algebra_module_to_path_algebra_mat_module; BasedRightAlgebraModule"]
 rust_tests = ["tests/fixtures/module_right_algebra_conversion.txt","tests/fixtures/module_right_algebra_conversion_errors.schema-v1.json"]
 deviations = ["MODULE-006"]
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_based_module_conversion_and_nc_constructor_follow_qpa"]
 
 [[operations]]
 qpa_name = "RightApproximationByAddM"
@@ -11261,16 +11261,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "RightModuleOverPathAlgebraNC"
 python_name = "right_module_over_path_algebra_nc"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.QuiverAlgebra.right_module_over_path_algebra_nc; qpa.QuiverAlgebra.right_module_over_path_algebra_nc_named; qpa.QuiverAlgebra.right_module_over_path_algebra_nc_indexed"
+notes = "Positional, named, and arrow-object action lists are exposed, including QPA's zero-space dimension-pair notation; MODULE-003 preserves the isolated-vertex failure as a typed error."
 entry_ids = ["module:DeclareOperation:RightModuleOverPathAlgebraNC:1","module:InstallMethod:RightModuleOverPathAlgebraNC:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["right_module_over_path_algebra_infer_dimension_nc","right_module_over_path_algebra_infer_dimension_nc; PathAlgebraModuleArrowActions"]
 rust_tests = ["tests/fixtures/module_inferred_constructor_errors.schema-v1.json","tests/fixtures/module_inferred_constructors.txt"]
 deviations = ["MODULE-003"]
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_based_module_conversion_and_nc_constructor_follow_qpa","python/tests/test_remaining_module_operations.py::test_nc_constructor_preserves_qpa_foreign_odd_prime_acceptance"]
 
 [[operations]]
 qpa_name = "RightMutationOfCotiltingModuleComplement"
@@ -12176,8 +12176,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_tensor_products_a
 qpa_name = "TensorProductOfModules"
 python_name = "tensor_product_of_modules"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.tensor_product; qpa.ModuleTensorProduct"
 notes = ""
 entry_ids = ["functors:DeclareOperation:TensorProductOfModules:1","functors:InstallMethod:TensorProductOfModules:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -12185,7 +12185,7 @@ source_files = ["upstream/qpa/lib/functors.gd","upstream/qpa/lib/functors.gi"]
 rust_symbols = ["tensor_product_of_modules; TensorProductOfModulesResult","tensor_product_of_modules; TensorProductOfModulesResult::elementary_tensor"]
 rust_tests = ["tests/fixtures/functors_tensor_modules.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_remaining_module_operations.py::test_tensor_product_of_modules_follows_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "TensorProductOfPathAlgebras"

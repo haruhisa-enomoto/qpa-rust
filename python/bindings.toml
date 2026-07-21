@@ -5505,3 +5505,99 @@ status = "exposed"
 target = "qpa.StructureConstantsAlgebra.hopf_singular_idempotent"
 tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
 notes = "Reproducible randomness follows deviation IDEMPOTENT-001."
+
+# Remaining module enumeration, decomposition, projective, and tensor operations
+
+[[bindings]]
+qpa_name = "AllIndecModulesOfLengthAtMost"
+status = "exposed"
+target = "qpa.QuiverAlgebra.all_indec_modules_of_length_at_most"
+tests = ["python/tests/test_remaining_module_operations.py::test_length_enumeration_operations_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "AllModulesOfLengthAtMost"
+status = "exposed"
+target = "qpa.QuiverAlgebra.all_modules_of_length_at_most"
+tests = ["python/tests/test_remaining_module_operations.py::test_length_enumeration_operations_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "AllModulesOfLengthPlusOne"
+status = "exposed"
+target = "qpa.MatrixModule.all_modules_of_length_plus_one"
+tests = ["python/tests/test_remaining_module_operations.py::test_length_enumeration_operations_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "BasisOfProjectives"
+status = "exposed"
+target = "qpa.QuiverAlgebra.basis_of_projectives"
+tests = ["python/tests/test_remaining_module_operations.py::test_projective_basis_and_element_conversions_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "BongartzTest"
+status = "exposed"
+target = "qpa.QuiverAlgebra.bongartz_test; qpa.BongartzTestDecision"
+tests = ["python/tests/test_remaining_module_operations.py::test_bongartz_and_random_module_follow_gap_qpa_oracles"]
+
+[[bindings]]
+qpa_name = "ComplementInFullRowSpace"
+status = "exposed"
+target = "qpa.complement_in_full_row_space"
+tests = ["python/tests/test_remaining_module_operations.py::test_complement_in_full_row_space_follows_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "DecomposeModuleProbabilistic"
+status = "exposed"
+target = "qpa.MatrixModule.decompose_probabilistic"
+tests = ["python/tests/test_remaining_module_operations.py::test_alternative_decompositions_follow_gap_qpa_oracle"]
+notes = "Preserves QPA's heterogeneous result: an unsplit module or a list of split summands."
+
+[[bindings]]
+qpa_name = "DecomposeModuleViaCharPoly"
+status = "exposed"
+target = "qpa.MatrixModule.decompose_via_char_poly"
+tests = ["python/tests/test_remaining_module_operations.py::test_alternative_decompositions_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "DecomposeModuleViaTop"
+status = "exposed"
+target = "qpa.MatrixModule.decompose_via_top"
+tests = ["python/tests/test_remaining_module_operations.py::test_alternative_decompositions_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "ElementInIndecProjective"
+status = "exposed"
+target = "qpa.ModuleElement.element_in_indec_projective"
+tests = ["python/tests/test_remaining_module_operations.py::test_projective_basis_and_element_conversions_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "ElementIn_vA_AsElementInIndecProj"
+status = "exposed"
+target = "qpa.QuiverAlgebra.element_as_indec_projective"
+tests = ["python/tests/test_remaining_module_operations.py::test_projective_basis_and_element_conversions_follow_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "RandomModule"
+status = "exposed"
+target = "qpa.QuiverAlgebra.random_module"
+tests = ["python/tests/test_remaining_module_operations.py::test_bongartz_and_random_module_follow_gap_qpa_oracles"]
+notes = "The explicit seed makes QPA's randomized construction reproducible."
+
+[[bindings]]
+qpa_name = "RightAlgebraModuleToPathAlgebraMatModule"
+status = "exposed"
+target = "qpa.BasedRightAlgebraModule.to_path_algebra_matrix_module; qpa.MatrixModule.as_based_right_algebra_module"
+tests = ["python/tests/test_remaining_module_operations.py::test_based_module_conversion_and_nc_constructor_follow_qpa"]
+notes = "BasedRightAlgebraModule.from_actions supplies the finite based action data read by QPA's method under MODULE-006."
+
+[[bindings]]
+qpa_name = "RightModuleOverPathAlgebraNC"
+status = "exposed"
+target = "qpa.QuiverAlgebra.right_module_over_path_algebra_nc; qpa.QuiverAlgebra.right_module_over_path_algebra_nc_named; qpa.QuiverAlgebra.right_module_over_path_algebra_nc_indexed"
+tests = ["python/tests/test_remaining_module_operations.py::test_based_module_conversion_and_nc_constructor_follow_qpa","python/tests/test_remaining_module_operations.py::test_nc_constructor_preserves_qpa_foreign_odd_prime_acceptance"]
+notes = "Positional, named, and arrow-object action lists are exposed, including QPA's zero-space dimension-pair notation; MODULE-003 preserves the isolated-vertex failure as a typed error."
+
+[[bindings]]
+qpa_name = "TensorProductOfModules"
+status = "exposed"
+target = "qpa.MatrixModule.tensor_product; qpa.ModuleTensorProduct"
+tests = ["python/tests/test_remaining_module_operations.py::test_tensor_product_of_modules_follows_gap_qpa_oracle"]

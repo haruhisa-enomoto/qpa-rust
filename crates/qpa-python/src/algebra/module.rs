@@ -1,9 +1,15 @@
 //! Matrix modules, module elements, and module homomorphisms.
 
 mod homomorphism;
+mod remaining;
 mod results;
 mod submodule;
 mod values;
+
+pub(crate) use remaining::{
+    PyBasedRightAlgebraModule, PyBongartzTestDecision, PyModuleTensorProduct,
+    py_complement_in_full_row_space,
+};
 
 use pyo3::pymethods;
 use qpa_core::{ModuleDimensionSeries, PathAlgebraModuleMatrix, PathAlgebraVector, VertexIndex};
