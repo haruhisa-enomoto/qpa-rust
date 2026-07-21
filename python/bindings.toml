@@ -5402,3 +5402,32 @@ status = "exposed"
 target = "qpa.ModuleElement.is_path_module_element; qpa.ModuleElementSpace.is_path_module_element_collection"
 tests = ["python/tests/test_metadata_categories.py::test_path_module_element_spaces_and_bases_follow_qpa_oracle"]
 notes = "The concrete element and element-space wrappers represent QPA's element, family, and collection categories."
+
+# Finite-dimensional HOPF helpers
+
+[[bindings]]
+qpa_name = "HOPF_MinPoly"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.hopf_minimum_polynomial"
+tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
+
+[[bindings]]
+qpa_name = "HOPF_LeftIdentity"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.hopf_left_identity"
+tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
+notes = "Python None represents QPA's fail result when no left identity exists."
+
+[[bindings]]
+qpa_name = "HOPF_ZeroDivisor"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.hopf_zero_divisor"
+tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
+notes = "Python None represents QPA's empty list for a commutative algebra; reproducible randomness follows deviation IDEMPOTENT-001."
+
+[[bindings]]
+qpa_name = "HOPF_SingularIdempotent"
+status = "exposed"
+target = "qpa.StructureConstantsAlgebra.hopf_singular_idempotent"
+tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
+notes = "Reproducible randomness follows deviation IDEMPOTENT-001."

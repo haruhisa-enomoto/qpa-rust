@@ -316,6 +316,22 @@ where
     elements.into_iter().map(wrap_structure_element).collect()
 }
 
+fn hopf_minimum_polynomial_for<F: runtime::PythonField>(
+    algebra: &StructureConstantsAlgebra<F>,
+    element: StructureConstantsElementKind,
+) -> PyResult<Vec<PyScalar>>
+where
+    StructureConstantsElementKind: runtime::Extract<StructureConstantsAlgebraElement<F>>,
+{
+    let element = runtime::Extract::extract(element)?;
+    Ok(algebra
+        .hopf_minimum_polynomial(&element)
+        .map_err(invalid)?
+        .iter()
+        .map(|coefficient| algebra.field().wrap_scalar(coefficient))
+        .collect())
+}
+
 fn wrap_structure_subalgebra<F: runtime::PythonField>(
     subalgebra: StructureConstantsSubalgebra<F>,
 ) -> PyStructureConstantsSubalgebra
@@ -630,6 +646,50 @@ impl PyStructureConstantsAlgebra {
     fn is_finite_global_dimension_from_known_properties(&self) -> Option<bool> {
         dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
             algebra.is_finite_global_dimension_from_known_properties()
+        })
+    }
+
+    fn hopf_minimum_polynomial(
+        &self,
+        element: &PyStructureConstantsElement,
+    ) -> PyResult<Vec<PyScalar>> {
+        let element = element.kind.clone();
+        match &self.kind {
+            StructureConstantsAlgebraKind::Rational(algebra) => {
+                hopf_minimum_polynomial_for(algebra, element)
+            }
+            StructureConstantsAlgebraKind::Binary(algebra) => {
+                hopf_minimum_polynomial_for(algebra, element)
+            }
+            StructureConstantsAlgebraKind::Prime(algebra) => {
+                hopf_minimum_polynomial_for(algebra, element)
+            }
+        }
+    }
+
+    fn hopf_left_identity(&self) -> PyResult<Option<PyStructureConstantsElement>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(algebra
+                .hopf_left_identity()
+                .map_err(invalid)?
+                .map(wrap_structure_element))
+        })
+    }
+
+    fn hopf_zero_divisor(&self) -> PyResult<Option<Vec<PyStructureConstantsElement>>> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(algebra
+                .hopf_zero_divisor()
+                .map_err(invalid)?
+                .map(|pair| pair.into_iter().map(wrap_structure_element).collect()))
+        })
+    }
+
+    fn hopf_singular_idempotent(&self) -> PyResult<PyStructureConstantsElement> {
+        dispatch_ref!(&self.kind, StructureConstantsAlgebraKind, |algebra| {
+            Ok(wrap_structure_element(
+                algebra.hopf_singular_idempotent().map_err(invalid)?,
+            ))
         })
     }
 

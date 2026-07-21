@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 858
+exposed_or_partial_count = 862
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -3326,23 +3326,23 @@ python_tests = []
 qpa_name = "HOPF_LeftIdentity"
 python_name = "hopf_left_identity"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.hopf_left_identity"
+notes = "Python None represents QPA's fail result when no left identity exists."
 entry_ids = ["idempotent:DeclareGlobalFunction:HOPF_LeftIdentity:1","idempotent:InstallGlobalFunction:HOPF_LeftIdentity:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/idempotent.gd","upstream/qpa/lib/idempotent.gi"]
 rust_symbols = ["StructureConstantsAlgebra::hopf_left_identity"]
 rust_tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
 
 [[operations]]
 qpa_name = "HOPF_MinPoly"
 python_name = "hopf_min_poly"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.hopf_minimum_polynomial"
 notes = ""
 entry_ids = ["idempotent:DeclareGlobalFunction:HOPF_MinPoly:1","idempotent:InstallGlobalFunction:HOPF_MinPoly:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
@@ -3350,37 +3350,37 @@ source_files = ["upstream/qpa/lib/idempotent.gd","upstream/qpa/lib/idempotent.gi
 rust_symbols = ["StructureConstantsAlgebra::hopf_minimum_polynomial"]
 rust_tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
 
 [[operations]]
 qpa_name = "HOPF_SingularIdempotent"
 python_name = "hopf_singular_idempotent"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.hopf_singular_idempotent"
+notes = "Reproducible randomness follows deviation IDEMPOTENT-001."
 entry_ids = ["idempotent:DeclareGlobalFunction:HOPF_SingularIdempotent:1","idempotent:InstallGlobalFunction:HOPF_SingularIdempotent:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/idempotent.gd","upstream/qpa/lib/idempotent.gi"]
 rust_symbols = ["StructureConstantsAlgebra::hopf_singular_idempotent; StructureConstantsAlgebra::hopf_singular_idempotent_with_rng"]
 rust_tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = ["IDEMPOTENT-001"]
-python_tests = []
+python_tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
 
 [[operations]]
 qpa_name = "HOPF_ZeroDivisor"
 python_name = "hopf_zero_divisor"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.StructureConstantsAlgebra.hopf_zero_divisor"
+notes = "Python None represents QPA's empty list for a commutative algebra; reproducible randomness follows deviation IDEMPOTENT-001."
 entry_ids = ["idempotent:DeclareGlobalFunction:HOPF_ZeroDivisor:1","idempotent:InstallGlobalFunction:HOPF_ZeroDivisor:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/idempotent.gd","upstream/qpa/lib/idempotent.gi"]
 rust_symbols = ["StructureConstantsAlgebra::hopf_zero_divisor; StructureConstantsAlgebra::hopf_zero_divisor_with_rng"]
 rust_tests = ["tests/fixtures/idempotent.schema-v1.json"]
 deviations = ["IDEMPOTENT-001"]
-python_tests = []
+python_tests = ["python/tests/test_idempotent_hopf.py::test_hopf_helpers_follow_pinned_qpa_invariants","python/tests/test_idempotent_hopf.py::test_hopf_helpers_cover_every_supported_prime_field_and_source_failures"]
 
 [[operations]]
 qpa_name = "HalfInfList"
