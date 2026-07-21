@@ -4,7 +4,7 @@ exposure_manifest = "python/bindings.toml"
 source_entry_count = 1839
 accounted_entry_count = 1839
 operation_count = 888
-exposed_or_partial_count = 862
+exposed_or_partial_count = 873
 coverage_unit = "one QPA name with every declaration and installed overload grouped"
 
 [[operations]]
@@ -416,8 +416,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_almost_split_sequ
 qpa_name = "AnnihilatorOfModule"
 python_name = "annihilator_of_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.annihilator"
 notes = ""
 entry_ids = ["module:DeclareAttribute:AnnihilatorOfModule:1","module:InstallMethod:AnnihilatorOfModule:1"]
 constructs = ["DeclareAttribute","InstallMethod"]
@@ -425,7 +425,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["annihilator_of_module"]
 rust_tests = ["tests/fixtures/module_annihilator.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_annihilator_of_module_follows_gap_qpa_oracle"]
 
 [[operations]]
 qpa_name = "AreDerivedEquivalent"
@@ -2126,16 +2126,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_checked_matrix_mo
 qpa_name = "DimensionVectorPartialOrder"
 python_name = "dimension_vector_partial_order"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.dimension_vector_leq"
+notes = "Preserves GAP's zero-padding of unequal dimension-vector lengths and QPA's lack of a common-field or common-algebra requirement."
 entry_ids = ["module:DeclareOperation:DimensionVectorPartialOrder:1","module:InstallMethod:DimensionVectorPartialOrder:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["dimension_vector_partial_order"]
 rust_tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_dimension_order_and_module_series_follow_gap_qpa_oracle","python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
 
 [[operations]]
 qpa_name = "DirectSumInclusions"
@@ -2336,16 +2336,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_
 qpa_name = "DualOfTranspose"
 python_name = "dual_of_transpose"
 disposition = "alias"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.d_tr; qpa.ModuleHomomorphism.d_tr"
+notes = "QPA declares this as a synonym of DTr."
 entry_ids = ["functors:DeclareSynonym:DualOfTranspose:1"]
 constructs = ["DeclareSynonym"]
 source_files = ["upstream/qpa/lib/functors.gd"]
 rust_symbols = ["d_tr"]
 rust_tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "DynamicTreeFamily"
@@ -5231,8 +5231,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_comparison
 qpa_name = "IsInFullMatrixRing"
 python_name = "is_in_full_matrix_ring"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.is_in_full_matrix_ring"
 notes = ""
 entry_ids = ["module:DeclareOperation:IsInFullMatrixRing:1","module:InstallMethod:IsInFullMatrixRing:1"]
 constructs = ["DeclareOperation","InstallMethod"]
@@ -5240,7 +5240,7 @@ source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["is_in_full_matrix_ring"]
 rust_tests = ["tests/fixtures/module_elements.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
 
 [[operations]]
 qpa_name = "IsIndecomposableModule"
@@ -7661,16 +7661,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_structure_constan
 qpa_name = "LiftIdempotents"
 python_name = "lift_idempotents"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.lift_idempotents"
+notes = "Preserves QPA's declared-but-uninstalled operation diagnostic rather than inventing an implementation."
 entry_ids = ["modulehom:DeclareOperation:LiftIdempotents:1"]
 constructs = ["DeclareOperation"]
 source_files = ["upstream/qpa/lib/modulehom.gd"]
 rust_symbols = ["lift_idempotents"]
 rust_tests = ["tests/fixtures/final_declared_surface.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
 
 [[operations]]
 qpa_name = "LiftIdempotentsForDecomposition"
@@ -8096,16 +8096,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_module_elements_h
 qpa_name = "MatricesOfPathAlgebraModule"
 python_name = "matrices_of_path_algebra_module"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.matrices_of_path_algebra_module"
+notes = "Preserves QPA's scalar integer zero for each arrow of a total-zero module."
 entry_ids = ["module:DeclareOperation:MatricesOfPathAlgebraModule:1","module:InstallMethod:MatricesOfPathAlgebraModule:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["PathAlgebraModule::matrices_of_path_algebra_module"]
 rust_tests = ["tests/fixtures/pathalgtensor_regular_module.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries","python/tests/test_module_foundation.py::test_module_foundation_operations_support_other_prime_fields"]
 
 [[operations]]
 qpa_name = "MatrixNumCols"
@@ -9581,8 +9581,8 @@ python_tests = ["python/tests/test_architecture_spike.py::test_ideal_groebner_an
 qpa_name = "PathAlgebraOfMatModuleMap"
 python_name = "path_algebra_of_mat_module_map"
 disposition = "operation"
-status = "planned"
-python_target = ""
+status = "exposed"
+python_target = "qpa.ModuleHomomorphism.path_algebra"
 notes = ""
 entry_ids = ["modulehom:DeclareAttribute:PathAlgebraOfMatModuleMap:1"]
 constructs = ["DeclareAttribute"]
@@ -9590,7 +9590,7 @@ source_files = ["upstream/qpa/lib/modulehom.gd"]
 rust_symbols = ["PathAlgebraModuleHomomorphism::source; PathAlgebraModule::right_acting_algebra"]
 rust_tests = ["tests/fixtures/pathalgtensor_trivial_extension.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
 
 [[operations]]
 qpa_name = "PathAlgebraVector"
@@ -9641,16 +9641,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_quiver_orderings_
 qpa_name = "PathModuleElem"
 python_name = "path_module_elem"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.element_from_external_representation"
+notes = "Accepts QPA's physical external representation, including arbitrary row lengths at zero-dimensional vertices, separately from the checked logical-coordinate constructor."
 entry_ids = ["module:DeclareGlobalFunction:PathModuleElem:1","module:InstallGlobalFunction:PathModuleElem:1"]
 constructs = ["DeclareGlobalFunction","InstallGlobalFunction"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["PathAlgebraModule::element_from_external_representation"]
 rust_tests = ["tests/fixtures/module_element_errors.schema-v1.json","tests/fixtures/module_elements.txt"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
 
 [[operations]]
 qpa_name = "PathRemoval"
@@ -10736,16 +10736,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_approximation_ope
 qpa_name = "RadicalSeries"
 python_name = "radical_series"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.radical_series"
+notes = "Preserves QPA's flat dimension-vector result for the zero module."
 entry_ids = ["module:DeclareOperation:RadicalSeries:1","module:InstallMethod:RadicalSeries:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["radical_series"]
 rust_tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_dimension_order_and_module_series_follow_gap_qpa_oracle","python/tests/test_module_foundation.py::test_module_foundation_operations_support_other_prime_fields"]
 
 [[operations]]
 qpa_name = "RadicalSeriesOfAlgebra"
@@ -11636,16 +11636,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_submodules_projec
 qpa_name = "SocleSeries"
 python_name = "socle_series"
 disposition = "operation"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.socle_series"
+notes = "Preserves QPA's flat dimension-vector result for the zero module."
 entry_ids = ["module:DeclareOperation:SocleSeries:1","module:InstallMethod:SocleSeries:1"]
 constructs = ["DeclareOperation","InstallMethod"]
 source_files = ["upstream/qpa/lib/module.gd","upstream/qpa/lib/module.gi"]
 rust_symbols = ["socle_series"]
 rust_tests = ["tests/fixtures/module_series.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_module_foundation.py::test_dimension_order_and_module_series_follow_gap_qpa_oracle","python/tests/test_module_foundation.py::test_module_foundation_operations_support_other_prime_fields"]
 
 [[operations]]
 qpa_name = "Source"
@@ -12581,16 +12581,16 @@ python_tests = ["python/tests/test_architecture_spike.py::test_approximation_ope
 qpa_name = "TransposeOfDual"
 python_name = "transpose_of_dual"
 disposition = "alias"
-status = "planned"
-python_target = ""
-notes = ""
+status = "exposed"
+python_target = "qpa.MatrixModule.tr_d; qpa.ModuleHomomorphism.tr_d"
+notes = "QPA declares this as a synonym of TrD."
 entry_ids = ["functors:DeclareSynonym:TransposeOfDual:1"]
 constructs = ["DeclareSynonym"]
 source_files = ["upstream/qpa/lib/functors.gd"]
 rust_symbols = ["tr_d"]
 rust_tests = ["tests/fixtures/functors_transpose.schema-v1.json"]
 deviations = []
-python_tests = []
+python_tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
 
 [[operations]]
 qpa_name = "TransposeOfModule"

@@ -62,7 +62,9 @@ pub(crate) use fp_projective::{
 };
 pub(crate) use homological::py_complex_and_chain_maps;
 pub(crate) use mapping::PyNaturalQuotientMap;
-pub(crate) use module::{PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation};
+pub(crate) use module::{
+    PyGszProjectiveResolution, PyProjectivePathAlgebraPresentation, py_is_in_full_matrix_ring,
+};
 pub(crate) use nakayama::{
     PyFrobeniusForm, PyFrobeniusLinearFunctional, PyNakayamaAutomorphism, PyNakayamaPermutation,
 };

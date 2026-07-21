@@ -21,6 +21,13 @@ impl PyModuleHomomorphism {
     }
 
     #[getter]
+    fn path_algebra(&self) -> PyQuiverAlgebra {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            conversion::wrap_quiver_algebra(homomorphism.source().right_acting_algebra().clone())
+        })
+    }
+
+    #[getter]
     fn source(&self) -> PyMatrixModule {
         let kind = map_ref!(
             &self.kind,

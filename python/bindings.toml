@@ -4476,6 +4476,80 @@ status = "unavailable"
 notes = "Pinned QPA declares this InfoClass but never emits a message through it, so there is no observable diagnostic channel to expose."
 
 [[bindings]]
+qpa_name = "AnnihilatorOfModule"
+status = "exposed"
+target = "qpa.MatrixModule.annihilator"
+tests = ["python/tests/test_module_foundation.py::test_annihilator_of_module_follows_gap_qpa_oracle"]
+
+[[bindings]]
+qpa_name = "DimensionVectorPartialOrder"
+status = "exposed"
+target = "qpa.MatrixModule.dimension_vector_leq"
+tests = ["python/tests/test_module_foundation.py::test_dimension_order_and_module_series_follow_gap_qpa_oracle","python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
+notes = "Preserves GAP's zero-padding of unequal dimension-vector lengths and QPA's lack of a common-field or common-algebra requirement."
+
+[[bindings]]
+qpa_name = "DualOfTranspose"
+status = "exposed"
+target = "qpa.MatrixModule.d_tr; qpa.ModuleHomomorphism.d_tr"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+notes = "QPA declares this as a synonym of DTr."
+
+[[bindings]]
+qpa_name = "IsInFullMatrixRing"
+status = "exposed"
+target = "qpa.is_in_full_matrix_ring"
+tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
+
+[[bindings]]
+qpa_name = "LiftIdempotents"
+status = "exposed"
+target = "qpa.MatrixModule.lift_idempotents"
+tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
+notes = "Preserves QPA's declared-but-uninstalled operation diagnostic rather than inventing an implementation."
+
+[[bindings]]
+qpa_name = "MatricesOfPathAlgebraModule"
+status = "exposed"
+target = "qpa.MatrixModule.matrices_of_path_algebra_module"
+tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries","python/tests/test_module_foundation.py::test_module_foundation_operations_support_other_prime_fields"]
+notes = "Preserves QPA's scalar integer zero for each arrow of a total-zero module."
+
+[[bindings]]
+qpa_name = "PathAlgebraOfMatModuleMap"
+status = "exposed"
+target = "qpa.ModuleHomomorphism.path_algebra"
+tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
+
+[[bindings]]
+qpa_name = "PathModuleElem"
+status = "exposed"
+target = "qpa.MatrixModule.element_from_external_representation"
+tests = ["python/tests/test_module_foundation.py::test_module_raw_elements_matrices_and_map_algebra_preserve_qpa_boundaries"]
+notes = "Accepts QPA's physical external representation, including arbitrary row lengths at zero-dimensional vertices, separately from the checked logical-coordinate constructor."
+
+[[bindings]]
+qpa_name = "RadicalSeries"
+status = "exposed"
+target = "qpa.MatrixModule.radical_series"
+tests = ["python/tests/test_module_foundation.py::test_dimension_order_and_module_series_follow_gap_qpa_oracle","python/tests/test_module_foundation.py::test_module_foundation_operations_support_other_prime_fields"]
+notes = "Preserves QPA's flat dimension-vector result for the zero module."
+
+[[bindings]]
+qpa_name = "SocleSeries"
+status = "exposed"
+target = "qpa.MatrixModule.socle_series"
+tests = ["python/tests/test_module_foundation.py::test_dimension_order_and_module_series_follow_gap_qpa_oracle","python/tests/test_module_foundation.py::test_module_foundation_operations_support_other_prime_fields"]
+notes = "Preserves QPA's flat dimension-vector result for the zero module."
+
+[[bindings]]
+qpa_name = "TransposeOfDual"
+status = "exposed"
+target = "qpa.MatrixModule.tr_d; qpa.ModuleHomomorphism.tr_d"
+tests = ["python/tests/test_architecture_spike.py::test_module_dualities_and_stable_functors_follow_qpa"]
+notes = "QPA declares this as a synonym of TrD."
+
+[[bindings]]
 qpa_name = "IsElementOfPathRing"
 status = "represented"
 target = "qpa.AlgebraElement"

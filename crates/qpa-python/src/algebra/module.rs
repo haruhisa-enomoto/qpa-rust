@@ -6,7 +6,7 @@ mod submodule;
 mod values;
 
 use pyo3::pymethods;
-use qpa_core::{PathAlgebraVector, VertexIndex};
+use qpa_core::{ModuleDimensionSeries, PathAlgebraModuleMatrix, PathAlgebraVector, VertexIndex};
 
 #[allow(clippy::wildcard_imports)]
 // Private runtime enums and helpers form one binding domain.
@@ -283,6 +283,33 @@ fn extract_matrix<F: runtime::PythonField>(
     DenseMatrix::from_rows(extract_scalar_rows(py, field, rows)?, field.clone()).map_err(invalid)
 }
 
+fn is_in_full_matrix_ring_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    field: &F,
+    rows: Vec<Vec<Py<PyScalar>>>,
+) -> PyResult<bool> {
+    let Ok(rows) = extract_scalar_rows(py, field, rows) else {
+        return Ok(false);
+    };
+    let matrix = DenseMatrix::from_rows(rows, field.clone()).map_err(invalid)?;
+    Ok(qpa_core::is_in_full_matrix_ring(&matrix, field))
+}
+
+#[pyfunction(name = "is_in_full_matrix_ring")]
+pub(crate) fn py_is_in_full_matrix_ring(
+    py: Python<'_>,
+    rows: Vec<Vec<Py<PyScalar>>>,
+    field: PyRef<'_, PyField>,
+) -> PyResult<bool> {
+    match field.kind {
+        FieldKind::Rational => is_in_full_matrix_ring_for(py, &Q, rows),
+        FieldKind::Binary => is_in_full_matrix_ring_for(py, &Z2, rows),
+        FieldKind::Prime(characteristic) => {
+            is_in_full_matrix_ring_for(py, &Zp::new(characteristic), rows)
+        }
+    }
+}
+
 fn extract_scalars<F: runtime::PythonField>(
     py: Python<'_>,
     field: &F,
@@ -449,6 +476,36 @@ fn clone_module_elements(
     elements
         .into_iter()
         .map(|element| element.borrow(py).kind.clone())
+        .collect()
+}
+
+fn dimension_series_to_python(
+    py: Python<'_>,
+    series: ModuleDimensionSeries,
+) -> PyResult<Py<PyAny>> {
+    match series {
+        ModuleDimensionSeries::ZeroDimensionVector(vector) => {
+            Ok(PyList::new(py, vector)?.into_any().unbind())
+        }
+        ModuleDimensionSeries::Layers(layers) => Ok(PyList::new(py, layers)?.into_any().unbind()),
+    }
+}
+
+fn matrices_of_module_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    module: &PathAlgebraModule<F>,
+) -> PyResult<Vec<Py<PyAny>>> {
+    module
+        .matrices_of_path_algebra_module()
+        .into_iter()
+        .map(|matrix| match matrix {
+            PathAlgebraModuleMatrix::ZeroScalar => {
+                crate::field::wrap_python_integer(py, &Integer::from(0))
+            }
+            PathAlgebraModuleMatrix::Matrix(matrix) => {
+                Ok(PyList::new(py, matrix_rows(&matrix))?.into_any().unbind())
+            }
+        })
         .collect()
 }
 
@@ -974,6 +1031,69 @@ impl PyMatrixModule {
                 .map_err(invalid)?
         );
         Ok(PyModuleElementBasis { kind })
+    }
+
+    fn element_from_external_representation(
+        &self,
+        py: Python<'_>,
+        coordinates: Vec<Vec<Py<PyScalar>>>,
+    ) -> PyResult<PyModuleElement> {
+        let kind = map_ref!(
+            &self.kind,
+            MatrixModuleKind => ModuleElementKind,
+            |module| module
+                .element_from_external_representation(extract_scalar_rows(
+                    py,
+                    module.right_acting_algebra().field(),
+                    coordinates,
+                )?)
+                .map_err(invalid)?
+        );
+        Ok(PyModuleElement { kind })
+    }
+
+    fn matrices_of_path_algebra_module(&self, py: Python<'_>) -> PyResult<Vec<Py<PyAny>>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            matrices_of_module_for(py, module)
+        })
+    }
+
+    fn dimension_vector_leq(&self, other: &Self) -> bool {
+        // QPA's method filter only requires two matrix modules: neither the
+        // coefficient field nor the acting algebra has to agree. GAP list
+        // subtraction also pads the shorter vector with zeros.
+        let left = self.dimension_vector();
+        let right = other.dimension_vector();
+        let length = left.len().max(right.len());
+        (0..length).all(|index| {
+            left.get(index).copied().unwrap_or(0) <= right.get(index).copied().unwrap_or(0)
+        })
+    }
+
+    fn annihilator(&self) -> PyResult<Vec<PyQuiverAlgebraElement>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            Ok(tensor::wrap_quiver_elements(
+                &qpa_gbnp::annihilator_of_module(module).map_err(invalid)?,
+            ))
+        })
+    }
+
+    fn radical_series(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            dimension_series_to_python(py, qpa_core::radical_series(module).map_err(invalid)?)
+        })
+    }
+
+    fn socle_series(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            dimension_series_to_python(py, qpa_gbnp::socle_series(module).map_err(invalid)?)
+        })
+    }
+
+    fn lift_idempotents(&self) -> PyResult<()> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| {
+            qpa_core::lift_idempotents(module).map_err(invalid)
+        })
     }
 
     #[staticmethod]

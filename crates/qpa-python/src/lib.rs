@@ -53,10 +53,10 @@ use algebra::{
     py_admissible_sequence_generator, py_brauer_configuration_algebra, py_canonical_algebra,
     py_complex_and_chain_maps, py_compute_lps_array, py_cyclic_permutations_of_band,
     py_finite_global_dim_green, py_finite_global_dim_kirk_kuz, py_format_multiplicity_vector,
-    py_format_multiplicity_vectors, py_kronecker_algebra, py_leftmost_occurrence,
-    py_leftmost_occurrence_inv_len_inv_lex, py_nakayama_algebra, py_opposite_relations,
-    py_poset_algebra, py_predefined_ar_quiver_catalog, py_predefined_ar_quiver_data,
-    py_read_algebra, py_string_quiver_rho,
+    py_format_multiplicity_vectors, py_is_in_full_matrix_ring, py_kronecker_algebra,
+    py_leftmost_occurrence, py_leftmost_occurrence_inv_len_inv_lex, py_nakayama_algebra,
+    py_opposite_relations, py_poset_algebra, py_predefined_ar_quiver_catalog,
+    py_predefined_ar_quiver_data, py_read_algebra, py_string_quiver_rho,
 };
 use callback_category::{PyCallbackCategory, py_cat};
 use dynamic_tree::{PyDynamicForest, PyDynamicTree};
@@ -247,6 +247,7 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
 }
 
 fn register_modules(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add_function(wrap_pyfunction!(py_is_in_full_matrix_ring, module)?)?;
     module.add_class::<PyMatrixModule>()?;
     module.add_class::<PyModuleElement>()?;
     module.add_class::<PyModuleElementSpace>()?;
