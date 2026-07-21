@@ -611,6 +611,25 @@ impl PyQuiverProductDecomposition {
         ))
     }
 
+    fn __getitem__(&self, one_based_index: usize) -> PyResult<PyQuiver> {
+        self.factor(one_based_index)
+    }
+
+    #[allow(clippy::unused_self)]
+    fn view(&self) -> &'static str {
+        "<quiver product decomposition>"
+    }
+
+    #[allow(clippy::unused_self)]
+    fn print_obj(&self) -> &'static str {
+        "<quiver product decomposition>"
+    }
+
+    #[allow(clippy::unused_self)]
+    fn display(&self) -> &'static str {
+        "<quiver product decomposition>"
+    }
+
     #[allow(clippy::unused_self)]
     fn __len__(&self) -> usize {
         2

@@ -6,6 +6,34 @@ use pyo3::pymethods;
 // Private runtime enums and helpers form one binding domain.
 use super::*;
 
+#[derive(Clone)]
+enum QuotientCanonicalBasisKind {
+    Rational(QuotientCanonicalBasis<RationalField>),
+    Binary(QuotientCanonicalBasis<Z2>),
+    Prime(QuotientCanonicalBasis<Zp>),
+}
+
+/// QPA's cached canonical basis object for a quotient path algebra.
+#[pyclass(name = "QuotientCanonicalBasis", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyQuotientCanonicalBasis {
+    kind: QuotientCanonicalBasisKind,
+}
+
+macro_rules! impl_quotient_basis_runtime {
+    ($field:ty, $variant:ident) => {
+        impl runtime::Wrap<QuotientCanonicalBasis<$field>> for QuotientCanonicalBasisKind {
+            fn wrap(value: QuotientCanonicalBasis<$field>) -> Self {
+                Self::$variant(value)
+            }
+        }
+    };
+}
+
+impl_quotient_basis_runtime!(RationalField, Rational);
+impl_quotient_basis_runtime!(Z2, Binary);
+impl_quotient_basis_runtime!(Zp, Prime);
+
 fn homomorphism_of_projectives_from_quotient_matrix<F: runtime::PythonField>(
     algebra: &QuotientPathAlgebra<F>,
     matrix: Vec<Vec<QuotientElementKind>>,
@@ -332,6 +360,14 @@ impl PyQuotientAlgebra {
         Ok(PyAdrAlgebraOfAlgebraResult { kind })
     }
 
+    #[getter]
+    fn loewy_length(&self) -> PyResult<usize> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            qpa_gbnp::loewy_length_of_algebra(&QuiverAlgebra::Quotient(algebra.clone()))
+                .map_err(invalid)
+        })
+    }
+
     fn global_dimension_bounded(&self, bound: usize) -> PyResult<Option<String>> {
         dispatch_ref!(&self.kind, QuotientKind, |algebra| Ok(
             global_dimension_text(
@@ -553,6 +589,15 @@ impl PyQuotientAlgebra {
             .canonical_basis()
             .map_err(invalid)?
             .map(wrap_quotient_elements)))
+    }
+
+    fn canonical_basis_object(&self) -> PyResult<PyQuotientCanonicalBasis> {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientKind => QuotientCanonicalBasisKind,
+            |algebra| algebra.canonical_basis_object().map_err(invalid)?
+        );
+        Ok(PyQuotientCanonicalBasis { kind })
     }
 
     /// Return QPA's Frobenius bilinear-form closure, or its cached `false`.
@@ -1067,5 +1112,64 @@ impl PyQuotientElement {
             |left, right| left == right,
             false
         )
+    }
+}
+
+#[pymethods]
+impl PyQuotientCanonicalBasis {
+    #[getter]
+    fn quotient(&self) -> PyQuotientAlgebra {
+        let kind = map_ref!(
+            &self.kind,
+            QuotientCanonicalBasisKind => QuotientKind,
+            |basis| basis.quotient().clone()
+        );
+        PyQuotientAlgebra { kind }
+    }
+
+    #[getter]
+    fn has_basis_vectors(&self) -> bool {
+        dispatch_ref!(&self.kind, QuotientCanonicalBasisKind, |basis| basis
+            .has_basis_vectors())
+    }
+
+    #[getter]
+    fn basis_vectors(&self) -> Option<Vec<PyQuotientElement>> {
+        dispatch_ref!(&self.kind, QuotientCanonicalBasisKind, |basis| basis
+            .basis_vectors()
+            .map(wrap_quotient_elements))
+    }
+
+    fn coefficients(&self, element: &PyQuotientElement) -> PyResult<Vec<PyScalar>> {
+        let element = element.kind.clone();
+        dispatch_ref!(&self.kind, QuotientCanonicalBasisKind, |basis| {
+            let coefficients = basis
+                .coefficients(&runtime::Extract::extract(element)?)
+                .map_err(invalid)?;
+            Ok(coefficients
+                .iter()
+                .map(|value| {
+                    basis
+                        .quotient()
+                        .original_path_algebra()
+                        .field()
+                        .wrap_scalar(value)
+                })
+                .collect())
+        })
+    }
+
+    fn is_identical(&self, other: &Self) -> bool {
+        dispatch_pair_ref!(
+            &self.kind,
+            &other.kind,
+            QuotientCanonicalBasisKind,
+            |left, right| left.is_identical(right),
+            false
+        )
+    }
+
+    fn __eq__(&self, other: &Self) -> bool {
+        self.is_identical(other)
     }
 }

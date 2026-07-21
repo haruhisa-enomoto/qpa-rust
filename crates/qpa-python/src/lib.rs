@@ -25,9 +25,9 @@ use algebra::{
     PyCodimensionConjectureReport, PyCombinatorialMap, PyCommonDirectSummandResult,
     PyCotiltingModuleResult, PyEndOfBasicModuleAsQuiverAlgebraResult,
     PyEndOfModuleAsQuiverAlgebraResult, PyEulerBilinearForm, PyExtAlgebraGeneratorsResult,
-    PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyFpPathAlgebraByImagesHomomorphism,
-    PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector, PyFrobeniusForm,
-    PyFrobeniusLinearFunctional, PyGroebnerBasis, PyGroebnerBasisIterator,
+    PyExtOverAlgebraResult, PyFiniteAddMResolutionResult, PyFiniteTypeDecision,
+    PyFpPathAlgebraByImagesHomomorphism, PyFpPathAlgebraMatrixHomomorphism, PyFpPathAlgebraVector,
+    PyFrobeniusForm, PyFrobeniusLinearFunctional, PyGroebnerBasis, PyGroebnerBasisIterator,
     PyGszProjectiveResolution, PyInjectiveResolution, PyLiftedProjectivePathAlgebraModule,
     PyMatrixModule, PyMaximalCommonDirectSummand, PyModuleBasisMapping, PyModuleCategory,
     PyModuleChainMap, PyModuleComplex, PyModuleDecompositionWithMultiplicities, PyModuleElement,
@@ -44,10 +44,11 @@ use algebra::{
     PyPredecessorsOfModuleResult, PyPredefinedAlgebra, PyPredefinedArQuiverData,
     PyProjectiveIsomorphismComponent, PyProjectivePathAlgebraPresentation,
     PyProjectivePresentation, PyProjectiveResolution, PyQuiverAlgebra, PyQuiverAlgebraElement,
-    PyQuiverAlgebraUnitGroup, PyQuotientAlgebra, PyQuotientElement, PyQuotientNiceBasis,
-    PyQuotientPathAlgebraCentre, PyQuotientPathAlgebraVector, PyQuotientVectorCoefficientsResult,
-    PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule, PyRightProjectiveModule,
-    PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule,
+    PyQuiverAlgebraUnitGroup, PyQuotientAlgebra, PyQuotientCanonicalBasis, PyQuotientElement,
+    PyQuotientNiceBasis, PyQuotientPathAlgebraCentre, PyQuotientPathAlgebraVector,
+    PyQuotientVectorCoefficientsResult, PyRightFpPathAlgebraModule, PyRightFpPathAlgebraSubmodule,
+    PyRightProjectiveModule, PyRightProjectiveQuotientModule, PyRightProjectiveSubmodule,
+    PyRightUniformPathAlgebraModule, PyRightUniformPathAlgebraVector,
     PySimpleEndoProjectiveResolutionResult, PyStringSigmaEpsilon, PyStructureConstantsAlgebra,
     PyStructureConstantsElement, PyStructureConstantsHomomorphism, PyStructureConstantsQuotient,
     PyStructureConstantsSubalgebra, PyTensorProductAlgebra, PyTiltingModuleResult, PyUnitForm,
@@ -243,7 +244,10 @@ fn register_algebra(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<PyFpPathAlgebraByImagesHomomorphism>()?;
     module.add_class::<PyFpPathAlgebraMatrixHomomorphism>()?;
     module.add_class::<PyQuotientAlgebra>()?;
+    module.add_class::<PyQuotientCanonicalBasis>()?;
     module.add_class::<PyQuotientElement>()?;
+    module.add_class::<PyRightUniformPathAlgebraModule>()?;
+    module.add_class::<PyRightUniformPathAlgebraVector>()?;
     Ok(())
 }
 
@@ -252,6 +256,7 @@ fn register_modules(module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(py_is_in_full_matrix_ring, module)?)?;
     module.add_class::<PyBasedRightAlgebraModule>()?;
     module.add_class::<PyBongartzTestDecision>()?;
+    module.add_class::<PyFiniteTypeDecision>()?;
     module.add_class::<PyModuleTensorProduct>()?;
     module.add_class::<PyMatrixModule>()?;
     module.add_class::<PyModuleElement>()?;

@@ -27,6 +27,7 @@ mod quotient;
 mod quotient_projective;
 mod string;
 mod tensor;
+mod uniform_projective;
 mod validity;
 mod vector_reduction;
 
@@ -63,9 +64,9 @@ pub(crate) use fp_projective::{
 pub(crate) use homological::py_complex_and_chain_maps;
 pub(crate) use mapping::PyNaturalQuotientMap;
 pub(crate) use module::{
-    PyBasedRightAlgebraModule, PyBongartzTestDecision, PyGszProjectiveResolution,
-    PyModuleTensorProduct, PyProjectivePathAlgebraPresentation, py_complement_in_full_row_space,
-    py_is_in_full_matrix_ring,
+    PyBasedRightAlgebraModule, PyBongartzTestDecision, PyFiniteTypeDecision,
+    PyGszProjectiveResolution, PyModuleTensorProduct, PyProjectivePathAlgebraPresentation,
+    py_complement_in_full_row_space, py_is_in_full_matrix_ring,
 };
 pub(crate) use nakayama::{
     PyFrobeniusForm, PyFrobeniusLinearFunctional, PyNakayamaAutomorphism, PyNakayamaPermutation,
@@ -82,12 +83,16 @@ pub(crate) use projective::{
 };
 pub(crate) use projective_gsz::PyPathAlgebraVectorXSet;
 pub(crate) use projective_presentation::PyProjectivePresentation;
+pub(crate) use quotient::PyQuotientCanonicalBasis;
 pub(crate) use quotient_projective::{
     PyLiftedProjectivePathAlgebraModule, PyQuotientPathAlgebraVector,
     PyRightProjectiveQuotientModule,
 };
 pub(crate) use string::{py_compute_lps_array, py_cyclic_permutations_of_band};
 pub(crate) use tensor::{PyQuiverAlgebraElement, PyTensorProductAlgebra};
+pub(crate) use uniform_projective::{
+    PyRightUniformPathAlgebraModule, PyRightUniformPathAlgebraVector,
+};
 pub(crate) use validity::{PyStringSigmaEpsilon, py_string_quiver_rho};
 pub(crate) use vector_reduction::{
     PyPathVectorCoefficientsResult, PyQuotientVectorCoefficientsResult,
@@ -150,8 +155,8 @@ use qpa_core::{
     PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal, PathAlgebraModule,
     PathAlgebraModuleElement, PathAlgebraModuleElementBasis, PathAlgebraModuleElementSpace,
     PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule, QuiverAlgebra, QuiverAlgebraElement,
-    QuotientNiceBasis, QuotientPathAlgebra, QuotientPathAlgebraElement, make_uniform,
-    make_uniform_list, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,
+    QuotientCanonicalBasis, QuotientNiceBasis, QuotientPathAlgebra, QuotientPathAlgebraElement,
+    make_uniform, make_uniform_list, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,
     right_module_over_path_algebra, tip_reduced_list, tip_walk,
 };
 use qpa_gbnp::CohenPolynomial;
@@ -1965,6 +1970,14 @@ impl PyPathAlgebra {
     fn global_dimension(&self) -> usize {
         dispatch_ref!(&self.kind, AlgebraKind, |algebra| algebra
             .qpa_global_dimension())
+    }
+
+    #[getter]
+    fn loewy_length(&self) -> PyResult<usize> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            qpa_gbnp::loewy_length_of_algebra(&QuiverAlgebra::Path(algebra.clone()))
+                .map_err(invalid)
+        })
     }
 
     fn global_dimension_bounded(&self, bound: usize) -> PyResult<Option<String>> {

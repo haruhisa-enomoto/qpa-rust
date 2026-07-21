@@ -61,6 +61,15 @@ pub(crate) struct PyBongartzTestDecision {
     messages: Vec<String>,
 }
 
+/// QPA finite-type value, source branch, and printed diagnostics.
+#[pyclass(name = "FiniteTypeDecision", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PyFiniteTypeDecision {
+    value: Option<bool>,
+    reason: String,
+    messages: Vec<String>,
+}
+
 macro_rules! impl_remaining_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Wrap<BasedRightAlgebraModule<$field>> for BasedRightAlgebraModuleKind {
@@ -216,6 +225,46 @@ where
     )
 }
 
+fn explicit_module_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    algebra: QuiverAlgebra<F>,
+    dimension_vector: Vec<usize>,
+    actions: Vec<(String, Vec<Vec<Py<PyScalar>>>)>,
+) -> PyResult<Option<PyMatrixModule>>
+where
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    let field = algebra.field().clone();
+    let actions = actions
+        .into_iter()
+        .map(|(label, rows)| {
+            Ok(NamedArrowMatrix::new(
+                label,
+                extract_matrix(py, &field, rows)?,
+            ))
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    Ok(
+        qpa_core::right_module_over_path_algebra(algebra, dimension_vector, &actions)
+            .map_err(invalid)?
+            .map(wrap_module),
+    )
+}
+
+fn inferred_checked_for<F: runtime::PythonField>(
+    algebra: QuiverAlgebra<F>,
+    actions: PathAlgebraModuleArrowActions<F>,
+) -> PyResult<Option<PyMatrixModule>>
+where
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    Ok(
+        qpa_core::right_module_over_path_algebra_infer_dimension(algebra, &actions)
+            .map_err(invalid)?
+            .map(wrap_module),
+    )
+}
+
 fn inferred_nc_for<F: runtime::PythonField>(
     algebra: QuiverAlgebra<F>,
     actions: PathAlgebraModuleArrowActions<F>,
@@ -313,6 +362,27 @@ where
     inferred_nc_for(algebra, PathAlgebraModuleArrowActions::Named(actions))
 }
 
+fn named_checked_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    algebra: QuiverAlgebra<F>,
+    field: &F,
+    actions: Vec<(String, PythonInferredArrowAction)>,
+) -> PyResult<Option<PyMatrixModule>>
+where
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    let actions = actions
+        .into_iter()
+        .map(|(label, action)| {
+            Ok(NamedPathAlgebraModuleArrowAction::new(
+                label,
+                inferred_action_for(py, field, action)?,
+            ))
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    inferred_checked_for(algebra, PathAlgebraModuleArrowActions::Named(actions))
+}
+
 fn indexed_nc_for<F: runtime::PythonField>(
     py: Python<'_>,
     algebra: QuiverAlgebra<F>,
@@ -337,6 +407,32 @@ where
         })
         .collect::<PyResult<Vec<_>>>()?;
     inferred_nc_for(algebra, PathAlgebraModuleArrowActions::Indexed(actions))
+}
+
+fn indexed_checked_for<F: runtime::PythonField>(
+    py: Python<'_>,
+    algebra: QuiverAlgebra<F>,
+    field: &F,
+    actions: Vec<(Arrow, PythonInferredArrowAction)>,
+) -> PyResult<Option<PyMatrixModule>>
+where
+    MatrixModuleKind: runtime::Wrap<PathAlgebraModule<F>>,
+{
+    let actions = actions
+        .into_iter()
+        .map(|(arrow, action)| {
+            if arrow.quiver() != algebra.quiver() {
+                return Err(invalid(
+                    "an indexed inferred arrow does not belong to the algebra quiver",
+                ));
+            }
+            Ok(IndexedPathAlgebraModuleArrowAction::new(
+                arrow.index(),
+                inferred_action_for(py, field, action)?,
+            ))
+        })
+        .collect::<PyResult<Vec<_>>>()?;
+    inferred_checked_for(algebra, PathAlgebraModuleArrowActions::Indexed(actions))
 }
 
 fn inferred_action_scalars<'a>(
@@ -419,6 +515,24 @@ impl PyBongartzTestDecision {
     #[getter]
     fn value(&self) -> Option<bool> {
         self.value
+    }
+
+    #[getter]
+    fn messages(&self) -> Vec<String> {
+        self.messages.clone()
+    }
+}
+
+#[pymethods]
+impl PyFiniteTypeDecision {
+    #[getter]
+    const fn value(&self) -> Option<bool> {
+        self.value
+    }
+
+    #[getter]
+    fn reason(&self) -> String {
+        self.reason.clone()
     }
 
     #[getter]
@@ -604,6 +718,13 @@ impl PyModuleTensorProduct {
 
 #[pymethods]
 impl PyQuiverAlgebra {
+    #[getter]
+    fn loewy_length(&self) -> PyResult<usize> {
+        dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
+            qpa_gbnp::loewy_length_of_algebra(algebra).map_err(invalid)
+        })
+    }
+
     fn basis_of_projectives(&self) -> PyResult<Option<Vec<Vec<Vec<PyQuiverAlgebraElement>>>>> {
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
             basis_of_projectives_for(algebra)
@@ -658,6 +779,110 @@ impl PyQuiverAlgebra {
         dispatch_ref!(&self.kind, QuiverAlgebraKind, |algebra| {
             random_module_for(algebra, source_summands, range_summands, seed)
         })
+    }
+
+    fn right_module_over_path_algebra_with_dimensions(
+        &self,
+        py: Python<'_>,
+        dimension_vector: Vec<usize>,
+        actions: Vec<(String, Vec<Vec<Py<PyScalar>>>)>,
+    ) -> PyResult<Option<PyMatrixModule>> {
+        match &self.kind {
+            QuiverAlgebraKind::Rational(algebra) => {
+                explicit_module_for(py, algebra.clone(), dimension_vector, actions)
+            }
+            QuiverAlgebraKind::Binary(algebra) => {
+                explicit_module_for(py, algebra.clone(), dimension_vector, actions)
+            }
+            QuiverAlgebraKind::Prime(algebra) => {
+                explicit_module_for(py, algebra.clone(), dimension_vector, actions)
+            }
+        }
+    }
+
+    fn right_module_over_path_algebra(
+        &self,
+        py: Python<'_>,
+        actions: Vec<Vec<Vec<Py<PyScalar>>>>,
+    ) -> PyResult<Option<PyMatrixModule>> {
+        match &self.kind {
+            QuiverAlgebraKind::Rational(algebra) => inferred_checked_for(
+                algebra.clone(),
+                PathAlgebraModuleArrowActions::Positional(
+                    actions
+                        .into_iter()
+                        .map(|rows| extract_matrix(py, &Q, rows))
+                        .collect::<PyResult<_>>()?,
+                ),
+            ),
+            QuiverAlgebraKind::Binary(algebra) => inferred_checked_for(
+                algebra.clone(),
+                PathAlgebraModuleArrowActions::Positional(
+                    actions
+                        .into_iter()
+                        .map(|rows| extract_matrix(py, &Z2, rows))
+                        .collect::<PyResult<_>>()?,
+                ),
+            ),
+            QuiverAlgebraKind::Prime(algebra) => inferred_checked_for(
+                algebra.clone(),
+                PathAlgebraModuleArrowActions::Positional(
+                    actions
+                        .into_iter()
+                        .map(|rows| extract_matrix(py, algebra.field(), rows))
+                        .collect::<PyResult<_>>()?,
+                ),
+            ),
+        }
+    }
+
+    fn right_module_over_path_algebra_named(
+        &self,
+        py: Python<'_>,
+        actions: Vec<(String, Py<PyAny>)>,
+    ) -> PyResult<Option<PyMatrixModule>> {
+        let actions = actions
+            .into_iter()
+            .map(|(label, action)| Ok((label, parse_inferred_action(py, action)?)))
+            .collect::<PyResult<Vec<_>>>()?;
+        match &self.kind {
+            QuiverAlgebraKind::Rational(algebra) => {
+                named_checked_for(py, algebra.clone(), &Q, actions)
+            }
+            QuiverAlgebraKind::Binary(algebra) => {
+                named_checked_for(py, algebra.clone(), &Z2, actions)
+            }
+            QuiverAlgebraKind::Prime(algebra) => {
+                named_checked_for(py, algebra.clone(), algebra.field(), actions)
+            }
+        }
+    }
+
+    fn right_module_over_path_algebra_indexed(
+        &self,
+        py: Python<'_>,
+        actions: Vec<(Py<PyQuiverArrow>, Py<PyAny>)>,
+    ) -> PyResult<Option<PyMatrixModule>> {
+        let actions = actions
+            .into_iter()
+            .map(|(arrow, action)| {
+                Ok((
+                    arrow.borrow(py).inner.clone(),
+                    parse_inferred_action(py, action)?,
+                ))
+            })
+            .collect::<PyResult<Vec<_>>>()?;
+        match &self.kind {
+            QuiverAlgebraKind::Rational(algebra) => {
+                indexed_checked_for(py, algebra.clone(), &Q, actions)
+            }
+            QuiverAlgebraKind::Binary(algebra) => {
+                indexed_checked_for(py, algebra.clone(), &Z2, actions)
+            }
+            QuiverAlgebraKind::Prime(algebra) => {
+                indexed_checked_for(py, algebra.clone(), algebra.field(), actions)
+            }
+        }
     }
 
     fn right_module_over_path_algebra_nc(
@@ -789,6 +1014,55 @@ impl PyQuiverAlgebra {
             }
         };
         Ok(PyModuleElement { kind })
+    }
+}
+
+#[pymethods]
+impl PyPathAlgebra {
+    fn finite_type_decision(&self) -> PyResult<PyFiniteTypeDecision> {
+        dispatch_ref!(&self.kind, AlgebraKind, |algebra| {
+            let decision = qpa_gbnp::path_algebra_finite_type(algebra).map_err(invalid)?;
+            Ok(PyFiniteTypeDecision {
+                value: Some(decision.is_finite()),
+                reason: format!("{:?}", decision.reason()),
+                messages: decision
+                    .messages()
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect(),
+            })
+        })
+    }
+
+    #[getter]
+    fn is_finite_type_algebra(&self) -> PyResult<bool> {
+        Ok(self
+            .finite_type_decision()?
+            .value
+            .expect("path-algebra finite-type decisions are Boolean"))
+    }
+}
+
+#[pymethods]
+impl PyQuotientAlgebra {
+    fn finite_type_decision(&self) -> PyResult<PyFiniteTypeDecision> {
+        dispatch_ref!(&self.kind, QuotientKind, |algebra| {
+            let decision = qpa_gbnp::quotient_algebra_finite_type(algebra).map_err(invalid)?;
+            Ok(PyFiniteTypeDecision {
+                value: decision.value(),
+                reason: format!("{:?}", decision.reason()),
+                messages: decision
+                    .messages()
+                    .iter()
+                    .map(ToString::to_string)
+                    .collect(),
+            })
+        })
+    }
+
+    #[getter]
+    fn is_finite_type_algebra(&self) -> PyResult<Option<bool>> {
+        Ok(self.finite_type_decision()?.value)
     }
 }
 

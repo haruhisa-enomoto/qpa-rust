@@ -6,6 +6,31 @@ use pyo3::pymethods;
 // Private runtime enums and helpers form one binding domain.
 use super::*;
 
+fn intersection_list_for<F: runtime::PythonField>(
+    homomorphisms: Vec<ModuleHomomorphismKind>,
+) -> PyResult<PyModuleHomomorphism>
+where
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>
+        + runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    Ok(wrap_module_homomorphism(
+        qpa_core::intersection_of_submodules_list(&runtime::extract_all(homomorphisms)?)
+            .map_err(invalid)?,
+    ))
+}
+
+fn sum_list_for<F: runtime::PythonField>(
+    homomorphisms: Vec<ModuleHomomorphismKind>,
+) -> PyResult<PyModuleHomomorphism>
+where
+    ModuleHomomorphismKind: runtime::Extract<PathAlgebraModuleHomomorphism<F>>
+        + runtime::Wrap<PathAlgebraModuleHomomorphism<F>>,
+{
+    Ok(wrap_module_homomorphism(
+        qpa_core::sum_of_submodules_list(&runtime::extract_all(homomorphisms)?).map_err(invalid)?,
+    ))
+}
+
 #[pymethods]
 impl PyModuleHomomorphism {
     #[getter]
@@ -755,6 +780,21 @@ impl PyModuleHomomorphism {
         )
     }
 
+    #[staticmethod]
+    fn intersection_list(
+        py: Python<'_>,
+        homomorphisms: Vec<Py<PyModuleHomomorphism>>,
+    ) -> PyResult<Self> {
+        let homomorphisms = clone_module_homomorphisms(py, homomorphisms);
+        match homomorphisms.first() {
+            Some(ModuleHomomorphismKind::Rational(_)) | None => {
+                intersection_list_for::<RationalField>(homomorphisms)
+            }
+            Some(ModuleHomomorphismKind::Binary(_)) => intersection_list_for::<Z2>(homomorphisms),
+            Some(ModuleHomomorphismKind::Prime(_)) => intersection_list_for::<Zp>(homomorphisms),
+        }
+    }
+
     fn sum(&self, right: &Self) -> PyResult<(Self, Self, Self)> {
         dispatch_pair_ref!(
             &self.kind,
@@ -773,6 +813,18 @@ impl PyModuleHomomorphism {
                 "submodule maps belong to different coefficient fields",
             ))
         )
+    }
+
+    #[staticmethod]
+    fn sum_list(py: Python<'_>, homomorphisms: Vec<Py<PyModuleHomomorphism>>) -> PyResult<Self> {
+        let homomorphisms = clone_module_homomorphisms(py, homomorphisms);
+        match homomorphisms.first() {
+            Some(ModuleHomomorphismKind::Rational(_)) | None => {
+                sum_list_for::<RationalField>(homomorphisms)
+            }
+            Some(ModuleHomomorphismKind::Binary(_)) => sum_list_for::<Z2>(homomorphisms),
+            Some(ModuleHomomorphismKind::Prime(_)) => sum_list_for::<Zp>(homomorphisms),
+        }
     }
 
     fn short_exact_sequence_with(&self, second: &Self) -> PyResult<PyModuleComplex> {
@@ -864,6 +916,30 @@ impl PyModuleHomomorphism {
             |left, right| left.is_identical(right),
             false
         )
+    }
+
+    fn view(&self) -> String {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            homomorphism.to_string()
+        })
+    }
+
+    fn print_obj(&self) -> String {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            homomorphism.qpa_print_string()
+        })
+    }
+
+    fn display(&self) -> String {
+        dispatch_ref!(&self.kind, ModuleHomomorphismKind, |homomorphism| {
+            homomorphism.qpa_display_string_with(|value| {
+                homomorphism
+                    .source()
+                    .right_acting_algebra()
+                    .field()
+                    .scalar_text(value)
+            })
+        })
     }
 
     fn __repr__(&self) -> String {

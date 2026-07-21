@@ -7,7 +7,7 @@ mod submodule;
 mod values;
 
 pub(crate) use remaining::{
-    PyBasedRightAlgebraModule, PyBongartzTestDecision, PyModuleTensorProduct,
+    PyBasedRightAlgebraModule, PyBongartzTestDecision, PyFiniteTypeDecision, PyModuleTensorProduct,
     py_complement_in_full_row_space,
 };
 
@@ -2508,6 +2508,24 @@ impl PyMatrixModule {
             |left, right| left.is_identical(right),
             false
         )
+    }
+
+    fn view(&self) -> String {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| module.to_string())
+    }
+
+    fn print_obj(&self) -> String {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| module
+            .qpa_print_string())
+    }
+
+    fn display(&self) -> PyResult<String> {
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| module
+            .qpa_display_string_with(|value| module
+                .right_acting_algebra()
+                .field()
+                .scalar_text(value))
+            .map_err(invalid))
     }
 
     fn __eq__(&self, other: &Self) -> bool {
