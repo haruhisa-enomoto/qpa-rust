@@ -414,7 +414,7 @@ class ProjectivePresentation:
 
 
 class Field:
-    """An exact rational or prime coefficient field backed by Numerica."""
+    """An exact rational, prime, or finite extension coefficient field."""
 
     @staticmethod
     def rational() -> Field:
@@ -422,17 +422,33 @@ class Field:
     @staticmethod
     def prime(characteristic: int) -> Field:
         """Return F_p after verifying that ``characteristic`` is prime."""
+    @staticmethod
+    def extension(characteristic: int, degree: int) -> Field:
+        """Return GAP's Conway model of GF(p^degree), for degree greater than one."""
     @property
     def characteristic(self) -> int | None: ...
+    @property
+    def degree(self) -> int | None: ...
+    @property
+    def conway_polynomial(self) -> list[int] | None: ...
     @property
     def is_finite(self) -> bool: ...
     def element(self, numerator: int, denominator: int | None = None) -> Scalar:
         """Construct an exact field element from an integer fraction."""
+    def element_from_coefficients(self, coefficients: list[int]) -> Scalar:
+        """Construct an extension element in the Conway polynomial basis."""
+    def primitive_element(self) -> Scalar:
+        """Return GAP's designated primitive extension-field generator."""
+    def frobenius(self, scalar: Scalar, power: int) -> Scalar:
+        """Apply a possibly negative power of the prime-field Frobenius."""
+    def embed(self, scalar: Scalar) -> Scalar:
+        """Embed a scalar from a canonical Conway subfield into this field."""
     def null_list(self, length: int) -> list[Scalar]: ...
+    def __hash__(self) -> int: ...
 
 
 class Scalar:
-    """An exact scalar retaining its owning rational or prime field."""
+    """An exact scalar retaining its owning coefficient field."""
 
     @property
     def field(self) -> Field: ...
@@ -443,7 +459,10 @@ class Scalar:
     @property
     def representative(self) -> int | None: ...
     @property
+    def coefficients(self) -> list[int] | None: ...
+    @property
     def is_zero(self) -> bool: ...
+    def __hash__(self) -> int: ...
 
 
 class StructureConstantsAlgebra:

@@ -5,7 +5,7 @@ use numerica::domains::{
     rational::RationalField,
 };
 use pyo3::{Py, PyResult, Python, prelude::*};
-use qpa_core::{PathAlgebraElement, ProjectivePresentation};
+use qpa_core::{GaloisField, PathAlgebraElement, ProjectivePresentation};
 
 use super::{AlgebraElementKind, AlgebraKind, PyAlgebraElement, PyPathAlgebra};
 use crate::{invalid, quiver::PyQuiverVertex};
@@ -15,6 +15,7 @@ enum ProjectivePresentationKind {
     Rational(ProjectivePresentation<RationalField>),
     Binary(ProjectivePresentation<Z2>),
     Prime(ProjectivePresentation<Zp>),
+    Extension(ProjectivePresentation<GaloisField>),
 }
 
 /// QPA's declared projective-presentation attribute object.
@@ -81,6 +82,25 @@ fn prime_matrix(
         .collect()
 }
 
+fn extension_matrix(
+    py: Python<'_>,
+    matrix: &[Vec<Py<PyAlgebraElement>>],
+) -> PyResult<Vec<Vec<PathAlgebraElement<GaloisField>>>> {
+    matrix
+        .iter()
+        .map(|row| {
+            row.iter()
+                .map(|element| match &element.borrow(py).kind {
+                    AlgebraElementKind::Extension(value) => Ok(value.clone()),
+                    _ => Err(invalid(
+                        "matrix element belongs to another coefficient field",
+                    )),
+                })
+                .collect()
+        })
+        .collect()
+}
+
 fn wrap_rational_matrix(
     matrix: &[Vec<PathAlgebraElement<RationalField>>],
 ) -> Vec<Vec<PyAlgebraElement>> {
@@ -125,6 +145,22 @@ fn wrap_prime_matrix(matrix: &[Vec<PathAlgebraElement<Zp>>]) -> Vec<Vec<PyAlgebr
         .collect()
 }
 
+fn wrap_extension_matrix(
+    matrix: &[Vec<PathAlgebraElement<GaloisField>>],
+) -> Vec<Vec<PyAlgebraElement>> {
+    matrix
+        .iter()
+        .map(|row| {
+            row.iter()
+                .cloned()
+                .map(|value| PyAlgebraElement {
+                    kind: AlgebraElementKind::Extension(value),
+                })
+                .collect()
+        })
+        .collect()
+}
+
 #[pymethods]
 impl PyProjectivePresentation {
     #[new]
@@ -144,6 +180,10 @@ impl PyProjectivePresentation {
             ),
             AlgebraKind::Prime(algebra) => ProjectivePresentationKind::Prime(
                 ProjectivePresentation::from_matrix(algebra, &prime_matrix(py, &matrix)?)
+                    .map_err(invalid)?,
+            ),
+            AlgebraKind::Extension(algebra) => ProjectivePresentationKind::Extension(
+                ProjectivePresentation::from_matrix(algebra, &extension_matrix(py, &matrix)?)
                     .map_err(invalid)?,
             ),
         };
@@ -203,6 +243,16 @@ impl PyProjectivePresentation {
                     p1,
                 ))
             }
+            AlgebraKind::Extension(algebra) => {
+                ProjectivePresentationKind::Extension(ProjectivePresentation::from_attributes(
+                    algebra.clone(),
+                    extension_matrix(py, &matrix)?,
+                    matrix_num_rows,
+                    matrix_num_cols,
+                    p0,
+                    p1,
+                ))
+            }
         };
         Ok(Self { kind })
     }
@@ -235,6 +285,9 @@ impl PyProjectivePresentation {
             ProjectivePresentationKind::Prime(value) => {
                 AlgebraKind::Prime(value.parent_algebra().clone())
             }
+            ProjectivePresentationKind::Extension(value) => {
+                AlgebraKind::Extension(value.parent_algebra().clone())
+            }
         };
         PyPathAlgebra { kind }
     }
@@ -251,6 +304,9 @@ impl PyProjectivePresentation {
             ProjectivePresentationKind::Prime(value) => {
                 wrap_prime_matrix(value.matrix_representation())
             }
+            ProjectivePresentationKind::Extension(value) => {
+                wrap_extension_matrix(value.matrix_representation())
+            }
         }
     }
 
@@ -260,6 +316,7 @@ impl PyProjectivePresentation {
             ProjectivePresentationKind::Rational(value) => value.matrix_num_rows(),
             ProjectivePresentationKind::Binary(value) => value.matrix_num_rows(),
             ProjectivePresentationKind::Prime(value) => value.matrix_num_rows(),
+            ProjectivePresentationKind::Extension(value) => value.matrix_num_rows(),
         }
     }
 
@@ -269,6 +326,7 @@ impl PyProjectivePresentation {
             ProjectivePresentationKind::Rational(value) => value.matrix_num_cols(),
             ProjectivePresentationKind::Binary(value) => value.matrix_num_cols(),
             ProjectivePresentationKind::Prime(value) => value.matrix_num_cols(),
+            ProjectivePresentationKind::Extension(value) => value.matrix_num_cols(),
         }
     }
 
@@ -278,6 +336,7 @@ impl PyProjectivePresentation {
             ProjectivePresentationKind::Rational(value) => value.p0_vertex_list(),
             ProjectivePresentationKind::Binary(value) => value.p0_vertex_list(),
             ProjectivePresentationKind::Prime(value) => value.p0_vertex_list(),
+            ProjectivePresentationKind::Extension(value) => value.p0_vertex_list(),
         }
         .iter()
         .cloned()
@@ -291,6 +350,7 @@ impl PyProjectivePresentation {
             ProjectivePresentationKind::Rational(value) => value.p1_vertex_list(),
             ProjectivePresentationKind::Binary(value) => value.p1_vertex_list(),
             ProjectivePresentationKind::Prime(value) => value.p1_vertex_list(),
+            ProjectivePresentationKind::Extension(value) => value.p1_vertex_list(),
         }
         .map(|vertices| {
             vertices
@@ -307,6 +367,7 @@ impl PyProjectivePresentation {
             ProjectivePresentationKind::Rational(value) => value.p1_vertex_list().is_some(),
             ProjectivePresentationKind::Binary(value) => value.p1_vertex_list().is_some(),
             ProjectivePresentationKind::Prime(value) => value.p1_vertex_list().is_some(),
+            ProjectivePresentationKind::Extension(value) => value.p1_vertex_list().is_some(),
         }
     }
 }

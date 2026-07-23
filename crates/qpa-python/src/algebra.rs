@@ -156,13 +156,14 @@ use pyo3::{
     types::{PyAny, PyList},
 };
 use qpa_core::{
-    AlgebraDimension, DenseMatrix, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix, PathAlgebra,
-    PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal, PathAlgebraModule,
-    PathAlgebraModuleElement, PathAlgebraModuleElementBasis, PathAlgebraModuleElementSpace,
-    PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule, QuiverAlgebra, QuiverAlgebraElement,
-    QuotientCanonicalBasis, QuotientNiceBasis, QuotientPathAlgebra, QuotientPathAlgebraElement,
-    make_uniform, make_uniform_list, qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division,
-    right_module_over_path_algebra, tip_reduced_list, tip_walk,
+    AlgebraDimension, DenseMatrix, GaloisField, GroebnerBasis, GroebnerBasisKind, NamedArrowMatrix,
+    PathAlgebra, PathAlgebraElement, PathAlgebraExternalRepresentation, PathAlgebraIdeal,
+    PathAlgebraModule, PathAlgebraModuleElement, PathAlgebraModuleElementBasis,
+    PathAlgebraModuleElementSpace, PathAlgebraModuleHomomorphism, PathAlgebraModuleSubmodule,
+    QuiverAlgebra, QuiverAlgebraElement, QuotientCanonicalBasis, QuotientNiceBasis,
+    QuotientPathAlgebra, QuotientPathAlgebraElement, make_uniform, make_uniform_list,
+    qpa_in_arrow_ideal, reduced_list_qpa, remainder_of_division, right_module_over_path_algebra,
+    tip_reduced_list, tip_walk,
 };
 use qpa_gbnp::CohenPolynomial;
 
@@ -177,6 +178,7 @@ enum AlgebraKind {
     Rational(PathAlgebra<RationalField>),
     Binary(PathAlgebra<Z2>),
     Prime(PathAlgebra<Zp>),
+    Extension(PathAlgebra<GaloisField>),
 }
 
 /// Runtime-dispatched path algebra backed by the existing generic Rust type.
@@ -191,6 +193,7 @@ enum AlgebraElementKind {
     Rational(PathAlgebraElement<RationalField>),
     Binary(PathAlgebraElement<Z2>),
     Prime(PathAlgebraElement<Zp>),
+    Extension(PathAlgebraElement<GaloisField>),
 }
 
 macro_rules! impl_algebra_element_extract {
@@ -215,6 +218,7 @@ macro_rules! impl_algebra_element_extract {
 impl_algebra_element_extract!(RationalField, Rational);
 impl_algebra_element_extract!(Z2, Binary);
 impl_algebra_element_extract!(Zp, Prime);
+impl_algebra_element_extract!(GaloisField, Extension);
 
 /// Sparse element of a runtime-dispatched Python path algebra.
 #[pyclass(name = "AlgebraElement", frozen, skip_from_py_object)]
@@ -228,6 +232,7 @@ enum IdealKind {
     Rational(PathAlgebraIdeal<RationalField>),
     Binary(PathAlgebraIdeal<Z2>),
     Prime(PathAlgebraIdeal<Zp>),
+    Extension(PathAlgebraIdeal<GaloisField>),
 }
 
 /// Two-sided path-algebra ideal using QPA's lazy Gröbner-basis behavior.
@@ -242,6 +247,7 @@ enum GroebnerKind {
     Rational(GroebnerBasis<RationalField>),
     Binary(GroebnerBasis<Z2>),
     Prime(GroebnerBasis<Zp>),
+    Extension(GroebnerBasis<GaloisField>),
 }
 
 /// QPA's two-sided or right Gröbner-basis object.
@@ -271,15 +277,18 @@ macro_rules! impl_runtime_wrap {
 impl_runtime_wrap!(IdealKind, PathAlgebraIdeal<RationalField>, Rational);
 impl_runtime_wrap!(IdealKind, PathAlgebraIdeal<Z2>, Binary);
 impl_runtime_wrap!(IdealKind, PathAlgebraIdeal<Zp>, Prime);
+impl_runtime_wrap!(IdealKind, PathAlgebraIdeal<GaloisField>, Extension);
 impl_runtime_wrap!(GroebnerKind, GroebnerBasis<RationalField>, Rational);
 impl_runtime_wrap!(GroebnerKind, GroebnerBasis<Z2>, Binary);
 impl_runtime_wrap!(GroebnerKind, GroebnerBasis<Zp>, Prime);
+impl_runtime_wrap!(GroebnerKind, GroebnerBasis<GaloisField>, Extension);
 
 #[derive(Clone)]
 enum QuotientKind {
     Rational(QuotientPathAlgebra<RationalField>),
     Binary(QuotientPathAlgebra<Z2>),
     Prime(QuotientPathAlgebra<Zp>),
+    Extension(QuotientPathAlgebra<GaloisField>),
 }
 
 /// Quotient path algebra constructed by QPA's high-level Groebner route.
@@ -294,6 +303,7 @@ enum QuotientElementKind {
     Rational(QuotientPathAlgebraElement<RationalField>),
     Binary(QuotientPathAlgebraElement<Z2>),
     Prime(QuotientPathAlgebraElement<Zp>),
+    Extension(QuotientPathAlgebraElement<GaloisField>),
 }
 
 macro_rules! impl_quotient_element_runtime {
@@ -320,6 +330,7 @@ macro_rules! impl_quotient_element_runtime {
 impl_quotient_element_runtime!(RationalField, Rational);
 impl_quotient_element_runtime!(Z2, Binary);
 impl_quotient_element_runtime!(Zp, Prime);
+impl_quotient_element_runtime!(GaloisField, Extension);
 
 /// Element of a runtime-dispatched quotient path algebra.
 #[pyclass(name = "QuotientElement", frozen, skip_from_py_object)]
@@ -333,6 +344,7 @@ enum AlgebraHomomorphismKind {
     Rational(qpa_core::QuiverAlgebraHomomorphism<RationalField>),
     Binary(qpa_core::QuiverAlgebraHomomorphism<Z2>),
     Prime(qpa_core::QuiverAlgebraHomomorphism<Zp>),
+    Extension(qpa_core::QuiverAlgebraHomomorphism<GaloisField>),
 }
 
 /// A QPA quiver-algebra homomorphism stored by ordered generator images.
@@ -382,12 +394,14 @@ macro_rules! impl_algebra_runtime {
 impl_algebra_runtime!(RationalField, Rational);
 impl_algebra_runtime!(Z2, Binary);
 impl_algebra_runtime!(Zp, Prime);
+impl_algebra_runtime!(GaloisField, Extension);
 
 #[derive(Clone)]
 enum MatrixModuleKind {
     Rational(PathAlgebraModule<RationalField>),
     Binary(PathAlgebraModule<Z2>),
     Prime(PathAlgebraModule<Zp>),
+    Extension(PathAlgebraModule<GaloisField>),
 }
 
 macro_rules! impl_module_runtime {
@@ -412,6 +426,7 @@ macro_rules! impl_module_runtime {
 impl_module_runtime!(RationalField, Rational);
 impl_module_runtime!(Z2, Binary);
 impl_module_runtime!(Zp, Prime);
+impl_module_runtime!(GaloisField, Extension);
 
 /// Checked QPA right matrix module over a path algebra or quotient.
 #[pyclass(name = "MatrixModule", frozen, skip_from_py_object)]
@@ -425,6 +440,7 @@ enum ModuleElementKind {
     Rational(PathAlgebraModuleElement<RationalField>),
     Binary(PathAlgebraModuleElement<Z2>),
     Prime(PathAlgebraModuleElement<Zp>),
+    Extension(PathAlgebraModuleElement<GaloisField>),
 }
 
 /// Element of a QPA matrix module over a path algebra or quotient.
@@ -439,6 +455,7 @@ enum ModuleElementSpaceKind {
     Rational(PathAlgebraModuleElementSpace<RationalField>),
     Binary(PathAlgebraModuleElementSpace<Z2>),
     Prime(PathAlgebraModuleElementSpace<Zp>),
+    Extension(PathAlgebraModuleElementSpace<GaloisField>),
 }
 
 /// QPA's free left-module space of raw path-module elements.
@@ -453,6 +470,7 @@ enum ModuleElementBasisKind {
     Rational(PathAlgebraModuleElementBasis<RationalField>),
     Binary(PathAlgebraModuleElementBasis<Z2>),
     Prime(PathAlgebraModuleElementBasis<Zp>),
+    Extension(PathAlgebraModuleElementBasis<GaloisField>),
 }
 
 /// QPA's basis of a raw path-module element space.
@@ -467,6 +485,7 @@ enum ModuleHomomorphismKind {
     Rational(PathAlgebraModuleHomomorphism<RationalField>),
     Binary(PathAlgebraModuleHomomorphism<Z2>),
     Prime(PathAlgebraModuleHomomorphism<Zp>),
+    Extension(PathAlgebraModuleHomomorphism<GaloisField>),
 }
 
 /// QPA homomorphism between right matrix modules.
@@ -481,6 +500,7 @@ enum ModuleBasisMappingKind {
     Rational(qpa_core::PathAlgebraModuleBasisMapping<RationalField>),
     Binary(qpa_core::PathAlgebraModuleBasisMapping<Z2>),
     Prime(qpa_core::PathAlgebraModuleBasisMapping<Zp>),
+    Extension(qpa_core::PathAlgebraModuleBasisMapping<GaloisField>),
 }
 
 /// QPA's basis-image mapping returned for a quotient by a subalgebra module.
@@ -495,6 +515,7 @@ enum ModuleHomomorphismBasisKind {
     Rational(qpa_core::PathAlgebraModuleHomomorphismBasis<RationalField>),
     Binary(qpa_core::PathAlgebraModuleHomomorphismBasis<Z2>),
     Prime(qpa_core::PathAlgebraModuleHomomorphismBasis<Zp>),
+    Extension(qpa_core::PathAlgebraModuleHomomorphismBasis<GaloisField>),
 }
 
 /// QPA's ordered Hom basis together with its coefficient function.
@@ -509,6 +530,7 @@ enum ModuleEndomorphismAlgebraKind {
     Rational(qpa_core::ModuleEndomorphismAlgebra<RationalField>),
     Binary(qpa_core::ModuleEndomorphismAlgebra<Z2>),
     Prime(qpa_core::ModuleEndomorphismAlgebra<Zp>),
+    Extension(qpa_core::ModuleEndomorphismAlgebra<GaloisField>),
 }
 
 /// QPA's matrix-algebra realization of a module endomorphism algebra.
@@ -523,6 +545,7 @@ enum ModuleEndomorphismQuotientAlgebraKind {
     Rational(qpa_core::ModuleEndomorphismQuotientAlgebra<RationalField>),
     Binary(qpa_core::ModuleEndomorphismQuotientAlgebra<Z2>),
     Prime(qpa_core::ModuleEndomorphismQuotientAlgebra<Zp>),
+    Extension(qpa_core::ModuleEndomorphismQuotientAlgebra<GaloisField>),
 }
 
 /// QPA's stable endomorphism algebra in natural-quotient coordinates.
@@ -541,6 +564,7 @@ enum ModuleEndomorphismQuotientElementKind {
     Rational(qpa_core::ModuleEndomorphismQuotientElement<RationalField>),
     Binary(qpa_core::ModuleEndomorphismQuotientElement<Z2>),
     Prime(qpa_core::ModuleEndomorphismQuotientElement<Zp>),
+    Extension(qpa_core::ModuleEndomorphismQuotientElement<GaloisField>),
 }
 
 /// One exact element of a stable endomorphism quotient algebra.
@@ -559,6 +583,7 @@ enum ModuleEndomorphismQuotientMapKind {
     Rational(qpa_core::ModuleEndomorphismQuotientHomomorphism<RationalField>),
     Binary(qpa_core::ModuleEndomorphismQuotientHomomorphism<Z2>),
     Prime(qpa_core::ModuleEndomorphismQuotientHomomorphism<Zp>),
+    Extension(qpa_core::ModuleEndomorphismQuotientHomomorphism<GaloisField>),
 }
 
 /// QPA's natural map from `End(M)` to its quotient modulo projectives.
@@ -573,6 +598,7 @@ enum ModuleSubmoduleKind {
     Rational(PathAlgebraModuleSubmodule<RationalField>),
     Binary(PathAlgebraModuleSubmodule<Z2>),
     Prime(PathAlgebraModuleSubmodule<Zp>),
+    Extension(PathAlgebraModuleSubmodule<GaloisField>),
 }
 
 /// QPA's generator-defined concrete submodule of a path-algebra matrix module.
@@ -587,6 +613,7 @@ enum ProjectiveResolutionKind {
     Rational(qpa_gbnp::ProjectiveResolution<RationalField>),
     Binary(qpa_gbnp::ProjectiveResolution<Z2>),
     Prime(qpa_gbnp::ProjectiveResolution<Zp>),
+    Extension(qpa_gbnp::ProjectiveResolution<GaloisField>),
 }
 
 /// QPA's lazy projective resolution, including the resolved module in degree -1.
@@ -601,6 +628,7 @@ enum InjectiveResolutionKind {
     Rational(qpa_gbnp::InjectiveResolution<RationalField>),
     Binary(qpa_gbnp::InjectiveResolution<Z2>),
     Prime(qpa_gbnp::InjectiveResolution<Zp>),
+    Extension(qpa_gbnp::InjectiveResolution<GaloisField>),
 }
 
 /// QPA's lazy injective resolution, including the resolved module in degree zero.
@@ -615,6 +643,7 @@ enum SimpleEndoProjectiveResolutionKind {
     Rational(qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<RationalField>),
     Binary(qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<Z2>),
     Prime(qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<Zp>),
+    Extension(qpa_gbnp::ProjectiveResolutionOfSimpleModuleOverEndoResult<GaloisField>),
 }
 
 /// QPA's projective-dimension status and stripped syzygies over an endomorphism ring.
@@ -633,6 +662,7 @@ enum ModuleComplexKind {
     Rational(qpa_gbnp::ModuleComplex<RationalField>),
     Binary(qpa_gbnp::ModuleComplex<Z2>),
     Prime(qpa_gbnp::ModuleComplex<Zp>),
+    Extension(qpa_gbnp::ModuleComplex<GaloisField>),
 }
 
 /// A QPA complex in the category of right modules over one algebra.
@@ -647,6 +677,7 @@ enum ModuleChainMapKind {
     Rational(qpa_gbnp::ModuleChainMap<RationalField>),
     Binary(qpa_gbnp::ModuleChainMap<Z2>),
     Prime(qpa_gbnp::ModuleChainMap<Zp>),
+    Extension(qpa_gbnp::ModuleChainMap<GaloisField>),
 }
 
 /// A QPA chain map between complexes of right modules.
@@ -661,6 +692,7 @@ enum ProjectiveIsomorphismComponentKind {
     Rational(qpa_gbnp::ProjectiveIsomorphismComponent<RationalField>),
     Binary(qpa_gbnp::ProjectiveIsomorphismComponent<Z2>),
     Prime(qpa_gbnp::ProjectiveIsomorphismComponent<Zp>),
+    Extension(qpa_gbnp::ProjectiveIsomorphismComponent<GaloisField>),
 }
 
 /// QPA's selected isomorphism component in a map of decomposed projectives.
@@ -675,6 +707,7 @@ enum ExtOverAlgebraKind {
     Rational(qpa_gbnp::ExtOverAlgebraResult<RationalField>),
     Binary(qpa_gbnp::ExtOverAlgebraResult<Z2>),
     Prime(qpa_gbnp::ExtOverAlgebraResult<Zp>),
+    Extension(qpa_gbnp::ExtOverAlgebraResult<GaloisField>),
 }
 
 /// QPA's syzygy inclusion, ordered basis, and coefficient closure for Ext^1.
@@ -689,6 +722,7 @@ enum ExtAlgebraGeneratorsKind {
     Rational(qpa_gbnp::ExtAlgebraGeneratorsResult<RationalField>),
     Binary(qpa_gbnp::ExtAlgebraGeneratorsResult<Z2>),
     Prime(qpa_gbnp::ExtAlgebraGeneratorsResult<Zp>),
+    Extension(qpa_gbnp::ExtAlgebraGeneratorsResult<GaloisField>),
 }
 
 /// QPA's degreewise dimensions and retained Ext-algebra generators.
@@ -703,6 +737,7 @@ enum AddMCoresolutionKind {
     Rational(qpa_gbnp::AddMCoresolution<RationalField>),
     Binary(qpa_gbnp::AddMCoresolution<Z2>),
     Prime(qpa_gbnp::AddMCoresolution<Zp>),
+    Extension(qpa_gbnp::AddMCoresolution<GaloisField>),
 }
 
 /// A finite add(M)-coresolution returned by QPA.
@@ -717,6 +752,7 @@ enum FiniteAddMResolutionKind {
     Rational(qpa_gbnp::FiniteAddMResolutionResult<RationalField>),
     Binary(qpa_gbnp::FiniteAddMResolutionResult<Z2>),
     Prime(qpa_gbnp::FiniteAddMResolutionResult<Zp>),
+    Extension(qpa_gbnp::FiniteAddMResolutionResult<GaloisField>),
 }
 
 /// QPA's literal-true or finite-complex add(M)-resolution result.
@@ -731,6 +767,7 @@ enum TiltingModuleResultKind {
     Rational(qpa_gbnp::TiltingModuleResult<RationalField>),
     Binary(qpa_gbnp::TiltingModuleResult<Z2>),
     Prime(qpa_gbnp::TiltingModuleResult<Zp>),
+    Extension(qpa_gbnp::TiltingModuleResult<GaloisField>),
 }
 
 /// QPA's bounded tilting-module success record.
@@ -745,6 +782,7 @@ enum CotiltingModuleResultKind {
     Rational(qpa_gbnp::CotiltingModuleResult<RationalField>),
     Binary(qpa_gbnp::CotiltingModuleResult<Z2>),
     Prime(qpa_gbnp::CotiltingModuleResult<Zp>),
+    Extension(qpa_gbnp::CotiltingModuleResult<GaloisField>),
 }
 
 /// QPA's bounded cotilting-module success record.
@@ -759,6 +797,7 @@ enum AddMResolutionKind {
     Rational(qpa_gbnp::AddMResolution<RationalField>),
     Binary(qpa_gbnp::AddMResolution<Z2>),
     Prime(qpa_gbnp::AddMResolution<Zp>),
+    Extension(qpa_gbnp::AddMResolution<GaloisField>),
 }
 
 /// A finite add(M)-resolution returned by QPA's complement computation.
@@ -773,6 +812,7 @@ enum AllComplementsResultKind {
     Rational(qpa_gbnp::AllComplementsResult<RationalField>),
     Binary(qpa_gbnp::AllComplementsResult<Z2>),
     Prime(qpa_gbnp::AllComplementsResult<Zp>),
+    Extension(qpa_gbnp::AllComplementsResult<GaloisField>),
 }
 
 /// QPA's possibly empty resolution and coresolution complement pair.
@@ -787,6 +827,7 @@ enum PredecessorsOfModuleResultKind {
     Rational(qpa_gbnp::PredecessorsOfModuleResult<RationalField>),
     Binary(qpa_gbnp::PredecessorsOfModuleResult<Z2>),
     Prime(qpa_gbnp::PredecessorsOfModuleResult<Zp>),
+    Extension(qpa_gbnp::PredecessorsOfModuleResult<GaloisField>),
 }
 
 /// QPA's module-or-layered predecessor result.
@@ -808,6 +849,7 @@ enum ModuleDecompositionWithMultiplicitiesKind {
     Rational(qpa_core::ModuleDecompositionWithMultiplicities<RationalField>),
     Binary(qpa_core::ModuleDecompositionWithMultiplicities<Z2>),
     Prime(qpa_core::ModuleDecompositionWithMultiplicities<Zp>),
+    Extension(qpa_core::ModuleDecompositionWithMultiplicities<GaloisField>),
 }
 
 /// QPA's basic summands paired with their multiplicities.
@@ -826,6 +868,7 @@ enum AllSubmodulesOfModuleResultKind {
     Rational(qpa_core::AllSubmodulesOfModuleResult<RationalField>),
     Binary(qpa_core::AllSubmodulesOfModuleResult<Z2>),
     Prime(qpa_core::AllSubmodulesOfModuleResult<Zp>),
+    Extension(qpa_core::AllSubmodulesOfModuleResult<GaloisField>),
 }
 
 /// QPA's flat or dimension-indexed list of submodule inclusions.
@@ -847,6 +890,7 @@ enum MoreMinimalVersionResultKind {
     Rational(qpa_core::MoreMinimalVersionResult<RationalField>),
     Binary(qpa_core::MoreMinimalVersionResult<Z2>),
     Prime(qpa_core::MoreMinimalVersionResult<Zp>),
+    Extension(qpa_core::MoreMinimalVersionResult<GaloisField>),
 }
 
 /// QPA's unchanged-map or one-step-reduced minimal-version result.
@@ -861,6 +905,7 @@ enum CommonDirectSummandResultKind {
     Rational(qpa_core::CommonDirectSummandResult<RationalField>),
     Binary(qpa_core::CommonDirectSummandResult<Z2>),
     Prime(qpa_core::CommonDirectSummandResult<Zp>),
+    Extension(qpa_core::CommonDirectSummandResult<GaloisField>),
 }
 
 /// QPA's different-algebra, false, or four-module common-summand result.
@@ -875,6 +920,7 @@ enum MaximalCommonDirectSummandKind {
     Rational(qpa_core::MaximalCommonDirectSummand<RationalField>),
     Binary(qpa_core::MaximalCommonDirectSummand<Z2>),
     Prime(qpa_core::MaximalCommonDirectSummand<Zp>),
+    Extension(qpa_core::MaximalCommonDirectSummand<GaloisField>),
 }
 
 /// QPA's ordered common summands and two remaining complements.
@@ -889,6 +935,7 @@ enum EndOfModuleAsQuiverAlgebraResultKind {
     Rational(qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<RationalField>),
     Binary(qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<Z2>),
     Prime(qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<Zp>),
+    Extension(qpa_gbnp::EndOfModuleAsQuiverAlgebraResult<GaloisField>),
 }
 
 /// QPA's endomorphism algebra, adjacency matrix, and quiver-algebra conversion.
@@ -903,6 +950,7 @@ enum EndOfBasicModuleAsQuiverAlgebraResultKind {
     Rational(qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<RationalField>),
     Binary(qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<Z2>),
     Prime(qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<Zp>),
+    Extension(qpa_gbnp::EndOfBasicModuleAsQuiverAlgebraResult<GaloisField>),
 }
 
 /// QPA's quiver presentation of the endomorphism ring of a basic module list.
@@ -1023,6 +1071,7 @@ macro_rules! impl_module_value_runtime {
 impl_module_value_runtime!(RationalField, Rational);
 impl_module_value_runtime!(Z2, Binary);
 impl_module_value_runtime!(Zp, Prime);
+impl_module_value_runtime!(GaloisField, Extension);
 
 macro_rules! impl_resolution_runtime {
     ($field:ty, $variant:ident) => {
@@ -1211,6 +1260,7 @@ macro_rules! impl_resolution_runtime {
 impl_resolution_runtime!(RationalField, Rational);
 impl_resolution_runtime!(Z2, Binary);
 impl_resolution_runtime!(Zp, Prime);
+impl_resolution_runtime!(GaloisField, Extension);
 
 fn clone_module_homomorphisms(
     py: Python<'_>,
@@ -1652,6 +1702,14 @@ impl PyAlgebraHomomorphism {
                 quotient_generator_images(generator_images)?,
                 generators_with_one,
             ),
+            (AlgebraKind::Extension(source), QuotientKind::Extension(range)) => {
+                build_algebra_homomorphism(
+                    QuiverAlgebra::Path(source.clone()),
+                    QuiverAlgebra::Quotient(range.clone()),
+                    quotient_generator_images(generator_images)?,
+                    generators_with_one,
+                )
+            }
             _ => Err(invalid(
                 "source and range algebras have different coefficient fields",
             )),
@@ -1691,6 +1749,14 @@ impl PyAlgebraHomomorphism {
                 path_generator_images(generator_images)?,
                 generators_with_one,
             ),
+            (QuotientKind::Extension(source), AlgebraKind::Extension(range)) => {
+                build_algebra_homomorphism(
+                    QuiverAlgebra::Quotient(source.clone()),
+                    QuiverAlgebra::Path(range.clone()),
+                    path_generator_images(generator_images)?,
+                    generators_with_one,
+                )
+            }
             _ => Err(invalid(
                 "source and range algebras have different coefficient fields",
             )),
@@ -1859,6 +1925,22 @@ impl PyPathAlgebra {
                 None => PathAlgebra::new(Zp::new(characteristic), quiver.rust_quiver().clone())
                     .map_err(invalid)?,
             }),
+            FieldKind::Extension { .. } => {
+                let extension = field
+                    .kind
+                    .galois_field()
+                    .ok_or_else(|| invalid("expected an extension field"))?;
+                AlgebraKind::Extension(match quiver.rust_ordering() {
+                    Some(ordering) => PathAlgebra::with_ordering(
+                        extension,
+                        quiver.rust_quiver().clone(),
+                        ordering.clone(),
+                    )
+                    .map_err(invalid)?,
+                    None => PathAlgebra::new(extension, quiver.rust_quiver().clone())
+                        .map_err(invalid)?,
+                })
+            }
         };
         Ok(Self { kind })
     }

@@ -15,6 +15,7 @@ pub(super) enum PathAlgebraCentreKind {
     Rational(PathAlgebraCentre<RationalField>),
     Binary(PathAlgebraCentre<Z2>),
     Prime(PathAlgebraCentre<Zp>),
+    Extension(PathAlgebraCentre<GaloisField>),
 }
 
 /// QPA's center subalgebra for an unfactored path algebra.
@@ -29,6 +30,7 @@ pub(super) enum QuotientPathAlgebraCentreKind {
     Rational(QuotientPathAlgebraCentre<RationalField>),
     Binary(QuotientPathAlgebraCentre<Z2>),
     Prime(QuotientPathAlgebraCentre<Zp>),
+    Extension(QuotientPathAlgebraCentre<GaloisField>),
 }
 
 /// QPA's known-basis center subalgebra for a quotient path algebra.
@@ -43,6 +45,7 @@ pub(super) enum QuiverAlgebraUnitGroupKind {
     Rational(QuiverAlgebraUnitGroup<RationalField>),
     Binary(QuiverAlgebraUnitGroup<Z2>),
     Prime(QuiverAlgebraUnitGroup<Zp>),
+    Extension(QuiverAlgebraUnitGroup<GaloisField>),
 }
 
 /// QPA's finite table group returned by `Units(A)`.
@@ -77,6 +80,7 @@ macro_rules! impl_finite_structure_runtime {
 impl_finite_structure_runtime!(RationalField, Rational);
 impl_finite_structure_runtime!(Z2, Binary);
 impl_finite_structure_runtime!(Zp, Prime);
+impl_finite_structure_runtime!(GaloisField, Extension);
 
 pub(super) fn path_centre_for<F: runtime::PythonField>(
     algebra: &PathAlgebra<F>,

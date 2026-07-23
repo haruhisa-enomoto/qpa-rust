@@ -124,5 +124,6 @@ pub(crate) fn py_opposite_relations(
         Some(AlgebraElementKind::Rational(_)) => opposite_relations_for::<RationalField>(relations),
         Some(AlgebraElementKind::Binary(_)) => opposite_relations_for::<Z2>(relations),
         Some(AlgebraElementKind::Prime(_)) => opposite_relations_for::<Zp>(relations),
+        Some(AlgebraElementKind::Extension(_)) => opposite_relations_for::<GaloisField>(relations),
     }
 }

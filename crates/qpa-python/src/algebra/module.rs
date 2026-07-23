@@ -28,6 +28,7 @@ enum ProjectivePathPresentationKind {
     Rational(qpa_gbnp::ProjectivePathAlgebraPresentation<RationalField>),
     Binary(qpa_gbnp::ProjectivePathAlgebraPresentation<Z2>),
     Prime(qpa_gbnp::ProjectivePathAlgebraPresentation<Zp>),
+    Extension(qpa_gbnp::ProjectivePathAlgebraPresentation<GaloisField>),
 }
 
 /// QPA's list-valued `ProjectivePathAlgebraPresentation` result.
@@ -46,6 +47,7 @@ enum GszProjectiveResolutionKind {
     Rational(qpa_core::ProjectiveResolutionFpPathAlgebraModule<RationalField>),
     Binary(qpa_core::ProjectiveResolutionFpPathAlgebraModule<Z2>),
     Prime(qpa_core::ProjectiveResolutionFpPathAlgebraModule<Zp>),
+    Extension(qpa_core::ProjectiveResolutionFpPathAlgebraModule<GaloisField>),
 }
 
 /// QPA's GSZ `ProjectiveResolutionFpPathAlgebraModule` attribute object.
@@ -78,6 +80,7 @@ macro_rules! impl_projective_presentation_runtime {
 impl_projective_presentation_runtime!(RationalField, Rational);
 impl_projective_presentation_runtime!(Z2, Binary);
 impl_projective_presentation_runtime!(Zp, Prime);
+impl_projective_presentation_runtime!(GaloisField, Extension);
 
 fn clone_quotient_element_matrix(
     py: Python<'_>,
@@ -161,6 +164,19 @@ pub(super) fn explicit_gsz_resolution(
         (QuotientKind::Prime(algebra), IdealKind::Prime(ideal)) => {
             let map = extract_quotient_element_matrix(presentation_map)?;
             GszProjectiveResolutionKind::Prime(match term {
+                Some(term) => qpa_core::projective_resolution_fp_path_algebra_module(
+                    algebra, ideal, &map, term,
+                )
+                .map_err(invalid)?,
+                None => qpa_core::projective_resolution_fp_path_algebra_module_without_term(
+                    algebra, ideal, &map,
+                )
+                .map_err(invalid)?,
+            })
+        }
+        (QuotientKind::Extension(algebra), IdealKind::Extension(ideal)) => {
+            let map = extract_quotient_element_matrix(presentation_map)?;
+            GszProjectiveResolutionKind::Extension(match term {
                 Some(term) => qpa_core::projective_resolution_fp_path_algebra_module(
                     algebra, ideal, &map, term,
                 )
@@ -318,6 +334,14 @@ pub(crate) fn py_is_in_full_matrix_ring(
         FieldKind::Prime(characteristic) => {
             is_in_full_matrix_ring_for(py, &Zp::new(characteristic), rows)
         }
+        FieldKind::Extension { .. } => is_in_full_matrix_ring_for(
+            py,
+            &field
+                .kind
+                .galois_field()
+                .ok_or_else(|| invalid("expected an extension field"))?,
+            rows,
+        ),
     }
 }
 
@@ -812,6 +836,9 @@ impl PyGszProjectiveResolution {
             GszProjectiveResolutionKind::Prime(value) => {
                 value.set_r_projectives_vertex_list(rows);
             }
+            GszProjectiveResolutionKind::Extension(value) => {
+                value.set_r_projectives_vertex_list(rows);
+            }
         }
         Ok(())
     }
@@ -853,6 +880,9 @@ impl PyGszProjectiveResolution {
             GszProjectiveResolutionKind::Prime(value) => {
                 value.set_projectives_f_prime_list(extract_projective_vector_lists(rows)?);
             }
+            GszProjectiveResolutionKind::Extension(value) => {
+                value.set_projectives_f_prime_list(extract_projective_vector_lists(rows)?);
+            }
         }
         Ok(())
     }
@@ -866,6 +896,9 @@ impl PyGszProjectiveResolution {
                 qpa_core::find_next_r_projective(resolution, ring, term).map_err(invalid)
             }
             (GszProjectiveResolutionKind::Prime(resolution), AlgebraKind::Prime(ring)) => {
+                qpa_core::find_next_r_projective(resolution, ring, term).map_err(invalid)
+            }
+            (GszProjectiveResolutionKind::Extension(resolution), AlgebraKind::Extension(ring)) => {
                 qpa_core::find_next_r_projective(resolution, ring, term).map_err(invalid)
             }
             _ => Err(invalid(
@@ -1030,6 +1063,13 @@ impl PyMatrixModule {
                 )
                 .map_err(invalid)?,
             ),
+            MatrixModuleKind::Extension(module) => ModuleElementSpaceKind::Extension(
+                PathAlgebraModuleElementSpace::by_generators(
+                    module.clone(),
+                    runtime::extract_all(generators)?,
+                )
+                .map_err(invalid)?,
+            ),
         };
         Ok(PyModuleElementSpace { kind })
     }
@@ -1121,6 +1161,7 @@ impl PyMatrixModule {
             Some(MatrixModuleKind::Rational(_)) => direct_sum_for::<RationalField>(modules),
             Some(MatrixModuleKind::Binary(_)) => direct_sum_for::<Z2>(modules),
             Some(MatrixModuleKind::Prime(_)) => direct_sum_for::<Zp>(modules),
+            Some(MatrixModuleKind::Extension(_)) => direct_sum_for::<GaloisField>(modules),
         }
     }
 
@@ -1224,6 +1265,7 @@ impl PyMatrixModule {
             }
             Some(MatrixModuleKind::Binary(_)) => make_basic_list_for::<Z2>(modules),
             Some(MatrixModuleKind::Prime(_)) => make_basic_list_for::<Zp>(modules),
+            Some(MatrixModuleKind::Extension(_)) => make_basic_list_for::<GaloisField>(modules),
         }
     }
 
@@ -1399,6 +1441,9 @@ impl PyMatrixModule {
             Some(MatrixModuleKind::Prime(_)) => {
                 end_of_basic_module_as_quiver_algebra_for::<Zp>(modules, bound)
             }
+            Some(MatrixModuleKind::Extension(_)) => {
+                end_of_basic_module_as_quiver_algebra_for::<GaloisField>(modules, bound)
+            }
         }
     }
 
@@ -1417,6 +1462,9 @@ impl PyMatrixModule {
             }
             Some(MatrixModuleKind::Binary(_)) => adr_algebra_of_basic_module_for::<Z2>(modules),
             Some(MatrixModuleKind::Prime(_)) => adr_algebra_of_basic_module_for::<Zp>(modules),
+            Some(MatrixModuleKind::Extension(_)) => {
+                adr_algebra_of_basic_module_for::<GaloisField>(modules)
+            }
         }
     }
 
@@ -2166,6 +2214,9 @@ impl PyMatrixModule {
             MatrixModuleKind::Prime(target) => {
                 right_approximation_by_add_list_for::<Zp>(modules, target)
             }
+            MatrixModuleKind::Extension(target) => {
+                right_approximation_by_add_list_for::<GaloisField>(modules, target)
+            }
         }
     }
 
@@ -2341,6 +2392,9 @@ impl PyMatrixModule {
             Some(MatrixModuleKind::Prime(_)) => {
                 radical_right_approximation_by_add_for::<Zp>(modules, &index)
             }
+            Some(MatrixModuleKind::Extension(_)) => {
+                radical_right_approximation_by_add_for::<GaloisField>(modules, &index)
+            }
             // The Rust translation rejects the one-based index before it needs
             // a coefficient field, so any monomorphization preserves QPA's
             // empty-list error instead of inventing a binding-only shortcut.
@@ -2370,6 +2424,9 @@ impl PyMatrixModule {
             }
             Some(MatrixModuleKind::Prime(_)) => {
                 simple_endo_projective_resolution_for::<Zp>(modules, &index, &length)
+            }
+            Some(MatrixModuleKind::Extension(_)) => {
+                simple_endo_projective_resolution_for::<GaloisField>(modules, &index, &length)
             }
         }
     }

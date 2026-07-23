@@ -152,6 +152,16 @@ impl PyUnitForm {
             FieldKind::Prime(characteristic) => {
                 unit_bilinear_over(py, &self.inner, &Zp::new(characteristic), left, right)
             }
+            FieldKind::Extension { .. } => unit_bilinear_over(
+                py,
+                &self.inner,
+                &field
+                    .kind
+                    .galois_field()
+                    .ok_or_else(|| invalid("expected an extension field"))?,
+                left,
+                right,
+            ),
         }
     }
 
@@ -176,6 +186,15 @@ impl PyUnitForm {
             FieldKind::Prime(characteristic) => {
                 unit_quadratic_over(py, &self.inner, &Zp::new(characteristic), vector)
             }
+            FieldKind::Extension { .. } => unit_quadratic_over(
+                py,
+                &self.inner,
+                &field
+                    .kind
+                    .galois_field()
+                    .ok_or_else(|| invalid("expected an extension field"))?,
+                vector,
+            ),
         }
     }
 
@@ -207,6 +226,16 @@ impl PyUnitForm {
                 py,
                 &self.inner,
                 &Zp::new(characteristic),
+                coordinate,
+                vector,
+            ),
+            FieldKind::Extension { .. } => unit_reflection_over(
+                py,
+                &self.inner,
+                &field
+                    .kind
+                    .galois_field()
+                    .ok_or_else(|| invalid("expected an extension field"))?,
                 coordinate,
                 vector,
             ),
@@ -297,6 +326,16 @@ impl PyEulerBilinearForm {
             FieldKind::Prime(characteristic) => {
                 euler_evaluate_over(py, &self.inner, &Zp::new(characteristic), left, right)
             }
+            FieldKind::Extension { .. } => euler_evaluate_over(
+                py,
+                &self.inner,
+                &field
+                    .kind
+                    .galois_field()
+                    .ok_or_else(|| invalid("expected an extension field"))?,
+                left,
+                right,
+            ),
         }
     }
 

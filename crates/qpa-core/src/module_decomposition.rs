@@ -1963,7 +1963,7 @@ mod tests {
     use serde_json::{Value, json};
 
     use crate::{
-        ArrowSpec, DenseMatrix, NamedArrowMatrix, PathAlgebra, PathAlgebraModule,
+        ArrowSpec, DenseMatrix, GaloisField, NamedArrowMatrix, PathAlgebra, PathAlgebraModule,
         PathAlgebraModuleHomomorphism, QpaCoefficientField, Quiver, QuiverAlgebra,
         StructureConstantsAlgebra, VertexIndex, direct_sum_of_qpa_modules, end_over_algebra,
         hom_over_algebra, number_of_nonisomorphic_direct_summands, right_module_over_path_algebra,
@@ -2492,6 +2492,68 @@ mod tests {
             "quinary": moduledecomp_case(f5.clone(), |entry| i64::from(f5.from_element(entry))),
         });
         assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn extension_fields_run_qpa_decomposition_and_enumeration_algorithms() {
+        for (prime, degree, order) in [(2, 2, 4usize), (2, 3, 8), (3, 2, 9)] {
+            let field = GaloisField::conway(prime, degree).unwrap();
+            let quiver =
+                Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+            let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+            let simple_one = right_module_over_path_algebra(algebra.clone(), vec![1, 0], &[])
+                .unwrap()
+                .unwrap();
+            let projective_one = right_module_over_path_algebra(
+                algebra.clone(),
+                vec![1, 1],
+                &[NamedArrowMatrix::new(
+                    "a",
+                    DenseMatrix::from_rows(vec![vec![field.one()]], field.clone()).unwrap(),
+                )],
+            )
+            .unwrap()
+            .unwrap();
+            let mixed = direct_sum_of_qpa_modules(&[simple_one.clone(), projective_one])
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                decompose_module(&mixed)
+                    .unwrap()
+                    .iter()
+                    .map(PathAlgebraModule::dimension_vector)
+                    .collect::<Vec<_>>(),
+                [vec![1, 0], vec![1, 1]]
+            );
+
+            let repeated = direct_sum_of_qpa_modules(&[simple_one.clone(), simple_one])
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                decompose_module_with_multiplicities(&repeated)
+                    .unwrap()
+                    .unwrap()
+                    .multiplicities(),
+                &[2]
+            );
+            assert_eq!(
+                all_simple_submodules_of_module(&repeated).unwrap().len(),
+                order + 1
+            );
+
+            let semisimple = right_module_over_path_algebra(algebra, vec![2, 1], &[])
+                .unwrap()
+                .unwrap();
+            let AllSubmodulesOfModuleResult::ByDimension(levels) =
+                all_submodules_of_module(&semisimple).unwrap()
+            else {
+                panic!("a nonzero finite-field module must use dimension levels");
+            };
+            assert_eq!(
+                levels.iter().map(Vec::len).collect::<Vec<_>>(),
+                [1, order + 2, order + 2, 1]
+            );
+        }
     }
 
     #[test]

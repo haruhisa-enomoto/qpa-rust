@@ -14,6 +14,7 @@ pub(super) enum TensorProductAlgebraKind {
     Rational(TensorProductAlgebra<RationalField>),
     Binary(TensorProductAlgebra<Z2>),
     Prime(TensorProductAlgebra<Zp>),
+    Extension(TensorProductAlgebra<GaloisField>),
 }
 
 #[derive(Clone)]
@@ -21,6 +22,7 @@ pub(super) enum QuiverAlgebraElementKind {
     Rational(QuiverAlgebraElement<RationalField>),
     Binary(QuiverAlgebraElement<Z2>),
     Prime(QuiverAlgebraElement<Zp>),
+    Extension(QuiverAlgebraElement<GaloisField>),
 }
 
 /// QPA's tensor-product quotient with its retained factors and product quiver.
@@ -67,6 +69,7 @@ macro_rules! impl_tensor_runtime {
 impl_tensor_runtime!(RationalField, Rational);
 impl_tensor_runtime!(Z2, Binary);
 impl_tensor_runtime!(Zp, Prime);
+impl_tensor_runtime!(GaloisField, Extension);
 
 pub(super) fn tensor_product_for<F: runtime::PythonField>(
     left: &QuiverAlgebra<F>,

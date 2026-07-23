@@ -356,6 +356,7 @@ pub(super) enum ModuleCategoryKind {
     Rational(RightModuleCategory<RationalField>),
     Binary(RightModuleCategory<Z2>),
     Prime(RightModuleCategory<Zp>),
+    Extension(RightModuleCategory<GaloisField>),
 }
 
 /// QPA's `CatOfRightAlgebraModules` record.
@@ -370,6 +371,7 @@ pub(super) enum ModuleMorphismListKind {
     Rational(InfiniteList<PathAlgebraModuleHomomorphism<RationalField>, ComplexError>),
     Binary(InfiniteList<PathAlgebraModuleHomomorphism<Z2>, ComplexError>),
     Prime(InfiniteList<PathAlgebraModuleHomomorphism<Zp>, ComplexError>),
+    Extension(InfiniteList<PathAlgebraModuleHomomorphism<GaloisField>, ComplexError>),
 }
 
 /// QPA's lazy `DifferentialsOfComplex`/`MorphismsOfChainMap` infinite list.
@@ -402,6 +404,7 @@ macro_rules! impl_complex_foundation_runtime {
 impl_complex_foundation_runtime!(RationalField, Rational);
 impl_complex_foundation_runtime!(Z2, Binary);
 impl_complex_foundation_runtime!(Zp, Prime);
+impl_complex_foundation_runtime!(GaloisField, Extension);
 
 fn extended_integer_text(value: qpa_core::ExtendedInteger) -> String {
     match value {
@@ -448,6 +451,12 @@ pub(super) fn complex_by_differential_list(
         }
         (ModuleCategoryKind::Prime(category), ModuleMorphismListKind::Prime(list)) => {
             ModuleComplexKind::Prime(qpa_gbnp::QpaComplex::by_differential_list(
+                category.clone(),
+                list.clone(),
+            ))
+        }
+        (ModuleCategoryKind::Extension(category), ModuleMorphismListKind::Extension(list)) => {
+            ModuleComplexKind::Extension(qpa_gbnp::QpaComplex::by_differential_list(
                 category.clone(),
                 list.clone(),
             ))
@@ -510,6 +519,9 @@ pub(super) fn complex_from_parts(
         ModuleCategoryKind::Prime(category) => {
             complex_from_parts_for(category, base_degree, middle, positive, negative)
         }
+        ModuleCategoryKind::Extension(category) => {
+            complex_from_parts_for(category, base_degree, middle, positive, negative)
+        }
     }
 }
 
@@ -563,6 +575,9 @@ pub(super) fn chain_map_from_parts(
             chain_map_from_parts_for(source, range, base_degree, middle, positive, negative)
         }
         (ModuleComplexKind::Prime(source), ModuleComplexKind::Prime(range)) => {
+            chain_map_from_parts_for(source, range, base_degree, middle, positive, negative)
+        }
+        (ModuleComplexKind::Extension(source), ModuleComplexKind::Extension(range)) => {
             chain_map_from_parts_for(source, range, base_degree, middle, positive, negative)
         }
         _ => Err(invalid(
@@ -752,6 +767,14 @@ pub(super) fn complex_and_chain_maps(
             positive,
             negative,
         ),
+        ModuleComplexKind::Extension(_) => complex_and_chain_maps_for::<GaloisField>(
+            &source_complexes,
+            &range_complexes,
+            base_degree,
+            &middle,
+            positive,
+            negative,
+        ),
     }
 }
 
@@ -829,6 +852,9 @@ impl PyModuleCategory {
                 Ok(category.is_zero_object(object))
             }
             (ModuleCategoryKind::Prime(category), MatrixModuleKind::Prime(object)) => {
+                Ok(category.is_zero_object(object))
+            }
+            (ModuleCategoryKind::Extension(category), MatrixModuleKind::Extension(object)) => {
                 Ok(category.is_zero_object(object))
             }
             _ => Err(invalid(

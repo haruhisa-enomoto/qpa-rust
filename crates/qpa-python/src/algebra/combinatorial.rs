@@ -59,6 +59,9 @@ pub(super) fn derived_equivalent(
         (QuiverAlgebraKind::Rational(left), QuiverAlgebraKind::Prime(right)) => {
             qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
         }
+        (QuiverAlgebraKind::Rational(left), QuiverAlgebraKind::Extension(right)) => {
+            qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
+        }
         (QuiverAlgebraKind::Binary(left), QuiverAlgebraKind::Rational(right)) => {
             qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
         }
@@ -68,6 +71,9 @@ pub(super) fn derived_equivalent(
         (QuiverAlgebraKind::Binary(left), QuiverAlgebraKind::Prime(right)) => {
             qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
         }
+        (QuiverAlgebraKind::Binary(left), QuiverAlgebraKind::Extension(right)) => {
+            qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
+        }
         (QuiverAlgebraKind::Prime(left), QuiverAlgebraKind::Rational(right)) => {
             qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
         }
@@ -75,6 +81,21 @@ pub(super) fn derived_equivalent(
             qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
         }
         (QuiverAlgebraKind::Prime(left), QuiverAlgebraKind::Prime(right)) => {
+            qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
+        }
+        (QuiverAlgebraKind::Prime(left), QuiverAlgebraKind::Extension(right)) => {
+            qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
+        }
+        (QuiverAlgebraKind::Extension(left), QuiverAlgebraKind::Rational(right)) => {
+            qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
+        }
+        (QuiverAlgebraKind::Extension(left), QuiverAlgebraKind::Binary(right)) => {
+            qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
+        }
+        (QuiverAlgebraKind::Extension(left), QuiverAlgebraKind::Prime(right)) => {
+            qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
+        }
+        (QuiverAlgebraKind::Extension(left), QuiverAlgebraKind::Extension(right)) => {
             qpa_gbnp::are_derived_equivalent(left, right).map_err(invalid)
         }
     }

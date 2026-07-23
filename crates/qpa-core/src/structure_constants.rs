@@ -11,7 +11,7 @@ use std::{
     sync::{Arc, OnceLock, RwLock},
 };
 
-use numerica::domains::{Field, integer::Integer};
+use numerica::domains::{Field, finite_field::FiniteFieldWorkspace as _, integer::Integer};
 use thiserror::Error;
 
 use crate::{
@@ -502,14 +502,11 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
         Ok(result)
     }
 
-    /// Translate QPA's `PowerSubalgebra(A, n)` on the currently supported
-    /// prime-field contract.
+    /// Translate QPA's `PowerSubalgebra(A, n)`.
     ///
     /// QPA first passes a noncommutative associative algebra to its centre.
     /// For a commutative algebra it forms the rows `v - v^(p^n)` in canonical
-    /// basis order and returns the left-nullspace combinations. Numerica's
-    /// initial QPA coefficient contract has prime-field degree one, so the
-    /// source divisibility test accepts exactly `n = 1`.
+    /// basis order and returns the left-nullspace combinations.
     ///
     /// # Errors
     ///
@@ -520,14 +517,17 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
         &self,
         degree: usize,
     ) -> Result<StructureConstantsSubalgebra<F>, StructureConstantsError> {
-        const PRIME_FIELD_DEGREE: usize = 1;
         if degree == 0 {
             return Err(StructureConstantsError::PowerSubalgebraDegreeNotPositive);
         }
-        if !PRIME_FIELD_DEGREE.is_multiple_of(degree) {
+        let field_degree = self
+            .field()
+            .qpa_degree_over_prime_field()
+            .ok_or(StructureConstantsError::FiniteFieldRequired)?;
+        if !field_degree.is_multiple_of(degree) {
             return Err(StructureConstantsError::PowerSubalgebraDegreeNotDivisor {
                 degree,
-                field_degree: PRIME_FIELD_DEGREE,
+                field_degree,
             });
         }
         let prime = match self.field().qpa_characteristic() {
@@ -536,6 +536,11 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
                 return Err(StructureConstantsError::FiniteFieldRequired);
             }
         };
+        let exponent = prime
+            .checked_pow(u32::try_from(degree).map_err(|_| {
+                StructureConstantsError::PowerSubalgebraExponentOverflow { prime, degree }
+            })?)
+            .ok_or(StructureConstantsError::PowerSubalgebraExponentOverflow { prime, degree })?;
 
         // Calling `Centre` unconditionally is equivalent on a commutative
         // structure-constant algebra: its GAP canonical basis is the standard
@@ -551,7 +556,12 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
         for basis_index in 0..dimension {
             let mut basis_vector = vec![centre_algebra.field().zero(); dimension];
             basis_vector[basis_index] = centre_algebra.field().one();
-            let power = algebra_power(centre_algebra, &basis_vector, prime, identity.coordinates());
+            let power = algebra_power(
+                centre_algebra,
+                &basis_vector,
+                exponent,
+                identity.coordinates(),
+            );
             gamma.extend(subtract_rows(centre_algebra.field(), &basis_vector, &power));
         }
         let fixed_coordinates =
@@ -784,6 +794,8 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
         StructureConstantsSubalgebra::from_basis(self.clone(), gram.nullspace_rows())
     }
 
+    // This remains a contiguous translation of GAP `lib/algmat.gi:867-987`.
+    #[allow(clippy::too_many_lines)]
     fn radical_positive_characteristic(
         &self,
         identity: &[F::Element],
@@ -795,6 +807,7 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
         let mut characteristic_polynomials: Vec<Vec<Vec<F::Element>>> = Vec::new();
         let mut changed = true;
         let mut prime_power = 1_u64;
+        let mut inverse_frobenius_power = 0_i64;
         let dimension_u64 = u64::try_from(dimension)
             .map_err(|_| StructureConstantsError::SubspaceMatrixShapeOverflow { dimension })?;
 
@@ -873,9 +886,27 @@ impl<F: QpaCoefficientField> StructureConstantsAlgebra<F> {
                 );
             }
             if nullspace.nrows() != ideal_basis.nrows() {
-                ideal_basis = nullspace.multiply(&ideal_basis)?;
+                // GAP applies `invFrobexp` to every nullspace coefficient
+                // before changing the ideal basis. This is invisible over a
+                // prime field but essential over GF(p^n).
+                let twisted = DenseMatrix::from_flat(
+                    nullspace.nrows(),
+                    nullspace.ncols(),
+                    nullspace
+                        .as_flat()
+                        .iter()
+                        .map(|coefficient| {
+                            self.field()
+                                .qpa_frobenius(coefficient, inverse_frobenius_power)
+                                .expect("positive characteristic has Frobenius")
+                        })
+                        .collect(),
+                    self.field().clone(),
+                )?;
+                ideal_basis = twisted.multiply(&ideal_basis)?;
                 changed = true;
             }
+            inverse_frobenius_power -= 1;
             let Some(next) = prime_power.checked_mul(prime) else {
                 break;
             };
@@ -971,17 +1002,17 @@ fn split_commutative_semisimple_algebra<F: QpaCoefficientField>(
     }];
     let mut idempotents = vec![identity.to_vec()];
     let mut position = 0usize;
-    let prime = match field.qpa_characteristic() {
-        QpaFieldCharacteristic::Prime(prime) => prime,
-        QpaFieldCharacteristic::Zero => return Err(StructureConstantsError::FiniteFieldRequired),
-    };
+    let field_size = field
+        .qpa_order()
+        .and_then(|order| order.to_u64())
+        .ok_or(StructureConstantsError::FiniteFieldOrderNotAddressable)?;
 
     while position < ideals.len() {
         if ideals[position].basis.nrows() == 1 {
             position += 1;
             continue;
         }
-        let fixed = frobenius_fixed_subspace(algebra, &ideals[position], prime)?;
+        let fixed = frobenius_fixed_subspace(algebra, &ideals[position], field_size)?;
         if fixed.nrows() == 1 {
             position += 1;
             continue;
@@ -2519,6 +2550,19 @@ pub enum StructureConstantsError {
         /// Degree of the coefficient field over its prime field.
         field_degree: usize,
     },
+    /// `p^n` cannot be represented by the exponent type used by the source
+    /// power-subalgebra translation.
+    #[error("the power-subalgebra exponent {prime}^{degree} exceeds the supported range")]
+    PowerSubalgebraExponentOverflow {
+        /// Prime characteristic.
+        prime: u64,
+        /// Requested subfield degree.
+        degree: usize,
+    },
+    /// A transitive GAP algorithm needs the finite-field order as a machine
+    /// exponent, but the exact order is larger.
+    #[error("the finite-field order exceeds the supported exponent range")]
+    FiniteFieldOrderNotAddressable,
     /// The deterministic traversal of GAP's splitting-element coefficient set overflowed.
     #[error("the splitting-element search space overflows addressable storage")]
     SplittingSearchOverflow,

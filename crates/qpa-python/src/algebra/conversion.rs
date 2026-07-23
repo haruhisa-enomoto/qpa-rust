@@ -25,6 +25,7 @@ pub(super) enum StructureConstantsAlgebraKind {
     Rational(StructureConstantsAlgebra<RationalField>),
     Binary(StructureConstantsAlgebra<Z2>),
     Prime(StructureConstantsAlgebra<Zp>),
+    Extension(StructureConstantsAlgebra<GaloisField>),
 }
 
 /// A finite-dimensional algebra in QPA's ordered structure-constant basis.
@@ -39,6 +40,7 @@ enum StructureConstantsElementKind {
     Rational(StructureConstantsAlgebraElement<RationalField>),
     Binary(StructureConstantsAlgebraElement<Z2>),
     Prime(StructureConstantsAlgebraElement<Zp>),
+    Extension(StructureConstantsAlgebraElement<GaloisField>),
 }
 
 /// An element in the ordered basis of a structure-constants algebra.
@@ -53,6 +55,7 @@ enum StructureConstantsSubalgebraKind {
     Rational(StructureConstantsSubalgebra<RationalField>),
     Binary(StructureConstantsSubalgebra<Z2>),
     Prime(StructureConstantsSubalgebra<Zp>),
+    Extension(StructureConstantsSubalgebra<GaloisField>),
 }
 
 /// A QPA subalgebra with an explicit ordered basis in its ambient algebra.
@@ -67,6 +70,7 @@ enum OppositeStructureConstantsAlgebraKind {
     Rational(OppositeStructureConstantsAlgebra<RationalField>),
     Binary(OppositeStructureConstantsAlgebra<Z2>),
     Prime(OppositeStructureConstantsAlgebra<Zp>),
+    Extension(OppositeStructureConstantsAlgebra<GaloisField>),
 }
 
 /// QPA's generic opposite of a structure-constants algebra.
@@ -85,6 +89,7 @@ enum OppositeStructureConstantsElementKind {
     Rational(OppositeStructureConstantsAlgebraElement<RationalField>),
     Binary(OppositeStructureConstantsAlgebraElement<Z2>),
     Prime(OppositeStructureConstantsAlgebraElement<Zp>),
+    Extension(OppositeStructureConstantsAlgebraElement<GaloisField>),
 }
 
 /// An element of QPA's generic opposite-algebra family.
@@ -103,6 +108,7 @@ pub(super) enum QuiverAlgebraKind {
     Rational(QuiverAlgebra<RationalField>),
     Binary(QuiverAlgebra<Z2>),
     Prime(QuiverAlgebra<Zp>),
+    Extension(QuiverAlgebra<GaloisField>),
 }
 
 /// A QPA path algebra or quotient path algebra returned by a conversion.
@@ -117,6 +123,7 @@ pub(super) enum AlgebraAsQuiverAlgebraResultKind {
     Rational(qpa_gbnp::AlgebraAsQuiverAlgebraResult<RationalField>),
     Binary(qpa_gbnp::AlgebraAsQuiverAlgebraResult<Z2>),
     Prime(qpa_gbnp::AlgebraAsQuiverAlgebraResult<Zp>),
+    Extension(qpa_gbnp::AlgebraAsQuiverAlgebraResult<GaloisField>),
 }
 
 /// QPA's converted quiver algebra and ordered generator images.
@@ -131,6 +138,7 @@ pub(super) enum AdrAlgebraOfAlgebraResultKind {
     Rational(qpa_gbnp::AdrAlgebraOfAlgebraResult<RationalField>),
     Binary(qpa_gbnp::AdrAlgebraOfAlgebraResult<Z2>),
     Prime(qpa_gbnp::AdrAlgebraOfAlgebraResult<Zp>),
+    Extension(qpa_gbnp::AdrAlgebraOfAlgebraResult<GaloisField>),
 }
 
 /// QPA's ADR algebra and installed finite-global-dimension fact.
@@ -231,6 +239,7 @@ macro_rules! impl_conversion_runtime {
 impl_conversion_runtime!(RationalField, Rational);
 impl_conversion_runtime!(Z2, Binary);
 impl_conversion_runtime!(Zp, Prime);
+impl_conversion_runtime!(GaloisField, Extension);
 
 fn structure_constants_for<F: runtime::PythonField>(
     py: Python<'_>,
@@ -406,6 +415,7 @@ pub(crate) fn py_read_algebra(file: &str) -> PyResult<PyQuiverAlgebra> {
         qpa_gbnp::LoadedQpaAlgebra::Rational(algebra) => QuiverAlgebraKind::Rational(algebra),
         qpa_gbnp::LoadedQpaAlgebra::Binary(algebra) => QuiverAlgebraKind::Binary(algebra),
         qpa_gbnp::LoadedQpaAlgebra::Prime(algebra) => QuiverAlgebraKind::Prime(algebra),
+        qpa_gbnp::LoadedQpaAlgebra::Extension(algebra) => QuiverAlgebraKind::Extension(algebra),
     };
     Ok(PyQuiverAlgebra { kind })
 }
@@ -436,6 +446,14 @@ impl PyStructureConstantsAlgebra {
             FieldKind::Prime(characteristic) => {
                 structure_constants_for(py, Zp::new(characteristic), products)
             }
+            FieldKind::Extension { .. } => structure_constants_for(
+                py,
+                field
+                    .kind
+                    .galois_field()
+                    .ok_or_else(|| invalid("expected an extension field"))?,
+                products,
+            ),
         }
     }
 
@@ -513,6 +531,10 @@ impl PyStructureConstantsAlgebra {
             (
                 StructureConstantsAlgebraKind::Prime(algebra),
                 StructureConstantsElementKind::Prime(element),
+            ) => algebra.bind_named_element(name, element).map_err(invalid),
+            (
+                StructureConstantsAlgebraKind::Extension(algebra),
+                StructureConstantsElementKind::Extension(element),
             ) => algebra.bind_named_element(name, element).map_err(invalid),
             _ => Err(invalid(
                 "structure-constants algebra and element use different coefficient fields",
@@ -662,6 +684,9 @@ impl PyStructureConstantsAlgebra {
                 hopf_minimum_polynomial_for(algebra, element)
             }
             StructureConstantsAlgebraKind::Prime(algebra) => {
+                hopf_minimum_polynomial_for(algebra, element)
+            }
+            StructureConstantsAlgebraKind::Extension(algebra) => {
                 hopf_minimum_polynomial_for(algebra, element)
             }
         }
@@ -846,6 +871,14 @@ impl PyOppositeStructureConstantsAlgebra {
                     .element_from_underlying(element.clone())
                     .map_err(invalid)?,
             )),
+            (
+                OppositeStructureConstantsAlgebraKind::Extension(algebra),
+                StructureConstantsElementKind::Extension(element),
+            ) => Ok(wrap_opposite_element(
+                algebra
+                    .element_from_underlying(element.clone())
+                    .map_err(invalid)?,
+            )),
             _ => Err(invalid(
                 "opposite algebra and underlying element use different coefficient fields",
             )),
@@ -895,6 +928,15 @@ impl PyOppositeStructureConstantsAlgebra {
                 .iter()
                 .map(|coefficient| algebra.field().wrap_scalar(coefficient))
                 .collect()),
+            (
+                OppositeStructureConstantsAlgebraKind::Extension(algebra),
+                OppositeStructureConstantsElementKind::Extension(element),
+            ) => Ok(algebra
+                .coefficients(element)
+                .map_err(invalid)?
+                .iter()
+                .map(|coefficient| algebra.field().wrap_scalar(coefficient))
+                .collect()),
             _ => Err(invalid(
                 "opposite algebra and element use different coefficient fields",
             )),
@@ -930,6 +972,10 @@ impl PyOppositeStructureConstantsAlgebra {
             (
                 OppositeStructureConstantsAlgebraKind::Prime(algebra),
                 OppositeStructureConstantsElementKind::Prime(element),
+            ) => algebra.contains(element),
+            (
+                OppositeStructureConstantsAlgebraKind::Extension(algebra),
+                OppositeStructureConstantsElementKind::Extension(element),
             ) => algebra.contains(element),
             _ => false,
         }

@@ -5,12 +5,15 @@ use std::cmp::Ordering;
 use numerica::domains::{
     Field, Ring, RingOps,
     finite_field::{FiniteFieldCore, PrimitiveRootIterator, Z2, Zp},
+    integer::Integer,
     rational::RationalField,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// An exact coefficient field admitted by the initial Numerica-backed port.
+use crate::finite_field::{FiniteFieldConstruction, GaloisField};
+
+/// An exact coefficient field admitted by the Numerica-backed port.
 ///
 /// This public descriptor is independent of Numerica's concrete Rust types so
 /// that the QPA API can retain stable field identity and serialization.
@@ -23,6 +26,17 @@ pub enum CoefficientDomain {
     PrimeField {
         /// The prime characteristic, stored without a machine-word bound.
         characteristic: Box<str>,
+    },
+    /// A finite extension field represented by a primitive polynomial.
+    FiniteExtensionField {
+        /// The prime characteristic, stored without a descriptor word bound.
+        characteristic: Box<str>,
+        /// Degree over the prime field.
+        degree: usize,
+        /// Defining polynomial coefficients, constant coefficient first.
+        modulus: Vec<Box<str>>,
+        /// Whether the defining data uses GAP's Conway convention.
+        gap_conway: bool,
     },
 }
 
@@ -41,6 +55,21 @@ impl CoefficientDomain {
     pub fn prime_field_unchecked(characteristic: impl Into<Box<str>>) -> Self {
         Self::PrimeField {
             characteristic: characteristic.into(),
+        }
+    }
+
+    /// Describe a validated local finite extension field.
+    #[must_use]
+    pub fn finite_extension_field(field: &GaloisField) -> Self {
+        Self::FiniteExtensionField {
+            characteristic: field.prime().to_string().into(),
+            degree: field.degree(),
+            modulus: field
+                .modulus()
+                .iter()
+                .map(|coefficient| coefficient.to_string().into())
+                .collect(),
+            gap_conway: field.construction() == FiniteFieldConstruction::GapConway,
         }
     }
 }
@@ -67,6 +96,13 @@ pub enum CoefficientDomainError {
         /// Prime field size.
         size: u64,
     },
+    /// GAP's algorithms enumerate all field elements, but an extension-field
+    /// cardinality is not addressable by this Rust process.
+    #[error("the finite field of size {size} is too large to enumerate")]
+    ExtensionFieldTooLarge {
+        /// Rejected exact field size.
+        size: Box<str>,
+    },
 }
 
 /// Characteristic information used by the pinned GAP algebra algorithms.
@@ -80,12 +116,36 @@ pub enum QpaFieldCharacteristic {
 
 /// Exact coefficient fields admitted by QPA's transitive GAP algorithms.
 ///
-/// `qpa_elements` follows GAP's canonical `Elements(GF(p))` order: zero,
+/// `qpa_elements` follows GAP's canonical `Elements(GF(q))` order: zero,
 /// followed by successive powers of the least primitive root. It returns
 /// `None` for infinite fields.
 pub trait QpaCoefficientField: Field {
     /// Return the field characteristic used by GAP's radical algorithm.
     fn qpa_characteristic(&self) -> QpaFieldCharacteristic;
+
+    /// Return the field order, or `None` for an infinite coefficient field.
+    fn qpa_order(&self) -> Option<Integer> {
+        self.size()
+    }
+
+    /// Return the degree over the prime field, or `None` in characteristic zero.
+    fn qpa_degree_over_prime_field(&self) -> Option<usize> {
+        match self.qpa_characteristic() {
+            QpaFieldCharacteristic::Zero => None,
+            QpaFieldCharacteristic::Prime(_) => Some(1),
+        }
+    }
+
+    /// Apply a possibly negative power of the prime-field Frobenius.
+    ///
+    /// Returns `None` in characteristic zero. The default is the identity on a
+    /// prime field; nontrivial extensions override it.
+    fn qpa_frobenius(&self, element: &Self::Element, _power: i64) -> Option<Self::Element> {
+        match self.qpa_characteristic() {
+            QpaFieldCharacteristic::Zero => None,
+            QpaFieldCharacteristic::Prime(_) => Some(element.clone()),
+        }
+    }
 
     /// Return every element in GAP order, or `None` for an infinite field.
     ///
@@ -193,6 +253,40 @@ impl QpaCoefficientField for Zp {
     }
 }
 
+impl QpaCoefficientField for GaloisField {
+    fn qpa_characteristic(&self) -> QpaFieldCharacteristic {
+        QpaFieldCharacteristic::Prime(u64::from(self.prime()))
+    }
+
+    fn qpa_degree_over_prime_field(&self) -> Option<usize> {
+        Some(self.degree())
+    }
+
+    fn qpa_frobenius(&self, element: &Self::Element, power: i64) -> Option<Self::Element> {
+        let degree = i64::try_from(self.degree()).ok()?;
+        Some(self.frobenius(element, usize::try_from(power.rem_euclid(degree)).ok()?))
+    }
+
+    fn qpa_elements(&self) -> Result<Option<Vec<Self::Element>>, CoefficientDomainError> {
+        self.elements_gap_order().map(Some).ok_or_else(|| {
+            CoefficientDomainError::ExtensionFieldTooLarge {
+                size: self.order().to_string().into(),
+            }
+        })
+    }
+
+    fn qpa_compare(
+        &self,
+        left: &Self::Element,
+        right: &Self::Element,
+    ) -> Result<Ordering, CoefficientDomainError> {
+        let elements = self.qpa_elements()?.expect("GaloisField is finite");
+        let left_position = elements.iter().position(|element| element == left);
+        let right_position = elements.iter().position(|element| element == right);
+        Ok(left_position.cmp(&right_position))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
@@ -202,6 +296,8 @@ mod tests {
         finite_field::{FiniteFieldCore, Z2, Zp},
         rational::Q,
     };
+
+    use crate::finite_field::GaloisField;
 
     use super::{CoefficientDomain, QpaCoefficientField};
 
@@ -214,6 +310,11 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&CoefficientDomain::prime_field_unchecked("2")).unwrap(),
             r#"{"kind":"prime_field","characteristic":"2"}"#
+        );
+        let f4 = GaloisField::conway(2, 2).unwrap();
+        assert_eq!(
+            serde_json::to_string(&CoefficientDomain::finite_extension_field(&f4)).unwrap(),
+            r#"{"kind":"finite_extension_field","characteristic":"2","degree":2,"modulus":["1","1","1"],"gap_conway":true}"#
         );
     }
 
@@ -251,5 +352,24 @@ mod tests {
                 .collect::<Vec<_>>(),
             [0, 1, 3, 2, 6, 4, 5]
         );
+    }
+
+    #[test]
+    fn extension_metadata_and_frobenius_are_not_specialized_to_prime_fields() {
+        let field = GaloisField::conway(2, 3).unwrap();
+        let generator = field.primitive_element();
+        assert_eq!(field.qpa_order(), Some(8.into()));
+        assert_eq!(field.qpa_degree_over_prime_field(), Some(3));
+        assert_eq!(
+            field.qpa_frobenius(&generator, -1).unwrap(),
+            field.frobenius(&generator, 2)
+        );
+        assert_eq!(field.qpa_elements().unwrap().unwrap().len(), 8);
+
+        let unaddressable = GaloisField::conway(2, 120).unwrap();
+        assert!(matches!(
+            unaddressable.qpa_elements(),
+            Err(super::CoefficientDomainError::ExtensionFieldTooLarge { .. })
+        ));
     }
 }

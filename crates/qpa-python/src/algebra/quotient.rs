@@ -11,6 +11,7 @@ enum QuotientCanonicalBasisKind {
     Rational(QuotientCanonicalBasis<RationalField>),
     Binary(QuotientCanonicalBasis<Z2>),
     Prime(QuotientCanonicalBasis<Zp>),
+    Extension(QuotientCanonicalBasis<GaloisField>),
 }
 
 /// QPA's cached canonical basis object for a quotient path algebra.
@@ -33,6 +34,7 @@ macro_rules! impl_quotient_basis_runtime {
 impl_quotient_basis_runtime!(RationalField, Rational);
 impl_quotient_basis_runtime!(Z2, Binary);
 impl_quotient_basis_runtime!(Zp, Prime);
+impl_quotient_basis_runtime!(GaloisField, Extension);
 
 fn homomorphism_of_projectives_from_quotient_matrix<F: runtime::PythonField>(
     algebra: &QuotientPathAlgebra<F>,
@@ -306,6 +308,17 @@ impl PyQuotientAlgebra {
             FieldKind::Prime(characteristic) => QuotientKind::Prime(
                 qpa_gbnp::truncated_path_algebra(
                     Zp::new(characteristic),
+                    quiver.rust_quiver().clone(),
+                    exponent,
+                )
+                .map_err(invalid)?,
+            ),
+            FieldKind::Extension { .. } => QuotientKind::Extension(
+                qpa_gbnp::truncated_path_algebra(
+                    field
+                        .kind
+                        .galois_field()
+                        .ok_or_else(|| invalid("expected an extension field"))?,
                     quiver.rust_quiver().clone(),
                     exponent,
                 )

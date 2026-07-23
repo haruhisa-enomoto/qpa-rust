@@ -7,6 +7,7 @@ use numerica::domains::{
     rational::RationalField,
 };
 use pyo3::PyResult;
+use qpa_core::GaloisField;
 use qpa_core::QpaCoefficientField;
 
 use crate::{FieldKind, PyScalar, ScalarKind, invalid};
@@ -66,6 +67,9 @@ impl PythonField for RationalField {
         match &scalar.value {
             ScalarKind::Rational(value) => Ok(value.clone()),
             ScalarKind::Prime { .. } => Err(invalid("coefficient belongs to a prime field")),
+            ScalarKind::Extension { .. } => {
+                Err(invalid("coefficient belongs to a finite extension field"))
+            }
         }
     }
 
@@ -143,6 +147,44 @@ impl PythonField for Zp {
     }
 }
 
+impl PythonField for GaloisField {
+    fn python_kind(&self) -> FieldKind {
+        FieldKind::Extension {
+            characteristic: self.prime(),
+            degree: self.degree(),
+        }
+    }
+
+    fn scalar_value(&self, scalar: &PyScalar) -> PyResult<Self::Element> {
+        match &scalar.value {
+            ScalarKind::Extension {
+                characteristic,
+                degree,
+                coefficients,
+            } if *characteristic == self.prime() && *degree == self.degree() => self
+                .element(coefficients.clone())
+                .map_err(|error| invalid(error.to_string())),
+            _ => Err(invalid(format!(
+                "coefficient does not belong to GF({}^{})",
+                self.prime(),
+                self.degree()
+            ))),
+        }
+    }
+
+    fn integer_value(&self, value: &Integer) -> Self::Element {
+        self.nth(value.clone())
+    }
+
+    fn wrap_scalar(&self, value: &Self::Element) -> PyScalar {
+        PyScalar::extension(self.prime(), self.degree(), value.coefficients().to_vec())
+    }
+
+    fn scalar_text(&self, value: &Self::Element) -> String {
+        self.printer(value).to_string()
+    }
+}
+
 /// Dispatch the same borrowed operation over the three supported field variants.
 macro_rules! dispatch_ref {
     ($value:expr, $kind:ident, |$inner:ident| $body:expr) => {
@@ -150,6 +192,7 @@ macro_rules! dispatch_ref {
             $kind::Rational($inner) => $body,
             $kind::Binary($inner) => $body,
             $kind::Prime($inner) => $body,
+            $kind::Extension($inner) => $body,
         }
     };
 }
@@ -161,6 +204,7 @@ macro_rules! map_ref {
             $source::Rational($inner) => $target::Rational($body),
             $source::Binary($inner) => $target::Binary($body),
             $source::Prime($inner) => $target::Prime($body),
+            $source::Extension($inner) => $target::Extension($body),
         }
     };
 }
@@ -172,6 +216,7 @@ macro_rules! dispatch_pair_ref {
             ($kind::Rational($lhs), $kind::Rational($rhs)) => $body,
             ($kind::Binary($lhs), $kind::Binary($rhs)) => $body,
             ($kind::Prime($lhs), $kind::Prime($rhs)) => $body,
+            ($kind::Extension($lhs), $kind::Extension($rhs)) => $body,
             _ => $mismatch,
         }
     };
@@ -190,6 +235,7 @@ macro_rules! map_pair_ref {
             ($source::Rational($lhs), $source::Rational($rhs)) => Ok($target::Rational($body)),
             ($source::Binary($lhs), $source::Binary($rhs)) => Ok($target::Binary($body)),
             ($source::Prime($lhs), $source::Prime($rhs)) => Ok($target::Prime($body)),
+            ($source::Extension($lhs), $source::Extension($rhs)) => Ok($target::Extension($body)),
             _ => Err($mismatch),
         }
     };

@@ -15,6 +15,7 @@ pub(super) enum StructureConstantsQuotientKind {
     Rational(StructureConstantsQuotient<RationalField>),
     Binary(StructureConstantsQuotient<Z2>),
     Prime(StructureConstantsQuotient<Zp>),
+    Extension(StructureConstantsQuotient<GaloisField>),
 }
 
 /// A natural quotient of a structure-constants algebra by an ideal basis.
@@ -29,6 +30,7 @@ enum StructureConstantsHomomorphismKind {
     Rational(StructureConstantsAlgebraHomomorphism<RationalField>),
     Binary(StructureConstantsAlgebraHomomorphism<Z2>),
     Prime(StructureConstantsAlgebraHomomorphism<Zp>),
+    Extension(StructureConstantsAlgebraHomomorphism<GaloisField>),
 }
 
 /// A structure-constants algebra homomorphism stored by ordered basis images.
@@ -59,6 +61,7 @@ macro_rules! impl_quotient_runtime {
 impl_quotient_runtime!(RationalField, Rational);
 impl_quotient_runtime!(Z2, Binary);
 impl_quotient_runtime!(Zp, Prime);
+impl_quotient_runtime!(GaloisField, Extension);
 
 fn scalar_matrix<F: runtime::PythonField>(
     py: Python<'_>,

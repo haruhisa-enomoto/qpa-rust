@@ -34,7 +34,8 @@ pub mod coefficients {
     pub use numerica::domains::{Field, Ring, RingOps};
 
     pub use crate::{
-        CoefficientDomain, CoefficientDomainError, QpaCoefficientField, QpaFieldCharacteristic,
+        CoefficientDomain, CoefficientDomainError, FiniteFieldConstruction, GaloisField,
+        GaloisFieldElement, GaloisFieldError, QpaCoefficientField, QpaFieldCharacteristic,
     };
 }
 
@@ -89,9 +90,10 @@ pub mod prelude {
     pub use numerica::domains::{Field, Ring, RingOps};
 
     pub use crate::{
-        AlgebraDimension, ArrowIndex, ArrowSpec, DenseMatrix, NamedArrowMatrix, Path, PathAlgebra,
-        PathAlgebraElement, PathAlgebraIdeal, PathAlgebraModule, PathAlgebraModuleError,
-        PathAlgebraModuleHomomorphism, Quiver, QuiverAlgebra, QuotientPathAlgebra, VertexIndex,
-        right_module_hom_over_algebra, right_module_over_path_algebra, zero_module,
+        AlgebraDimension, ArrowIndex, ArrowSpec, DenseMatrix, GaloisField, GaloisFieldElement,
+        NamedArrowMatrix, Path, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal,
+        PathAlgebraModule, PathAlgebraModuleError, PathAlgebraModuleHomomorphism, Quiver,
+        QuiverAlgebra, QuotientPathAlgebra, VertexIndex, right_module_hom_over_algebra,
+        right_module_over_path_algebra, zero_module,
     };
 }

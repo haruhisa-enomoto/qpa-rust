@@ -102,7 +102,14 @@ Exit gate: a Python user can install the local package, perform representative
 algebra and module computations, locate every Python signature and QPA source
 mapping, and run all published examples as tests.
 
+## Completed campaign — finite extension fields
+
+The completed runtime `GF(p^n)` coefficient campaign is recorded in
+[FINITE_EXTENSION_FIELDS.md](FINITE_EXTENSION_FIELDS.md). It keeps Numerica as
+the generic field contract and provides a local GAP-compatible extension-field
+domain for the Rust core and Python binding.
+
 ## Later campaigns
 
-Wheel production, performance optimization, finite extension fields, and
-adoption of newer upstream revisions remain later campaigns.
+Wheel production, performance optimization, and adoption of newer upstream
+revisions remain later campaigns.

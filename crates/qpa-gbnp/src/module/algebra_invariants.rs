@@ -337,6 +337,12 @@ impl QpaRandomScalar for Zp {
     }
 }
 
+impl QpaRandomScalar for qpa_core::GaloisField {
+    fn qpa_random_scalar<R: Rng>(&self, rng: &mut R) -> Self::Element {
+        self.sample(rng, (0, i64::MAX))
+    }
+}
+
 /// Translate QPA's `RandomModule(A, m, n)` method.
 ///
 /// Each of at most ten attempts independently chooses `m` and `n`
@@ -1792,9 +1798,11 @@ fn exact_matrix_order<F: QpaCoefficientField>(
     }
     let exponent = match field.qpa_characteristic() {
         QpaFieldCharacteristic::Zero => rational_finite_matrix_exponent(matrix.nrows())?,
-        QpaFieldCharacteristic::Prime(prime) => {
-            prime_field_general_linear_exponent(matrix.nrows(), prime)?
-        }
+        QpaFieldCharacteristic::Prime(prime) => finite_field_general_linear_exponent(
+            matrix.nrows(),
+            prime,
+            &field.qpa_order().expect("positive-characteristic field is finite"),
+        )?,
     };
     if !matrix_is_identity(&matrix_power_integer(matrix, &exponent)?) {
         return Ok(NakayamaAutomorphismOrder::Infinite);
@@ -1839,18 +1847,19 @@ fn rational_finite_matrix_exponent(dimension: usize) -> Result<Integer, Envelopi
     Ok(exponent)
 }
 
-fn prime_field_general_linear_exponent(
+fn finite_field_general_linear_exponent(
     dimension: usize,
     prime: u64,
+    field_order: &Integer,
 ) -> Result<Integer, EnvelopingModuleError> {
     let prime_usize = usize::try_from(prime)
         .map_err(|_| EnvelopingModuleError::NakayamaOrderPrimeTooLarge { prime })?;
     let prime_integer = Integer::from(prime);
     let mut exponent = Integer::one();
-    let mut prime_power = Integer::one();
+    let mut field_order_power = Integer::one();
     for _ in 1..=dimension {
-        prime_power *= &prime_integer;
-        exponent = exponent.lcm(&(&prime_power - 1));
+        field_order_power *= field_order;
+        exponent = exponent.lcm(&(&field_order_power - 1));
     }
     let mut unipotent_exponent = 0u64;
     let mut covered = 1usize;

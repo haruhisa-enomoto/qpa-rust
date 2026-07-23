@@ -768,6 +768,15 @@ impl PyModuleEndomorphismQuotientAlgebra {
                     algebra.multiply(left, right).map_err(invalid)?,
                 ),
             }),
+            (
+                ModuleEndomorphismQuotientAlgebraKind::Extension(algebra),
+                ModuleEndomorphismQuotientElementKind::Extension(left),
+                ModuleEndomorphismQuotientElementKind::Extension(right),
+            ) => Ok(PyModuleEndomorphismQuotientElement {
+                kind: ModuleEndomorphismQuotientElementKind::Extension(
+                    algebra.multiply(left, right).map_err(invalid)?,
+                ),
+            }),
             _ => Err(invalid(
                 "quotient algebra and elements belong to different coefficient fields",
             )),

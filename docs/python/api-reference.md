@@ -8,7 +8,7 @@ main mathematical workflows. For the originating GAP/QPA name and source
 file, use the [QPA operation index](qpa-operation-index.md).
 
 The current surface contains 140 classes, 35 module-level functions,
-and 1838 class methods or properties.
+and 1848 class methods or properties.
 
 ## Module constants
 
@@ -1245,7 +1245,7 @@ def ProjectivePresentation.has_p1_vertex_list(self) -> bool
 
 ### `qpa.Field`
 
-An exact rational or prime coefficient field backed by Numerica.
+An exact rational, prime, or finite extension coefficient field.
 
 ```python
 class Field
@@ -1267,10 +1267,30 @@ Return F_p after verifying that ``characteristic`` is prime.
 def Field.prime(characteristic: int) -> Field
 ```
 
+#### `Field.extension` (method)
+
+Return GAP's Conway model of GF(p^degree), for degree greater than one.
+
+```python
+def Field.extension(characteristic: int, degree: int) -> Field
+```
+
 #### `Field.characteristic` (property)
 
 ```python
 def Field.characteristic(self) -> int | None
+```
+
+#### `Field.degree` (property)
+
+```python
+def Field.degree(self) -> int | None
+```
+
+#### `Field.conway_polynomial` (property)
+
+```python
+def Field.conway_polynomial(self) -> list[int] | None
 ```
 
 #### `Field.is_finite` (property)
@@ -1287,15 +1307,53 @@ Construct an exact field element from an integer fraction.
 def Field.element(self, numerator: int, denominator: int | None=None) -> Scalar
 ```
 
+#### `Field.element_from_coefficients` (method)
+
+Construct an extension element in the Conway polynomial basis.
+
+```python
+def Field.element_from_coefficients(self, coefficients: list[int]) -> Scalar
+```
+
+#### `Field.primitive_element` (method)
+
+Return GAP's designated primitive extension-field generator.
+
+```python
+def Field.primitive_element(self) -> Scalar
+```
+
+#### `Field.frobenius` (method)
+
+Apply a possibly negative power of the prime-field Frobenius.
+
+```python
+def Field.frobenius(self, scalar: Scalar, power: int) -> Scalar
+```
+
+#### `Field.embed` (method)
+
+Embed a scalar from a canonical Conway subfield into this field.
+
+```python
+def Field.embed(self, scalar: Scalar) -> Scalar
+```
+
 #### `Field.null_list` (method)
 
 ```python
 def Field.null_list(self, length: int) -> list[Scalar]
 ```
 
+#### `Field.__hash__` (method)
+
+```python
+def Field.__hash__(self) -> int
+```
+
 ### `qpa.Scalar`
 
-An exact scalar retaining its owning rational or prime field.
+An exact scalar retaining its owning coefficient field.
 
 ```python
 class Scalar
@@ -1325,10 +1383,22 @@ def Scalar.denominator(self) -> str | None
 def Scalar.representative(self) -> int | None
 ```
 
+#### `Scalar.coefficients` (property)
+
+```python
+def Scalar.coefficients(self) -> list[int] | None
+```
+
 #### `Scalar.is_zero` (property)
 
 ```python
 def Scalar.is_zero(self) -> bool
+```
+
+#### `Scalar.__hash__` (method)
+
+```python
+def Scalar.__hash__(self) -> int
 ```
 
 ### `qpa.StructureConstantsAlgebra`

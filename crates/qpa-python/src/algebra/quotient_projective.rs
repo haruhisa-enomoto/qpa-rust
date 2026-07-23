@@ -19,6 +19,7 @@ pub(super) enum QuotientProjectiveKind {
     Rational(RightProjectiveQuotientPathAlgebraModule<RationalField>),
     Binary(RightProjectiveQuotientPathAlgebraModule<Z2>),
     Prime(RightProjectiveQuotientPathAlgebraModule<Zp>),
+    Extension(RightProjectiveQuotientPathAlgebraModule<GaloisField>),
 }
 
 /// QPA's quotient-path-algebra vertex projective.
@@ -33,6 +34,7 @@ enum QuotientProjectiveVectorKind {
     Rational(QuotientPathAlgebraVector<RationalField>),
     Binary(QuotientPathAlgebraVector<Z2>),
     Prime(QuotientPathAlgebraVector<Zp>),
+    Extension(QuotientPathAlgebraVector<GaloisField>),
 }
 
 /// QPA's positional vector for a quotient vertex projective.
@@ -47,6 +49,7 @@ enum LiftedProjectiveKind {
     Rational(LiftedProjectivePathAlgebraModule<RationalField>),
     Binary(LiftedProjectivePathAlgebraModule<Z2>),
     Prime(LiftedProjectivePathAlgebraModule<Zp>),
+    Extension(LiftedProjectivePathAlgebraModule<GaloisField>),
 }
 
 /// QPA's path-algebra lift of a quotient vertex projective.
@@ -98,6 +101,7 @@ macro_rules! impl_quotient_projective_runtime {
 impl_quotient_projective_runtime!(RationalField, Rational);
 impl_quotient_projective_runtime!(Z2, Binary);
 impl_quotient_projective_runtime!(Zp, Prime);
+impl_quotient_projective_runtime!(GaloisField, Extension);
 
 fn quotient_projective<F: runtime::PythonField>(
     algebra: &QuotientPathAlgebra<F>,

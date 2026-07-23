@@ -2,14 +2,14 @@
 //!
 //! The writer intentionally reproduces QPA 1.37's line-oriented format. The
 //! reader parses that format directly; unlike GAP it never evaluates input as
-//! code. The initial inferred-field boundary is the exact rational field and
-//! Numerica's 32-bit prime fields, including its specialized binary field.
+//! code. Exact rational, prime, and canonical finite extension fields are
+//! inferred from the saved field line.
 
 use std::{collections::HashMap, fs, path::Path, str::FromStr};
 
 use numerica::domains::{
     Field, Ring,
-    finite_field::{FiniteFieldCore, PrimitiveRootIterator, Z2, Zp},
+    finite_field::{FiniteFieldCore, FiniteFieldWorkspace, PrimitiveRootIterator, Z2, Zp},
     integer::Integer,
     rational::{Q, RationalField},
 };
@@ -20,6 +20,7 @@ use qpa_core::{
 use thiserror::Error;
 
 use crate::{PathalgGbnpError, quotient_by_relations};
+use qpa_core::GaloisField;
 
 /// Exact coefficient fields that QPA's text format can write in this port.
 ///
@@ -167,8 +168,42 @@ impl QpaTextField for Zp {
     }
 }
 
-/// An algebra inferred by QPA `ReadAlgebra` over the initially supported
-/// Numerica coefficient domains.
+impl QpaTextField for GaloisField {
+    fn qpa_field_text(&self) -> Result<String, QpaPersistenceError> {
+        Ok(format!("GF({})", self.order()))
+    }
+
+    fn qpa_coefficient_text(
+        &self,
+        coefficient: &Self::Element,
+    ) -> Result<String, QpaPersistenceError> {
+        if self.is_zero(coefficient) {
+            return Err(QpaPersistenceError::ZeroSparseCoefficient);
+        }
+        let elements =
+            self.elements_gap_order()
+                .ok_or_else(|| QpaPersistenceError::UnsupportedField {
+                    field: self.to_string().into(),
+                })?;
+        let position = elements
+            .iter()
+            .position(|element| element == coefficient)
+            .ok_or_else(|| QpaPersistenceError::InvalidCoefficient {
+                coefficient: coefficient.to_string().into(),
+            })?;
+        Ok(format!("z^{}", position - 1))
+    }
+
+    fn parse_qpa_coefficient(
+        &self,
+        coefficient: &str,
+    ) -> Result<Self::Element, QpaPersistenceError> {
+        let exponent = parse_primitive_power(coefficient)?;
+        Ok(self.pow(&self.primitive_element(), exponent))
+    }
+}
+
+/// An algebra inferred by QPA `ReadAlgebra` over an exact coefficient domain.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum LoadedQpaAlgebra {
     /// An algebra over the exact rational field.
@@ -177,6 +212,8 @@ pub enum LoadedQpaAlgebra {
     Binary(QuiverAlgebra<Z2>),
     /// An algebra over an odd 32-bit prime field.
     Prime(QuiverAlgebra<Zp>),
+    /// An algebra over GAP's canonical model of `GF(p^n)`.
+    Extension(QuiverAlgebra<GaloisField>),
 }
 
 impl LoadedQpaAlgebra {
@@ -187,6 +224,7 @@ impl LoadedQpaAlgebra {
             Self::Rational(algebra) => algebra.is_path_algebra(),
             Self::Binary(algebra) => algebra.is_path_algebra(),
             Self::Prime(algebra) => algebra.is_path_algebra(),
+            Self::Extension(algebra) => algebra.is_path_algebra(),
         }
     }
 
@@ -207,6 +245,10 @@ impl LoadedQpaAlgebra {
                 .map(qpa_core::QuotientPathAlgebra::dimension)
                 .transpose(),
             Self::Prime(algebra) => algebra
+                .as_quotient()
+                .map(qpa_core::QuotientPathAlgebra::dimension)
+                .transpose(),
+            Self::Extension(algebra) => algebra
                 .as_quotient()
                 .map(qpa_core::QuotientPathAlgebra::dimension)
                 .transpose(),
@@ -368,6 +410,19 @@ pub fn parse_qpa_algebra_text(text: &str) -> Result<LoadedQpaAlgebra, QpaPersist
             ensure_supported_odd_prime(&field)?;
             Ok(LoadedQpaAlgebra::Prime(presentation.instantiate(field)?))
         }
+        ParsedField::Extension {
+            characteristic,
+            degree,
+        } => Ok(LoadedQpaAlgebra::Extension(presentation.instantiate(
+            GaloisField::conway(characteristic, degree).map_err(|_| {
+                QpaPersistenceError::UnsupportedFiniteFieldOrder {
+                    order: Integer::from(characteristic)
+                        .pow(u64::try_from(degree).unwrap_or(u64::MAX))
+                        .to_string()
+                        .into(),
+                }
+            })?,
+        )?)),
     }
 }
 
@@ -392,6 +447,7 @@ enum SavedAlgebraType {
 enum ParsedField {
     Rational,
     Prime(u32),
+    Extension { characteristic: u32, degree: usize },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -571,15 +627,46 @@ fn parse_field(lines: &[&str], position: &mut usize) -> Result<ParsedField, QpaP
     if field == "Rationals" {
         return Ok(ParsedField::Rational);
     }
-    if let Some(characteristic) = field
+    if let Some(order) = field
         .strip_prefix("GF(")
         .and_then(|value| value.strip_suffix(')'))
     {
-        return Ok(ParsedField::Prime(characteristic.parse().map_err(
-            |_| QpaPersistenceError::UnsupportedField {
+        let order =
+            Integer::from_str(order).map_err(|_| QpaPersistenceError::UnsupportedField {
                 field: field.clone().into(),
-            },
-        )?));
+            })?;
+        let factors = if order >= 2 {
+            order.factor()
+        } else {
+            Vec::new()
+        };
+        if factors.len() != 1 {
+            return Err(QpaPersistenceError::UnsupportedFiniteFieldOrder {
+                order: order.to_string().into(),
+            });
+        }
+        let characteristic = factors[0]
+            .0
+            .to_u64()
+            .and_then(|prime| u32::try_from(prime).ok())
+            .ok_or_else(|| QpaPersistenceError::UnsupportedFiniteFieldOrder {
+                order: order.to_string().into(),
+            })?;
+        let degree = factors[0]
+            .1
+            .to_u64()
+            .and_then(|degree| usize::try_from(degree).ok())
+            .ok_or_else(|| QpaPersistenceError::UnsupportedFiniteFieldOrder {
+                order: order.to_string().into(),
+            })?;
+        return Ok(if degree == 1 {
+            ParsedField::Prime(characteristic)
+        } else {
+            ParsedField::Extension {
+                characteristic,
+                degree,
+            }
+        });
     }
     Err(QpaPersistenceError::UnsupportedField {
         field: field.into(),
@@ -810,6 +897,12 @@ pub enum QpaPersistenceError {
         /// Rejected characteristic.
         characteristic: u32,
     },
+    /// `GF(q)` must have prime-power order representable by this field layer.
+    #[error("GF({order}) is not a supported finite field order")]
+    UnsupportedFiniteFieldOrder {
+        /// Rejected field order.
+        order: Box<str>,
+    },
     /// A relation does not follow QPA's coefficient/walk grammar.
     #[error("invalid saved QPA relation: {relation}")]
     InvalidRelation {
@@ -878,7 +971,9 @@ mod tests {
         integer::Integer,
         rational::Q,
     };
-    use qpa_core::{AlgebraDimension, NamedArrowSpec, PathAlgebra, Quiver, QuiverAlgebra};
+    use qpa_core::{
+        AlgebraDimension, GaloisField, NamedArrowSpec, PathAlgebra, Quiver, QuiverAlgebra,
+    };
     use serde_json::Value;
 
     use super::{
@@ -1027,6 +1122,38 @@ mod tests {
             let decoded = field.parse_qpa_coefficient(&encoded).unwrap();
             assert_eq!(field.qpa_coefficient_text(&decoded).unwrap(), encoded);
         }
+
+        let field4 = GaloisField::conway(2, 2).unwrap();
+        for exponent in 0..3 {
+            let encoded = format!("z^{exponent}");
+            let decoded = field4.parse_qpa_coefficient(&encoded).unwrap();
+            assert_eq!(field4.qpa_coefficient_text(&decoded).unwrap(), encoded);
+        }
+
+        let quiver =
+            Quiver::from_named(vec!["v".into()], vec![NamedArrowSpec::named("v", "v", "x")])
+                .unwrap();
+        let parent = PathAlgebra::new(field4.clone(), quiver).unwrap();
+        let x = parent.generators()[1].clone();
+        let relation = x
+            .multiply(&x)
+            .unwrap()
+            .scale_left(&field4.primitive_element())
+            .unwrap();
+        let algebra = QuiverAlgebra::Quotient(quotient_by_relations(parent, &[relation]).unwrap());
+        let text = qpa_algebra_text(&algebra).unwrap();
+        assert!(text.contains("Field:\nGF(4)\n"));
+        assert!(text.contains("(z^0)*x*x"), "{text}");
+        // Quotient construction normalizes this one-term relation to monic;
+        // substitute an equivalent nonzero primitive-root coefficient to
+        // exercise the reader's extension-field coefficient parser.
+        let encoded_text = text.replace("(z^0)*x*x", "(z^1)*x*x");
+        let loaded = parse_qpa_algebra_text(&encoded_text).unwrap();
+        assert!(matches!(&loaded, LoadedQpaAlgebra::Extension(_)));
+        assert_eq!(
+            loaded.quotient_dimension().unwrap(),
+            Some(AlgebraDimension::Finite(2.into()))
+        );
     }
 
     #[test]
@@ -1085,9 +1212,16 @@ mod tests {
     #[test]
     fn safe_reader_rejects_unsupported_and_malformed_input() {
         let extension_field = "IsPathAlgebra\nVertices:\nv1\nArrows:\nField:\nGF(4)\n";
+        let LoadedQpaAlgebra::Extension(extension) =
+            parse_qpa_algebra_text(extension_field).unwrap()
+        else {
+            panic!("GF(4) must infer the canonical extension field");
+        };
+        assert_eq!(extension.field().order(), 4);
+        let non_prime_power = "IsPathAlgebra\nVertices:\nv1\nArrows:\nField:\nGF(6)\n";
         assert!(matches!(
-            parse_qpa_algebra_text(extension_field),
-            Err(QpaPersistenceError::UnsupportedPrimeField { characteristic: 4 })
+            parse_qpa_algebra_text(non_prime_power),
+            Err(QpaPersistenceError::UnsupportedFiniteFieldOrder { .. })
         ));
         assert!(matches!(
             parse_qpa_algebra_text("not GAP code\n"),

@@ -23,6 +23,7 @@ enum BasedRightAlgebraModuleKind {
     Rational(BasedRightAlgebraModule<RationalField>),
     Binary(BasedRightAlgebraModule<Z2>),
     Prime(BasedRightAlgebraModule<Zp>),
+    Extension(BasedRightAlgebraModule<GaloisField>),
 }
 
 /// A finite-dimensional based right algebra module accepted by QPA's generic
@@ -38,6 +39,7 @@ enum ModuleTensorProductKind {
     Rational(TensorProductOfModulesResult<RationalField>),
     Binary(TensorProductOfModulesResult<Z2>),
     Prime(TensorProductOfModulesResult<Zp>),
+    Extension(TensorProductOfModulesResult<GaloisField>),
 }
 
 enum PythonInferredArrowAction {
@@ -89,6 +91,7 @@ macro_rules! impl_remaining_runtime {
 impl_remaining_runtime!(RationalField, Rational);
 impl_remaining_runtime!(Z2, Binary);
 impl_remaining_runtime!(Zp, Prime);
+impl_remaining_runtime!(GaloisField, Extension);
 
 fn wrap_modules<F: runtime::PythonField>(modules: Vec<PathAlgebraModule<F>>) -> Vec<PyMatrixModule>
 where
@@ -507,6 +510,16 @@ pub(crate) fn py_complement_in_full_row_space(
                     .map_err(invalid)?,
             ))
         }
+        FieldKind::Extension { .. } => {
+            let extension = field
+                .kind
+                .galois_field()
+                .ok_or_else(|| invalid("expected an extension field"))?;
+            Ok(matrix_rows(
+                &qpa_core::complement_in_full_row_space(&extract_matrix(py, &extension, rows)?)
+                    .map_err(invalid)?,
+            ))
+        }
     }
 }
 
@@ -567,6 +580,13 @@ impl PyBasedRightAlgebraModule {
                 arrow_actions,
             ),
             conversion::QuiverAlgebraKind::Prime(algebra) => based_module_for(
+                py,
+                algebra.clone(),
+                dimension,
+                vertex_actions,
+                arrow_actions,
+            ),
+            conversion::QuiverAlgebraKind::Extension(algebra) => based_module_for(
                 py,
                 algebra.clone(),
                 dimension,
@@ -709,6 +729,19 @@ impl PyModuleTensorProduct {
                     .map(|value| field.wrap_scalar(value))
                     .collect())
             }
+            (
+                ModuleTensorProductKind::Extension(tensor),
+                ModuleElementKind::Extension(left),
+                ModuleElementKind::Extension(right),
+            ) => {
+                let field = tensor.projection().field();
+                Ok(tensor
+                    .elementary_tensor(left, right)
+                    .map_err(invalid)?
+                    .iter()
+                    .map(|value| field.wrap_scalar(value))
+                    .collect())
+            }
             _ => Err(invalid(
                 "tensor product and module elements use different coefficient fields",
             )),
@@ -797,6 +830,9 @@ impl PyQuiverAlgebra {
             QuiverAlgebraKind::Prime(algebra) => {
                 explicit_module_for(py, algebra.clone(), dimension_vector, actions)
             }
+            QuiverAlgebraKind::Extension(algebra) => {
+                explicit_module_for(py, algebra.clone(), dimension_vector, actions)
+            }
         }
     }
 
@@ -833,6 +869,15 @@ impl PyQuiverAlgebra {
                         .collect::<PyResult<_>>()?,
                 ),
             ),
+            QuiverAlgebraKind::Extension(algebra) => inferred_checked_for(
+                algebra.clone(),
+                PathAlgebraModuleArrowActions::Positional(
+                    actions
+                        .into_iter()
+                        .map(|rows| extract_matrix(py, algebra.field(), rows))
+                        .collect::<PyResult<_>>()?,
+                ),
+            ),
         }
     }
 
@@ -853,6 +898,9 @@ impl PyQuiverAlgebra {
                 named_checked_for(py, algebra.clone(), &Z2, actions)
             }
             QuiverAlgebraKind::Prime(algebra) => {
+                named_checked_for(py, algebra.clone(), algebra.field(), actions)
+            }
+            QuiverAlgebraKind::Extension(algebra) => {
                 named_checked_for(py, algebra.clone(), algebra.field(), actions)
             }
         }
@@ -880,6 +928,9 @@ impl PyQuiverAlgebra {
                 indexed_checked_for(py, algebra.clone(), &Z2, actions)
             }
             QuiverAlgebraKind::Prime(algebra) => {
+                indexed_checked_for(py, algebra.clone(), algebra.field(), actions)
+            }
+            QuiverAlgebraKind::Extension(algebra) => {
                 indexed_checked_for(py, algebra.clone(), algebra.field(), actions)
             }
         }
@@ -925,6 +976,15 @@ impl PyQuiverAlgebra {
                         .collect::<PyResult<_>>()?,
                 )
             }),
+            QuiverAlgebraKind::Extension(algebra) => inferred_nc_for(
+                algebra.clone(),
+                PathAlgebraModuleArrowActions::Positional(
+                    actions
+                        .into_iter()
+                        .map(|rows| extract_matrix(py, algebra.field(), rows))
+                        .collect::<PyResult<_>>()?,
+                ),
+            ),
         }
     }
 
@@ -947,6 +1007,9 @@ impl PyQuiverAlgebra {
                     algebra.field().get_prime(),
                 )?;
                 named_nc_for(py, algebra.clone(), &action_field, actions)
+            }
+            QuiverAlgebraKind::Extension(algebra) => {
+                named_nc_for(py, algebra.clone(), algebra.field(), actions)
             }
         }
     }
@@ -978,6 +1041,9 @@ impl PyQuiverAlgebra {
                 )?;
                 indexed_nc_for(py, algebra.clone(), &action_field, actions)
             }
+            QuiverAlgebraKind::Extension(algebra) => {
+                indexed_nc_for(py, algebra.clone(), algebra.field(), actions)
+            }
         }
     }
 
@@ -1004,6 +1070,13 @@ impl PyQuiverAlgebra {
                 QuiverAlgebraKind::Prime(algebra),
                 tensor::QuiverAlgebraElementKind::Prime(element),
             ) => ModuleElementKind::Prime(
+                qpa_gbnp::element_in_v_a_as_element_in_indec_proj(algebra, element)
+                    .map_err(invalid)?,
+            ),
+            (
+                QuiverAlgebraKind::Extension(algebra),
+                tensor::QuiverAlgebraElementKind::Extension(element),
+            ) => ModuleElementKind::Extension(
                 qpa_gbnp::element_in_v_a_as_element_in_indec_proj(algebra, element)
                     .map_err(invalid)?,
             ),
@@ -1083,6 +1156,7 @@ impl PyMatrixModule {
             }
             Some(MatrixModuleKind::Binary(_)) => modules_plus_one_for::<Z2>(modules),
             Some(MatrixModuleKind::Prime(_)) => modules_plus_one_for::<Zp>(modules),
+            Some(MatrixModuleKind::Extension(_)) => modules_plus_one_for::<GaloisField>(modules),
         }
     }
 
@@ -1116,6 +1190,9 @@ impl PyMatrixModule {
                 decomposition_probabilistic_for(py, module, homomorphisms)
             }
             MatrixModuleKind::Prime(module) => {
+                decomposition_probabilistic_for(py, module, homomorphisms)
+            }
+            MatrixModuleKind::Extension(module) => {
                 decomposition_probabilistic_for(py, module, homomorphisms)
             }
         }
@@ -1154,6 +1231,12 @@ impl PyModuleElement {
             }
             (QuiverAlgebraKind::Prime(algebra), ModuleElementKind::Prime(element)) => {
                 AlgebraElementKind::Prime(
+                    qpa_gbnp::element_in_indec_projective(algebra, element, projective_vertex)
+                        .map_err(invalid)?,
+                )
+            }
+            (QuiverAlgebraKind::Extension(algebra), ModuleElementKind::Extension(element)) => {
+                AlgebraElementKind::Extension(
                     qpa_gbnp::element_in_indec_projective(algebra, element, projective_vertex)
                         .map_err(invalid)?,
                 )

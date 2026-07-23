@@ -144,6 +144,12 @@ impl PyModuleElement {
                         .map_err(invalid)?,
                 )
             }
+            (ModuleElementKind::Extension(left), AlgebraElementKind::Extension(right)) => {
+                ModuleElementKind::Extension(
+                    left.act(&QuiverAlgebraElement::Path(right.clone()))
+                        .map_err(invalid)?,
+                )
+            }
             _ => {
                 return Err(invalid(
                     "acting element belongs to another coefficient field",
@@ -169,6 +175,12 @@ impl PyModuleElement {
             }
             (ModuleElementKind::Prime(left), QuotientElementKind::Prime(right)) => {
                 ModuleElementKind::Prime(
+                    left.act(&QuiverAlgebraElement::Quotient(right.clone()))
+                        .map_err(invalid)?,
+                )
+            }
+            (ModuleElementKind::Extension(left), QuotientElementKind::Extension(right)) => {
+                ModuleElementKind::Extension(
                     left.act(&QuiverAlgebraElement::Quotient(right.clone()))
                         .map_err(invalid)?,
                 )
@@ -273,6 +285,11 @@ impl PyModuleElementSpace {
                     .new_basis(runtime::extract_all(vectors)?)
                     .map_err(invalid)?,
             ),
+            ModuleElementSpaceKind::Extension(space) => ModuleElementBasisKind::Extension(
+                space
+                    .new_basis(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
         };
         Ok(PyModuleElementBasis { kind })
     }
@@ -295,6 +312,11 @@ impl PyModuleElementSpace {
                     .map_err(invalid)?,
             ),
             ModuleElementSpaceKind::Prime(space) => ModuleElementBasisKind::Prime(
+                space
+                    .basis_nc(runtime::extract_all(vectors)?)
+                    .map_err(invalid)?,
+            ),
+            ModuleElementSpaceKind::Extension(space) => ModuleElementBasisKind::Extension(
                 space
                     .basis_nc(runtime::extract_all(vectors)?)
                     .map_err(invalid)?,
@@ -328,6 +350,12 @@ impl PyModuleElementSpace {
                 .map(|basis| PyModuleElementBasis {
                     kind: ModuleElementBasisKind::Prime(basis),
                 })),
+            ModuleElementSpaceKind::Extension(space) => Ok(space
+                .basis_from_vectors(runtime::extract_all(vectors)?)
+                .map_err(invalid)?
+                .map(|basis| PyModuleElementBasis {
+                    kind: ModuleElementBasisKind::Extension(basis),
+                })),
         }
     }
 
@@ -358,6 +386,9 @@ impl PyModuleElementSpace {
                 space.contains(element).map_err(invalid)
             }
             (ModuleElementSpaceKind::Prime(space), ModuleElementKind::Prime(element)) => {
+                space.contains(element).map_err(invalid)
+            }
+            (ModuleElementSpaceKind::Extension(space), ModuleElementKind::Extension(element)) => {
                 space.contains(element).map_err(invalid)
             }
             _ => Ok(false),
@@ -443,6 +474,18 @@ impl PyModuleElementBasis {
                     )
                 }))
             }
+            (ModuleElementBasisKind::Extension(basis), ModuleElementKind::Extension(element)) => {
+                Ok(basis.coefficients(element).map_err(invalid)?.map(|values| {
+                    wrap_scalars(
+                        basis
+                            .underlying_space()
+                            .module()
+                            .right_acting_algebra()
+                            .field(),
+                        &values,
+                    )
+                }))
+            }
             _ => Err(invalid(
                 "basis and module element use different coefficient fields",
             )),
@@ -504,6 +547,11 @@ impl PyModuleBasisMapping {
             (ModuleBasisMappingKind::Prime(mapping), ModuleElementKind::Prime(element)) => Ok(
                 wrap_module_element(mapping.image(element).map_err(invalid)?),
             ),
+            (ModuleBasisMappingKind::Extension(mapping), ModuleElementKind::Extension(element)) => {
+                Ok(wrap_module_element(
+                    mapping.image(element).map_err(invalid)?,
+                ))
+            }
             _ => Err(invalid(
                 "basis mapping and element belong to different coefficient fields",
             )),

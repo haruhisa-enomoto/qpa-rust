@@ -11,6 +11,7 @@ pub(super) enum QuotientNiceBasisKind {
     Rational(QuotientNiceBasis<RationalField>),
     Binary(QuotientNiceBasis<Z2>),
     Prime(QuotientNiceBasis<Zp>),
+    Extension(QuotientNiceBasis<GaloisField>),
 }
 
 macro_rules! impl_nice_basis_runtime {
@@ -26,6 +27,7 @@ macro_rules! impl_nice_basis_runtime {
 impl_nice_basis_runtime!(RationalField, Rational);
 impl_nice_basis_runtime!(Z2, Binary);
 impl_nice_basis_runtime!(Zp, Prime);
+impl_nice_basis_runtime!(GaloisField, Extension);
 
 /// QPA's nice-basis conversion data for a space of quotient elements.
 #[pyclass(name = "QuotientNiceBasis", frozen, skip_from_py_object)]

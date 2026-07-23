@@ -35,7 +35,9 @@ that QPA invokes.
 GAP supplies dispatch, field, matrix, basis, and generic algebra semantics used
 as a transitive specification and by the differential oracle. The pinned GAP
 source and binary are development-only references and are not linked into the
-Rust crates.
+Rust crates. The compact `qpa-core` Conway table is generated from GAP's
+GPL-2.0-or-later `lib/conwdat1.g`, `conwdat2.g`, and `conwdat3.g`; its generator
+records the pinned source revision in the generated file.
 
 - Project: <https://github.com/gap-system/gap>
 - Pinned version/revision: 4.17dev / `4efe877859ab0bc0ac041bf635a996fb897ee0c9`

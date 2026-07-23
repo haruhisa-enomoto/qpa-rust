@@ -175,7 +175,7 @@ impl PyQuiverOrdering {
             .into_iter()
             .map(|weight| match &weight.borrow(py).value {
                 ScalarKind::Rational(value) => Ok(value.clone()),
-                ScalarKind::Prime { .. } => Err(invalid(
+                ScalarKind::Prime { .. } | ScalarKind::Extension { .. } => Err(invalid(
                     "WeightOrdering requires exact rational Scalar values",
                 )),
             })

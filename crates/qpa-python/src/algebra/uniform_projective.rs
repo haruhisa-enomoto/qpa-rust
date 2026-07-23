@@ -15,6 +15,7 @@ enum UniformModuleKind {
     Rational(RightUniformPathAlgebraModule<RationalField>),
     Binary(RightUniformPathAlgebraModule<Z2>),
     Prime(RightUniformPathAlgebraModule<Zp>),
+    Extension(RightUniformPathAlgebraModule<GaloisField>),
 }
 
 /// QPA's projective module constructed from uniform path-algebra elements.
@@ -29,6 +30,7 @@ enum UniformVectorKind {
     Rational(RightUniformPathAlgebraVector<RationalField>),
     Binary(RightUniformPathAlgebraVector<Z2>),
     Prime(RightUniformPathAlgebraVector<Zp>),
+    Extension(RightUniformPathAlgebraVector<GaloisField>),
 }
 
 /// A positional vector in QPA's uniform-element projective family.
@@ -68,6 +70,7 @@ macro_rules! impl_uniform_runtime {
 impl_uniform_runtime!(RationalField, Rational);
 impl_uniform_runtime!(Z2, Binary);
 impl_uniform_runtime!(Zp, Prime);
+impl_uniform_runtime!(GaloisField, Extension);
 
 fn clone_element_kinds(
     py: Python<'_>,

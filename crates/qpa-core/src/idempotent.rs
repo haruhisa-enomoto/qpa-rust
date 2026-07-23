@@ -358,7 +358,11 @@ pub(crate) fn factor_finite_field_polynomial<F: QpaCoefficientField, R: Rng + ?S
         let root = polynomial
             .iter()
             .step_by(stride)
-            .cloned()
+            .map(|coefficient| {
+                field
+                    .qpa_frobenius(coefficient, -1)
+                    .expect("finite fields have inverse Frobenius")
+            })
             .collect::<Vec<_>>();
         let root_factors = factor_finite_field_polynomial(field, elements, &root, rng)?;
         let repetitions = stride;
@@ -401,13 +405,13 @@ fn factor_square_free<F: QpaCoefficientField, R: Rng + ?Sized>(
     let mut factors = Vec::new();
     let mut power = vec![field.zero(), field.one()];
     let x = power.clone();
-    let prime = prime_characteristic(field)?;
+    let field_order = field.qpa_order().ok_or(HopfError::FiniteAlgebraRequired)?;
     let mut degree = 0usize;
 
     while polynomial_degree(field, &remaining)
         .is_some_and(|remaining_degree| 2 * (degree + 1) <= remaining_degree)
     {
-        power = polynomial_power_mod_u64(field, &power, prime, &remaining)?;
+        power = polynomial_power_mod_integer(field, &power, field_order.clone(), &remaining)?;
         degree += 1;
         let cyclotomic = polynomial_subtract(field, &power, &x);
         let common = polynomial_gcd(field, &remaining, &cyclotomic)?;
@@ -450,11 +454,12 @@ fn factor_common_degree<F: QpaCoefficientField, R: Rng + ?Sized>(
         }
 
         let prime = prime_characteristic(field)?;
+        let field_order = field.qpa_order().ok_or(HopfError::FiniteAlgebraRequired)?;
         let separator = if prime == 2 {
             let mut term = polynomial_remainder(field, &random, polynomial)?;
             let mut trace = term.clone();
             for _ in 1..factor_degree {
-                term = polynomial_power_mod_u64(field, &term, 2, polynomial)?;
+                term = polynomial_power_mod_integer(field, &term, field_order.clone(), polynomial)?;
                 trace = polynomial_add(field, &trace, &term);
                 trace = polynomial_remainder(field, &trace, polynomial)?;
             }
@@ -462,7 +467,7 @@ fn factor_common_degree<F: QpaCoefficientField, R: Rng + ?Sized>(
         } else {
             let factor_degree =
                 u64::try_from(factor_degree).map_err(|_| HopfError::PolynomialDegreeOverflow)?;
-            let mut exponent = Integer::from(prime).pow(factor_degree);
+            let mut exponent = field_order.pow(factor_degree);
             exponent -= Integer::from(1);
             exponent /= Integer::from(2);
             let mut result = polynomial_power_mod_integer(field, &random, exponent, polynomial)?;
@@ -671,15 +676,6 @@ fn polynomial_gcd<F: Field>(
         right = remainder;
     }
     monic_polynomial(field, &left)
-}
-
-fn polynomial_power_mod_u64<F: Field>(
-    field: &F,
-    base: &[F::Element],
-    exponent: u64,
-    modulus: &[F::Element],
-) -> Result<Vec<F::Element>, HopfError> {
-    polynomial_power_mod_integer(field, base, Integer::from(exponent), modulus)
 }
 
 fn polynomial_power_mod_integer<F: Field>(

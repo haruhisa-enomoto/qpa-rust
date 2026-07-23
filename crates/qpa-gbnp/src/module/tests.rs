@@ -6,17 +6,18 @@ use numerica::domains::{
 };
 use qpa_core::path_module::right_fac_approximation_via_all_basis_images;
 use qpa_core::{
-    AlgebraGlobalDimension, ArrowSpec, CachedAttribute, DenseMatrix, ModuleDimensionSeries,
-    NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule, PathAlgebraModuleElement,
-    PathAlgebraModuleHomomorphism, PathAlgebraModuleHomomorphismPair, PathAlgebraModuleMatrix,
-    QpaCoefficientField, Quiver, QuiverAlgebra, QuiverAlgebraElement, StructureConstantsAlgebra,
-    VertexIndex, dimension_vector_partial_order, direct_sum_of_qpa_modules, end_over_algebra,
-    from_end_m_to_hom_mm, from_hom_mm_to_end_m, identity_module_mapping, include_in_path_algebra,
-    is_indecomposable_module, is_semisimple_module, is_simple_qpa_module, kernel_inclusion,
-    lifting_inclusion_morphisms, minimal_generating_set_of_module, radical_series,
-    right_fac_approximation, right_module_hom_over_algebra, right_module_over_path_algebra,
-    socle_of_module, socle_of_module_inclusion, top_of_module, top_of_module_projection,
-    trace_of_module, underlying_linear_map, zero_module, zero_module_mapping,
+    AlgebraGlobalDimension, ArrowSpec, CachedAttribute, DenseMatrix, GaloisField,
+    ModuleDimensionSeries, NamedArrowMatrix, NamedArrowSpec, PathAlgebra, PathAlgebraModule,
+    PathAlgebraModuleElement, PathAlgebraModuleHomomorphism, PathAlgebraModuleHomomorphismPair,
+    PathAlgebraModuleMatrix, QpaCoefficientField, Quiver, QuiverAlgebra, QuiverAlgebraElement,
+    StructureConstantsAlgebra, VertexIndex, dimension_vector_partial_order,
+    direct_sum_of_qpa_modules, end_over_algebra, from_end_m_to_hom_mm, from_hom_mm_to_end_m,
+    identity_module_mapping, include_in_path_algebra, is_indecomposable_module,
+    is_semisimple_module, is_simple_qpa_module, kernel_inclusion, lifting_inclusion_morphisms,
+    minimal_generating_set_of_module, radical_series, right_fac_approximation,
+    right_module_hom_over_algebra, right_module_over_path_algebra, socle_of_module,
+    socle_of_module_inclusion, top_of_module, top_of_module_projection, trace_of_module,
+    underlying_linear_map, zero_module, zero_module_mapping,
 };
 use rand::{RngCore, SeedableRng, rngs::StdRng};
 use serde_json::{Value, json};
@@ -78,6 +79,27 @@ use crate::{admissible_quotient_is_semisimple, enveloping_algebra, quotient_by_r
 
 fn vertex(index: usize) -> VertexIndex {
     VertexIndex::new(index).unwrap()
+}
+
+#[test]
+fn extension_fields_run_qpa_syzygy_and_projective_dimension_algorithms() {
+    for (prime, degree) in [(2, 2), (2, 3), (3, 2)] {
+        let field = GaloisField::conway(prime, degree).unwrap();
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field, quiver).unwrap());
+        let simple_one = right_module_over_path_algebra(algebra, vec![1, 0], &[])
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            first_syzygy(&simple_one).unwrap().dimension_vector(),
+            [0, 1]
+        );
+        assert_eq!(
+            proj_dimension_of_module(&simple_one, &Integer::from(3)).unwrap(),
+            Some(1)
+        );
+    }
 }
 
 fn q(value: i64) -> Rational {

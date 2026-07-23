@@ -807,6 +807,12 @@ compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_prime_field_logs.g" \
     "$repo_root/tests/fixtures/pathalg_prime_field_logs.schema-v1.json"
 compare_fixture \
+    "$repo_root/tests/gap-reference/finite_extension_fields.g" \
+    "$repo_root/tests/fixtures/finite_extension_fields.schema-v1.json"
+compare_fixture \
+    "$repo_root/tests/gap-reference/finite_extension_field_scalars.g" \
+    "$repo_root/tests/fixtures/finite_extension_field_scalars.schema-v1.json"
+compare_fixture \
     "$repo_root/tests/gap-reference/pathalg_special_biserial.g" \
     "$repo_root/tests/fixtures/pathalg_special_biserial.schema-v1.json"
 compare_fixture \

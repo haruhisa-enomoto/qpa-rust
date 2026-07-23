@@ -11,6 +11,7 @@ pub(super) enum NaturalQuotientMapKind {
     Rational(NaturalQuotientMap<RationalField>),
     Binary(NaturalQuotientMap<Z2>),
     Prime(NaturalQuotientMap<Zp>),
+    Extension(NaturalQuotientMap<GaloisField>),
 }
 
 /// QPA's natural surjection from a path algebra to its quotient by an ideal.
@@ -33,6 +34,7 @@ macro_rules! impl_natural_map_runtime {
 impl_natural_map_runtime!(RationalField, Rational);
 impl_natural_map_runtime!(Z2, Binary);
 impl_natural_map_runtime!(Zp, Prime);
+impl_natural_map_runtime!(GaloisField, Extension);
 
 pub(super) fn natural_quotient_map_for<F: runtime::PythonField>(
     ideal: &PathAlgebraIdeal<F>,

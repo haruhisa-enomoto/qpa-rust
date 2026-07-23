@@ -15,6 +15,7 @@ enum GenericModuleObjectKind {
     Rational(PathAlgebraMatModuleObject<RationalField>),
     Binary(PathAlgebraMatModuleObject<Z2>),
     Prime(PathAlgebraMatModuleObject<Zp>),
+    Extension(PathAlgebraMatModuleObject<GaloisField>),
 }
 
 #[derive(Clone)]
@@ -22,6 +23,7 @@ enum GenericModuleHomomorphismKind {
     Rational(GenericPathAlgebraModuleHomomorphism<RationalField>),
     Binary(GenericPathAlgebraModuleHomomorphism<Z2>),
     Prime(GenericPathAlgebraModuleHomomorphism<Zp>),
+    Extension(GenericPathAlgebraModuleHomomorphism<GaloisField>),
 }
 
 #[derive(Clone)]
@@ -29,6 +31,7 @@ enum GenericModuleHomSpaceKind {
     Rational(GenericPathAlgebraModuleHomSpace<RationalField>),
     Binary(GenericPathAlgebraModuleHomSpace<Z2>),
     Prime(GenericPathAlgebraModuleHomSpace<Zp>),
+    Extension(GenericPathAlgebraModuleHomSpace<GaloisField>),
 }
 
 #[derive(Clone)]
@@ -36,6 +39,7 @@ enum GenericModuleEndomorphismAlgebraKind {
     Rational(GenericPathAlgebraModuleEndomorphismAlgebra<RationalField>),
     Binary(GenericPathAlgebraModuleEndomorphismAlgebra<Z2>),
     Prime(GenericPathAlgebraModuleEndomorphismAlgebra<Zp>),
+    Extension(GenericPathAlgebraModuleEndomorphismAlgebra<GaloisField>),
 }
 
 /// One matrix mapping returned by QPA's generic path-ring `Hom` method.
@@ -88,6 +92,7 @@ macro_rules! impl_generic_hom_runtime {
 impl_generic_hom_runtime!(RationalField, Rational);
 impl_generic_hom_runtime!(Z2, Binary);
 impl_generic_hom_runtime!(Zp, Prime);
+impl_generic_hom_runtime!(GaloisField, Extension);
 
 fn object_from_python(value: &Bound<'_, PyAny>) -> PyResult<GenericModuleObjectKind> {
     if let Ok(module) = value.extract::<PyRef<'_, PyMatrixModule>>() {
@@ -101,6 +106,9 @@ fn object_from_python(value: &Bound<'_, PyAny>) -> PyResult<GenericModuleObjectK
             MatrixModuleKind::Prime(module) => {
                 GenericModuleObjectKind::Prime(module.clone().into())
             }
+            MatrixModuleKind::Extension(module) => {
+                GenericModuleObjectKind::Extension(module.clone().into())
+            }
         });
     }
     if let Ok(submodule) = value.extract::<PyRef<'_, PyModuleSubmodule>>() {
@@ -113,6 +121,9 @@ fn object_from_python(value: &Bound<'_, PyAny>) -> PyResult<GenericModuleObjectK
             }
             ModuleSubmoduleKind::Prime(submodule) => {
                 GenericModuleObjectKind::Prime(submodule.clone().into())
+            }
+            ModuleSubmoduleKind::Extension(submodule) => {
+                GenericModuleObjectKind::Extension(submodule.clone().into())
             }
         });
     }
@@ -194,6 +205,18 @@ pub(crate) fn generic_hom(
             )
             .map_err(invalid)?,
         ),
+        (
+            AlgebraKind::Extension(algebra),
+            GenericModuleObjectKind::Extension(source),
+            GenericModuleObjectKind::Extension(range),
+        ) => GenericModuleHomSpaceKind::Extension(
+            qpa_core::generic_hom_over_path_ring(
+                &QuiverAlgebra::Path(algebra.clone()),
+                source,
+                range,
+            )
+            .map_err(invalid)?,
+        ),
         _ => return Err(invalid("Hom inputs use different coefficient fields")),
     };
     Ok(PyGenericModuleHomSpace { kind })
@@ -219,6 +242,12 @@ pub(crate) fn generic_end(
         }
         (AlgebraKind::Prime(algebra), GenericModuleObjectKind::Prime(module)) => {
             GenericModuleEndomorphismAlgebraKind::Prime(
+                qpa_core::generic_end_over_path_ring(&QuiverAlgebra::Path(algebra.clone()), module)
+                    .map_err(invalid)?,
+            )
+        }
+        (AlgebraKind::Extension(algebra), GenericModuleObjectKind::Extension(module)) => {
+            GenericModuleEndomorphismAlgebraKind::Extension(
                 qpa_core::generic_end_over_path_ring(&QuiverAlgebra::Path(algebra.clone()), module)
                     .map_err(invalid)?,
             )
@@ -276,6 +305,12 @@ impl PyGenericModuleHomomorphism {
                     mapping.image(element).map_err(invalid)?,
                 ))
             }
+            (
+                GenericModuleHomomorphismKind::Extension(mapping),
+                ModuleElementKind::Extension(element),
+            ) => Ok(wrap_module_element(
+                mapping.image(element).map_err(invalid)?,
+            )),
             _ => Err(invalid(
                 "mapping and element use different coefficient fields",
             )),
@@ -469,6 +504,13 @@ impl PyGenericModuleEndomorphismAlgebra {
                 GenericModuleEndomorphismAlgebraKind::Prime(algebra),
                 GenericModuleHomomorphismKind::Prime(left),
                 GenericModuleHomomorphismKind::Prime(right),
+            ) => Ok(wrap_generic_homomorphism(
+                algebra.multiply(left, right).map_err(invalid)?,
+            )),
+            (
+                GenericModuleEndomorphismAlgebraKind::Extension(algebra),
+                GenericModuleHomomorphismKind::Extension(left),
+                GenericModuleHomomorphismKind::Extension(right),
             ) => Ok(wrap_generic_homomorphism(
                 algebra.multiply(left, right).map_err(invalid)?,
             )),

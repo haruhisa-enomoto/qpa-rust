@@ -326,6 +326,9 @@ impl PyModuleHomomorphism {
             (ModuleHomomorphismKind::Prime(map), ModuleElementKind::Prime(element)) => {
                 ModuleElementKind::Prime(map.image(element).map_err(invalid)?)
             }
+            (ModuleHomomorphismKind::Extension(map), ModuleElementKind::Extension(element)) => {
+                ModuleElementKind::Extension(map.image(element).map_err(invalid)?)
+            }
             _ => {
                 return Err(invalid(
                     "map and element belong to different coefficient fields",
@@ -525,6 +528,9 @@ impl PyModuleHomomorphism {
             Some(ModuleHomomorphismKind::Prime(_)) => {
                 multiply_lists_of_maps_for::<Zp>(projections, matrix, inclusions)
             }
+            Some(ModuleHomomorphismKind::Extension(_)) => {
+                multiply_lists_of_maps_for::<GaloisField>(projections, matrix, inclusions)
+            }
         }
     }
 
@@ -547,6 +553,12 @@ impl PyModuleHomomorphism {
                 .preimage_representative(element)
                 .map_err(invalid)?
                 .map(wrap_module_element)),
+            (ModuleHomomorphismKind::Extension(map), ModuleElementKind::Extension(element)) => {
+                Ok(map
+                    .preimage_representative(element)
+                    .map_err(invalid)?
+                    .map(wrap_module_element))
+            }
             _ => Err(invalid(
                 "map and element belong to different coefficient fields",
             )),
@@ -796,6 +808,9 @@ impl PyModuleHomomorphism {
             }
             Some(ModuleHomomorphismKind::Binary(_)) => intersection_list_for::<Z2>(homomorphisms),
             Some(ModuleHomomorphismKind::Prime(_)) => intersection_list_for::<Zp>(homomorphisms),
+            Some(ModuleHomomorphismKind::Extension(_)) => {
+                intersection_list_for::<GaloisField>(homomorphisms)
+            }
         }
     }
 
@@ -828,6 +843,9 @@ impl PyModuleHomomorphism {
             }
             Some(ModuleHomomorphismKind::Binary(_)) => sum_list_for::<Z2>(homomorphisms),
             Some(ModuleHomomorphismKind::Prime(_)) => sum_list_for::<Zp>(homomorphisms),
+            Some(ModuleHomomorphismKind::Extension(_)) => {
+                sum_list_for::<GaloisField>(homomorphisms)
+            }
         }
     }
 
@@ -873,6 +891,13 @@ impl PyModuleHomomorphism {
                 ModuleComplexKind::Prime(projective),
                 ModuleComplexKind::Prime(exact),
             ) => ModuleChainMapKind::Prime(
+                qpa_gbnp::comparison_lifting(morphism, projective, exact).map_err(invalid)?,
+            ),
+            (
+                ModuleHomomorphismKind::Extension(morphism),
+                ModuleComplexKind::Extension(projective),
+                ModuleComplexKind::Extension(exact),
+            ) => ModuleChainMapKind::Extension(
                 qpa_gbnp::comparison_lifting(morphism, projective, exact).map_err(invalid)?,
             ),
             _ => {

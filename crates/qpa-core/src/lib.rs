@@ -16,6 +16,7 @@ pub mod documentation;
 pub mod dynamic_tree;
 pub mod element_inverse;
 pub mod element_utilities;
+pub mod finite_field;
 pub mod fp_path_module;
 pub mod groebner;
 pub mod homomorphism;
@@ -110,6 +111,9 @@ pub use element_inverse::ElementInverseError;
 pub use element_utilities::{
     GeneratorVariableAssignment, GeneratorVariableError, QuiverAlgebra, QuiverAlgebraElement,
     QuiverAlgebraElementError, VertexQuotientPresentation,
+};
+pub use finite_field::{
+    FiniteFieldConstruction, GaloisField, GaloisFieldElement, GaloisFieldError,
 };
 pub use fp_path_module::{
     FpPathAlgebraByImagesHomomorphism, FpPathAlgebraEndomorphismAlgebra, FpPathAlgebraHomSpace,

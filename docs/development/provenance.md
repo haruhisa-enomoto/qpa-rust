@@ -44,6 +44,9 @@ implements.
 
 The `upstream/` directory is a local development reference. Rust source
 packages and future Python wheels must build without it and without a GAP
-installation. The checked-in fixtures and source ledger contain the necessary
-verification metadata but are not a substitute for the corresponding upstream
-license notices.
+installation. The checked-in Conway table is a generated GPL-compatible data
+derivative with its source revision recorded in its header; regeneration uses
+the pinned checkout, but ordinary builds consume only the generated table.
+The checked-in fixtures and source ledger contain the necessary verification
+metadata but are not a substitute for the corresponding upstream license
+notices.

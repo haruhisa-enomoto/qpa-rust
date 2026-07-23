@@ -211,6 +211,13 @@ pub(crate) fn py_nakayama_algebra(
         FieldKind::Rational => nakayama_for(Q, &sequence),
         FieldKind::Binary => nakayama_for(Z2, &sequence),
         FieldKind::Prime(characteristic) => nakayama_for(Zp::new(characteristic), &sequence),
+        FieldKind::Extension { .. } => nakayama_for(
+            field
+                .kind
+                .galois_field()
+                .ok_or_else(|| invalid("expected an extension field"))?,
+            &sequence,
+        ),
     }
 }
 
@@ -252,6 +259,15 @@ pub(crate) fn py_canonical_algebra(
         FieldKind::Prime(characteristic) => {
             canonical_for(py, Zp::new(characteristic), &weights, relation_coefficients)
         }
+        FieldKind::Extension { .. } => canonical_for(
+            py,
+            field
+                .kind
+                .galois_field()
+                .ok_or_else(|| invalid("expected an extension field"))?,
+            &weights,
+            relation_coefficients,
+        ),
     }
 }
 
@@ -281,6 +297,13 @@ pub(crate) fn py_kronecker_algebra(
         FieldKind::Prime(characteristic) => {
             kronecker_for(Zp::new(characteristic), &number_of_arrows)
         }
+        FieldKind::Extension { .. } => kronecker_for(
+            field
+                .kind
+                .galois_field()
+                .ok_or_else(|| invalid("expected an extension field"))?,
+            &number_of_arrows,
+        ),
     }
 }
 
@@ -304,6 +327,13 @@ pub(crate) fn py_poset_algebra(field: &PyField, poset: &PyPoset) -> PyResult<PyP
         FieldKind::Rational => poset_algebra_for(Q, poset),
         FieldKind::Binary => poset_algebra_for(Z2, poset),
         FieldKind::Prime(characteristic) => poset_algebra_for(Zp::new(characteristic), poset),
+        FieldKind::Extension { .. } => poset_algebra_for(
+            field
+                .kind
+                .galois_field()
+                .ok_or_else(|| invalid("expected an extension field"))?,
+            poset,
+        ),
     }
 }
 
@@ -346,6 +376,14 @@ macro_rules! finite_global_constructor {
                 FieldKind::Prime(characteristic) => {
                     finite_global_for(Zp::new(characteristic), &number, $qpa)
                 }
+                FieldKind::Extension { .. } => finite_global_for(
+                    field
+                        .kind
+                        .galois_field()
+                        .ok_or_else(|| invalid("expected an extension field"))?,
+                    &number,
+                    $qpa,
+                ),
             }
         }
     };

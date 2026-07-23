@@ -23,6 +23,7 @@ enum FpModuleKind {
     Rational(RightFpPathAlgebraModule<RationalField>),
     Binary(RightFpPathAlgebraModule<Z2>),
     Prime(RightFpPathAlgebraModule<Zp>),
+    Extension(RightFpPathAlgebraModule<GaloisField>),
 }
 
 #[pyclass(name = "RightFpPathAlgebraModule", frozen, skip_from_py_object)]
@@ -36,6 +37,7 @@ enum FpVectorKind {
     Rational(FpPathAlgebraVector<RationalField>),
     Binary(FpPathAlgebraVector<Z2>),
     Prime(FpPathAlgebraVector<Zp>),
+    Extension(FpPathAlgebraVector<GaloisField>),
 }
 
 #[pyclass(name = "FpPathAlgebraVector", frozen, skip_from_py_object)]
@@ -49,6 +51,7 @@ enum FpSubmoduleKind {
     Rational(RightFpPathAlgebraSubmodule<RationalField>),
     Binary(RightFpPathAlgebraSubmodule<Z2>),
     Prime(RightFpPathAlgebraSubmodule<Zp>),
+    Extension(RightFpPathAlgebraSubmodule<GaloisField>),
 }
 
 #[pyclass(name = "RightFpPathAlgebraSubmodule", frozen, skip_from_py_object)]
@@ -62,6 +65,7 @@ enum NaturalHomomorphismKind {
     Rational(NaturalSubmoduleHomomorphism<RationalField>),
     Binary(NaturalSubmoduleHomomorphism<Z2>),
     Prime(NaturalSubmoduleHomomorphism<Zp>),
+    Extension(NaturalSubmoduleHomomorphism<GaloisField>),
 }
 
 #[pyclass(name = "NaturalSubmoduleHomomorphism", frozen, skip_from_py_object)]
@@ -75,6 +79,7 @@ enum FpByImagesHomomorphismKind {
     Rational(FpPathAlgebraByImagesHomomorphism<RationalField>),
     Binary(FpPathAlgebraByImagesHomomorphism<Z2>),
     Prime(FpPathAlgebraByImagesHomomorphism<Zp>),
+    Extension(FpPathAlgebraByImagesHomomorphism<GaloisField>),
 }
 
 /// QPA's by-images representation used by its first `ImagesSource` overload.
@@ -93,6 +98,7 @@ enum FpMatrixHomomorphismKind {
     Rational(FpPathAlgebraMatrixHomomorphism<RationalField>),
     Binary(FpPathAlgebraMatrixHomomorphism<Z2>),
     Prime(FpPathAlgebraMatrixHomomorphism<Zp>),
+    Extension(FpPathAlgebraMatrixHomomorphism<GaloisField>),
 }
 
 /// QPA's matrix representation used by its second `ImagesSource` overload.
@@ -158,6 +164,7 @@ macro_rules! impl_fp_runtime {
 impl_fp_runtime!(RationalField, Rational);
 impl_fp_runtime!(Z2, Binary);
 impl_fp_runtime!(Zp, Prime);
+impl_fp_runtime!(GaloisField, Extension);
 
 fn wrap_vectors<F: Field>(values: Vec<FpPathAlgebraVector<F>>) -> Vec<PyFpPathAlgebraVector>
 where
@@ -278,6 +285,13 @@ pub(super) fn hom(
         (AlgebraKind::Prime(algebra), FpModuleKind::Prime(source), FpModuleKind::Prime(range)) => {
             hom_of_fp_path_algebra_modules(algebra, source, range).map_err(invalid)?;
         }
+        (
+            AlgebraKind::Extension(algebra),
+            FpModuleKind::Extension(source),
+            FpModuleKind::Extension(range),
+        ) => {
+            hom_of_fp_path_algebra_modules(algebra, source, range).map_err(invalid)?;
+        }
         _ => return Err(invalid("Hom inputs use different coefficient fields")),
     }
     Ok(())
@@ -292,6 +306,9 @@ pub(super) fn end(algebra: &PyPathAlgebra, module: &PyRightFpPathAlgebraModule) 
             end_of_fp_path_algebra_module(algebra, module).map_err(invalid)?;
         }
         (AlgebraKind::Prime(algebra), FpModuleKind::Prime(module)) => {
+            end_of_fp_path_algebra_module(algebra, module).map_err(invalid)?;
+        }
+        (AlgebraKind::Extension(algebra), FpModuleKind::Extension(module)) => {
             end_of_fp_path_algebra_module(algebra, module).map_err(invalid)?;
         }
         _ => return Err(invalid("End inputs use different coefficient fields")),
@@ -319,6 +336,12 @@ pub(super) fn natural_quotient(
                 natural_homomorphism_by_projective_submodule(parent, submodule).map_err(invalid)?,
             )
         }
+        (
+            ProjectiveModuleKind::Extension(parent),
+            ProjectiveSubmoduleKind::Extension(submodule),
+        ) => NaturalHomomorphismKind::Extension(
+            natural_homomorphism_by_projective_submodule(parent, submodule).map_err(invalid)?,
+        ),
         _ => {
             return Err(invalid(
                 "the projective module and submodule use different coefficient fields",
@@ -407,6 +430,10 @@ impl PyNaturalSubmoduleHomomorphism {
             (NaturalHomomorphismKind::Prime(mapping), ProjectiveVectorKind::Prime(vector)) => {
                 FpVectorKind::Prime(mapping.image(vector).map_err(invalid)?)
             }
+            (
+                NaturalHomomorphismKind::Extension(mapping),
+                ProjectiveVectorKind::Extension(vector),
+            ) => FpVectorKind::Extension(mapping.image(vector).map_err(invalid)?),
             _ => {
                 return Err(invalid(
                     "the mapping and vector use different coefficient fields",

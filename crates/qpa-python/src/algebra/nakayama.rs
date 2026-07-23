@@ -21,6 +21,7 @@ pub(super) enum NakayamaPermutationKind {
     Rational(NakayamaPermutation<RationalField>),
     Binary(NakayamaPermutation<Z2>),
     Prime(NakayamaPermutation<Zp>),
+    Extension(NakayamaPermutation<GaloisField>),
 }
 
 #[derive(Clone)]
@@ -28,6 +29,7 @@ pub(super) enum NakayamaAutomorphismKind {
     Rational(NakayamaAutomorphism<RationalField>),
     Binary(NakayamaAutomorphism<Z2>),
     Prime(NakayamaAutomorphism<Zp>),
+    Extension(NakayamaAutomorphism<GaloisField>),
 }
 
 #[derive(Clone)]
@@ -35,6 +37,7 @@ pub(super) enum FrobeniusFormKind {
     Rational(FrobeniusForm<RationalField>),
     Binary(FrobeniusForm<Z2>),
     Prime(FrobeniusForm<Zp>),
+    Extension(FrobeniusForm<GaloisField>),
 }
 
 #[derive(Clone)]
@@ -42,6 +45,7 @@ pub(super) enum FrobeniusLinearFunctionalKind {
     Rational(FrobeniusLinearFunctional<RationalField>),
     Binary(FrobeniusLinearFunctional<Z2>),
     Prime(FrobeniusLinearFunctional<Zp>),
+    Extension(FrobeniusLinearFunctional<GaloisField>),
 }
 
 /// QPA's two captured Nakayama-permutation closures.
@@ -103,6 +107,7 @@ macro_rules! impl_nakayama_runtime {
 impl_nakayama_runtime!(RationalField, Rational);
 impl_nakayama_runtime!(Z2, Binary);
 impl_nakayama_runtime!(Zp, Prime);
+impl_nakayama_runtime!(GaloisField, Extension);
 
 fn matrix_rows<F: runtime::PythonField>(matrix: &DenseMatrix<F>) -> Vec<Vec<PyScalar>> {
     (0..matrix.nrows())

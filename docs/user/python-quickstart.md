@@ -27,8 +27,8 @@ it is not an independently selected quotient algorithm.
 
 ## Exact fields and scalars
 
-The initial Python coefficient contract provides exact rationals and prime
-fields:
+The Python coefficient contract provides exact rationals, prime fields, and
+canonical finite extensions:
 
 ```python
 rationals = qpa.Field.rational()
@@ -37,13 +37,21 @@ two_thirds = rationals.element(2, 3)
 field7 = qpa.Field.prime(7)
 four = field7.element(11)  # 4 mod 7
 
+field9 = qpa.Field.extension(3, 2)
+z = field9.primitive_element()
+
 assert two_thirds.numerator == "2"
 assert two_thirds.denominator == "3"
 assert four.representative == 4
+assert z.coefficients == [0, 1]
+assert field9.frobenius(z, 1).coefficients == [1, 2]
 ```
 
-`Field.prime(p)` verifies that `p` is prime. Floating-point coefficients are
-not accepted: construct an exact numerator and denominator instead.
+`Field.prime(p)` and `Field.extension(p, n)` verify the field descriptor.
+Extension fields use GAP's Conway model, so their designated generators and
+canonical subfield embeddings agree with QPA. Floating-point coefficients are
+not accepted: construct exact integers, fractions, or polynomial-basis
+coefficient vectors instead.
 
 ## Quivers and paths
 

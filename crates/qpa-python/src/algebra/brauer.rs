@@ -223,5 +223,12 @@ pub(crate) fn py_brauer_configuration_algebra(
         FieldKind::Prime(characteristic) => {
             brauer_for(Zp::new(characteristic), &mut configuration.inner)
         }
+        FieldKind::Extension { .. } => brauer_for(
+            field
+                .kind
+                .galois_field()
+                .ok_or_else(|| invalid("expected an extension field"))?,
+            &mut configuration.inner,
+        ),
     }
 }

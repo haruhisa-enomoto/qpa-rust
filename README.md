@@ -15,9 +15,10 @@ from Python, two are represented directly by Python types, and three are
 explicit unavailable boundaries for which pinned QPA itself installs no
 callable method. No operation remains planned or partially exposed.
 
-The initial exact coefficient contract uses Numerica and admits the rational
-field and supported prime fields. Finite extension fields are a later
-coefficient tier.
+The exact coefficient contract uses Numerica for rational and prime fields and
+a local Numerica-compatible `GaloisField` for `GF(p^n)`. Canonical extensions
+use the pinned GAP Conway data and construction semantics; QPA remains the
+algorithmic specification above the coefficient layer.
 
 ## Python quick start
 

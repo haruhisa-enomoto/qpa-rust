@@ -686,6 +686,17 @@ impl PyModuleComplex {
                     .map_err(invalid)?,
                 )
             }
+            (ModuleComplexKind::Extension(source), ModuleComplexKind::Extension(range)) => {
+                ModuleChainMapKind::Extension(
+                    qpa_gbnp::finite_chain_map(
+                        source.clone(),
+                        range.clone(),
+                        Integer::from(base_degree),
+                        runtime::extract_all(morphisms)?,
+                    )
+                    .map_err(invalid)?,
+                )
+            }
             _ => {
                 return Err(invalid(
                     "source and range complexes belong to different coefficient fields",
@@ -943,6 +954,19 @@ impl PyExtOverAlgebraResult {
                 }))
             }
             (ExtOverAlgebraKind::Prime(result), ModuleHomomorphismKind::Prime(map)) => {
+                let field = result
+                    .syzygy_inclusion()
+                    .source()
+                    .right_acting_algebra()
+                    .field();
+                Ok(result.coefficients(map).map_err(invalid)?.map(|values| {
+                    values
+                        .iter()
+                        .map(|value| field.wrap_scalar(value))
+                        .collect()
+                }))
+            }
+            (ExtOverAlgebraKind::Extension(result), ModuleHomomorphismKind::Extension(map)) => {
                 let field = result
                     .syzygy_inclusion()
                     .source()

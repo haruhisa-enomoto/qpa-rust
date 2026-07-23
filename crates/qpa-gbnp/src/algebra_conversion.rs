@@ -1230,7 +1230,7 @@ mod tests {
         rational::{Q, Rational},
     };
     use qpa_core::{
-        ArrowSpec, DenseMatrix, NamedArrowMatrix, PathAlgebra, PathAlgebraModule,
+        ArrowSpec, DenseMatrix, GaloisField, NamedArrowMatrix, PathAlgebra, PathAlgebraModule,
         QpaCoefficientField, Quiver, QuiverAlgebra, StructureConstantsAlgebra, VertexIndex,
         direct_sum_of_qpa_modules, right_module_over_path_algebra,
     };
@@ -1595,6 +1595,25 @@ mod tests {
             converted.quiver_algebra(),
             QuiverAlgebra::Path(algebra) if algebra.canonical_basis().unwrap().len() == 1
         ));
+    }
+
+    #[test]
+    fn extension_fields_run_qpa_endomorphism_quiver_algorithms() {
+        for (prime, degree) in [(2, 2), (2, 3), (3, 2)] {
+            let field = GaloisField::conway(prime, degree).unwrap();
+            let basic = basic_end_json(
+                &basic_end_modules(field.clone()),
+                &|coefficient| json!(coefficient.coefficients()),
+                None,
+            );
+            assert_eq!(basic["dimension"], 5);
+            assert_eq!(basic["adjacency"], json!([[0, 0, 0], [1, 0, 0], [0, 1, 0]]));
+
+            let regular = end_of_module_json(field);
+            assert_eq!(regular["endomorphism_dimension"], 2);
+            assert_eq!(regular["adjacency"], json!([[1]]));
+            assert_eq!(regular["quiver_algebra_dimension"], 2);
+        }
     }
 
     #[test]

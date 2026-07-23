@@ -162,7 +162,9 @@ pub fn are_derived_equivalent<F: QpaCoefficientField, G: QpaCoefficientField>(
 ) -> Result<bool, GentleCombinatorialMapError> {
     require_gentle(left)?;
     require_gentle(right)?;
-    if left.field().qpa_characteristic() != right.field().qpa_characteristic() {
+    if left.field().qpa_characteristic() != right.field().qpa_characteristic()
+        || left.field().qpa_order() != right.field().qpa_order()
+    {
         return Ok(false);
     }
 

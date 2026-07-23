@@ -21,6 +21,7 @@ enum PathAlgebraVectorXSetKind {
     Rational(PathAlgebraVectorXSet<RationalField>),
     Binary(PathAlgebraVectorXSet<Z2>),
     Prime(PathAlgebraVectorXSet<Zp>),
+    Extension(PathAlgebraVectorXSet<GaloisField>),
 }
 
 /// QPA's positional O-set/N-set result from `XSetOfPathAlgebraVector`.
@@ -43,6 +44,7 @@ macro_rules! impl_x_set_runtime {
 impl_x_set_runtime!(RationalField, Rational);
 impl_x_set_runtime!(Z2, Binary);
 impl_x_set_runtime!(Zp, Prime);
+impl_x_set_runtime!(GaloisField, Extension);
 
 fn clone_vector_kinds(
     py: Python<'_>,
@@ -152,6 +154,9 @@ pub(super) fn vector_left_division(
         (ProjectiveVectorKind::Prime(left), ProjectiveVectorKind::Prime(right)) => {
             left_division_for(left, right)
         }
+        (ProjectiveVectorKind::Extension(left), ProjectiveVectorKind::Extension(right)) => {
+            left_division_for(left, right)
+        }
         _ => Err(invalid(
             "path-algebra vectors use different coefficient fields",
         )),
@@ -172,6 +177,7 @@ pub(super) fn tip_reduce(
         ProjectiveVectorKind::Rational(_) => tip_reduce_list_for::<RationalField>(vectors),
         ProjectiveVectorKind::Binary(_) => tip_reduce_list_for::<Z2>(vectors),
         ProjectiveVectorKind::Prime(_) => tip_reduce_list_for::<Zp>(vectors),
+        ProjectiveVectorKind::Extension(_) => tip_reduce_list_for::<GaloisField>(vectors),
     }
 }
 
@@ -185,6 +191,7 @@ pub(super) fn tip_reduce_by(
         ProjectiveVectorKind::Rational(vector) => tip_reduce_vector_for(vector, reducers),
         ProjectiveVectorKind::Binary(vector) => tip_reduce_vector_for(vector, reducers),
         ProjectiveVectorKind::Prime(vector) => tip_reduce_vector_for(vector, reducers),
+        ProjectiveVectorKind::Extension(vector) => tip_reduce_vector_for(vector, reducers),
     }
 }
 
@@ -200,6 +207,7 @@ pub(super) fn first_part_of(
         ProjectiveVectorKind::Rational(vector) => first_part_for(vector, f, f_prime),
         ProjectiveVectorKind::Binary(vector) => first_part_for(vector, f, f_prime),
         ProjectiveVectorKind::Prime(vector) => first_part_for(vector, f, f_prime),
+        ProjectiveVectorKind::Extension(vector) => first_part_for(vector, f, f_prime),
     }
 }
 
@@ -220,6 +228,9 @@ pub(super) fn x_set(
             x_set_for(vector, ideal, f, f_prime)
         }
         (ProjectiveVectorKind::Prime(vector), IdealKind::Prime(ideal)) => {
+            x_set_for(vector, ideal, f, f_prime)
+        }
+        (ProjectiveVectorKind::Extension(vector), IdealKind::Extension(ideal)) => {
             x_set_for(vector, ideal, f, f_prime)
         }
         _ => Err(invalid(

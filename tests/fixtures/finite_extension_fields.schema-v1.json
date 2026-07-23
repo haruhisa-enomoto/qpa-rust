@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "kind": "finite_extension_fields",
+  "cases": [
+    {
+      "order": 4,
+      "characteristic": 2,
+      "degree": 2,
+      "conway": [1, 1, 1],
+      "syzygy_dimension": [0, 1],
+      "projective_dimension": 1,
+      "decomposition_dimensions": [[1, 0], [1, 1]],
+      "multiplicities": [2],
+      "simple_submodule_count": 5,
+      "all_submodule_levels": [1, 6, 6, 1],
+      "basic_endomorphism_adjacency": [[0, 0, 0], [1, 0, 0], [0, 1, 0]],
+      "basic_endomorphism_dimension": 5,
+      "regular_endomorphism_dimension": 2,
+      "regular_endomorphism_adjacency": [[1]]
+    },
+    {
+      "order": 8,
+      "characteristic": 2,
+      "degree": 3,
+      "conway": [1, 1, 0, 1],
+      "syzygy_dimension": [0, 1],
+      "projective_dimension": 1,
+      "decomposition_dimensions": [[1, 0], [1, 1]],
+      "multiplicities": [2],
+      "simple_submodule_count": 9,
+      "all_submodule_levels": [1, 10, 10, 1],
+      "basic_endomorphism_adjacency": [[0, 0, 0], [1, 0, 0], [0, 1, 0]],
+      "basic_endomorphism_dimension": 5,
+      "regular_endomorphism_dimension": 2,
+      "regular_endomorphism_adjacency": [[1]]
+    },
+    {
+      "order": 9,
+      "characteristic": 3,
+      "degree": 2,
+      "conway": [2, 2, 1],
+      "syzygy_dimension": [0, 1],
+      "projective_dimension": 1,
+      "decomposition_dimensions": [[1, 0], [1, 1]],
+      "multiplicities": [2],
+      "simple_submodule_count": 10,
+      "all_submodule_levels": [1, 11, 11, 1],
+      "basic_endomorphism_adjacency": [[0, 0, 0], [1, 0, 0], [0, 1, 0]],
+      "basic_endomorphism_dimension": 5,
+      "regular_endomorphism_dimension": 2,
+      "regular_endomorphism_adjacency": [[1]]
+    }
+  ]
+}

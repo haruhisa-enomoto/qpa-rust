@@ -59,7 +59,10 @@ fn qpa_list(values: impl IntoIterator<Item = String>) -> String {
 fn qpa_quiver_algebra_view<F: QpaCoefficientField>(algebra: &QuiverAlgebra<F>) -> String {
     let field = match algebra.field().qpa_characteristic() {
         QpaFieldCharacteristic::Zero => "Rationals".to_owned(),
-        QpaFieldCharacteristic::Prime(prime) => format!("GF({prime})"),
+        QpaFieldCharacteristic::Prime(prime) => algebra
+            .field()
+            .qpa_order()
+            .map_or_else(|| format!("GF({prime})"), |order| format!("GF({order})")),
     };
     let quiver = algebra.quiver();
     let parent = format!(
