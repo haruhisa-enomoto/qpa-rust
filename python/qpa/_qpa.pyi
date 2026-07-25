@@ -38,6 +38,7 @@ _CombinedHalfSpecification = (
 
 PositiveInfinity: str
 NegativeInfinity: str
+PORT_GIT_COMMIT: str
 
 
 class QpaError(Exception): ...

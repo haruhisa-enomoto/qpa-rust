@@ -307,6 +307,7 @@ fn register_modules(module: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[pymodule]
 fn _qpa(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add("PORT_GIT_COMMIT", env!("QPA_PORT_GIT_COMMIT"))?;
     module.add("QpaError", module.py().get_type::<QpaError>())?;
     module.add(
         "InvalidInputError",

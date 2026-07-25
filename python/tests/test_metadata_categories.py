@@ -1,14 +1,24 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
 
 import qpa
+from qpa import _qpa
 
 
 FIXTURES = Path(__file__).resolve().parents[2] / "tests" / "fixtures"
+
+
+def test_build_exposes_port_git_commit() -> None:
+    assert qpa.PORT_GIT_COMMIT == _qpa.PORT_GIT_COMMIT
+    assert qpa.PORT_GIT_COMMIT == "unknown" or re.fullmatch(
+        r"(?:[0-9a-f]{40}|[0-9a-f]{64})(?:-dirty)?",
+        qpa.PORT_GIT_COMMIT,
+    )
 
 
 def _gap_list(values: list[object]) -> str:

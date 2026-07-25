@@ -5,6 +5,7 @@ complete pinned QPA surface, including explicit represented and unavailable
 boundaries.
 """
 
+from . import _qpa
 from ._qpa import (
     AddMCoresolution,
     AddMResolution,
@@ -186,7 +187,10 @@ from ._qpa import (
     unique_quiver_name,
 )
 
+PORT_GIT_COMMIT: str = getattr(_qpa, "PORT_GIT_COMMIT", "unknown")
+
 __all__ = [
+    "PORT_GIT_COMMIT",
     "AddMCoresolution",
     "AddMResolution",
     "AdrAlgebraOfAlgebraResult",
