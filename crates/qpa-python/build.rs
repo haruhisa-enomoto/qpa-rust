@@ -91,14 +91,25 @@ fn main() {
     watch_git_identity(&root);
     watch_engine_sources(&root);
 
-    let base_commit = match env::var("QPA_PORT_GIT_COMMIT") {
-        Ok(value) if valid_full_object_id(&value) => value.to_ascii_lowercase(),
+    let configured_commit = match env::var("QPA_PORT_GIT_COMMIT") {
+        Ok(value) if valid_full_object_id(&value) => Some(value.to_ascii_lowercase()),
         Ok(value) => panic!(
             "QPA_PORT_GIT_COMMIT must be a full 40- or 64-character Git object ID, got {value:?}"
         ),
-        Err(_) => git_output(&root, &["rev-parse", "--verify", "HEAD"])
-            .filter(|value| valid_full_object_id(value))
-            .unwrap_or_else(|| UNKNOWN_COMMIT.to_owned()),
+        Err(_) => None,
+    };
+    let git_commit = git_output(&root, &["rev-parse", "--verify", "HEAD"])
+        .filter(|value| valid_full_object_id(value));
+    if let (Some(configured), Some(actual)) = (&configured_commit, &git_commit) {
+        assert_eq!(
+            configured, actual,
+            "QPA_PORT_GIT_COMMIT may not override the Git checkout's actual HEAD"
+        );
+    }
+    let base_commit = match (git_commit, configured_commit) {
+        (Some(actual), _) => actual,
+        (None, Some(configured)) => configured,
+        (None, None) => UNKNOWN_COMMIT.to_owned(),
     };
     let commit = if base_commit != UNKNOWN_COMMIT && engine_sources_are_dirty(&root) {
         format!("{base_commit}-dirty")
