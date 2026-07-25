@@ -57,6 +57,16 @@ pub(crate) struct PyGszProjectiveResolution {
     kind: GszProjectiveResolutionKind,
 }
 
+/// Exact vertexwise homology of a projective resolution modulo the arrow
+/// ideal.
+#[pyclass(name = "SemisimpleResolutionHomology", frozen, skip_from_py_object)]
+#[derive(Clone)]
+pub(crate) struct PySemisimpleResolutionHomology {
+    projective_vertex_multiplicities: Vec<Vec<usize>>,
+    differential_vertex_ranks: Vec<Vec<usize>>,
+    homology_vertex_dimensions: Vec<Vec<usize>>,
+}
+
 macro_rules! impl_projective_presentation_runtime {
     ($field:ty, $variant:ident) => {
         impl runtime::Wrap<qpa_gbnp::ProjectivePathAlgebraPresentation<$field>>
@@ -917,6 +927,42 @@ impl PyGszProjectiveResolution {
     fn finite_at_projective(&self) -> Option<usize> {
         dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| value
             .finite_at_projective())
+    }
+
+    fn semisimple_homology(&self) -> PyResult<PySemisimpleResolutionHomology> {
+        dispatch_ref!(&self.kind, GszProjectiveResolutionKind, |value| {
+            let result = value.semisimple_homology().map_err(invalid)?;
+            Ok(PySemisimpleResolutionHomology {
+                projective_vertex_multiplicities: (result
+                    .projective_vertex_multiplicities()
+                    .to_vec()),
+                differential_vertex_ranks: (result.differential_vertex_ranks().to_vec()),
+                homology_vertex_dimensions: (result.homology_vertex_dimensions().to_vec()),
+            })
+        })
+    }
+}
+
+#[pymethods]
+impl PySemisimpleResolutionHomology {
+    #[getter]
+    fn projective_vertex_multiplicities(&self) -> Vec<Vec<usize>> {
+        self.projective_vertex_multiplicities.clone()
+    }
+
+    #[getter]
+    fn differential_vertex_ranks(&self) -> Vec<Vec<usize>> {
+        self.differential_vertex_ranks.clone()
+    }
+
+    #[getter]
+    fn homology_vertex_dimensions(&self) -> Vec<Vec<usize>> {
+        self.homology_vertex_dimensions.clone()
+    }
+
+    #[getter]
+    fn minimal_projective_betti_multiplicities(&self) -> Vec<Vec<usize>> {
+        self.homology_vertex_dimensions.clone()
     }
 }
 

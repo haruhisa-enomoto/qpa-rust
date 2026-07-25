@@ -56,5 +56,34 @@ For complexes, use `MatrixModule.projective_resolution_complex()` or the
 explicit `ModuleComplex` constructors. Homology is obtained with
 `complex.homology(degree)`.
 
+## Minimal Betti data from a GSZ resolution
+
+A GSZ resolution need not be minimal. For an admissible quotient,
+`GszProjectiveResolution.semisimple_homology()` reduces its differentials
+modulo the arrow ideal and computes exact vertexwise homology:
+
+```python
+import qpa
+
+field = qpa.Field.prime(5)
+quiver = qpa.Quiver(["v"], [("v", "v", "x")])
+algebra = qpa.QuotientAlgebra.truncated(field, quiver, 2)
+x = algebra.generator("x")
+gsz = algebra.projective_resolution_fp_path_algebra_module(
+    algebra.ideal, [[x]], 4
+)
+betti = gsz.semisimple_homology()
+
+assert betti.minimal_projective_betti_multiplicities == [[1], [1], [1], [1]]
+```
+
+The homology rows are the indecomposable-projective multiplicities in the
+minimal resolution, even when the stored GSZ terms contain cancellable
+summands. The result also exposes the raw projective multiplicities and the
+vertexwise ranks of the reduced differentials. A nonterminal GSZ prefix
+through `d_T` certifies Betti rows only through degree `T - 1`; an empty
+terminal differential also certifies the preceding final projective degree.
+The operation rejects nonadmissible quotients.
+
 The checked complete example is
 [`docs/examples/python/homological.py`](../examples/python/homological.py).

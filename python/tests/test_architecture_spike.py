@@ -3219,6 +3219,74 @@ def test_gsz_projective_resolution_follows_qpa(field: qpa.Field) -> None:
         explicit.find_next_syzygy(1)
 
 
+@pytest.mark.parametrize(
+    "field",
+    [
+        qpa.Field.rational(),
+        qpa.Field.prime(2),
+        qpa.Field.prime(5),
+        qpa.Field.extension(2, 2),
+    ],
+)
+def test_gsz_semisimple_homology_recovers_minimal_betti_data(
+    field: qpa.Field,
+) -> None:
+    quiver = qpa.Quiver.indexed(
+        5,
+        [
+            (1, 2, "a"),
+            (2, 4, "b"),
+            (1, 3, "c"),
+            (3, 4, "d"),
+            (4, 5, "e"),
+            (4, 5, "f"),
+        ],
+    )
+    parent = qpa.PathAlgebra(field, quiver)
+    a, b, c, d, e, f = (
+        parent.generator(name) for name in "abcdef"
+    )
+    algebra = parent.quotient([a * b - c * d, b * f, d * e])
+    resolution = algebra.projective_resolution_fp_path_algebra_module(
+        algebra.ideal,
+        [[algebra.generator("a")], [algebra.generator("c")]],
+        4,
+    )
+
+    assert resolution.finite_at_projective == 4
+    homology = resolution.semisimple_homology()
+    assert len(homology.projective_vertex_multiplicities) == 4
+    assert len(homology.differential_vertex_ranks) == 5
+    assert homology.homology_vertex_dimensions == [
+        [1, 0, 0, 0, 0],
+        [0, 1, 1, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0],
+    ]
+
+
+def test_gsz_semisimple_homology_rejects_nonadmissible_quotients() -> None:
+    field = qpa.Field.prime(2)
+    parent = qpa.PathAlgebra(
+        field,
+        qpa.Quiver(["v"], [("v", "v", "x")]),
+    )
+    x = parent.generator("x")
+    algebra = parent.quotient([x - x.pow(2)])
+    resolution = algebra.projective_resolution_fp_path_algebra_module(
+        algebra.ideal,
+        [[algebra.generator("x")]],
+        3,
+    )
+
+    assert not algebra.is_admissible
+    with pytest.raises(
+        qpa.InvalidInputError,
+        match="requires an admissible quotient",
+    ):
+        resolution.semisimple_homology()
+
+
 def _combinatorial_map_data(combinatorial_map: qpa.CombinatorialMap) -> dict[str, object]:
     return {
         "size": combinatorial_map.size,

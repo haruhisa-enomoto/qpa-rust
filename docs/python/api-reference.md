@@ -7,8 +7,8 @@ complete Python signature reference; the task-oriented guide explains the
 main mathematical workflows. For the originating GAP/QPA name and source
 file, use the [QPA operation index](qpa-operation-index.md).
 
-The current surface contains 140 classes, 35 module-level functions,
-and 1848 class methods or properties.
+The current surface contains 141 classes, 35 module-level functions,
+and 1853 class methods or properties.
 
 ## Module constants
 
@@ -8803,6 +8803,12 @@ def GszProjectiveResolution.set_projectives_f_prime_list(self, rows: list[list[P
 def GszProjectiveResolution.finite_at_projective(self) -> int | None
 ```
 
+#### `GszProjectiveResolution.semisimple_homology` (method)
+
+```python
+def GszProjectiveResolution.semisimple_homology(self) -> SemisimpleResolutionHomology
+```
+
 #### `GszProjectiveResolution.find_next_r_projective` (method)
 
 ```python
@@ -8813,6 +8819,36 @@ def GszProjectiveResolution.find_next_r_projective(self, ring: PathAlgebra, term
 
 ```python
 def GszProjectiveResolution.find_next_syzygy(self, term: int) -> None
+```
+
+### `qpa.SemisimpleResolutionHomology`
+
+```python
+class SemisimpleResolutionHomology
+```
+
+#### `SemisimpleResolutionHomology.projective_vertex_multiplicities` (property)
+
+```python
+def SemisimpleResolutionHomology.projective_vertex_multiplicities(self) -> list[list[int]]
+```
+
+#### `SemisimpleResolutionHomology.differential_vertex_ranks` (property)
+
+```python
+def SemisimpleResolutionHomology.differential_vertex_ranks(self) -> list[list[int]]
+```
+
+#### `SemisimpleResolutionHomology.homology_vertex_dimensions` (property)
+
+```python
+def SemisimpleResolutionHomology.homology_vertex_dimensions(self) -> list[list[int]]
+```
+
+#### `SemisimpleResolutionHomology.minimal_projective_betti_multiplicities` (property)
+
+```python
+def SemisimpleResolutionHomology.minimal_projective_betti_multiplicities(self) -> list[list[int]]
 ```
 
 ### `qpa.BasedRightAlgebraModule`

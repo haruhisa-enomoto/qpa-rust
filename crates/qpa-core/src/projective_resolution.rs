@@ -11,8 +11,8 @@ use numerica::domains::Field;
 use thiserror::Error;
 
 use crate::{
-    CachedAttribute, Path, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal, PathAlgebraVector,
-    PathEndpoint, ProjectivePathModuleError, QuotientError, QuotientPathAlgebra,
+    CachedAttribute, DenseMatrix, Path, PathAlgebra, PathAlgebraElement, PathAlgebraIdeal,
+    PathAlgebraVector, PathEndpoint, ProjectivePathModuleError, QuotientError, QuotientPathAlgebra,
     QuotientPathAlgebraElement, RightProjectivePathAlgebraModule,
     RightProjectivePathAlgebraSubmodule, VertexIndex, first_part,
     right_projective_path_algebra_module, x_set_of_path_algebra_vector,
@@ -830,6 +830,54 @@ pub struct ProjectiveResolutionFpPathAlgebraModule<F: Field> {
     finite_at_projective: Option<usize>,
 }
 
+/// Homology after tensoring a projective resolution with the vertex
+/// semisimple quotient of an admissible path-algebra quotient.
+///
+/// Rows are ordered by homological degree and columns by the one-based quiver
+/// vertex order.  `differential_vertex_ranks[0]` is the zero differential;
+/// row `n` for `n > 0` records the vertexwise rank of `d_n`.  Homology is
+/// returned only through degrees for which both adjacent differentials were
+/// computed.  Its dimensions are the vertex multiplicities in the minimal
+/// projective resolution.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SemisimpleProjectiveResolutionHomology {
+    projective_vertex_multiplicities: Vec<Vec<usize>>,
+    differential_vertex_ranks: Vec<Vec<usize>>,
+    homology_vertex_dimensions: Vec<Vec<usize>>,
+}
+
+impl SemisimpleProjectiveResolutionHomology {
+    /// Return the vertex multiplicities of every available projective term.
+    #[must_use]
+    pub fn projective_vertex_multiplicities(&self) -> &[Vec<usize>] {
+        &self.projective_vertex_multiplicities
+    }
+
+    /// Return the vertexwise ranks of the reduced differentials.
+    #[must_use]
+    pub fn differential_vertex_ranks(&self) -> &[Vec<usize>] {
+        &self.differential_vertex_ranks
+    }
+
+    /// Return the vertexwise semisimple homology dimensions.
+    ///
+    /// For an admissible quotient these are the projective multiplicities in
+    /// the minimal resolution.
+    #[must_use]
+    pub fn homology_vertex_dimensions(&self) -> &[Vec<usize>] {
+        &self.homology_vertex_dimensions
+    }
+
+    /// Return the minimal projective Betti multiplicities.
+    ///
+    /// This is the same data as [`Self::homology_vertex_dimensions`], named
+    /// for its use in bounded projective-dimension decisions.
+    #[must_use]
+    pub fn minimal_projective_betti_multiplicities(&self) -> &[Vec<usize>] {
+        &self.homology_vertex_dimensions
+    }
+}
+
 impl<F: Field> ProjectiveResolutionFpPathAlgebraModule<F> {
     /// Return QPA's `ParentAlgebra` attribute.
     #[must_use]
@@ -917,6 +965,198 @@ impl<F: Field> ProjectiveResolutionFpPathAlgebraModule<F> {
     #[must_use]
     pub const fn finite_at_projective(&self) -> Option<usize> {
         self.finite_at_projective
+    }
+
+    /// Reduce the differential matrices modulo the arrow ideal and compute
+    /// their vertexwise homology.
+    ///
+    /// If `P` is any projective resolution over an admissible quotient
+    /// `A = kQ/I`, then `H_n(P tensor_A A/rad(A))` records the multiplicities
+    /// of the indecomposable projectives in the minimal resolution.  This
+    /// therefore extracts exact minimal Betti data even when the GSZ
+    /// resolution stored here is not itself minimal.
+    ///
+    /// # Errors
+    ///
+    /// Requires an admissible quotient and internally consistent projective
+    /// and differential shapes.  Exact admissibility failures are propagated.
+    #[allow(clippy::too_many_lines)]
+    pub fn semisimple_homology(
+        &self,
+    ) -> Result<SemisimpleProjectiveResolutionHomology, ProjectiveResolutionError> {
+        if !self.parent_algebra.is_admissible()? {
+            return Err(ProjectiveResolutionError::NonadmissibleSemisimpleHomology);
+        }
+
+        let quiver = self.parent_algebra.original_path_algebra().quiver();
+        let vertex_count = quiver.number_of_vertices();
+        let field = self.parent_algebra.original_path_algebra().field();
+        let projective_vertices = self
+            .r_projectives
+            .iter()
+            .map(RightProjectivePathAlgebraModule::vertex_indices)
+            .collect::<Vec<_>>();
+        let projective_vertex_multiplicities = projective_vertices
+            .iter()
+            .map(|vertices| {
+                let mut multiplicities = vec![0_usize; vertex_count];
+                for vertex in *vertices {
+                    multiplicities[vertex.get() - 1] += 1;
+                }
+                multiplicities
+            })
+            .collect::<Vec<_>>();
+
+        let mut differential_vertex_ranks = vec![vec![0_usize; vertex_count]];
+        for (map_position, stored_map) in self.maps.iter().enumerate() {
+            let degree = map_position + 1;
+            let target_vertices = projective_vertices
+                .get(degree - 1)
+                .ok_or(ProjectiveResolutionError::SemisimpleDifferentialMissingTarget { degree })?;
+            // QPA stores the entered projective-presentation matrix at
+            // `maps[0]`, while it rebuilds P1 from the Gröbner basis `f^1`.
+            // Thus d1 is the component matrix of `f^1`; only later `maps`
+            // entries are already the actual differentials between the
+            // stored projectives.
+            let differential_rows = if degree == 1 {
+                self.f_lists
+                    .get(1)
+                    .ok_or(
+                        ProjectiveResolutionError::SemisimpleDifferentialMissingSource { degree },
+                    )?
+                    .iter()
+                    .map(PathAlgebraVector::components)
+                    .collect::<Vec<_>>()
+            } else {
+                stored_map.iter().map(Vec::as_slice).collect::<Vec<_>>()
+            };
+
+            if differential_rows.is_empty() {
+                if degree < projective_vertices.len() {
+                    return Err(ProjectiveResolutionError::SemisimpleDifferentialRowCount {
+                        degree,
+                        actual: 0,
+                        expected: projective_vertices[degree].len(),
+                    });
+                }
+                differential_vertex_ranks.push(vec![0_usize; vertex_count]);
+                continue;
+            }
+
+            let source_vertices = projective_vertices
+                .get(degree)
+                .ok_or(ProjectiveResolutionError::SemisimpleDifferentialMissingSource { degree })?;
+            if differential_rows.len() != source_vertices.len() {
+                return Err(ProjectiveResolutionError::SemisimpleDifferentialRowCount {
+                    degree,
+                    actual: differential_rows.len(),
+                    expected: source_vertices.len(),
+                });
+            }
+            for (row, entries) in differential_rows.iter().enumerate() {
+                if entries.len() != target_vertices.len() {
+                    return Err(
+                        ProjectiveResolutionError::SemisimpleDifferentialColumnCount {
+                            degree,
+                            row: row + 1,
+                            actual: entries.len(),
+                            expected: target_vertices.len(),
+                        },
+                    );
+                }
+            }
+
+            let mut row_counts = vec![0; vertex_count];
+            let row_positions = source_vertices
+                .iter()
+                .map(|vertex| {
+                    let index = vertex.get() - 1;
+                    let position = row_counts[index];
+                    row_counts[index] += 1;
+                    position
+                })
+                .collect::<Vec<_>>();
+            let mut column_counts = vec![0; vertex_count];
+            let column_positions = target_vertices
+                .iter()
+                .map(|vertex| {
+                    let index = vertex.get() - 1;
+                    let position = column_counts[index];
+                    column_counts[index] += 1;
+                    position
+                })
+                .collect::<Vec<_>>();
+            let mut vertex_blocks = row_counts
+                .iter()
+                .zip(&column_counts)
+                .map(|(&rows, &columns)| DenseMatrix::zero(rows, columns, field.clone()))
+                .collect::<Vec<_>>();
+
+            for (row, entries) in differential_rows.iter().enumerate() {
+                for (column, entry) in entries.iter().enumerate() {
+                    for term in entry.terms().iter().filter(|term| term.path().is_vertex()) {
+                        let PathEndpoint::Vertex(term_vertex) = term.path().source() else {
+                            unreachable!("a vertex path has a vertex source");
+                        };
+                        let term_vertex = term_vertex.index();
+                        let source_vertex = source_vertices[row];
+                        let target_vertex = target_vertices[column];
+                        if term_vertex != source_vertex || term_vertex != target_vertex {
+                            return Err(
+                                ProjectiveResolutionError::SemisimpleDifferentialVertexMismatch {
+                                    degree,
+                                    row: row + 1,
+                                    column: column + 1,
+                                    term_vertex,
+                                    source_vertex,
+                                    target_vertex,
+                                },
+                            );
+                        }
+                        let vertex = term_vertex.get() - 1;
+                        field.add_assign(
+                            &mut vertex_blocks[vertex]
+                                [(row_positions[row], column_positions[column])],
+                            term.coefficient(),
+                        );
+                    }
+                }
+            }
+            differential_vertex_ranks.push(vertex_blocks.iter().map(DenseMatrix::rank).collect());
+        }
+
+        let homology_degree_count = projective_vertex_multiplicities.len().min(self.maps.len());
+        let mut homology_vertex_dimensions = Vec::with_capacity(homology_degree_count);
+        for degree in 0..homology_degree_count {
+            let mut dimensions = Vec::with_capacity(vertex_count);
+            for vertex in 0..vertex_count {
+                let projective = projective_vertex_multiplicities[degree][vertex];
+                let differential_rank = differential_vertex_ranks[degree][vertex];
+                let next_differential_rank = differential_vertex_ranks[degree + 1][vertex];
+                let Some(dimension) = projective
+                    .checked_sub(differential_rank)
+                    .and_then(|value| value.checked_sub(next_differential_rank))
+                else {
+                    return Err(
+                        ProjectiveResolutionError::InvalidSemisimpleHomologyDimension {
+                            degree,
+                            vertex: vertex + 1,
+                            projective,
+                            differential_rank,
+                            next_differential_rank,
+                        },
+                    );
+                };
+                dimensions.push(dimension);
+            }
+            homology_vertex_dimensions.push(dimensions);
+        }
+
+        Ok(SemisimpleProjectiveResolutionHomology {
+            projective_vertex_multiplicities,
+            differential_vertex_ranks,
+            homology_vertex_dimensions,
+        })
     }
 }
 
@@ -1581,6 +1821,84 @@ pub enum ProjectiveResolutionError {
     EmptyResolutionProjective {
         /// Projective degree whose vertex list is empty.
         degree: usize,
+    },
+    /// Vertex semisimple homology represents the radical quotient only for an
+    /// admissible path-algebra quotient.
+    #[error("semisimple resolution homology requires an admissible quotient")]
+    NonadmissibleSemisimpleHomology,
+    /// A differential has no stored target projective.
+    #[error("degree-{degree} differential has no stored target projective")]
+    SemisimpleDifferentialMissingTarget {
+        /// Differential degree.
+        degree: usize,
+    },
+    /// A nonzero differential has no stored source projective.
+    #[error("degree-{degree} differential has no stored source projective")]
+    SemisimpleDifferentialMissingSource {
+        /// Differential degree.
+        degree: usize,
+    },
+    /// A differential row count disagrees with its source projective.
+    #[error(
+        "degree-{degree} differential has {actual} rows, expected {expected} from its source projective"
+    )]
+    SemisimpleDifferentialRowCount {
+        /// Differential degree.
+        degree: usize,
+        /// Stored matrix row count.
+        actual: usize,
+        /// Source-projective summand count.
+        expected: usize,
+    },
+    /// A differential column count disagrees with its target projective.
+    #[error(
+        "degree-{degree} differential row {row} has {actual} columns, expected {expected} from its target projective"
+    )]
+    SemisimpleDifferentialColumnCount {
+        /// Differential degree.
+        degree: usize,
+        /// One-based matrix row.
+        row: usize,
+        /// Stored matrix column count.
+        actual: usize,
+        /// Target-projective summand count.
+        expected: usize,
+    },
+    /// A degree-zero path term must lie in the same vertex block on source and
+    /// target.
+    #[error(
+        "degree-{degree} differential entry ({row}, {column}) has vertex term {term_vertex:?}, source {source_vertex:?}, target {target_vertex:?}"
+    )]
+    SemisimpleDifferentialVertexMismatch {
+        /// Differential degree.
+        degree: usize,
+        /// One-based matrix row.
+        row: usize,
+        /// One-based matrix column.
+        column: usize,
+        /// Vertex of the degree-zero path term.
+        term_vertex: VertexIndex,
+        /// Vertex of the source projective summand.
+        source_vertex: VertexIndex,
+        /// Vertex of the target projective summand.
+        target_vertex: VertexIndex,
+    },
+    /// Adjacent reduced differential ranks exceeded the corresponding
+    /// projective multiplicity.
+    #[error(
+        "degree-{degree} vertex {vertex} has projective multiplicity {projective}, adjacent ranks {differential_rank} and {next_differential_rank}"
+    )]
+    InvalidSemisimpleHomologyDimension {
+        /// Homological degree.
+        degree: usize,
+        /// Quiver vertex.
+        vertex: usize,
+        /// Projective summand multiplicity.
+        projective: usize,
+        /// Rank of `d_degree`.
+        differential_rank: usize,
+        /// Rank of `d_(degree+1)`.
+        next_differential_rank: usize,
     },
     /// QPA's source or target helper unexpectedly returned the zero path.
     #[error("a nonzero presentation entry has a zero leading path")]
@@ -2290,6 +2608,83 @@ mod tests {
             incomplete_vector.compare(&incomplete_vector),
             Err(ProjectiveResolutionError::QuotientVectorsNotInNormalForm)
         ));
+    }
+
+    #[test]
+    fn semisimple_homology_cancels_a_nonminimal_gsz_pair() {
+        let parent = PathAlgebra::new(
+            Z2,
+            Quiver::from_indexed(
+                5,
+                vec![
+                    ArrowSpec::named(vertex(1), vertex(2), "a"),
+                    ArrowSpec::named(vertex(2), vertex(4), "b"),
+                    ArrowSpec::named(vertex(1), vertex(3), "c"),
+                    ArrowSpec::named(vertex(3), vertex(4), "d"),
+                    ArrowSpec::named(vertex(4), vertex(5), "e"),
+                    ArrowSpec::named(vertex(4), vertex(5), "f"),
+                ],
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let generators = parent.generators();
+        let relations = vec![
+            generators[5]
+                .multiply(&generators[6])
+                .unwrap()
+                .sub(&generators[7].multiply(&generators[8]).unwrap())
+                .unwrap(),
+            generators[6].multiply(&generators[10]).unwrap(),
+            generators[8].multiply(&generators[9]).unwrap(),
+        ];
+        let ideal = PathAlgebraIdeal::new(parent, relations)
+            .unwrap()
+            .with_high_level_groebner_basis()
+            .unwrap();
+        let algebra = QuotientPathAlgebra::by_ideal(&ideal).unwrap();
+        let quotient_generators = algebra.generators().unwrap();
+        let resolution = projective_resolution_fp_path_algebra_module(
+            &algebra,
+            &ideal,
+            &[
+                vec![quotient_generators[5].clone()],
+                vec![quotient_generators[7].clone()],
+            ],
+            5,
+        )
+        .unwrap();
+
+        assert_eq!(resolution.finite_at_projective(), Some(4));
+        let homology = resolution.semisimple_homology().unwrap();
+        assert_eq!(
+            homology.projective_vertex_multiplicities(),
+            &[
+                vec![1, 0, 0, 0, 0],
+                vec![0, 1, 1, 0, 0],
+                vec![0, 0, 0, 1, 1],
+                vec![0, 0, 0, 0, 1],
+            ]
+        );
+        assert_eq!(
+            homology.differential_vertex_ranks(),
+            &[
+                vec![0, 0, 0, 0, 0],
+                vec![0, 0, 0, 0, 0],
+                vec![0, 0, 0, 0, 0],
+                vec![0, 0, 0, 0, 1],
+                vec![0, 0, 0, 0, 0],
+            ]
+        );
+        assert_eq!(
+            homology.minimal_projective_betti_multiplicities(),
+            &[
+                vec![1, 0, 0, 0, 0],
+                vec![0, 1, 1, 0, 0],
+                vec![0, 0, 0, 1, 0],
+                vec![0, 0, 0, 0, 0],
+            ]
+        );
     }
 
     #[test]

@@ -67,7 +67,7 @@ pub(crate) use module::{
     PyBasedRightAlgebraModule, PyBongartzTestDecision, PyFiniteTypeDecision,
     PyGenericModuleEndomorphismAlgebra, PyGenericModuleHomSpace, PyGenericModuleHomomorphism,
     PyGszProjectiveResolution, PyModuleTensorProduct, PyProjectivePathAlgebraPresentation,
-    py_complement_in_full_row_space, py_is_in_full_matrix_ring,
+    PySemisimpleResolutionHomology, py_complement_in_full_row_space, py_is_in_full_matrix_ring,
 };
 pub(crate) use nakayama::{
     PyFrobeniusForm, PyFrobeniusLinearFunctional, PyNakayamaAutomorphism, PyNakayamaPermutation,

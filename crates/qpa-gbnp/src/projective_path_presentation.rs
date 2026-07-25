@@ -669,6 +669,28 @@ mod tests {
     }
 
     #[test]
+    fn module_input_semisimple_homology_uses_the_actual_first_differential() {
+        fn check<F: Field>(field: &F) {
+            let module = signed_module(field);
+            let resolution = projective_resolution_of_path_algebra_module(&module, 3).unwrap();
+            let homology = resolution.semisimple_homology().unwrap();
+
+            assert_eq!(
+                homology.projective_vertex_multiplicities(),
+                &[vec![2, 0, 0], vec![0, 1, 0], vec![0, 0, 1]]
+            );
+            assert_eq!(
+                homology.minimal_projective_betti_multiplicities(),
+                &[vec![2, 0, 0], vec![0, 1, 0], vec![0, 0, 1]]
+            );
+        }
+
+        check(&Z2);
+        check(&Zp::new(5));
+        check(&Q);
+    }
+
+    #[test]
     fn path_algebra_input_preserves_qpa_source_failure() {
         let algebra = QuiverAlgebra::Path(
             PathAlgebra::new(
