@@ -14,6 +14,7 @@ and 1853 class methods or properties.
 
 - `qpa.PositiveInfinity: str`
 - `qpa.NegativeInfinity: str`
+- `qpa.PORT_GIT_COMMIT: str`
 
 ## Module functions
 

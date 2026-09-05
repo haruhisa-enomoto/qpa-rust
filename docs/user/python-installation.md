@@ -3,15 +3,35 @@
 The Python distribution is named `qpa-rust`; Python code imports it as `qpa`.
 Python 3.10 and newer are supported.
 
-## Use this checkout from another project
+## Install from GitHub
 
-For a project on this machine, an editable path dependency is the shortest
-development workflow:
+Until release wheels are published on PyPI, the portable installation is a Git
+source dependency. It compiles the Rust extension on your machine, so a Rust
+toolchain (the version pinned in `rust-toolchain.toml` is installed
+automatically by `rustup`) and a C compiler are required:
 
 ```console
 uv init --python 3.12
-uv add --editable /mnt/c/ai/qpa_rust_python
+uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
 uv run python -c "import qpa; print(qpa.Field.prime(5))"
+```
+
+Pin a release tag when a computation must stay reproducible:
+
+```console
+uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust@v0.1.0"
+```
+
+The same Git URL works with `pip install`.
+
+## Use a local clone from another project
+
+For a project on the same machine, an editable path dependency is the shortest
+development workflow:
+
+```console
+git clone https://github.com/haruhisa-enomoto/qpa-rust
+uv add --editable /path/to/qpa-rust
 ```
 
 `uv add` records both the distribution dependency and its local source:
@@ -21,7 +41,7 @@ uv run python -c "import qpa; print(qpa.Field.prime(5))"
 dependencies = ["qpa-rust"]
 
 [tool.uv.sources]
-qpa-rust = { path = "/mnt/c/ai/qpa_rust_python", editable = true }
+qpa-rust = { path = "/path/to/qpa-rust", editable = true }
 ```
 
 Editable installation means that Python source changes are visible directly.
@@ -30,7 +50,7 @@ non-editable local dependency when a consumer should not track ongoing source
 changes:
 
 ```console
-uv add /mnt/c/ai/qpa_rust_python
+uv add /path/to/qpa-rust
 ```
 
 The first installation performs an optimized Rust build through Maturin. It
@@ -42,12 +62,11 @@ on a mounted Windows filesystem. Later builds reuse Cargo and `uv` caches.
 The repository's `pyproject.toml` declares Maturin as its PEP 517 build
 backend. A consumer project does not need to add Maturin or PyO3 itself. A
 source build does require the Rust toolchain and native build prerequisites on
-the host machine; this development machine already has them.
+the host machine.
 
 Plain `uv add qpa-rust` will become the portable installation command after
-release wheels are published. Until then, use a local path or a future Git
-source. An absolute local path is intentionally not portable to another
-machine.
+release wheels are published. An absolute local path is intentionally not
+portable to another machine.
 
 ## Verify an environment
 

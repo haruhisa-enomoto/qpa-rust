@@ -12,7 +12,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.89"
 license = "GPL-2.0-or-later"
-repository = "https://github.com/italing/qpa-rust"
+repository = "https://github.com/haruhisa-enomoto/qpa-rust"
 
 [workspace.dependencies]
 numerica = { version = "=2.1.0", default-features = false }

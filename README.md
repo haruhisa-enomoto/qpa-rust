@@ -23,10 +23,17 @@ algorithmic specification above the coefficient layer.
 ## Python quick start
 
 The distribution is named `qpa-rust` and the import package is named `qpa`.
-From another project on this machine, add the checkout with `uv`:
+Add it to a `uv` project directly from GitHub (this compiles the Rust
+extension, so a Rust toolchain is required until wheels are published):
 
 ```console
-uv add --editable /mnt/c/ai/qpa_rust_python
+uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
+```
+
+Or, from a local clone of this repository:
+
+```console
+uv add --editable /path/to/qpa-rust
 ```
 
 Then run an exact computation through the Rust extension:
@@ -50,6 +57,8 @@ See [ROADMAP.md](ROADMAP.md) for the completed source-port campaign and
 [POST_PORT_ROADMAP.md](POST_PORT_ROADMAP.md) for the completed stabilization,
 refactor, and API campaigns. Maintainer verification is documented in
 [docs/development/verification.md](docs/development/verification.md), and
-[NOTICE.md](NOTICE.md) records source provenance and attribution. The
+[NOTICE.md](NOTICE.md) records source provenance and attribution. Every
+intentional behavioral difference from pinned QPA is listed in
+[porting/deviations.md](porting/deviations.md). The
 [user-guide index](docs/user/README.md) separates shared mathematical
 conventions, the primary Python workflow, and the supported Rust facades.

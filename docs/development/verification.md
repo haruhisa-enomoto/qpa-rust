@@ -24,6 +24,13 @@ tests, including every published Python example. `oracle` validates the pinned u
 versions, the complete checked-in GAP/QPA/GBNP fixture contract, and the
 prepared compatibility reproducers. `all` runs all four modes.
 
+The `rust` and `gmp` modes compile the `qpa-python` unit-test binary against
+the interpreter PyO3 discovers, and that interpreter must provide a shared
+`libpython`. If the test binary fails to load `libpythonX.Y.so`, point PyO3 at
+a distribution-packaged interpreter, for example
+`PYO3_PYTHON=/usr/bin/python3 scripts/verify rust`. Continuous integration
+uses this recipe in `.github/workflows/ci.yml`.
+
 The oracle mode needs the pinned GAP checkout to have been built and needs
 `jq`. Python mode needs the `.venv` described in
 `docs/python-architecture-spike.md`. The Rust and GMP modes do not execute GAP. A distributable Rust source
