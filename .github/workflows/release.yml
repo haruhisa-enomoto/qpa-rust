@@ -8,6 +8,11 @@ on:
 permissions:
   contents: read
 
+# The build script embeds the checkout's HEAD; inside maturin's build containers
+# git is unavailable, so the commit is passed explicitly.
+env:
+  QPA_PORT_GIT_COMMIT: ${{ github.sha }}
+
 jobs:
   wheels:
     name: Wheels for ${{ matrix.platform.name }}
