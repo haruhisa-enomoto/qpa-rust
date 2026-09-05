@@ -56,8 +56,14 @@ def test_information_classes_and_documentation_plan_follow_qpa() -> None:
         "renderer": plan.renderer,
         "copy_html_style_files": plan.copy_html_style_files,
     } == expected
-    assert plan.directory == "/opt/QPA/doc"
-    assert repr(plan) == "<QPA documentation plan: /opt/QPA/doc/qpadocumentation.xml>"
+    # The Rust plan joins paths natively, so Windows renders the directory
+    # with a backslash; compare as paths rather than as strings.
+    assert Path(plan.directory) == Path("/opt/QPA") / "doc"
+    shown = repr(plan)
+    assert shown.startswith("<QPA documentation plan: ") and shown.endswith(">")
+    assert Path(shown[len("<QPA documentation plan: ") : -1]) == Path(
+        "/opt/QPA/doc/qpadocumentation.xml"
+    )
 
 
 def test_generic_cat_delegates_to_qpa_callback_category() -> None:

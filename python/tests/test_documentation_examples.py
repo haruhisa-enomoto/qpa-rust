@@ -23,6 +23,10 @@ def test_documented_python_example_runs(example: str) -> None:
 def test_local_documentation_links_resolve() -> None:
     root = Path(__file__).resolve().parents[2]
     markdown_files = [root / "README.md", *(root / "docs").rglob("*.md")]
+    # The pinned upstream clones are a maintainer-only development reference
+    # and are absent from distributed checkouts; links into them are verified
+    # only when the directory is present.
+    upstream = root / "upstream"
     missing: list[tuple[Path, str]] = []
     for markdown in markdown_files:
         text = markdown.read_text(encoding="utf-8")
@@ -30,7 +34,10 @@ def test_local_documentation_links_resolve() -> None:
             target = raw_target.split("#", 1)[0]
             if not target or "://" in target or target.startswith(("mailto:", "<")):
                 continue
-            if not (markdown.parent / target).exists():
+            resolved = (markdown.parent / target).resolve()
+            if not upstream.exists() and resolved.is_relative_to(upstream):
+                continue
+            if not resolved.exists():
                 missing.append((markdown.relative_to(root), raw_target))
     assert missing == []
 
