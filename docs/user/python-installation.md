@@ -3,26 +3,36 @@
 The Python distribution is named `qpa-rust`; Python code imports it as `qpa`.
 Python 3.10 and newer are supported.
 
-## Install from GitHub
+## Install from PyPI
 
-Until release wheels are published on PyPI, the portable installation is a Git
-source dependency. It compiles the Rust extension on your machine, so a Rust
-toolchain (the version pinned in `rust-toolchain.toml` is installed
-automatically by `rustup`) and a C compiler are required:
+Release wheels are published on PyPI for Linux (x86_64 and aarch64), macOS
+(Intel and Apple Silicon), and Windows (x86_64) for Python 3.10 through 3.13.
+Installing them needs no Rust toolchain:
 
 ```console
 uv init --python 3.12
-uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
+uv add qpa-rust
 uv run python -c "import qpa; print(qpa.Field.prime(5))"
 ```
 
-Pin a release tag when a computation must stay reproducible:
+Pin an exact version when a computation must stay reproducible, for example
+`uv add "qpa-rust==0.1.0"`. On a platform without a prebuilt wheel, `uv`
+falls back to the source distribution, which needs the Rust toolchain
+described below.
+
+## Install the development source from GitHub
+
+To use unreleased changes, add the Git repository instead. This compiles the
+Rust extension on your machine, so a Rust toolchain (the version pinned in
+`rust-toolchain.toml` is installed automatically by `rustup`) and a C compiler
+are required:
 
 ```console
-uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust@v0.1.0"
+uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
 ```
 
-The same Git URL works with `pip install`.
+A tag such as `@v0.1.0` after the URL selects a release commit. The same Git
+URL works with `pip install`.
 
 ## Use a local clone from another project
 
@@ -64,9 +74,8 @@ backend. A consumer project does not need to add Maturin or PyO3 itself. A
 source build does require the Rust toolchain and native build prerequisites on
 the host machine.
 
-Plain `uv add qpa-rust` will become the portable installation command after
-release wheels are published. An absolute local path is intentionally not
-portable to another machine.
+An absolute local path is intentionally not portable to another machine; use
+the PyPI release or the Git URL in shared project files.
 
 ## Verify an environment
 

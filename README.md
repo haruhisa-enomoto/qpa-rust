@@ -23,16 +23,18 @@ algorithmic specification above the coefficient layer.
 ## Python quick start
 
 The distribution is named `qpa-rust` and the import package is named `qpa`.
-Add it to a `uv` project directly from GitHub (this compiles the Rust
-extension, so a Rust toolchain is required until wheels are published):
+Prebuilt wheels are published on PyPI for Linux, macOS, and Windows on
+Python 3.10 through 3.13, so no Rust toolchain is needed:
+
+```console
+uv add qpa-rust
+```
+
+or, with pip, `pip install qpa-rust`. To build the current development
+source instead, add the Git repository or a local clone:
 
 ```console
 uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
-```
-
-Or, from a local clone of this repository:
-
-```console
 uv add --editable /path/to/qpa-rust
 ```
 
@@ -49,16 +51,16 @@ assert algebra.dimension() == "3"
 assert algebra.generator("x").pow(3).is_zero
 ```
 
-Begin with the [Python installation guide](docs/user/python-installation.md)
-and [Python quickstart](docs/user/python-quickstart.md). The examples under
-[`docs/examples/python`](docs/examples/python) are executable and tested.
+Begin with the [Python installation guide](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/docs/user/python-installation.md)
+and [Python quickstart](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/docs/user/python-quickstart.md). The examples under
+[`docs/examples/python`](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/docs/examples/python) are executable and tested.
 
-See [ROADMAP.md](ROADMAP.md) for the completed source-port campaign and
-[POST_PORT_ROADMAP.md](POST_PORT_ROADMAP.md) for the completed stabilization,
+See [ROADMAP.md](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/ROADMAP.md) for the completed source-port campaign and
+[POST_PORT_ROADMAP.md](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/POST_PORT_ROADMAP.md) for the completed stabilization,
 refactor, and API campaigns. Maintainer verification is documented in
-[docs/development/verification.md](docs/development/verification.md), and
-[NOTICE.md](NOTICE.md) records source provenance and attribution. Every
+[docs/development/verification.md](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/docs/development/verification.md), and
+[NOTICE.md](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/NOTICE.md) records source provenance and attribution. Every
 intentional behavioral difference from pinned QPA is listed in
-[porting/deviations.md](porting/deviations.md). The
-[user-guide index](docs/user/README.md) separates shared mathematical
+[porting/deviations.md](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/porting/deviations.md). The
+[user-guide index](https://github.com/haruhisa-enomoto/qpa-rust/blob/main/docs/user/README.md) separates shared mathematical
 conventions, the primary Python workflow, and the supported Rust facades.
