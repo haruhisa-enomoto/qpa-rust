@@ -451,6 +451,14 @@ pub fn hom_from_projective<F: Field>(
     element: &PathAlgebraModuleElement<F>,
     target: &PathAlgebraModule<F>,
 ) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, EnvelopingModuleError> {
+    hom_from_projective_with_family(element, target, &mut None)
+}
+
+fn hom_from_projective_with_family<F: Field>(
+    element: &PathAlgebraModuleElement<F>,
+    target: &PathAlgebraModule<F>,
+    projectives: &mut Option<Vec<PathAlgebraModule<F>>>,
+) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, EnvelopingModuleError> {
     if !element.module().is_identical(target) {
         return Err(EnvelopingModuleError::ProjectiveElementInWrongModule);
     }
@@ -460,7 +468,10 @@ pub fn hom_from_projective<F: Field>(
     };
     let bases = basis_of_projectives(target.right_acting_algebra())?
         .ok_or(EnvelopingModuleError::ProjectiveBasisUnavailable)?;
-    let projectives = indec_projective_modules(target.right_acting_algebra())?;
+    let projectives = match projectives {
+        Some(family) => family,
+        None => projectives.insert(indec_projective_modules(target.right_acting_algebra())?),
+    };
     let projective = projectives[*vertex - 1].clone();
     let field = target.right_acting_algebra().field().clone();
     let matrices = projective

@@ -8201,3 +8201,75 @@ fn nakayama_automorphism_frobenius_data_and_order_follow_qpa() {
     assert!(nakayama_automorphism(&a2).unwrap().is_none());
     assert!(order_of_nakayama_automorphism(&a2).unwrap().is_none());
 }
+
+#[test]
+fn projective_cover_reuses_family_without_retaining_unused_projectives() {
+    fn check<F: Field>(field: F) {
+        let quiver =
+            Quiver::from_indexed(3, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let module = right_module_over_path_algebra(algebra.clone(), vec![3, 0, 0], &[])
+            .unwrap()
+            .unwrap();
+
+        // Reference construction: independently obtain each generator map,
+        // compose with its direct-sum projection, and add in generator order.
+        let maps = minimal_generating_set_of_module(module.clone())
+            .unwrap()
+            .iter()
+            .map(|generator| hom_from_projective(generator, &module).unwrap().unwrap())
+            .collect::<Vec<_>>();
+        assert_eq!(maps.len(), 3);
+        let sources = maps
+            .iter()
+            .map(|map| map.source().clone())
+            .collect::<Vec<_>>();
+        let sum = direct_sum_of_qpa_modules(&sources).unwrap().unwrap();
+        let projections = qpa_core::direct_sum_projections(&sum).unwrap();
+        let mut composites = projections
+            .iter()
+            .zip(&maps)
+            .map(|(p, f)| p.compose(f).unwrap());
+        let mut expected = composites.next().unwrap();
+        for map in composites {
+            expected = expected.add(&map).unwrap();
+        }
+        let actual = projective_cover(&module).unwrap();
+        assert_eq!(
+            actual.source().dimension_vector(),
+            expected.source().dimension_vector()
+        );
+        assert_eq!(
+            actual.source().arrow_matrices(),
+            expected.source().arrow_matrices()
+        );
+        assert_eq!(actual.vertex_matrices(), expected.vertex_matrices());
+        assert!(projective_cover(&module).unwrap().is_identical(&actual));
+
+        // Vertices 2 and 3 are not cover summands. Their weak cache entries
+        // must expire after the call, so no permanent family retention occurs.
+        assert!(algebra.cached_indec_projective_modules().is_none());
+        drop(actual);
+        assert!(module.cached_projective_cover().is_none());
+
+        let loop_quiver =
+            Quiver::from_indexed(1, vec![ArrowSpec::named(vertex(1), vertex(1), "x")]).unwrap();
+        let infinite = QuiverAlgebra::Path(PathAlgebra::new(field, loop_quiver).unwrap());
+        let simple = right_module_over_path_algebra(infinite, vec![1], &[])
+            .unwrap()
+            .unwrap();
+        // With a known generator, reach HomFromProjective's finite-basis
+        // check instead of the earlier unsupported radical computation.
+        simple
+            .cache_minimal_generating_set(&simple.basis_elements())
+            .unwrap();
+        assert!(matches!(
+            projective_cover(&simple),
+            Err(EnvelopingModuleError::ProjectiveBasisUnavailable)
+        ));
+    }
+    check(Q);
+    check(Z2);
+    check(Zp::new(5));
+    check(GaloisField::conway(2, 2).unwrap());
+}

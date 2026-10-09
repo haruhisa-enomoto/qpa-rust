@@ -19,13 +19,21 @@ pub fn projective_cover<F: Field>(
         zero_module_mapping(zero, module.clone())?
     } else {
         let generators = minimal_generating_set_of_module(module.clone())?;
+        // HomFromProjective requests the complete family for each generator.
+        // Its algebra-side cache is weak: retaining only the selected sources
+        // lets unused members expire and forces the next call to rebuild the
+        // family. Keep all members live until every generator map is made.
+        // Initialize on the first map, preserving HomFromProjective's checks
+        // and error order for unsupported algebras.
+        let mut projectives = None;
         let maps = generators
             .iter()
             .map(|generator| {
-                hom_from_projective(generator, module)?
+                hom_from_projective_with_family(generator, module, &mut projectives)?
                     .ok_or(EnvelopingModuleError::MinimalGeneratorNotVertexUniform)
             })
             .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+        drop(projectives);
         let sources = maps
             .iter()
             .map(|homomorphism| homomorphism.source().clone())

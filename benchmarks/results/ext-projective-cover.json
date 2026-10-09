@@ -1,0 +1,328 @@
+{
+  "baseline_source_revision": "21d06e30bc946807eeed0c5dbca53e05f586e435",
+  "change": "Retain the complete indecomposable-projective family locally while constructing all generator maps of one projective cover. The weak algebra cache and existing Python APIs are unchanged.",
+  "profile": "release; default numerica-no-gmp; Python 3.12; taskset -c 0",
+  "method": "Five sequential in-process samples per case, same scripts and APIs in both builds, fresh modules each repetition. Existing consumer presentation caches persist. Builds and tests finish before optimized timing. Shared host; unrelated workloads may be active.",
+  "commands": [
+    "PYTHONPATH=target/performance-pass2 taskset -c 0 .venv/bin/python benchmarks/module_workloads.py --consumer-root ../homological-conjectures --repeat 5 --output target/ext-cover-before.json",
+    "taskset -c 0 .venv/bin/python benchmarks/module_workloads.py --consumer-root ../homological-conjectures --repeat 5 --output target/ext-cover-after.json --compare target/ext-cover-before.json",
+    "PYTHONPATH=target/performance-pass2 taskset -c 0 .venv/bin/python benchmarks/ext_stages.py --consumer-root ../homological-conjectures --output target/ext-stages-before.json",
+    "taskset -c 0 .venv/bin/python benchmarks/ext_stages.py --consumer-root ../homological-conjectures --output target/ext-stages-after.json"
+  ],
+  "run_metadata": {
+    "before": {
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "qpa_package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "qpa_build_revision": "586298ba870d20e399c96b42d5499c7b5d46f56f-dirty",
+      "extension_sha256": "a89d04bd84a83651becf08e53ec1ae93f46877a2766a230fbbeb8d25f585f60a",
+      "repetitions": 5
+    },
+    "after": {
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "qpa_package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "qpa_build_revision": "21d06e30bc946807eeed0c5dbca53e05f586e435-dirty",
+      "extension_sha256": "b965b067c82b25973baed1a8a93f43f533cc0946b725f72dfefc35920dd86b5e",
+      "repetitions": 5
+    }
+  },
+  "graded_ext_stages": {
+    "before": {
+      "source_sha256": "12c38832c62937037de6b5ccde58c7e3a3b18a082adf4ecfed9f3430a3ce8ee9",
+      "qpa_build_revision": "586298ba870d20e399c96b42d5499c7b5d46f56f-dirty",
+      "extension_sha256": "a89d04bd84a83651becf08e53ec1ae93f46877a2766a230fbbeb8d25f585f60a",
+      "cpu_affinity": [
+        0
+      ],
+      "seconds": {
+        "cover": 0.6875838739797473,
+        "kernel": 0.0008693780982866883,
+        "projective_hom": 0.0008870821911841631,
+        "syzygy_hom": 0.00038038939237594604,
+        "compose": 0.00046520004980266094
+      },
+      "total_seconds": 0.6901859237113968,
+      "calls": 27
+    },
+    "after": {
+      "source_sha256": "12c38832c62937037de6b5ccde58c7e3a3b18a082adf4ecfed9f3430a3ce8ee9",
+      "qpa_build_revision": "21d06e30bc946807eeed0c5dbca53e05f586e435-dirty",
+      "extension_sha256": "b965b067c82b25973baed1a8a93f43f533cc0946b725f72dfefc35920dd86b5e",
+      "cpu_affinity": [
+        0
+      ],
+      "seconds": {
+        "cover": 0.23660884820856154,
+        "kernel": 0.0009200191125273705,
+        "projective_hom": 0.0009667978156358004,
+        "syzygy_hom": 0.000409228028729558,
+        "compose": 0.00040536606684327126
+      },
+      "total_seconds": 0.23931025923229754,
+      "calls": 27
+    }
+  },
+  "stage_profile_limits": "Stage timings include Python wrapper overhead and omit quotient-complement work; use the full workload medians for end-to-end speedup. These profile samples are diagnostic, not repeated benchmark medians.",
+  "cases": {
+    "hom_rational": {
+      "before_seconds": [
+        0.35213044402189553,
+        0.35885614494327456,
+        0.3530050979461521,
+        0.34181489993352443,
+        0.3555979790398851
+      ],
+      "after_seconds": [
+        0.39581135695334524,
+        0.3651919410331175,
+        0.35318187007214874,
+        0.3553114259848371,
+        0.38869012298528105
+      ],
+      "before_median_seconds": 0.3530050979461521,
+      "after_median_seconds": 0.3651919410331175,
+      "speedup": 0.9666289375047841,
+      "result_sha256": "c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db"
+    },
+    "kernel_rational": {
+      "before_seconds": [
+        0.0018558540614321828,
+        0.0018315650522708893,
+        0.0016413889825344086,
+        0.0017147830221801996,
+        0.0015940919984132051
+      ],
+      "after_seconds": [
+        0.0023140920093283057,
+        0.0015990340616554022,
+        0.001862781005911529,
+        0.0018246599938720465,
+        0.001668542972765863
+      ],
+      "before_median_seconds": 0.0017147830221801996,
+      "after_median_seconds": 0.0018246599938720465,
+      "speedup": 0.9397822213119932,
+      "result_sha256": "da262769505520bceb58329db3ca4bedd6ea933bde89e1d573daf70930dc0fba"
+    },
+    "ext_binary": {
+      "before_seconds": [
+        0.005024979007430375,
+        0.00496781908441335,
+        0.004874422098509967,
+        0.0052745710127055645,
+        0.004457518924027681
+      ],
+      "after_seconds": [
+        0.006003068992868066,
+        0.004908102098852396,
+        0.006528386031277478,
+        0.004774568951688707,
+        0.004989690030924976
+      ],
+      "before_median_seconds": 0.00496781908441335,
+      "after_median_seconds": 0.004989690030924976,
+      "speedup": 0.9956167725097,
+      "result_sha256": "2747b7c718564ba5f066f0523b03e17f6a496b06851333d2d59ab6d863225848"
+    },
+    "additive_closure_prime": {
+      "before_seconds": [
+        0.002310762065462768,
+        0.0014329110272228718,
+        0.0008192539680749178,
+        0.0005770790157839656,
+        0.0005783389788120985
+      ],
+      "after_seconds": [
+        0.001170999021269381,
+        0.0007962119998410344,
+        0.0007021490018814802,
+        0.0008966370951384306,
+        0.0006800120463594794
+      ],
+      "before_median_seconds": 0.0008192539680749178,
+      "after_median_seconds": 0.0007962119998410344,
+      "speedup": 1.028939488777466,
+      "result_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+    },
+    "consumer_js29_rational": {
+      "before_seconds": [
+        5.364362735999748,
+        4.911135660018772,
+        4.566606704960577,
+        4.488109449041076,
+        4.8586886579869315
+      ],
+      "after_seconds": [
+        5.988596646930091,
+        5.093126179068349,
+        5.081333781941794,
+        5.371179133071564,
+        5.469295648043044
+      ],
+      "before_median_seconds": 4.8586886579869315,
+      "after_median_seconds": 5.371179133071564,
+      "speedup": 0.904585108336992,
+      "result_sha256": "01794c7693760d9be654d9d4cb1cb102e2123839973abd0042e278cf17baa615"
+    },
+    "consumer_graded_ext_binary": {
+      "before_seconds": [
+        0.70376985904295,
+        0.7102083249483258,
+        0.709562371019274,
+        0.7068280689418316,
+        0.7004228429868817
+      ],
+      "after_seconds": [
+        0.3056773761054501,
+        0.3227677890099585,
+        0.27468258200678974,
+        0.2622107790084556,
+        0.26249345194082707
+      ],
+      "before_median_seconds": 0.7068280689418316,
+      "after_median_seconds": 0.27468258200678974,
+      "speedup": 2.5732540584767034,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_delooping": {
+      "before_seconds": [
+        0.07028318999800831,
+        0.06857234402559698,
+        0.06634773896075785,
+        0.07136071694549173,
+        0.06936828792095184
+      ],
+      "after_seconds": [
+        0.06974001997150481,
+        0.07577751704957336,
+        0.07007472997065634,
+        0.0696765020256862,
+        0.07161513494793326
+      ],
+      "before_median_seconds": 0.06936828792095184,
+      "after_median_seconds": 0.07007472997065634,
+      "speedup": 0.9899187331866949,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_reflexive_tubes": {
+      "before_seconds": [
+        0.025576433050446212,
+        0.02584952604956925,
+        0.025070145959034562,
+        0.025730086024850607,
+        0.025006467010825872
+      ],
+      "after_seconds": [
+        0.029475722927600145,
+        0.028334522037766874,
+        0.02742617903277278,
+        0.02524003607686609,
+        0.026370612089522183
+      ],
+      "before_median_seconds": 0.025576433050446212,
+      "after_median_seconds": 0.02742617903277278,
+      "speedup": 0.9325554616953305,
+      "result_sha256": "51a8f96af2e764b108ce039c4a6d0311e1cb344b64c9fdcf4a04bb0f0bfa3245"
+    },
+    "consumer_e6_rational": {
+      "before_seconds": [
+        0.014752710005268455,
+        0.01672628801316023,
+        0.015832858975045383,
+        0.014202976948581636,
+        0.014744761982001364
+      ],
+      "after_seconds": [
+        0.017128701088950038,
+        0.01604910392779857,
+        0.014796653063967824,
+        0.0167173920199275,
+        0.0165675439639017
+      ],
+      "before_median_seconds": 0.014752710005268455,
+      "after_median_seconds": 0.0165675439639017,
+      "speedup": 0.890458479386715,
+      "result_sha256": "14e3509d50faad0624d75c1a77f9fc7ab66038f7f1e41941802a031a312757e5"
+    },
+    "consumer_gsz_nonminimal": {
+      "before_seconds": [
+        0.10414350300561637,
+        0.10277038195636123,
+        0.10288871498778462,
+        0.10055263491813093,
+        0.106279426952824
+      ],
+      "after_seconds": [
+        0.1164270139997825,
+        0.13696418807376176,
+        0.12013118900358677,
+        0.11720755300484598,
+        0.11547123698983341
+      ],
+      "before_median_seconds": 0.10288871498778462,
+      "after_median_seconds": 0.11720755300484598,
+      "speedup": 0.8778334872628103,
+      "result_sha256": "1fe79177e81cc66f5e81c711308dcea01a8faefc9cf64311565d879e07bd068a"
+    }
+  },
+  "validation": {
+    "rust_tests_default": 429,
+    "rust_tests_gmp": 429,
+    "python_tests": 373,
+    "consumer_tests": 109,
+    "checks": "Clippy and rustdoc with warnings denied on both backends; formatting, Python ledger, generated documentation, and diff checks.",
+    "regression": "Exact cover matrices and source representations compared to the original construction over Q, GF(2), GF(5), GF(4); weak cache expiry and unsupported infinite-algebra error checked."
+  },
+  "source_sha256": {
+    "crates/qpa-gbnp/src/module/projectives.rs": "0cfc002804357b40dafd70a84a70f93bddaa148b9c703203e1083c1b95b3d5c9",
+    "crates/qpa-gbnp/src/module/syzygies_and_tilting.rs": "8a526ad443b31f0b3eb2a27b87b441cd9f3af0313b847c2240bf3b9ce832a37e",
+    "crates/qpa-gbnp/src/module/tests.rs": "33e46df6e864377d499fffa83d28889d8e450bb7a03dd59703caafc46561f011"
+  },
+  "alternating_followup": {
+    "method": "Three alternating fresh-process samples per build pinned to CPU 0, alternating build order each cycle; exact results compared to baseline.",
+    "before": {
+      "consumer_js29_rational": {
+        "seconds": [
+          5.088367843069136,
+          4.992197461077012,
+          4.953377246973105
+        ],
+        "median_seconds": 4.992197461077012
+      },
+      "consumer_graded_ext_binary": {
+        "seconds": [
+          0.7704016930656508,
+          0.718715928029269,
+          0.719703812035732
+        ],
+        "median_seconds": 0.719703812035732
+      }
+    },
+    "after": {
+      "consumer_js29_rational": {
+        "seconds": [
+          4.946491366950795,
+          5.188850724953227,
+          5.201650125905871
+        ],
+        "median_seconds": 5.188850724953227
+      },
+      "consumer_graded_ext_binary": {
+        "seconds": [
+          0.25442114809993654,
+          0.24749488395173103,
+          0.2778384549310431
+        ],
+        "median_seconds": 0.25442114809993654
+      }
+    },
+    "command_template": "PYTHONPATH=<before package or current python directory> taskset -c 0 .venv/bin/python benchmarks/module_workloads.py --consumer-root ../homological-conjectures --repeat 1 --case consumer_js29_rational --case consumer_graded_ext_binary --output <sample.json> --compare target/ext-cover-before.json"
+  },
+  "interpretation": [
+    "Existing ext1 calls improve without consumer edits: graded Ext median 0.707 s to 0.275 s (2.57x); alternating follow-up medians 0.720 s to 0.254 s (2.83x).",
+    "Before the change, projective-cover construction accounted for over 99% of the measured cover/kernel/Hom/composition stages. Retaining the projective family prevents repeated full-family reconstruction within each cover.",
+    "No broad speedup is claimed. Other full-suite timings shifted on the shared host; the JS29 alternating medians were 4.992 s before and 5.189 s after, with overlapping sample ranges.",
+    "The family is initialized lazily to preserve existing checks and error order, and dropped after generator maps are made. Unused projectives remain reclaimable through the original weak cache."
+  ]
+}
