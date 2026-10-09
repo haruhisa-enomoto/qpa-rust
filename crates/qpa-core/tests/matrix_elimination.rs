@@ -146,3 +146,48 @@ fn prepared_solutions_preserve_gap_choice_and_failure() {
         None
     );
 }
+
+#[test]
+fn binary_word_boundaries_preserve_full_transformations() {
+    // Exercise both sides of the packing threshold and partial final words in
+    // the matrix and its transformation. Duplicate rows force dependencies.
+    for height in [31, 32, 63, 64, 65, 129] {
+        for width in [0, 63, 64, 65, 127, 128, 129] {
+            let mut state = 12345_u64;
+            let mut matrix = DenseMatrix::zero(height, width, Z2);
+            for row in 0..height {
+                for column in 0..width {
+                    state ^= state << 13;
+                    state ^= state >> 7;
+                    state ^= state << 17;
+                    matrix[(row, column)] = if row % 3 == 2 {
+                        matrix[(row - 1, column)]
+                    } else {
+                        Z2.nth((state & 1).into())
+                    };
+                }
+            }
+            let expected = reference(&matrix);
+            assert_eq!(matrix.semi_echelon_transformation(), expected);
+            assert_eq!(matrix.nullspace_rows(), expected.relations);
+            assert_eq!(matrix.semi_echelon_basis(), expected.vectors);
+            assert_eq!(matrix.rank(), expected.vectors.nrows());
+        }
+    }
+    // Reverse pivot discovery across word boundaries, then add a dependency.
+    let mut matrix = DenseMatrix::zero(130, 129, Z2);
+    for row in 0..129 {
+        matrix[(row, 128 - row)] = Z2.one();
+        matrix[(129, row)] = Z2.one();
+    }
+    assert_eq!(matrix.semi_echelon_transformation(), reference(&matrix));
+    // GF(4) has characteristic two but must retain general field arithmetic.
+    let field = GaloisField::conway(2, 2).unwrap();
+    let mut matrix = DenseMatrix::zero(65, 65, field.clone());
+    for row in 0..65 {
+        matrix[(row, row)] = field.primitive_element();
+        matrix[(row, (row + 1) % 65)] = field.one();
+    }
+    assert_eq!(matrix.semi_echelon_transformation(), reference(&matrix));
+    assert_eq!(matrix.rank(), reference(&matrix).vectors.nrows());
+}

@@ -25,7 +25,7 @@ use serde_json::{Value, json};
 use super::{
     AddMCoresolution, AddMResolution, AllComplementsResult, AlmostSplitSide, AuslanderReitenError,
     CotiltingModuleResult, DominantDimensionResult, EnvelopingModuleError,
-    ExtAlgebraGeneratorsResult, ExtOverAlgebraResult, FaithfulDimensionResult,
+    ExtAlgebraGeneratorsResult, ExtDimensionSource, ExtOverAlgebraResult, FaithfulDimensionResult,
     FiniteAddMResolutionResult, GlobalDimensionOfAlgebraResult, IyamaGeneratorError,
     ModuleLengthError, NakayamaAutomorphismOrder, NumberOfComplementsResult,
     PredecessorMultiplicity, PredecessorsOfModuleResult,
@@ -42,8 +42,8 @@ use super::{
     dominant_dimension_of_module, dual_of_algebra_as_module_over_enveloping_algebra,
     dual_of_module, dual_of_module_homomorphism, element_in_indec_projective,
     element_in_v_a_as_element_in_indec_proj, end_modulo_projectives, ext_algebra_generators,
-    ext_over_algebra, faithful_dimension, finite_canonical_basis, finite_qpa_default_basis,
-    first_syzygy, frobenius_form, frobenius_linear_functional,
+    ext_dimension_over_algebra, ext_over_algebra, faithful_dimension, finite_canonical_basis,
+    finite_qpa_default_basis, first_syzygy, frobenius_form, frobenius_linear_functional,
     from_identity_to_double_star_homomorphism, from_matrix_to_homomorphism_of_projectives,
     global_dimension_from_known_properties, global_dimension_of_algebra, gorenstein_dimension,
     gorenstein_dimension_of_algebra, have_finite_coresolution_in_add_m,
@@ -5547,6 +5547,40 @@ fn modulehom_ext_case<F: Field>(
     let kronecker = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), kronecker_quiver).unwrap());
     let kronecker_simples = simple_modules(&kronecker).unwrap();
     let kronecker_ext = ext_over_algebra(&kronecker_simples[0], &kronecker_simples[1]).unwrap();
+
+    for (source, target, expected) in [
+        (&simples[0], &simples[1], &a2_12),
+        (&simples[0], &simples[0], &a2_11),
+        (&simples[1], &simples[1], &a2_22),
+        (&zero, &simples[1], &a2_02),
+        (&quotient_simple, &quotient_simple, &dual_simple_ext),
+        (&quotient_simple, &quotient_projective, &dual_projective_ext),
+        (&quotient_simple, &quotient_sum, &dual_sum),
+        (&kronecker_simples[0], &kronecker_simples[1], &kronecker_ext),
+    ] {
+        assert_eq!(
+            ext_dimension_over_algebra(source, target).unwrap(),
+            expected.dimension()
+        );
+    }
+    let prepared = ExtDimensionSource::new(&quotient_simple).unwrap();
+    for target in [
+        &quotient_simple,
+        &quotient_projective,
+        &quotient_sum,
+        &quotient_simple,
+    ] {
+        assert_eq!(
+            prepared.dimension(target).unwrap(),
+            ext_over_algebra(&quotient_simple, target)
+                .unwrap()
+                .dimension()
+        );
+    }
+    assert!(matches!(
+        prepared.dimension(&simples[0]),
+        Err(EnvelopingModuleError::ExtModulesOverDifferentAlgebras)
+    ));
 
     let rigid_json = |module: &PathAlgebraModule<F>| {
         let has_before = module.cached_is_rigid_module().is_some();

@@ -606,7 +606,7 @@ pub fn tilting_module<F: QpaCoefficientField>(
     let mut syzygy = module.clone();
     let syzygy_cutoff = dimension.saturating_sub(1);
     for iteration in 0..=dimension {
-        if ext_over_algebra(&syzygy, module)?.dimension() != 0 {
+        if ext_dimension_over_algebra(&syzygy, module)? != 0 {
             return Ok(None);
         }
         if iteration < syzygy_cutoff {
@@ -827,7 +827,7 @@ pub fn cotilting_module<F: QpaCoefficientField>(
     let mut syzygy = module.clone();
     let syzygy_cutoff = dimension.saturating_sub(1);
     for iteration in 0..=dimension {
-        if ext_over_algebra(&syzygy, module)?.dimension() != 0 {
+        if ext_dimension_over_algebra(&syzygy, module)? != 0 {
             let _ = module.cache_is_cotilting_module(false);
             return Ok(None);
         }

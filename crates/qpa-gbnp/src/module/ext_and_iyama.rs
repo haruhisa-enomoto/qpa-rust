@@ -310,6 +310,87 @@ impl<F: Field> ExtOverAlgebraResult<F> {
     }
 }
 
+/// A retained projective cover and syzygy for repeated Ext-dimension queries.
+///
+/// Retention is scoped to this value; it does not change the module's weak
+/// caches or introduce reference cycles.
+#[derive(Clone, Debug)]
+pub struct ExtDimensionSource<F: Field> {
+    cover: PathAlgebraModuleHomomorphism<F>,
+    syzygy_inclusion: PathAlgebraModuleHomomorphism<F>,
+}
+
+impl<F: Field> ExtDimensionSource<F> {
+    /// Prepare a source module for repeated degree-one Ext dimensions.
+    ///
+    /// # Errors
+    ///
+    /// Propagates projective-cover and kernel-inclusion construction failures.
+    pub fn new(module: &PathAlgebraModule<F>) -> Result<Self, EnvelopingModuleError> {
+        let cover = projective_cover(module)?;
+        let syzygy_inclusion = kernel_inclusion(&cover)?;
+        Ok(Self {
+            cover,
+            syzygy_inclusion,
+        })
+    }
+
+    /// Compute `dim Ext^1(M, N)` using QPA's induced restriction map.
+    ///
+    /// Computes `dim Hom(Omega(M), N)` minus the rank of the restrictions
+    /// from `Hom(P(M), N)`, without constructing quotient representatives.
+    ///
+    /// # Errors
+    ///
+    /// Requires the same acting algebra and propagates Hom, composition, and
+    /// exact matrix construction failures.
+    pub fn dimension(
+        &self,
+        coefficients_in: &PathAlgebraModule<F>,
+    ) -> Result<usize, EnvelopingModuleError> {
+        if self.cover.range().right_acting_algebra() != coefficients_in.right_acting_algebra() {
+            return Err(EnvelopingModuleError::ExtModulesOverDifferentAlgebras);
+        }
+        let syzygy = self.syzygy_inclusion.source();
+        let hom_dimension = hom_dimension_over_algebra(syzygy, coefficients_in)?
+            .ok_or(EnvelopingModuleError::InternalExtHomRejected)?;
+        if hom_dimension == 0 {
+            return Ok(0);
+        }
+        let projective_hom = hom_over_algebra(self.cover.source(), coefficients_in)?
+            .ok_or(EnvelopingModuleError::InternalExtHomRejected)?;
+        let mut rows = Vec::new();
+        for homomorphism in projective_hom {
+            let restriction = self.syzygy_inclusion.compose(&homomorphism)?;
+            if !restriction.is_zero() {
+                rows.push(restriction.flat_vertex_matrix_entries());
+            }
+        }
+        let image_rank =
+            DenseMatrix::from_rows(rows, coefficients_in.right_acting_algebra().field().clone())?
+                .rank();
+        Ok(hom_dimension - image_rank)
+    }
+}
+
+/// Compute `dim Ext^1(M, N)` without constructing quotient representatives.
+///
+/// For repeated queries with one source, retain an [`ExtDimensionSource`].
+///
+/// # Errors
+///
+/// Requires the same acting algebra and propagates projective-cover, kernel,
+/// Hom, composition, and exact matrix construction failures.
+pub fn ext_dimension_over_algebra<F: Field>(
+    module: &PathAlgebraModule<F>,
+    coefficients_in: &PathAlgebraModule<F>,
+) -> Result<usize, EnvelopingModuleError> {
+    if module.right_acting_algebra() != coefficients_in.right_acting_algebra() {
+        return Err(EnvelopingModuleError::ExtModulesOverDifferentAlgebras);
+    }
+    ExtDimensionSource::new(module)?.dimension(coefficients_in)
+}
+
 /// Translate QPA's `ExtOverAlgebra(M, N)` construction of `Ext^1(M, N)`.
 ///
 /// This follows the source method through the projective cover, its kernel
@@ -714,7 +795,7 @@ pub fn is_rigid_module<F: Field>(
     if let Some(cached) = module.cached_is_rigid_module() {
         return Ok(cached);
     }
-    let rigid = ext_over_algebra(module, module)?.dimension() == 0;
+    let rigid = ext_dimension_over_algebra(module, module)? == 0;
     Ok(module.cache_is_rigid_module(rigid))
 }
 

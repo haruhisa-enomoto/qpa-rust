@@ -8,7 +8,7 @@ main mathematical workflows. For the originating GAP/QPA name and source
 file, use the [QPA operation index](qpa-operation-index.md).
 
 The current surface contains 141 classes, 35 module-level functions,
-and 1853 class methods or properties.
+and 1856 class methods or properties.
 
 ## Module constants
 
@@ -9318,6 +9318,14 @@ Return QPA's ordered basis of module homomorphisms, or ``None``.
 def MatrixModule.hom_basis_to(self, range: MatrixModule) -> list[ModuleHomomorphism] | None
 ```
 
+#### `MatrixModule.hom_dimension_to` (method)
+
+Return the Hom dimension without basis maps; ``None`` for different acting algebras.
+
+```python
+def MatrixModule.hom_dimension_to(self, range: MatrixModule) -> int | None
+```
+
 #### `MatrixModule.hom_basis_with_coefficients_to` (method)
 
 ```python
@@ -9600,6 +9608,22 @@ Compute QPA's degree-one Ext result with coefficients in the argument.
 
 ```python
 def MatrixModule.ext1(self, coefficients_in: MatrixModule) -> ExtOverAlgebraResult
+```
+
+#### `MatrixModule.ext1_dimension` (method)
+
+Compute the degree-one Ext dimension without quotient representatives.
+
+```python
+def MatrixModule.ext1_dimension(self, coefficients_in: MatrixModule) -> int
+```
+
+#### `MatrixModule.ext1_dimensions` (method)
+
+Compute Ext dimensions in input order, reusing this source's cover and syzygy.
+
+```python
+def MatrixModule.ext1_dimensions(self, coefficients_in: list[MatrixModule]) -> list[int]
 ```
 
 #### `MatrixModule.ext_algebra_generators` (method)

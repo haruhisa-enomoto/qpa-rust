@@ -833,7 +833,7 @@ pub fn n_rigid_module<F: QpaCoefficientField>(
     let mut degree = one.clone();
     let mut current = module.clone();
     while &degree <= bound {
-        if ext_over_algebra(&current, module)?.dimension() > 0 {
+        if ext_dimension_over_algebra(&current, module)? > 0 {
             return Ok(false);
         }
         degree += &one;

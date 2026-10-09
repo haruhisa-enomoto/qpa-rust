@@ -58,6 +58,18 @@ basis = simple_at_v2.hom_basis_to(module)
 assert basis is not None
 ```
 
+When only the dimension is needed, use `source.hom_dimension_to(target)`.
+It returns the same dimension as `len(source.hom_basis_to(target))` without
+constructing the basis maps, or `None` for different acting algebras. Both
+methods reject incompatible coefficient fields.
+
+For degree-one Ext, `source.ext1_dimension(target)` computes the dimension
+without quotient representatives. To reuse the source's projective cover and
+syzygy across several targets, use `source.ext1_dimensions(targets)`; the
+returned dimensions follow the input order, and an empty list returns `[]`.
+All targets must belong to the source's acting algebra. Use `source.ext1(target)`
+when representatives or their coefficient function are needed.
+
 For an explicit map, use `source.homomorphism_to(range, vertex_matrices)`.
 Its `kernel`, `image_module`, and `cokernel` methods preserve QPA's
 constructions, and the corresponding inclusion/projection methods retain the

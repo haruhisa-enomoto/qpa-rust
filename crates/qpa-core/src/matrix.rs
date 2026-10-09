@@ -9,6 +9,8 @@ use std::ops::{Index, IndexMut};
 use numerica::domains::Field;
 use thiserror::Error;
 
+mod binary;
+
 /// A dense row-major matrix over an exact Numerica field.
 ///
 /// Row and column counts are stored independently of the data, so shapes such
@@ -266,6 +268,9 @@ impl<F: Field> DenseMatrix<F> {
     }
 
     fn semi_echelon<const TRANSFORM: bool>(&self) -> SemiEchelonTransformation<F> {
+        if self.use_packed_binary() {
+            return self.packed_binary::<TRANSFORM>().unpack(self);
+        }
         let mut heads: Vec<Option<usize>> = vec![None; self.ncols];
         let mut vectors: Vec<Vec<F::Element>> = Vec::new();
         let mut coefficients: Vec<Vec<F::Element>> = Vec::new();
@@ -384,6 +389,9 @@ impl<F: Field> DenseMatrix<F> {
     /// Return GAP's left nullspace: rows `x` satisfying `x * self = 0`.
     #[must_use]
     pub fn nullspace_rows(&self) -> Self {
+        if self.use_packed_binary() {
+            return self.packed_binary::<true>().unpack_relations(self);
+        }
         self.semi_echelon_transformation().relations
     }
 
@@ -586,6 +594,9 @@ impl<F: Field> DenseMatrix<F> {
     /// Return the row rank computed by GAP's generic semi-echelon algorithm.
     #[must_use]
     pub fn rank(&self) -> usize {
+        if self.use_packed_binary() {
+            return self.packed_binary::<false>().vectors.len();
+        }
         self.semi_echelon_basis().nrows
     }
 }

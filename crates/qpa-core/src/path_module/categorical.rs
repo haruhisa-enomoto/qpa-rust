@@ -759,7 +759,7 @@ pub fn is_in_additive_closure<F: Field>(
         .ok_or(PathAlgebraModuleError::InternalAdditiveClosureHomRejected)?;
     let generator_to_candidate = hom_over_algebra(generator, candidate)?
         .ok_or(PathAlgebraModuleError::InternalAdditiveClosureHomRejected)?;
-    let endomorphisms = hom_over_algebra(candidate, candidate)?
+    let endomorphism_dimension = hom_dimension_over_algebra(candidate, candidate)?
         .ok_or(PathAlgebraModuleError::InternalAdditiveClosureHomRejected)?;
     let mut products = Vec::with_capacity(
         candidate_to_generator
@@ -787,7 +787,7 @@ pub fn is_in_additive_closure<F: Field>(
         .semi_echelon_basis()
         .nrows()
     };
-    Ok(Some(span_dimension == endomorphisms.len()))
+    Ok(Some(span_dimension == endomorphism_dimension))
 }
 
 /// Translate QPA's recursive `IsomorphismOfModules(M, N)` operation.

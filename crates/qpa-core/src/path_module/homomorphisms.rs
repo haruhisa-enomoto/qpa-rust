@@ -1128,11 +1128,58 @@ fn restricted_module_data<F: Field>(
 ///
 /// Reports address-size overflow and propagates exact matrix or checked-map
 /// construction failures.
-#[allow(clippy::too_many_lines)]
 pub fn hom_over_algebra<F: Field>(
     source: &PathAlgebraModule<F>,
     range: &PathAlgebraModule<F>,
 ) -> Result<Option<Vec<PathAlgebraModuleHomomorphism<F>>>, PathAlgebraModuleError> {
+    let Some(equations) = hom_equations(source, range)? else {
+        return Ok(None);
+    };
+    if equations.ncols() == 0 {
+        // Construct elementary maps one at a time, without retaining a dense
+        // identity nullspace for an unconstrained Hom space.
+        return (0..equations.nrows())
+            .map(|index| {
+                let mut entries = vec![equations.field().zero(); equations.nrows()];
+                entries[index] = equations.field().one();
+                module_homomorphism_from_logical_flat(source, range, &entries)
+            })
+            .collect::<Result<Vec<_>, _>>()
+            .map(Some);
+    }
+    let nullspace = equations.nullspace_rows();
+    let homomorphisms = (0..nullspace.nrows())
+        .map(|row| module_homomorphism_from_logical_flat(source, range, nullspace.row(row)))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Some(homomorphisms))
+}
+
+/// Compute the dimension of `Hom(source, range)` without constructing basis maps.
+///
+/// Uses the same equations as [`hom_over_algebra`], returning their left nullity.
+/// Returns `Ok(None)` for different acting algebras, including zero modules.
+///
+/// # Errors
+///
+/// Propagates equation-size overflow and exact matrix construction failures.
+pub fn hom_dimension_over_algebra<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<Option<usize>, PathAlgebraModuleError> {
+    Ok(hom_equations(source, range)?.map(|equations| {
+        if equations.ncols() == 0 {
+            equations.nrows()
+        } else {
+            equations.nrows() - equations.rank()
+        }
+    }))
+}
+
+#[allow(clippy::too_many_lines)]
+fn hom_equations<F: Field>(
+    source: &PathAlgebraModule<F>,
+    range: &PathAlgebraModule<F>,
+) -> Result<Option<DenseMatrix<F>>, PathAlgebraModuleError> {
     if source.right_acting_algebra() != range.right_acting_algebra() {
         return Ok(None);
     }
@@ -1191,8 +1238,8 @@ pub fn hom_over_algebra<F: Field>(
         }
     }
 
+    let mut equations = DenseMatrix::zero(row_count, column_count, field.clone());
     if row_count != 0 && column_count != 0 {
-        let mut equations = DenseMatrix::zero(row_count, column_count, field.clone());
         let mut previous_column = 0_usize;
         for vertex in 0..vertex_count {
             if !source_support[vertex] {
@@ -1260,41 +1307,8 @@ pub fn hom_over_algebra<F: Field>(
                 previous_column += source_dimensions[arrow_source] * range_dimensions[arrow_target];
             }
         }
-
-        let nullspace = equations.nullspace_rows();
-        let mut homomorphisms = Vec::with_capacity(nullspace.nrows());
-        for row in 0..nullspace.nrows() {
-            homomorphisms.push(module_homomorphism_from_logical_flat(
-                source,
-                range,
-                nullspace.row(row),
-            )?);
-        }
-        return Ok(Some(homomorphisms));
     }
-
-    if source.dimension() == 0 || range.dimension() == 0 {
-        return Ok(Some(Vec::new()));
-    }
-
-    let mut homomorphisms = Vec::new();
-    for vertex in 0..vertex_count {
-        if !source_support[vertex] || !range_support[vertex] {
-            continue;
-        }
-        let block_start = block_rows[vertex]
-            .ok_or(PathAlgebraModuleError::MissingHomUnknownBlock { vertex: vertex + 1 })?;
-        for row in 0..source_dimensions[vertex] {
-            for column in 0..range_dimensions[vertex] {
-                let mut entries = vec![field.zero(); row_count];
-                entries[block_start + row * range_dimensions[vertex] + column] = field.one();
-                homomorphisms.push(module_homomorphism_from_logical_flat(
-                    source, range, &entries,
-                )?);
-            }
-        }
-    }
-    Ok(Some(homomorphisms))
+    Ok(Some(equations))
 }
 
 /// Translate QPA's `HomOverAlgebraWithBasisFunction` result pair.

@@ -1,0 +1,523 @@
+{
+  "baseline_source_revision": "586298ba870d20e399c96b42d5499c7b5d46f56f",
+  "profile": "release; default numerica-no-gmp backend",
+  "method": "Microbenchmarks: seven in-process samples per mode pinned to CPU 0. Consumer follow-up: five alternating fresh processes per mode pinned to CPU 0. Broad unchanged-API suite: three in-process samples with unrestricted affinity and existing consumer presentation caches. Runs are sequential after builds/tests. Shared i5-13500 / WSL2 host with unrelated workloads active; timings vary.",
+  "commands": [
+    "PYTHONPATH=target/performance-pass1 taskset -c 0 .venv/bin/python benchmarks/dimension_workloads.py --mode basis --repeat 7 --output target/pass2-micro-before.json",
+    "taskset -c 0 .venv/bin/python benchmarks/dimension_workloads.py --mode basis --repeat 7 --output target/pass2-micro-basis.json --compare target/pass2-micro-before.json",
+    "taskset -c 0 .venv/bin/python benchmarks/dimension_workloads.py --mode dimensions --repeat 7 --output target/pass2-micro-dimensions.json --compare target/pass2-micro-before.json",
+    "taskset -c 0 .venv/bin/python benchmarks/dimension_workloads.py --mode batch --repeat 7 --output target/pass2-micro-batch.json --compare target/pass2-micro-before.json",
+    "PYTHONPATH=target/performance-pass1 .venv/bin/python benchmarks/module_workloads.py --consumer-root ../homological-conjectures --output target/pass2-broad-before.json",
+    ".venv/bin/python benchmarks/module_workloads.py --consumer-root ../homological-conjectures --output target/pass2-broad-after.json --compare target/pass2-broad-before.json"
+  ],
+  "interpretation": [
+    "Current basis mode uses unchanged caller APIs and measures library-internal improvements.",
+    "Dimension and batch modes opt into new APIs; consumer Hom/Ext expressions are rewritten in memory only by the benchmark runner.",
+    "Batch mode differs from dimensions mode only for ext_grid; other differences are measurement variability.",
+    "Every result matches the previous release basis calculation exactly after JSON normalization.",
+    "Graded Ext shows no established improvement: alternating medians 0.764 s previously, 0.781 s with unchanged APIs, 0.744 s with dimension queries, with overlapping ranges.",
+    "JS29 dimension-query median improves from 5.302 s to 4.338 s; overlapping sample ranges and concurrent host work limit precision.",
+    "Baseline extension was compiled before the first-pass commit; its embedded revision is 20e6366-dirty and its source is the committed 586298b first pass."
+  ],
+  "run_metadata": {
+    "previous_basis": {
+      "mode": "basis",
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "cpu_affinity": [
+        0
+      ],
+      "qpa_package": "/home/italing/work/qpa-rust/target/performance-pass1/qpa/__init__.py",
+      "qpa_build_revision": "20e6366b850e706e2ee5ae1939157a2d73301294-dirty",
+      "extension_sha256": "bb411a8b7901ffdd8a9bd18133eee8ca797b24c7fbeae6d0d6b0ebfb9517288e"
+    },
+    "current_basis": {
+      "mode": "basis",
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "cpu_affinity": [
+        0
+      ],
+      "qpa_package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "qpa_build_revision": "586298ba870d20e399c96b42d5499c7b5d46f56f-dirty",
+      "extension_sha256": "a89d04bd84a83651becf08e53ec1ae93f46877a2766a230fbbeb8d25f585f60a"
+    },
+    "current_dimensions": {
+      "mode": "dimensions",
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "cpu_affinity": [
+        0
+      ],
+      "qpa_package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "qpa_build_revision": "586298ba870d20e399c96b42d5499c7b5d46f56f-dirty",
+      "extension_sha256": "a89d04bd84a83651becf08e53ec1ae93f46877a2766a230fbbeb8d25f585f60a"
+    },
+    "current_batch": {
+      "mode": "batch",
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "cpu_affinity": [
+        0
+      ],
+      "qpa_package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "qpa_build_revision": "586298ba870d20e399c96b42d5499c7b5d46f56f-dirty",
+      "extension_sha256": "a89d04bd84a83651becf08e53ec1ae93f46877a2766a230fbbeb8d25f585f60a"
+    },
+    "broad_previous": {
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "qpa_package": "/home/italing/work/qpa-rust/target/performance-pass1/qpa/__init__.py",
+      "qpa_build_revision": "20e6366b850e706e2ee5ae1939157a2d73301294-dirty",
+      "extension_sha256": "bb411a8b7901ffdd8a9bd18133eee8ca797b24c7fbeae6d0d6b0ebfb9517288e",
+      "repetitions": 3
+    },
+    "broad_current": {
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "qpa_package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "qpa_build_revision": "586298ba870d20e399c96b42d5499c7b5d46f56f-dirty",
+      "extension_sha256": "a89d04bd84a83651becf08e53ec1ae93f46877a2766a230fbbeb8d25f585f60a",
+      "repetitions": 3
+    }
+  },
+  "dimension_workloads": {
+    "hom_rational": {
+      "previous_basis": {
+        "seconds": [
+          0.3410985089140013,
+          0.33890189696103334,
+          0.33172818599268794,
+          0.38221762294415385,
+          0.3351381169632077,
+          0.3312950839754194,
+          0.32222832401748747
+        ],
+        "median_seconds": 0.3351381169632077,
+        "speedup_over_previous_basis": 1.0
+      },
+      "current_basis": {
+        "seconds": [
+          0.36475798091851175,
+          0.3828688060166314,
+          0.33753370703198016,
+          0.31949966005049646,
+          0.3560240230290219,
+          0.32953187893144786,
+          0.30337307904846966
+        ],
+        "median_seconds": 0.33753370703198016,
+        "speedup_over_previous_basis": 0.9929026641817865
+      },
+      "current_dimensions": {
+        "seconds": [
+          0.2066348569933325,
+          0.17872235807590187,
+          0.18761088605970144,
+          0.17766791000030935,
+          0.17950506089255214,
+          0.21758924599271268,
+          0.20319283998105675
+        ],
+        "median_seconds": 0.18761088605970144,
+        "speedup_over_previous_basis": 1.7863468586602178
+      },
+      "current_batch": {
+        "seconds": [
+          0.19131994398776442,
+          0.18535931804217398,
+          0.2416401560185477,
+          0.19369435601402074,
+          0.18295562593266368,
+          0.18941483099479228,
+          0.17336526198778301
+        ],
+        "median_seconds": 0.18941483099479228,
+        "speedup_over_previous_basis": 1.7693340864761635
+      },
+      "result_sha256": "c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db"
+    },
+    "hom_binary": {
+      "previous_basis": {
+        "seconds": [
+          0.009918052004650235,
+          0.006376384058967233,
+          0.007724441937170923,
+          0.006582161993719637,
+          0.006477351998910308,
+          0.006302283960394561,
+          0.009622520068660378
+        ],
+        "median_seconds": 0.006582161993719637,
+        "speedup_over_previous_basis": 1.0
+      },
+      "current_basis": {
+        "seconds": [
+          0.001745381043292582,
+          0.0014565279707312584,
+          0.0017324690707027912,
+          0.0015474309911951423,
+          0.001460564904846251,
+          0.0013769749784842134,
+          0.001488294918090105
+        ],
+        "median_seconds": 0.001488294918090105,
+        "speedup_over_previous_basis": 4.42261941078612
+      },
+      "current_dimensions": {
+        "seconds": [
+          0.00200927397236228,
+          0.001447423011995852,
+          0.0013622799888253212,
+          0.001411842997185886,
+          0.001285659964196384,
+          0.0012900150613859296,
+          0.001632119994610548
+        ],
+        "median_seconds": 0.001411842997185886,
+        "speedup_over_previous_basis": 4.662106202204733
+      },
+      "current_batch": {
+        "seconds": [
+          0.002044713939540088,
+          0.0013384310295805335,
+          0.0012707399437204003,
+          0.0011899459641426802,
+          0.001177494996227324,
+          0.0012118619633838534,
+          0.0011942581040784717
+        ],
+        "median_seconds": 0.0012118619633838534,
+        "speedup_over_previous_basis": 5.43144532347597
+      },
+      "result_sha256": "c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db"
+    },
+    "ext_grid": {
+      "previous_basis": {
+        "seconds": [
+          0.00918594200629741,
+          0.009399210917763412,
+          0.008777410024777055,
+          0.006786350044421852,
+          0.006292750011198223,
+          0.008005909970961511,
+          0.009324842016212642
+        ],
+        "median_seconds": 0.008777410024777055,
+        "speedup_over_previous_basis": 1.0
+      },
+      "current_basis": {
+        "seconds": [
+          0.005465026944875717,
+          0.005002322024665773,
+          0.005051475018262863,
+          0.0050761529710143805,
+          0.005050580017268658,
+          0.004943299922160804,
+          0.005974706960842013
+        ],
+        "median_seconds": 0.005051475018262863,
+        "speedup_over_previous_basis": 1.7375934737959948
+      },
+      "current_dimensions": {
+        "seconds": [
+          0.002766357036307454,
+          0.0024691589642316103,
+          0.0024475250393152237,
+          0.0024549849331378937,
+          0.002364407991990447,
+          0.002461083000525832,
+          0.0023361529456451535
+        ],
+        "median_seconds": 0.0024549849331378937,
+        "speedup_over_previous_basis": 3.575341708333017
+      },
+      "current_batch": {
+        "seconds": [
+          0.002689335960894823,
+          0.001881744945421815,
+          0.0020527890883386135,
+          0.0020201539155095816,
+          0.0020157500403001904,
+          0.0020719190360978246,
+          0.0021019700216129422
+        ],
+        "median_seconds": 0.0020527890883386135,
+        "speedup_over_previous_basis": 4.2758460061188694
+      },
+      "result_sha256": "50f456dac2f162b335bdc571253e67673a280eae9000ed477ec20a6912a4480e"
+    }
+  },
+  "consumer_followup": {
+    "method": "Five fresh-process samples per mode, alternating mode order, affinity fixed to CPU 0. Same consumer results checked against the initial basis run.",
+    "modes": {
+      "previous_basis": {
+        "consumer_js29_rational": {
+          "seconds": [
+            4.95977518404834,
+            4.562160781933926,
+            5.302491587004624,
+            5.470525233075023,
+            5.365785970003344
+          ],
+          "median_seconds": 5.302491587004624
+        },
+        "consumer_graded_ext_binary": {
+          "seconds": [
+            0.6979588590329513,
+            0.6827291779918596,
+            0.8223611380672082,
+            0.7641900000162423,
+            0.7688594959909096
+          ],
+          "median_seconds": 0.7641900000162423
+        }
+      },
+      "current_basis": {
+        "consumer_js29_rational": {
+          "seconds": [
+            4.612786339013837,
+            4.658751426963136,
+            6.09667629795149,
+            5.179723947076127,
+            5.885565067990683
+          ],
+          "median_seconds": 5.179723947076127
+        },
+        "consumer_graded_ext_binary": {
+          "seconds": [
+            0.7134390630526468,
+            0.7602087580598891,
+            0.8335821540094912,
+            0.7810286789899692,
+            0.9027674440294504
+          ],
+          "median_seconds": 0.7810286789899692
+        }
+      },
+      "current_dimensions": {
+        "consumer_js29_rational": {
+          "seconds": [
+            4.175235435948707,
+            4.042754273046739,
+            4.3377172000473365,
+            4.550530301057734,
+            5.857428550021723
+          ],
+          "median_seconds": 4.3377172000473365
+        },
+        "consumer_graded_ext_binary": {
+          "seconds": [
+            0.7185206589056179,
+            0.69823847792577,
+            0.7443200730485842,
+            0.9242009300505742,
+            0.7681315159425139
+          ],
+          "median_seconds": 0.7443200730485842
+        }
+      }
+    },
+    "command_template": "PYTHONPATH=<previous package or current python directory> taskset -c 0 .venv/bin/python benchmarks/dimension_workloads.py --mode <basis or dimensions> --repeat 1 --case consumer_js29_rational --case consumer_graded_ext_binary --consumer-root ../homological-conjectures --output <sample.json> --compare target/pass2-before.json",
+    "mode_order_by_cycle": [
+      [
+        "previous_basis",
+        "current_basis",
+        "current_dimensions"
+      ],
+      [
+        "current_basis",
+        "current_dimensions",
+        "previous_basis"
+      ],
+      [
+        "current_dimensions",
+        "previous_basis",
+        "current_basis"
+      ],
+      [
+        "previous_basis",
+        "current_basis",
+        "current_dimensions"
+      ],
+      [
+        "current_basis",
+        "current_dimensions",
+        "previous_basis"
+      ]
+    ],
+    "result_sha256": {
+      "consumer_js29_rational": "01794c7693760d9be654d9d4cb1cb102e2123839973abd0042e278cf17baa615",
+      "consumer_graded_ext_binary": "093c0672ed99ca828c7ea537dada4e15996a20e00bad2d0c88372c76cb0d49eb"
+    }
+  },
+  "unchanged_api_workloads": {
+    "hom_rational": {
+      "before_seconds": [
+        0.4462592530762777,
+        0.3995792740024626,
+        0.3781833249377087
+      ],
+      "after_seconds": [
+        0.37266437197104096,
+        0.3388129009399563,
+        0.3798337490297854
+      ],
+      "speedup": 1.072222900968685
+    },
+    "kernel_rational": {
+      "before_seconds": [
+        0.0020035869674757123,
+        0.002322562038898468,
+        0.001954405102878809
+      ],
+      "after_seconds": [
+        0.0018909679492935538,
+        0.0015371660701930523,
+        0.0015006889589130878
+      ],
+      "speedup": 1.3034290870238128
+    },
+    "ext_binary": {
+      "before_seconds": [
+        0.008195922942832112,
+        0.006253557046875358,
+        0.007596062961965799
+      ],
+      "after_seconds": [
+        0.004688438028097153,
+        0.004397660028189421,
+        0.004385652020573616
+      ],
+      "speedup": 1.7272965425417859
+    },
+    "additive_closure_prime": {
+      "before_seconds": [
+        0.0012263290118426085,
+        0.0010479680495336652,
+        0.0010598289081826806
+      ],
+      "after_seconds": [
+        0.0009824869921430945,
+        0.0006705400301143527,
+        0.0005978189874440432
+      ],
+      "speedup": 1.580560235907078
+    },
+    "consumer_js29_rational": {
+      "before_seconds": [
+        5.732419272069819,
+        6.03086359705776,
+        4.95261576899793
+      ],
+      "after_seconds": [
+        4.744405742036179,
+        4.620032808044925,
+        4.635863514966331
+      ],
+      "speedup": 1.2365375411858845
+    },
+    "consumer_graded_ext_binary": {
+      "before_seconds": [
+        0.7648830340476707,
+        0.7553873340366408,
+        0.7517667580395937
+      ],
+      "after_seconds": [
+        0.7044267780147493,
+        0.7010119839105755,
+        0.6952248619636521
+      ],
+      "speedup": 1.077566933767286
+    },
+    "consumer_delooping": {
+      "before_seconds": [
+        0.06881536892615259,
+        0.07765193295199424,
+        0.06642529193777591
+      ],
+      "after_seconds": [
+        0.06731724506244063,
+        0.06273921800311655,
+        0.07042079605162144
+      ],
+      "speedup": 1.0222546817286173
+    },
+    "consumer_reflexive_tubes": {
+      "before_seconds": [
+        0.02730806195177138,
+        0.02692585694603622,
+        0.027164455968886614
+      ],
+      "after_seconds": [
+        0.029721698025241494,
+        0.02700711297802627,
+        0.02657064492814243
+      ],
+      "speedup": 1.005825983361804
+    },
+    "consumer_e6_rational": {
+      "before_seconds": [
+        0.0148360850289464,
+        0.014449588023126125,
+        0.016764024971053004
+      ],
+      "after_seconds": [
+        0.013964195968583226,
+        0.018070988007821143,
+        0.01523287408053875
+      ],
+      "speedup": 0.9739517933717262
+    },
+    "consumer_gsz_nonminimal": {
+      "before_seconds": [
+        0.11370131699368358,
+        0.10784769896417856,
+        0.10780521295964718
+      ],
+      "after_seconds": [
+        0.10971612296998501,
+        0.10456562705803663,
+        0.10410468804184347
+      ],
+      "speedup": 1.0313876748840258
+    }
+  },
+  "source_sha256": {
+    "crates/qpa-core/src/api.rs": "2341a3ead7f4d837322774891707fd49540607cc1643b1f70ee0c7f1dc7903c0",
+    "crates/qpa-core/src/lib.rs": "4562cf0558960d67d6b4361003d40dcc551c742ecc518e2fb64a01c55c20f6ce",
+    "crates/qpa-core/src/matrix.rs": "4af601b57dcbca321eac9c906d1d6cb7d1520ff2e874ca31f7e083c976e485e1",
+    "crates/qpa-core/src/matrix/binary.rs": "855a7041a3ade38c26d59fce2d76dfae8543f23ba03ac7127f9cd52b7a17906e",
+    "crates/qpa-core/src/path_module/categorical.rs": "5685e0475bc60fada59b00521b3b4d7a0df1021d892cd808c3557a749ac68677",
+    "crates/qpa-core/src/path_module/homomorphisms.rs": "ca7e92a75708ac4a63e295cbed321ad22121685805c03126a04fcf4b147af600",
+    "crates/qpa-core/tests/matrix_elimination.rs": "9dce8dfac8da106e2283acd28dae446dfd259f3383916b2272f928943498297a",
+    "crates/qpa-gbnp/src/lib.rs": "d17d40da15ac890518a5cbd2204d757e7437775b8ed438cd5d47bea62e416d49",
+    "crates/qpa-gbnp/src/module.rs": "ebf80c64c0118cbbb7cb03e1ec95d9585ba7a0ab66f2ab3bc4d78a9ca2ec769c",
+    "crates/qpa-gbnp/src/module/algebra_invariants.rs": "246ee1593bbed137eaf4c58b0d7e0de4d87fdf9e533074f02905e5d6194ed713",
+    "crates/qpa-gbnp/src/module/ext_and_iyama.rs": "ae27bc3e992e7ddb3636fe153891a8f3f8aca27e2434ab6e43d33cfc3407e27d",
+    "crates/qpa-gbnp/src/module/syzygies_and_tilting.rs": "cc1688c22a12ba6c79ac44947f0d07bbbdf4549520a9e6e012ae6cea387b973c",
+    "crates/qpa-gbnp/src/module/tests.rs": "850f15bb10df39346266d1bc8ba3476bd9d037ebffdcf002d21eccca9d24cb8c",
+    "crates/qpa-python/src/algebra/module.rs": "ca1bd30b424a5db6429cf9471263d689c425216a8c94c233f4ac7cf8d32f3845"
+  },
+  "peak_rss_kib": {
+    "rational_hom_basis_previous": 432892,
+    "rational_hom_dimension_current": 268460,
+    "method": "Fresh Python processes; /usr/bin/time -f %M; rational Kronecker size 24, dimension 24 in both modes."
+  },
+  "validation": {
+    "rust_tests_default": 428,
+    "rust_tests_gmp": 428,
+    "python_tests": 373,
+    "consumer_tests": 109,
+    "clippy_default_and_gmp": "passed with -D warnings",
+    "rustdoc_default_and_gmp": "passed with -D warnings",
+    "python_ledger_and_generated_docs": "passed",
+    "format_and_diff_check": "passed"
+  },
+  "consumer_revision_at_report": "c2a9756ac76c005f06cd4cc7b906256ad17b6eb7",
+  "consumer_source_sha256": {
+    "experiments/weak-gorenstein-symmetry-counterexample/verify_js29.py": "ca10eb21db7ffc7e3bcdf237c69df9bce2da8daea19dce340fa95d783d9af212",
+    "experiments/weak-gorenstein-symmetry-counterexample/js29-input.json": "10c9b9d863ba3ccc6157d0d426c156b56cf010df2f455ab8052520e87b9aba56",
+    "lib/graded_square_zero_qpa.py": "12c38832c62937037de6b5ccde58c7e3a3b18a082adf4ecfed9f3430a3ce8ee9"
+  }
+}

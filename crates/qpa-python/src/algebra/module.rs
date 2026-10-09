@@ -23,6 +23,30 @@ use qpa_core::{ModuleDimensionSeries, PathAlgebraModuleMatrix, PathAlgebraVector
 // Private runtime enums and helpers form one binding domain.
 use super::*;
 
+fn batch_ext_dimensions<F: runtime::PythonField>(
+    module: &qpa_core::PathAlgebraModule<F>,
+    targets: Vec<MatrixModuleKind>,
+) -> PyResult<Vec<usize>>
+where
+    MatrixModuleKind: runtime::Extract<qpa_core::PathAlgebraModule<F>>,
+{
+    let targets: Vec<qpa_core::PathAlgebraModule<F>> = runtime::extract_all(targets)?;
+    if targets.is_empty() {
+        return Ok(Vec::new());
+    }
+    if targets
+        .iter()
+        .any(|target| target.right_acting_algebra() != module.right_acting_algebra())
+    {
+        return Err(invalid("Ext modules belong to different algebras"));
+    }
+    let prepared = qpa_gbnp::ExtDimensionSource::new(module).map_err(invalid)?;
+    targets
+        .iter()
+        .map(|target| prepared.dimension(target).map_err(invalid))
+        .collect()
+}
+
 #[derive(Clone)]
 enum ProjectivePathPresentationKind {
     Rational(qpa_gbnp::ProjectivePathAlgebraPresentation<RationalField>),
@@ -1429,6 +1453,17 @@ impl PyMatrixModule {
         )
     }
 
+    /// Return the Hom dimension without constructing basis maps, or `None`.
+    fn hom_dimension_to(&self, range: &Self) -> PyResult<Option<usize>> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &range.kind,
+            MatrixModuleKind,
+            |source, range| qpa_core::hom_dimension_over_algebra(source, range).map_err(invalid),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
     fn hom_basis_with_coefficients_to(
         &self,
         range: &Self,
@@ -1972,6 +2007,28 @@ impl PyMatrixModule {
             invalid("modules belong to different coefficient fields")
         )?;
         Ok(PyExtOverAlgebraResult { kind })
+    }
+
+    /// Compute the degree-one Ext dimension without quotient representatives.
+    fn ext1_dimension(&self, coefficients_in: &Self) -> PyResult<usize> {
+        dispatch_pair_ref!(
+            &self.kind,
+            &coefficients_in.kind,
+            MatrixModuleKind,
+            |module, target| qpa_gbnp::ext_dimension_over_algebra(module, target).map_err(invalid),
+            Err(invalid("modules belong to different coefficient fields"))
+        )
+    }
+
+    /// Compute Ext dimensions in input order, reusing this source's cover and syzygy.
+    fn ext1_dimensions(&self, coefficients_in: Vec<PyRef<'_, Self>>) -> PyResult<Vec<usize>> {
+        let targets = coefficients_in
+            .iter()
+            .map(|target| target.kind.clone())
+            .collect();
+        dispatch_ref!(&self.kind, MatrixModuleKind, |module| batch_ext_dimensions(
+            module, targets
+        ))
     }
 
     fn ext_algebra_generators(

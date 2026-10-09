@@ -72,11 +72,11 @@ pub mod modules {
         PathAlgebraModuleArrowActions, PathAlgebraModuleElement, PathAlgebraModuleError,
         PathAlgebraModuleHomomorphism, PathAlgebraModuleMatrix, cokernel_of_module_homomorphism,
         direct_sum_inclusions, direct_sum_of_qpa_modules, direct_sum_projections, end_over_algebra,
-        hom_over_algebra, identity_module_mapping, image_inclusion, image_of_module_homomorphism,
-        image_projection, kernel_inclusion, kernel_of_module_homomorphism, radical_of_module,
-        right_module_hom_over_algebra, right_module_over_path_algebra,
-        right_module_over_path_algebra_infer_dimension, socle_of_module, top_of_module,
-        zero_module, zero_module_mapping,
+        hom_dimension_over_algebra, hom_over_algebra, identity_module_mapping, image_inclusion,
+        image_of_module_homomorphism, image_projection, kernel_inclusion,
+        kernel_of_module_homomorphism, radical_of_module, right_module_hom_over_algebra,
+        right_module_over_path_algebra, right_module_over_path_algebra_infer_dimension,
+        socle_of_module, top_of_module, zero_module, zero_module_mapping,
     };
 }
 

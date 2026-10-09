@@ -3068,6 +3068,8 @@ class MatrixModule:
     def zero_map_to(self, range: MatrixModule) -> ModuleHomomorphism: ...
     def hom_basis_to(self, range: MatrixModule) -> list[ModuleHomomorphism] | None:
         """Return QPA's ordered basis of module homomorphisms, or ``None``."""
+    def hom_dimension_to(self, range: MatrixModule) -> int | None:
+        """Return the Hom dimension without basis maps; ``None`` for different acting algebras."""
     def hom_basis_with_coefficients_to(
         self, range: MatrixModule
     ) -> ModuleHomomorphismBasis | None: ...
@@ -3147,6 +3149,10 @@ class MatrixModule:
     def tau_period(self, bound: int) -> str | None: ...
     def ext1(self, coefficients_in: MatrixModule) -> ExtOverAlgebraResult:
         """Compute QPA's degree-one Ext result with coefficients in the argument."""
+    def ext1_dimension(self, coefficients_in: MatrixModule) -> int:
+        """Compute the degree-one Ext dimension without quotient representatives."""
+    def ext1_dimensions(self, coefficients_in: list[MatrixModule]) -> list[int]:
+        """Compute Ext dimensions in input order, reusing this source's cover and syzygy."""
     def ext_algebra_generators(
         self, maximum_degree: int
     ) -> ExtAlgebraGeneratorsResult: ...
