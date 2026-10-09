@@ -1,0 +1,217 @@
+{
+  "date": "2026-10-10",
+  "build": "maturin develop --release; default numerica-no-gmp backend",
+  "method": "Three repetitions per case with fresh modules and quotients; medians; construction and result checks included. Imports, JSON serialization, and compilation excluded. Consumer presentation caches persist within a run. Single shared machine; small differences are not conclusive.",
+  "command": ".venv/bin/python benchmarks/module_workloads.py --consumer-root ../homological-conjectures --output target/performance-after.json --compare target/performance-before.json",
+  "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "baseline_revision": "20e6366b850e706e2ee5ae1939157a2d73301294",
+  "baseline_extension_sha256": "8ff4e054f3b279eaf427b2a7bea97186d3a2eb949c1925ebf089ee8b2f7c03ce",
+  "optimized_extension_sha256": "bb411a8b7901ffdd8a9bd18133eee8ca797b24c7fbeae6d0d6b0ebfb9517288e",
+  "source_diff_sha256": "cc067adee2891a3c2eb65f59296c4bdbc70a91c73569e31688b1df979d96947c",
+  "cases": {
+    "hom_rational": {
+      "before_seconds": [
+        0.5842804299900308,
+        0.5553551960038021,
+        0.6520291060442105
+      ],
+      "after_seconds": [
+        0.3011671209242195,
+        0.285813961061649,
+        0.28534242196474224
+      ],
+      "before_median_seconds": 0.5842804299900308,
+      "after_median_seconds": 0.285813961061649,
+      "speedup": 2.044268333918103,
+      "result_sha256": "c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db"
+    },
+    "kernel_rational": {
+      "before_seconds": [
+        0.00493959803134203,
+        0.004625994944944978,
+        0.0056858150055631995
+      ],
+      "after_seconds": [
+        0.0018084740731865168,
+        0.001551414025016129,
+        0.0014417628990486264
+      ],
+      "before_median_seconds": 0.00493959803134203,
+      "after_median_seconds": 0.001551414025016129,
+      "speedup": 3.1839328197968793,
+      "result_sha256": "da262769505520bceb58329db3ca4bedd6ea933bde89e1d573daf70930dc0fba"
+    },
+    "ext_binary": {
+      "before_seconds": [
+        0.007097495952621102,
+        0.006165526923723519,
+        0.009299715049564838
+      ],
+      "after_seconds": [
+        0.005465535097755492,
+        0.00558521703351289,
+        0.0058094681007787585
+      ],
+      "before_median_seconds": 0.007097495952621102,
+      "after_median_seconds": 0.00558521703351289,
+      "speedup": 1.2707645754917147,
+      "result_sha256": "2747b7c718564ba5f066f0523b03e17f6a496b06851333d2d59ab6d863225848"
+    },
+    "additive_closure_prime": {
+      "before_seconds": [
+        0.022307984065264463,
+        0.0138997589237988,
+        0.01429294899571687
+      ],
+      "after_seconds": [
+        0.0010478600161150098,
+        0.0006795100634917617,
+        0.0005727469688281417
+      ],
+      "before_median_seconds": 0.01429294899571687,
+      "after_median_seconds": 0.0006795100634917617,
+      "speedup": 21.034197672173484,
+      "result_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+    },
+    "consumer_js29_rational": {
+      "before_seconds": [
+        9.655757721979171,
+        9.670313998009078,
+        8.781006171950139
+      ],
+      "after_seconds": [
+        5.127160645904951,
+        5.60750719695352,
+        5.714815408107825
+      ],
+      "before_median_seconds": 9.655757721979171,
+      "after_median_seconds": 5.60750719695352,
+      "speedup": 1.721934075666458,
+      "result_sha256": "01794c7693760d9be654d9d4cb1cb102e2123839973abd0042e278cf17baa615"
+    },
+    "consumer_graded_ext_binary": {
+      "before_seconds": [
+        0.810165188042447,
+        0.7958391309948638,
+        0.9046304110670462
+      ],
+      "after_seconds": [
+        0.902744160965085,
+        0.8594267789740115,
+        0.8397020730189979
+      ],
+      "before_median_seconds": 0.810165188042447,
+      "after_median_seconds": 0.8594267789740115,
+      "speedup": 0.9426808750474667,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_delooping": {
+      "before_seconds": [
+        0.22524311998859048,
+        0.20134739810600877,
+        0.2029269119957462
+      ],
+      "after_seconds": [
+        0.07947361597325653,
+        0.07671966298948973,
+        0.08187795104458928
+      ],
+      "before_median_seconds": 0.2029269119957462,
+      "after_median_seconds": 0.07947361597325653,
+      "speedup": 2.5533871777525845,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_reflexive_tubes": {
+      "before_seconds": [
+        0.027903134003281593,
+        0.030343268997967243,
+        0.03230351197998971
+      ],
+      "after_seconds": [
+        0.031181926024146378,
+        0.02651342493481934,
+        0.028984772972762585
+      ],
+      "before_median_seconds": 0.030343268997967243,
+      "after_median_seconds": 0.028984772972762585,
+      "speedup": 1.046869300183281,
+      "result_sha256": "51a8f96af2e764b108ce039c4a6d0311e1cb344b64c9fdcf4a04bb0f0bfa3245"
+    },
+    "consumer_e6_rational": {
+      "before_seconds": [
+        0.01724936894606799,
+        0.01712610200047493,
+        0.018526496016420424
+      ],
+      "after_seconds": [
+        0.015952688991092145,
+        0.01612695201765746,
+        0.014416121994145215
+      ],
+      "before_median_seconds": 0.01724936894606799,
+      "after_median_seconds": 0.015952688991092145,
+      "speedup": 1.081282845525284,
+      "result_sha256": "14e3509d50faad0624d75c1a77f9fc7ab66038f7f1e41941802a031a312757e5"
+    },
+    "consumer_gsz_nonminimal": {
+      "before_seconds": [
+        0.1066006770124659,
+        0.11270111193880439,
+        0.13138596003409475
+      ],
+      "after_seconds": [
+        0.11320141504984349,
+        0.10279445990454406,
+        0.11187130794860423
+      ],
+      "before_median_seconds": 0.11270111193880439,
+      "after_median_seconds": 0.11187130794860423,
+      "speedup": 1.0074174871592758,
+      "result_sha256": "1fe79177e81cc66f5e81c711308dcea01a8faefc9cf64311565d879e07bd068a"
+    }
+  },
+  "graded_ext_followup": {
+    "reason": "Check the slight slowdown in the initial graded Ext measurement.",
+    "before_seconds": [
+      0.6993801509961486,
+      0.7430785109754652,
+      0.7197392110247165,
+      0.7265667500905693,
+      0.728623314993456,
+      0.6993674730183557,
+      0.7006924520246685
+    ],
+    "after_seconds": [
+      0.7283340989379212,
+      0.7656216779723763,
+      0.7714612470008433,
+      0.7495998390950263,
+      0.7363001479534432,
+      0.7361390619771555,
+      0.6693902719998732
+    ],
+    "speedup": 0.9775078994962066,
+    "interpretation": "Median 2.3% slower; sample ranges overlap. No established speedup for this workload."
+  },
+  "consumer_revision": "8a66c83b4f0c3ce05b0c4948a2b77ecaf86dd333",
+  "peak_memory": {
+    "case": "hom_rational",
+    "method": "One fresh process per build; /usr/bin/time -f %M; process maximum resident set, not an allocation count. Timing from these additional runs is excluded because verification builds were running concurrently.",
+    "before_kib": 620628,
+    "after_kib": 452684
+  },
+  "validation": {
+    "rust_default_tests": 427,
+    "python_tests": 362,
+    "consumer_tests": 73,
+    "matrix_reference_cases": 784,
+    "gap_qpa_oracle": "passed",
+    "rust_gmp_tests": 427,
+    "clippy_default_and_gmp": "passed with -D warnings",
+    "rustdoc_default_and_gmp": "passed with -D warnings",
+    "rust_and_python_ledgers": "passed",
+    "python_documentation_generation": "passed",
+    "rustfmt": "passed"
+  }
+}

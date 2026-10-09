@@ -784,8 +784,7 @@ pub fn is_in_additive_closure<F: Field>(
                 .collect(),
             candidate.right_acting_algebra().field().clone(),
         )?
-        .semi_echelon_transformation()
-        .vectors
+        .semi_echelon_basis()
         .nrows()
     };
     Ok(Some(span_dimension == endomorphisms.len()))
@@ -1123,7 +1122,7 @@ fn natural_quotient_by_row_space<F: Field>(
 ) -> Result<NaturalRowQuotient<F>, MatrixError> {
     let field = image_rows.field().clone();
     let dimension = image_rows.ncols();
-    let kernel_basis = image_rows.semi_echelon_transformation().vectors;
+    let kernel_basis = image_rows.semi_echelon_basis();
     let mut mutable_basis = kernel_basis.clone();
     let mut complement = Vec::new();
     for coordinate in 0..dimension {
@@ -1137,7 +1136,7 @@ fn natural_quotient_by_row_space<F: Field>(
             candidate,
             field.clone(),
         )?;
-        let semi = candidate.semi_echelon_transformation().vectors;
+        let semi = candidate.semi_echelon_basis();
         if semi.nrows() > mutable_basis.nrows() {
             complement.push(standard);
             mutable_basis = semi;

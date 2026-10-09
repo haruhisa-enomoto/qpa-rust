@@ -130,14 +130,17 @@ pub fn right_algebra_module_to_path_algebra_mat_module<F: Field>(
             DenseMatrix::from_flat(0, module.dimension(), Vec::new(), field.clone())?
         } else {
             DenseMatrix::from_rows(projected, field.clone())?
-                .semi_echelon_transformation()
-                .vectors
+                .semi_echelon_basis()
         };
         vertex_bases.push(basis);
     }
     let dimensions = vertex_bases
         .iter()
         .map(DenseMatrix::nrows)
+        .collect::<Vec<_>>();
+    let coordinate_solvers = vertex_bases
+        .iter()
+        .map(|_| std::cell::OnceCell::new())
         .collect::<Vec<_>>();
     let mut arrow_matrices = Vec::new();
     for arrow in algebra.quiver().arrows() {
@@ -149,8 +152,10 @@ pub fn right_algebra_module_to_path_algebra_mat_module<F: Field>(
         let acted =
             vertex_bases[source].multiply(&module.arrow_actions()[arrow.index().zero_based()])?;
         let mut entries = Vec::with_capacity(dimensions[source] * dimensions[target]);
+        let solver = coordinate_solvers[target]
+            .get_or_init(|| vertex_bases[target].semi_echelon_transformation());
         for row in 0..acted.nrows() {
-            entries.extend(vertex_bases[target].solution_row(acted.row(row))?.ok_or(
+            entries.extend(solver.solution_row(acted.row(row))?.ok_or(
                 PathAlgebraModuleError::BasedModuleArrowImageOutsideTarget {
                     arrow: arrow.name().into(),
                 },
@@ -320,6 +325,10 @@ pub fn submodule_as_module<F: Field>(
     let field = parent.right_acting_algebra().field().clone();
     let bases = canonical_vertex_bases_of_submodule(submodule)?;
     let dimensions = bases.iter().map(DenseMatrix::nrows).collect::<Vec<_>>();
+    let coordinate_solvers = bases
+        .iter()
+        .map(|_| std::cell::OnceCell::new())
+        .collect::<Vec<_>>();
     let original = QuiverAlgebra::Path(
         parent
             .right_acting_algebra()
@@ -345,9 +354,11 @@ pub fn submodule_as_module<F: Field>(
         )?;
         let acted = bases[source].multiply(&ambient_action)?;
         let mut entries = Vec::with_capacity(dimensions[source] * dimensions[target]);
+        let solver = coordinate_solvers[target]
+            .get_or_init(|| bases[target].semi_echelon_transformation());
         for row in 0..acted.nrows() {
             entries.extend(
-                bases[target]
+                solver
                     .solution_row(acted.row(row))?
                     .ok_or(PathAlgebraModuleError::InternalSubmoduleCoordinates)?,
             );

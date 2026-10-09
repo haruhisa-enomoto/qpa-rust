@@ -355,7 +355,7 @@ pub fn ext_over_algebra<F: Field>(
             .collect(),
         field.clone(),
     )?;
-    let hom_basis = hom_rows.semi_echelon_transformation().vectors;
+    let hom_basis = hom_rows.semi_echelon_basis();
 
     let image_maps = projective_hom
         .iter()
@@ -377,8 +377,7 @@ pub fn ext_over_algebra<F: Field>(
                 .collect(),
             field.clone(),
         )?
-        .semi_echelon_transformation()
-        .vectors
+        .semi_echelon_basis()
     };
 
     let quotient = quotient_complement_in_space(&hom_basis, &image_basis)?;

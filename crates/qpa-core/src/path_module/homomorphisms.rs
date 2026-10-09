@@ -700,6 +700,10 @@ pub fn kernel_inclusion<F: Field>(
         homomorphism.set_is_injective(true);
         zero_module_mapping(zero_module_for_algebra(&algebra)?, source.clone())?
     } else {
+        let coordinate_solvers = kernel_bases
+            .iter()
+            .map(|_| std::cell::OnceCell::new())
+            .collect::<Vec<_>>();
         let mut arrow_matrices = Vec::new();
         for arrow in algebra.quiver().arrows() {
             let source_vertex = arrow.source().index().zero_based();
@@ -715,8 +719,10 @@ pub fn kernel_inclusion<F: Field>(
             let acted = kernel_bases[source_vertex].multiply(&source_action)?;
             let mut entries =
                 Vec::with_capacity(dimensions[source_vertex] * dimensions[target_vertex]);
+            let solver = coordinate_solvers[target_vertex]
+                .get_or_init(|| kernel_bases[target_vertex].semi_echelon_transformation());
             for row in 0..acted.nrows() {
-                let coordinates = kernel_bases[target_vertex]
+                let coordinates = solver
                     .solution_row(acted.row(row))?
                     .ok_or(PathAlgebraModuleError::InternalKernelCoordinates)?;
                 entries.extend(coordinates);
@@ -813,6 +819,10 @@ pub fn image_projection_inclusion<F: Field>(
         return Ok(homomorphism.cache_image_projection_inclusion(&projection, &inclusion));
     }
 
+    let coordinate_solvers = image_bases
+        .iter()
+        .map(|_| std::cell::OnceCell::new())
+        .collect::<Vec<_>>();
     let mut arrow_matrices = Vec::new();
     for arrow in algebra.quiver().arrows() {
         let source_vertex = arrow.source().index().zero_based();
@@ -827,8 +837,10 @@ pub fn image_projection_inclusion<F: Field>(
         )?;
         let acted = image_bases[source_vertex].multiply(&range_action)?;
         let mut entries = Vec::with_capacity(dimensions[source_vertex] * dimensions[target_vertex]);
+        let solver = coordinate_solvers[target_vertex]
+            .get_or_init(|| image_bases[target_vertex].semi_echelon_transformation());
         for row in 0..acted.nrows() {
-            let coordinates = image_bases[target_vertex]
+            let coordinates = solver
                 .solution_row(acted.row(row))?
                 .ok_or(PathAlgebraModuleError::InternalImageCoordinates)?;
             entries.extend(coordinates);
@@ -881,8 +893,10 @@ pub fn image_projection_inclusion<F: Field>(
                 }
                 let logical_map = logical_vertex_map(homomorphism, vertex);
                 let mut entries = Vec::with_capacity(source_dimension * dimensions[vertex]);
+                let solver = coordinate_solvers[vertex]
+                    .get_or_init(|| image_bases[vertex].semi_echelon_transformation());
                 for row in 0..source_dimension {
-                    let coordinates = image_bases[vertex]
+                    let coordinates = solver
                         .solution_row(logical_map.row(row))?
                         .ok_or(PathAlgebraModuleError::InternalImageCoordinates)?;
                     entries.extend(coordinates);
@@ -1354,7 +1368,7 @@ pub fn end_over_algebra<F: Field>(
         embedded.iter().flat_map(flatten_matrix).collect(),
         field.clone(),
     )?;
-    let flattened_basis = generator_rows.semi_echelon_transformation().vectors;
+    let flattened_basis = generator_rows.semi_echelon_basis();
     let basis_matrices = (0..flattened_basis.nrows())
         .map(|row| {
             DenseMatrix::from_flat(
@@ -1553,8 +1567,7 @@ fn endomorphism_ideal_basis_coordinates<F: Field>(
         generator_coordinates,
         parent.field().clone(),
     )?
-    .semi_echelon_transformation()
-    .vectors;
+    .semi_echelon_basis();
 
     loop {
         let ideal_matrices = (0..basis.nrows())
@@ -1594,8 +1607,7 @@ fn endomorphism_ideal_basis_coordinates<F: Field>(
             expanded_coordinates,
             parent.field().clone(),
         )?
-        .semi_echelon_transformation()
-        .vectors;
+        .semi_echelon_basis();
         if expanded.nrows() == basis.nrows() {
             return Ok(basis);
         }

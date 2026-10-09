@@ -254,50 +254,69 @@ impl<F: Field> DenseMatrix<F> {
     /// among the input rows and therefore form GAP's left nullspace basis.
     #[must_use]
     pub fn semi_echelon_transformation(&self) -> SemiEchelonTransformation<F> {
-        let mut matrix = self.clone();
-        let mut transform = Self::identity(self.nrows, self.field.clone());
+        self.semi_echelon::<true>()
+    }
+
+    /// Return the basis rows of [`Self::semi_echelon_transformation`], with
+    /// exactly the same reduction and pivot order, without tracking the
+    /// transformation coefficients or row relations.
+    #[must_use]
+    pub fn semi_echelon_basis(&self) -> Self {
+        self.semi_echelon::<false>().vectors
+    }
+
+    fn semi_echelon<const TRANSFORM: bool>(&self) -> SemiEchelonTransformation<F> {
         let mut heads: Vec<Option<usize>> = vec![None; self.ncols];
         let mut vectors: Vec<Vec<F::Element>> = Vec::new();
         let mut coefficients: Vec<Vec<F::Element>> = Vec::new();
         let mut relations: Vec<Vec<F::Element>> = Vec::new();
 
         for row_index in 0..self.nrows {
-            for column in 0..self.ncols {
-                let Some(head) = heads[column] else {
+            let mut row = self.row(row_index).to_vec();
+            let mut combination = if TRANSFORM {
+                let mut identity_row = vec![self.field.zero(); self.nrows];
+                identity_row[row_index] = self.field.one();
+                identity_row
+            } else {
+                Vec::new()
+            };
+            for (column, &head) in heads.iter().enumerate() {
+                let Some(head) = head else {
                     continue;
                 };
-                let scale = self.field.neg(&matrix[(row_index, column)]);
+                let scale = self.field.neg(&row[column]);
                 if !self.field.is_zero(&scale) {
+                    if TRANSFORM {
+                        // Previous rows cannot involve a later input row.
+                        add_scaled_row(
+                            &self.field,
+                            &mut combination[..=row_index],
+                            &coefficients[head][..=row_index],
+                            &scale,
+                        );
+                    }
                     add_scaled_row(
                         &self.field,
-                        transform.row_mut(row_index),
-                        coefficients[head].as_slice(),
-                        &scale,
-                    );
-                    add_scaled_row(
-                        &self.field,
-                        matrix.row_mut(row_index),
-                        vectors[head].as_slice(),
+                        &mut row[column..],
+                        &vectors[head][column..],
                         &scale,
                     );
                 }
             }
 
-            let pivot = matrix
-                .row(row_index)
-                .iter()
-                .position(|entry| !self.field.is_zero(entry));
+            let pivot = row.iter().position(|entry| !self.field.is_zero(entry));
 
             if let Some(column) = pivot {
-                let inverse = self.field.inv(&matrix[(row_index, column)]);
-                scale_row(&self.field, transform.row_mut(row_index), &inverse);
-                scale_row(&self.field, matrix.row_mut(row_index), &inverse);
-
-                coefficients.push(transform.row(row_index).to_vec());
-                vectors.push(matrix.row(row_index).to_vec());
+                let inverse = self.field.inv(&row[column]);
+                if TRANSFORM {
+                    scale_row(&self.field, &mut combination[..=row_index], &inverse);
+                    coefficients.push(combination);
+                }
+                scale_row(&self.field, &mut row[column..], &inverse);
+                vectors.push(row);
                 heads[column] = Some(vectors.len() - 1);
-            } else {
-                relations.push(transform.row(row_index).to_vec());
+            } else if TRANSFORM {
+                relations.push(combination);
             }
         }
 
@@ -387,36 +406,7 @@ impl<F: Field> DenseMatrix<F> {
             });
         }
 
-        let semi = self.semi_echelon_transformation();
-        let mut residual = target.to_vec();
-        let mut solution = vec![self.field.zero(); self.nrows];
-
-        for column in 0..self.ncols {
-            let Some(vector_number) = semi.heads[column] else {
-                continue;
-            };
-            let scale = residual[column].clone();
-            if !self.field.is_zero(&scale) {
-                let negative_scale = self.field.neg(&scale);
-                add_scaled_row(
-                    &self.field,
-                    &mut residual,
-                    semi.vectors.row(vector_number),
-                    &negative_scale,
-                );
-                add_scaled_row(
-                    &self.field,
-                    &mut solution,
-                    semi.coefficients.row(vector_number),
-                    &scale,
-                );
-            }
-        }
-
-        Ok(residual
-            .iter()
-            .all(|entry| self.field.is_zero(entry))
-            .then_some(solution))
+        self.semi_echelon_transformation().solution_row(target)
     }
 
     /// Return the exact two-sided inverse of a square matrix, if it exists.
@@ -435,11 +425,12 @@ impl<F: Field> DenseMatrix<F> {
                 shape: (self.nrows, self.ncols),
             });
         }
+        let semi = self.semi_echelon_transformation();
         let mut entries = Vec::with_capacity(self.data.len());
         for row in 0..self.nrows {
             let mut target = vec![self.field.zero(); self.ncols];
             target[row] = self.field.one();
-            let Some(solution) = self.solution_row(&target)? else {
+            let Some(solution) = semi.solution_row(&target)? else {
                 return Ok(None);
             };
             entries.extend(solution);
@@ -595,7 +586,7 @@ impl<F: Field> DenseMatrix<F> {
     /// Return the row rank computed by GAP's generic semi-echelon algorithm.
     #[must_use]
     pub fn rank(&self) -> usize {
-        self.semi_echelon_transformation().vectors.nrows
+        self.semi_echelon_basis().nrows
     }
 }
 
@@ -628,6 +619,57 @@ pub struct SemiEchelonTransformation<F: Field> {
     pub coefficients: DenseMatrix<F>,
     /// Coefficient rows expressing dependencies among the input rows.
     pub relations: DenseMatrix<F>,
+}
+
+impl<F: Field> SemiEchelonTransformation<F> {
+    /// Solve `x * matrix = target` using a previously computed transformation.
+    ///
+    /// Use a value returned by [`DenseMatrix::semi_echelon_transformation`].
+    /// This returns the same GAP-compatible solution as
+    /// [`DenseMatrix::solution_row`] without repeating elimination for each
+    /// target. `Ok(None)` means the target is outside the row span.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MatrixError::TargetLength`] if the target has the wrong width.
+    pub fn solution_row(
+        &self,
+        target: &[F::Element],
+    ) -> Result<Option<Vec<F::Element>>, MatrixError> {
+        if target.len() != self.vectors.ncols {
+            return Err(MatrixError::TargetLength {
+                actual: target.len(),
+                expected: self.vectors.ncols,
+            });
+        }
+        let field = self.vectors.field();
+        let mut residual = target.to_vec();
+        let mut solution = vec![field.zero(); self.coefficients.ncols];
+        for (column, &head) in self.heads.iter().enumerate() {
+            let Some(vector_number) = head else {
+                continue;
+            };
+            let scale = residual[column].clone();
+            if !field.is_zero(&scale) {
+                add_scaled_row(
+                    field,
+                    &mut residual[column..],
+                    &self.vectors.row(vector_number)[column..],
+                    &field.neg(&scale),
+                );
+                add_scaled_row(
+                    field,
+                    &mut solution,
+                    self.coefficients.row(vector_number),
+                    &scale,
+                );
+            }
+        }
+        Ok(residual
+            .iter()
+            .all(|entry| field.is_zero(entry))
+            .then_some(solution))
+    }
 }
 
 /// Failure to construct or operate on an explicitly shaped matrix.
@@ -717,15 +759,29 @@ fn add_scaled_row<F: Field>(
     scale: &F::Element,
 ) {
     debug_assert_eq!(target.len(), source.len());
+    if field.is_one(scale) {
+        for (target_entry, source_entry) in target.iter_mut().zip(source) {
+            if !field.is_zero(source_entry) {
+                field.add_assign(target_entry, source_entry);
+            }
+        }
+        return;
+    }
     for (target_entry, source_entry) in target.iter_mut().zip(source) {
-        let product = field.mul(source_entry, scale);
-        field.add_assign(target_entry, &product);
+        if !field.is_zero(source_entry) {
+            field.add_mul_assign(target_entry, source_entry, scale);
+        }
     }
 }
 
 fn scale_row<F: Field>(field: &F, row: &mut [F::Element], scale: &F::Element) {
+    if field.is_one(scale) {
+        return;
+    }
     for entry in row {
-        field.mul_assign(entry, scale);
+        if !field.is_zero(entry) {
+            field.mul_assign(entry, scale);
+        }
     }
 }
 

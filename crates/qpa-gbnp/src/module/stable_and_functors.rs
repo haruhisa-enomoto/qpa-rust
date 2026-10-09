@@ -116,7 +116,7 @@ pub fn hom_factoring_through_projectives<F: Field>(
             .collect(),
         field.clone(),
     )?;
-    let basis = rows.semi_echelon_transformation().vectors;
+    let basis = rows.semi_echelon_basis();
     (0..basis.nrows())
         .map(|row| module_map_from_physical_flat(source, range, basis.row(row), &field))
         .collect()
@@ -391,13 +391,12 @@ pub fn transpose_of_module<F: Field>(
         })
         .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
 
-    let syzygy_basis = solution_rows.semi_echelon_transformation().vectors;
+    let syzygy_basis = solution_rows.semi_echelon_basis();
     let radical_basis = if radical_rows.is_empty() {
         DenseMatrix::from_flat(0, solution_rows.ncols(), Vec::new(), field.clone())?
     } else {
         DenseMatrix::from_rows(radical_rows, field.clone())?
-            .semi_echelon_transformation()
-            .vectors
+            .semi_echelon_basis()
     };
     let top_rows = if radical_basis.nrows() == 0 {
         // GAP's high-rank trivial-subspace method returns IdentityMapping(V).
@@ -844,6 +843,10 @@ pub fn star_of_module<F: Field>(
         })
         .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
     let dimensions = hom_spaces.iter().map(Vec::len).collect::<Vec<_>>();
+    let coordinate_solvers = hom_bases
+        .iter()
+        .map(|_| std::cell::OnceCell::new())
+        .collect::<Vec<_>>();
 
     // The source computes these subspace bases even though the local `Bproj`
     // value is not subsequently read.
@@ -876,11 +879,13 @@ pub fn star_of_module<F: Field>(
         let coordinate_basis = hom_bases[source]
             .as_ref()
             .ok_or(EnvelopingModuleError::MissingStarCoordinateBasis)?;
+        let solver = coordinate_solvers[source]
+            .get_or_init(|| coordinate_basis.semi_echelon_transformation());
         let rows = hom_spaces[target]
             .iter()
             .map(|homomorphism| {
                 let composite = homomorphism.compose(&left_multiplications[position])?;
-                coordinate_basis
+                solver
                     .solution_row(&composite.flat_vertex_matrix_entries())?
                     .ok_or(EnvelopingModuleError::StarCompositionOutsideHomBasis)
             })
@@ -1223,7 +1228,7 @@ fn natural_tensor_quotient<F: Field>(
 ) -> Result<NaturalTensorQuotient<F>, EnvelopingModuleError> {
     let field = relation_rows.field().clone();
     let ambient_dimension = relation_rows.ncols();
-    let relation_basis = relation_rows.semi_echelon_transformation().vectors;
+    let relation_basis = relation_rows.semi_echelon_basis();
     let mut mutable_basis = relation_basis.clone();
     let mut complement = Vec::new();
     for coordinate in 0..ambient_dimension {
@@ -1237,8 +1242,7 @@ fn natural_tensor_quotient<F: Field>(
             entries,
             field.clone(),
         )?
-        .semi_echelon_transformation()
-        .vectors;
+        .semi_echelon_basis();
         if candidate.nrows() > mutable_basis.nrows() {
             complement.push(standard);
             mutable_basis = candidate;
