@@ -1140,7 +1140,7 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
     /// # Errors
     ///
     /// Rejects a structural range/source mismatch and propagates exact matrix
-    /// or checked module-map failures.
+    /// failures.
     pub fn compose(&self, right: &Self) -> Result<Self, PathAlgebraModuleError> {
         if self.range() != right.source() {
             return Err(PathAlgebraModuleError::NoncomposableHomomorphisms);
@@ -1151,7 +1151,15 @@ impl<F: Field> PathAlgebraModuleHomomorphism<F> {
             .zip(right.vertex_matrices())
             .map(|(left, right)| left.multiply(right))
             .collect::<Result<Vec<_>, _>>()?;
-        right_module_hom_over_algebra(self.source().clone(), right.range().clone(), matrices)
+        // Both maps were checked on construction. Equality of the middle
+        // representations and exact matrix products imply every composite
+        // arrow square commutes; shapes, fields and zero-space stand-ins are
+        // preserved too. Rechecking would multiply along every arrow again.
+        Ok(module_homomorphism_from_verified_matrices(
+            self.source().clone(),
+            right.range().clone(),
+            matrices,
+        ))
     }
 
     /// Multiply every vertex matrix by a coefficient-field scalar.

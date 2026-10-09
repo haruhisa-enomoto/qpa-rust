@@ -195,10 +195,7 @@ impl<F: Field> DenseMatrix<F> {
                 if self.field.is_zero(left) {
                     continue;
                 }
-                for column in 0..right.ncols {
-                    let product = self.field.mul(left, &right[(inner, column)]);
-                    self.field.add_assign(&mut result[(row, column)], &product);
-                }
+                add_scaled_row(&self.field, result.row_mut(row), right.row(inner), left);
             }
         }
         Ok(result)
@@ -256,7 +253,7 @@ impl<F: Field> DenseMatrix<F> {
     /// among the input rows and therefore form GAP's left nullspace basis.
     #[must_use]
     pub fn semi_echelon_transformation(&self) -> SemiEchelonTransformation<F> {
-        self.semi_echelon::<true>()
+        self.semi_echelon::<true, true>()
     }
 
     /// Return the basis rows of [`Self::semi_echelon_transformation`], with
@@ -264,10 +261,12 @@ impl<F: Field> DenseMatrix<F> {
     /// transformation coefficients or row relations.
     #[must_use]
     pub fn semi_echelon_basis(&self) -> Self {
-        self.semi_echelon::<false>().vectors
+        self.semi_echelon::<false, true>().vectors
     }
 
-    fn semi_echelon<const TRANSFORM: bool>(&self) -> SemiEchelonTransformation<F> {
+    fn semi_echelon<const TRANSFORM: bool, const EXPORT_BASIS: bool>(
+        &self,
+    ) -> SemiEchelonTransformation<F> {
         if self.use_packed_binary() {
             return self.packed_binary::<TRANSFORM>().unpack(self);
         }
@@ -327,8 +326,18 @@ impl<F: Field> DenseMatrix<F> {
 
         SemiEchelonTransformation {
             heads,
-            vectors: rows_with_shape(vectors, self.ncols, self.field.clone()),
-            coefficients: rows_with_shape(coefficients, self.nrows, self.field.clone()),
+            // Nullspace callers need these rows during elimination, but do
+            // not need dense copies of the discarded basis and transform.
+            vectors: if EXPORT_BASIS {
+                rows_with_shape(vectors, self.ncols, self.field.clone())
+            } else {
+                Self::zero(0, self.ncols, self.field.clone())
+            },
+            coefficients: if EXPORT_BASIS {
+                rows_with_shape(coefficients, self.nrows, self.field.clone())
+            } else {
+                Self::zero(0, self.nrows, self.field.clone())
+            },
             relations: rows_with_shape(relations, self.nrows, self.field.clone()),
         }
     }
@@ -392,7 +401,7 @@ impl<F: Field> DenseMatrix<F> {
         if self.use_packed_binary() {
             return self.packed_binary::<true>().unpack_relations(self);
         }
-        self.semi_echelon_transformation().relations
+        self.semi_echelon::<true, false>().relations
     }
 
     /// Return one GAP-compatible row solution `x` of `x * self = target`.
@@ -846,9 +855,7 @@ fn multiply_row_by_matrix<F: Field>(
         if field.is_zero(coefficient) {
             continue;
         }
-        for column in 0..matrix.ncols() {
-            field.add_mul_assign(&mut result[column], coefficient, &matrix[(inner, column)]);
-        }
+        add_scaled_row(field, &mut result, matrix.row(inner), coefficient);
     }
     result
 }

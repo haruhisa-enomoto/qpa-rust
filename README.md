@@ -123,7 +123,10 @@ Rust users can depend on the `qpa-core` and `qpa-gbnp` crates directly; see the
 
 This is version 0.1 and the Python API may still change. Performance has not
 yet been compared with QPA under GAP. Computations that are expensive in QPA,
-such as Gröbner bases and submodule enumeration, are equally expensive here.
+such as Gröbner bases and submodule enumeration, retain QPA's algorithms and
+can still be expensive. The [performance audit](benchmarks/results/broad-audit.json)
+records comparisons between Rust builds, consumer workload coverage, and
+remaining limitations. Reproduction scripts are in [benchmarks](benchmarks/).
 
 ## Credits and licensing
 

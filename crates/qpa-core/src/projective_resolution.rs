@@ -15,7 +15,8 @@ use crate::{
     PathAlgebraVector, PathEndpoint, ProjectivePathModuleError, QuotientError, QuotientPathAlgebra,
     QuotientPathAlgebraElement, RightProjectivePathAlgebraModule,
     RightProjectivePathAlgebraSubmodule, VertexIndex, first_part,
-    right_projective_path_algebra_module, x_set_of_path_algebra_vector,
+    projective_path_module::x_set_of_path_algebra_vector_with_basis,
+    right_projective_path_algebra_module,
 };
 
 /// Rust logging target corresponding to QPA's projective-resolution info class.
@@ -1685,8 +1686,15 @@ fn next_resolution_step<F: Field>(
     let mut map = Vec::new();
     let mut next_f = Vec::new();
     let mut next_f_prime = Vec::new();
+    let mut right_basis = None;
     for current in current_f {
-        let x_set = x_set_of_path_algebra_vector(previous_f, previous_f_prime, ideal, current)?;
+        let x_set = x_set_of_path_algebra_vector_with_basis(
+            previous_f,
+            previous_f_prime,
+            ideal,
+            current,
+            &mut right_basis,
+        )?;
         for overlap in x_set.o_set {
             let generator = previous_f.get(overlap.generator_position - 1).ok_or(
                 ProjectiveResolutionError::InvalidXSetGeneratorPosition {

@@ -1881,9 +1881,17 @@ impl<F: QpaCoefficientField> PathAlgebraModule<F> {
 
 impl<F: Field> PartialEq for PathAlgebraModule<F> {
     fn eq(&self, other: &Self) -> bool {
+        if self.is_identical(other) {
+            return true;
+        }
         self.right_acting_algebra() == other.right_acting_algebra()
             && self.dimension_vector() == other.dimension_vector()
-            && self.matrices_of_path_algebra_module() == other.matrices_of_path_algebra_module()
+            && if self.dimension() == 0 {
+                // MatricesOfPathAlgebraModule exposes only scalar zeros here.
+                self.arrow_matrices().len() == other.arrow_matrices().len()
+            } else {
+                self.arrow_matrices() == other.arrow_matrices()
+            }
     }
 }
 

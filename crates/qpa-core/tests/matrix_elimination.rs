@@ -85,6 +85,7 @@ fn check_field<F: Field>(field: &F, generator: &F::Element) {
                 assert_eq!(actual, expected);
                 assert_eq!(matrix.semi_echelon_basis(), expected.vectors);
                 assert_eq!(matrix.rank(), expected.vectors.nrows());
+                assert_eq!(matrix.nullspace_rows(), expected.relations);
                 assert_eq!(
                     actual.coefficients.multiply(&matrix).unwrap(),
                     actual.vectors
@@ -119,6 +120,62 @@ fn elimination_preserves_exact_bases_across_fields_and_empty_shapes() {
     check_field(&prime, &prime.one());
     let extension = GaloisField::conway(2, 2).unwrap();
     check_field(&extension, &extension.primitive_element());
+}
+
+#[test]
+fn matrix_products_match_entrywise_sums_including_sparse_and_empty_shapes() {
+    fn check<F: Field>(field: &F, scalar: F::Element) {
+        let values = [field.zero(), field.one(), field.neg(&field.one()), scalar];
+        for height in 0..5 {
+            for inner in 0..5 {
+                for width in 0..5 {
+                    for sparse in [false, true] {
+                        let entry = |index: usize| {
+                            if sparse && index % 3 != 0 {
+                                field.zero()
+                            } else {
+                                values[index % values.len()].clone()
+                            }
+                        };
+                        let left = DenseMatrix::from_flat(
+                            height,
+                            inner,
+                            (0..height * inner).map(&entry).collect(),
+                            field.clone(),
+                        )
+                        .unwrap();
+                        let right = DenseMatrix::from_flat(
+                            inner,
+                            width,
+                            (0..inner * width).map(|i| entry(i + 1)).collect(),
+                            field.clone(),
+                        )
+                        .unwrap();
+                        let mut expected = DenseMatrix::zero(height, width, field.clone());
+                        for i in 0..height {
+                            for j in 0..width {
+                                for k in 0..inner {
+                                    field.add_assign(
+                                        &mut expected[(i, j)],
+                                        &field.mul(&left[(i, k)], &right[(k, j)]),
+                                    );
+                                }
+                            }
+                        }
+                        assert_eq!(left.multiply(&right).unwrap(), expected);
+                    }
+                }
+            }
+        }
+    }
+    check(&Q, Q.div(&Q.one(), &Q.nth(3.into())));
+    check(&Z2, Z2.one());
+    let prime = Zp::new(5);
+    let scalar = prime.nth(2.into());
+    check(&prime, scalar);
+    let extension = GaloisField::conway(2, 2).unwrap();
+    let primitive = extension.primitive_element();
+    check(&extension, primitive);
 }
 
 #[test]

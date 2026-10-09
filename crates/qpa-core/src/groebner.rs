@@ -4,6 +4,8 @@
 //! from QPA 1.37. They intentionally operate on QPA paths and QPA's monomial
 //! ordering rather than substituting a generic polynomial implementation.
 
+use std::sync::{Arc, OnceLock};
+
 use numerica::domains::Field;
 use thiserror::Error;
 
@@ -28,13 +30,25 @@ pub enum GroebnerBasisKind {
 #[derive(Clone, Debug)]
 pub struct GroebnerBasis<F: Field> {
     algebra: PathAlgebra<F>,
-    relations: Vec<PathAlgebraElement<F>>,
+    relations: Arc<Vec<PathAlgebraElement<F>>>,
     kind: GroebnerBasisKind,
     complete: bool,
     tip_reduced: Option<bool>,
     completely_reduced: Option<bool>,
     homogeneous: Option<bool>,
     list_cache: Option<Vec<PathAlgebraElement<F>>>,
+    tip_cache: Arc<GroebnerTipCache>,
+}
+
+// These contain only quiver paths, never handles back to an ideal or algebra.
+// Clones share them; any construction that changes the ordered tips starts
+// with a new cache. Tail reduction and the separate enumerator setter leave
+// the stored tips unchanged.
+#[derive(Debug, Default)]
+struct GroebnerTipCache {
+    dictionary: OnceLock<QuiverStaticDictionary>,
+    nontips: OnceLock<Option<Vec<Path>>>,
+    canonical_nontips: OnceLock<Vec<Path>>,
 }
 
 impl<F: Field> GroebnerBasis<F> {
@@ -56,13 +70,14 @@ impl<F: Field> GroebnerBasis<F> {
         sort_elements(&mut relations)?;
         Ok(Self {
             algebra: algebra.clone(),
-            relations,
+            relations: Arc::new(relations),
             kind: GroebnerBasisKind::TwoSided,
             complete: true,
             tip_reduced: None,
             completely_reduced: None,
             homogeneous: None,
             list_cache: None,
+            tip_cache: Arc::default(),
         })
     }
 
@@ -84,13 +99,14 @@ impl<F: Field> GroebnerBasis<F> {
         ensure_elements(relations, algebra)?;
         Ok(Self {
             algebra: algebra.clone(),
-            relations: relations.to_vec(),
+            relations: Arc::new(relations.to_vec()),
             kind: GroebnerBasisKind::Right,
             complete: false,
             tip_reduced: None,
             completely_reduced: None,
             homogeneous: None,
             list_cache: None,
+            tip_cache: Arc::default(),
         })
     }
 
@@ -290,7 +306,7 @@ impl<F: Field> GroebnerBasis<F> {
         }
 
         let mut pending = Vec::new();
-        for relation in &self.relations {
+        for relation in self.relations.iter() {
             add_set(&mut pending, relation.clone())?;
         }
         let mut slots: Vec<Option<PathAlgebraElement<F>>> = Vec::new();
@@ -345,13 +361,14 @@ impl<F: Field> GroebnerBasis<F> {
         sort_elements(&mut relations)?;
         Ok(Self {
             algebra: self.algebra.clone(),
-            relations,
+            relations: Arc::new(relations),
             kind: self.kind,
             complete: self.complete,
             tip_reduced: Some(true),
             completely_reduced: self.completely_reduced,
             homogeneous: self.homogeneous,
             list_cache: self.list_cache.clone(),
+            tip_cache: Arc::default(),
         })
     }
 
@@ -451,7 +468,7 @@ impl<F: Field> GroebnerBasis<F> {
             let tip = relation.leading_term();
             let tail = relation.sub(&tip)?;
             let reduced_tail = basis.completely_reduce(tail)?;
-            basis.relations[index] = tip.add(&reduced_tail)?;
+            Arc::make_mut(&mut basis.relations)[index] = tip.add(&reduced_tail)?;
         }
         basis.completely_reduced = Some(true);
         basis.tip_reduced = Some(true);
@@ -509,13 +526,14 @@ impl<F: Field> GroebnerBasis<F> {
         sort_elements(&mut relations)?;
         Ok(Self {
             algebra: self.algebra.clone(),
-            relations,
+            relations: Arc::new(relations),
             kind: GroebnerBasisKind::Right,
             complete: true,
             tip_reduced: Some(true),
             completely_reduced: None,
             homogeneous: None,
             list_cache: None,
+            tip_cache: Arc::default(),
         })
     }
 
@@ -538,19 +556,20 @@ impl<F: Field> GroebnerBasis<F> {
     /// Propagates static-dictionary validation failures.
     pub fn static_dictionary(&self) -> Result<QuiverStaticDictionary, GroebnerError> {
         let reduced = self.tip_reduced_basis()?;
-        reduced.static_dictionary_from_relations()
+        Ok(reduced.static_dictionary_from_relations()?.clone())
     }
 
-    fn static_dictionary_from_relations(&self) -> Result<QuiverStaticDictionary, GroebnerError> {
+    fn static_dictionary_from_relations(&self) -> Result<&QuiverStaticDictionary, GroebnerError> {
+        if let Some(dictionary) = self.tip_cache.dictionary.get() {
+            return Ok(dictionary);
+        }
         let patterns = self
             .relations
             .iter()
             .map(PathAlgebraElement::leading_monomial)
             .collect::<Vec<_>>();
-        Ok(QuiverStaticDictionary::new(
-            self.algebra.quiver(),
-            &patterns,
-        )?)
+        let dictionary = QuiverStaticDictionary::new(self.algebra.quiver(), &patterns)?;
+        Ok(self.tip_cache.dictionary.get_or_init(|| dictionary))
     }
 
     fn require_tip_reduced(&self) -> Result<(), GroebnerError> {
@@ -569,7 +588,10 @@ impl<F: Field> GroebnerBasis<F> {
     ///
     /// Propagates static-dictionary construction failures.
     pub fn admits_finitely_many_nontips(&self) -> Result<bool, GroebnerError> {
-        Ok(self.static_dictionary()?.is_finite_difference())
+        let reduced = self.tip_reduced_basis()?;
+        Ok(reduced
+            .static_dictionary_from_relations()?
+            .is_finite_difference())
     }
 
     /// Translate QPA's `NontipSize`; `None` represents `infinity`.
@@ -580,7 +602,10 @@ impl<F: Field> GroebnerBasis<F> {
     pub fn nontip_size(
         &self,
     ) -> Result<Option<numerica::domains::integer::Integer>, GroebnerError> {
-        Ok(self.static_dictionary()?.difference_size())
+        let reduced = self.tip_reduced_basis()?;
+        Ok(reduced
+            .static_dictionary_from_relations()?
+            .difference_size())
     }
 
     /// Translate QPA's `Nontips`; `None` represents `fail` for an infinite
@@ -590,7 +615,41 @@ impl<F: Field> GroebnerBasis<F> {
     ///
     /// Propagates static-dictionary construction failures.
     pub fn nontips(&self) -> Result<Option<Vec<Path>>, GroebnerError> {
-        Ok(self.static_dictionary()?.difference_words())
+        let reduced = self.tip_reduced_basis()?;
+        let dictionary = reduced.static_dictionary_from_relations()?;
+        Ok(reduced
+            .tip_cache
+            .nontips
+            .get_or_init(|| dictionary.difference_words())
+            .clone())
+    }
+
+    // Quotient coordinates use GAP's Set order, rather than the dictionary's
+    // enumeration order. Cache this view separately so public Nontips keeps
+    // its original order. The borrowed slice avoids cloning it per product.
+    pub(crate) fn canonical_nontips(&self) -> Result<Option<&[Path]>, GroebnerError> {
+        if let Some(paths) = self.tip_cache.canonical_nontips.get() {
+            return Ok(Some(paths));
+        }
+        let Some(mut paths) = self.nontips()? else {
+            return Ok(None);
+        };
+        for index in 1..paths.len() {
+            let mut position = index;
+            while position > 0 {
+                let ordering = self
+                    .algebra
+                    .quiver()
+                    .compare_paths(&paths[position - 1], &paths[position])
+                    .map_err(PathAlgebraError::from)?;
+                if !ordering.is_gt() {
+                    break;
+                }
+                paths.swap(position - 1, position);
+                position -= 1;
+            }
+        }
+        Ok(Some(self.tip_cache.canonical_nontips.get_or_init(|| paths)))
     }
 
     fn set_list_cache(&mut self, relations: Vec<PathAlgebraElement<F>>) -> bool {
@@ -604,7 +663,7 @@ impl<F: Field> GroebnerBasis<F> {
 
     fn tip_reduced_right_basis(&self) -> Result<Self, GroebnerError> {
         let mut pending = Vec::new();
-        for relation in &self.relations {
+        for relation in self.relations.iter() {
             add_set(&mut pending, relation.clone())?;
         }
         let mut relations = Vec::new();
@@ -640,13 +699,14 @@ impl<F: Field> GroebnerBasis<F> {
         sort_elements(&mut relations)?;
         let result = Self {
             algebra: self.algebra.clone(),
-            relations,
+            relations: Arc::new(relations),
             kind: self.kind,
             complete: self.complete,
             tip_reduced: Some(true),
             completely_reduced: self.completely_reduced,
             homogeneous: self.homogeneous,
             list_cache: self.list_cache.clone(),
+            tip_cache: Arc::default(),
         };
         result.static_dictionary_from_relations()?;
         Ok(result)
@@ -1165,6 +1225,119 @@ mod tests {
 
     fn arrow(index: usize) -> ArrowIndex {
         ArrowIndex::new(index).unwrap()
+    }
+
+    #[test]
+    fn cached_tip_data_preserves_reduction_and_nontip_order() {
+        fn check<F: Field>(field: F) {
+            let algebra = PathAlgebra::new(field, single_loop_quiver()).unwrap();
+            let x = algebra
+                .element(algebra.quiver().arrow(arrow(1)).unwrap().path())
+                .unwrap();
+            let relation = x.pow(3).unwrap().sub(&x.pow(2).unwrap()).unwrap();
+            let basis = GroebnerBasis::from_complete_relations(&algebra, &[relation])
+                .unwrap()
+                .tip_reduced_basis()
+                .unwrap();
+            let fresh = basis.static_dictionary().unwrap().difference_words();
+            assert_eq!(basis.nontips().unwrap(), fresh);
+            let clone = basis.clone();
+            assert!(std::sync::Arc::ptr_eq(&basis.tip_cache, &clone.tip_cache));
+            for power in 3..7 {
+                assert_eq!(
+                    clone.completely_reduce(x.pow(power).unwrap()).unwrap(),
+                    x.pow(2).unwrap()
+                );
+                assert_eq!(clone.nontips().unwrap(), fresh);
+            }
+            let mut complete = clone.completely_reduced_basis().unwrap();
+            assert!(complete.set_as_list(vec![x.clone()]));
+            // The GAP enumerator setter does not replace the stored reducers.
+            assert_eq!(complete.nontips().unwrap(), fresh);
+            assert_eq!(
+                complete.completely_reduce(x.pow(4).unwrap()).unwrap(),
+                x.pow(2).unwrap()
+            );
+            let infinite = GroebnerBasis::from_complete_relations(&algebra, &[])
+                .unwrap()
+                .tip_reduced_basis()
+                .unwrap();
+            assert_eq!(infinite.nontips().unwrap(), None);
+            assert_eq!(infinite.clone().nontips().unwrap(), None);
+        }
+        check(Q);
+        check(Z2);
+        check(Zp::new(5));
+        check(crate::GaloisField::conway(2, 2).unwrap());
+    }
+
+    #[test]
+    fn changed_tips_and_replaced_ideal_basis_do_not_reuse_cached_paths() {
+        let algebra = PathAlgebra::new(Q, single_loop_quiver()).unwrap();
+        let x = algebra
+            .element(algebra.quiver().arrow(arrow(1)).unwrap().path())
+            .unwrap();
+        let unreduced = GroebnerBasis::from_complete_relations(
+            &algebra,
+            &[x.pow(2).unwrap(), x.pow(3).unwrap()],
+        )
+        .unwrap();
+        unreduced.static_dictionary_from_relations().unwrap();
+        let reduced = unreduced.tip_reduced_basis().unwrap();
+        assert!(!std::sync::Arc::ptr_eq(
+            &unreduced.tip_cache,
+            &reduced.tip_cache
+        ));
+        assert_eq!(reduced.nontips().unwrap().unwrap().len(), 2);
+
+        let ideal = PathAlgebraIdeal::new(algebra.clone(), vec![x.pow(3).unwrap()])
+            .unwrap()
+            .with_high_level_groebner_basis()
+            .unwrap();
+        let quotient = crate::QuotientPathAlgebra::by_ideal(&ideal).unwrap();
+        let element = quotient.element(x.clone()).unwrap();
+        assert_eq!(
+            quotient
+                .canonical_basis_coefficients(&element)
+                .unwrap()
+                .len(),
+            3
+        );
+        ideal
+            .with_complete_groebner_basis(&[x.pow(2).unwrap()])
+            .unwrap();
+        assert_eq!(
+            quotient
+                .canonical_basis_coefficients(&element)
+                .unwrap()
+                .len(),
+            2
+        );
+    }
+
+    #[test]
+    fn tail_reduction_keeps_shared_relation_snapshots_unchanged() {
+        let algebra = PathAlgebra::new(Q, loop_quiver()).unwrap();
+        let generators = algebra.generators();
+        let (x, y) = (&generators[1], &generators[2]);
+        let original = GroebnerBasis::from_complete_relations(
+            &algebra,
+            &[
+                x.pow(3).unwrap().sub(&y.pow(2).unwrap()).unwrap(),
+                y.pow(2).unwrap().sub(y).unwrap(),
+            ],
+        )
+        .unwrap()
+        .tip_reduced_basis()
+        .unwrap();
+        let snapshot = original.relations().to_vec();
+        original.static_dictionary_from_relations().unwrap();
+        let reduced = original.completely_reduced_basis().unwrap();
+        assert_eq!(original.relations(), snapshot);
+        assert_ne!(reduced.relations(), snapshot);
+        assert_eq!(original.completely_reduce(x.pow(3).unwrap()).unwrap(), *y);
+        assert_eq!(reduced.completely_reduce(x.pow(3).unwrap()).unwrap(), *y);
+        assert_eq!(original.nontips().unwrap(), reduced.nontips().unwrap());
     }
 
     fn small_integer(value: &Integer) -> i64 {

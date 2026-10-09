@@ -1800,12 +1800,24 @@ pub fn first_part<F: Field>(
 /// Requires an attached finite-nontip Gröbner basis for `ideal`, a nonzero
 /// `fn` spanned by the entered vectors, and the identical parent path algebra.
 /// All exact Gröbner, path, field, and vector failures are propagated.
-#[allow(clippy::too_many_lines)]
 pub fn x_set_of_path_algebra_vector<F: Field>(
     f: &[PathAlgebraVector<F>],
     f_prime: &[PathAlgebraVector<F>],
     ideal: &PathAlgebraIdeal<F>,
     f_n: &PathAlgebraVector<F>,
+) -> Result<PathAlgebraVectorXSet<F>, ProjectivePathModuleError> {
+    x_set_of_path_algebra_vector_with_basis(f, f_prime, ideal, f_n, &mut None)
+}
+
+// A resolution step uses the same ideal for every current generator. Keep
+// its right basis locally instead of reconstructing it for each X-set.
+#[allow(clippy::too_many_lines)]
+pub(crate) fn x_set_of_path_algebra_vector_with_basis<F: Field>(
+    f: &[PathAlgebraVector<F>],
+    f_prime: &[PathAlgebraVector<F>],
+    ideal: &PathAlgebraIdeal<F>,
+    f_n: &PathAlgebraVector<F>,
+    right_basis: &mut Option<crate::GroebnerBasis<F>>,
 ) -> Result<PathAlgebraVectorXSet<F>, ProjectivePathModuleError> {
     let algebra = f_n.module().algebra();
     if !ideal.algebra().is_identical(algebra) {
@@ -1815,7 +1827,10 @@ pub fn x_set_of_path_algebra_vector<F: Field>(
         return Err(ProjectivePathModuleError::ZeroXSetVector);
     }
 
-    let right_basis = ideal.right_groebner_basis()?;
+    let right_basis = match right_basis {
+        Some(basis) => basis,
+        None => right_basis.insert(ideal.right_groebner_basis()?),
+    };
     let right_relations = right_basis.relations();
     if right_relations.is_empty() {
         return Err(ProjectivePathModuleError::EmptyXSetRightBasis);
@@ -2498,6 +2513,28 @@ mod tests {
         let vertex_x_set =
             x_set_of_path_algebra_vector(std::slice::from_ref(&generator), &[], &ideal, &generator)
                 .unwrap();
+        let mut shared_basis = None;
+        for (vector, expected) in [(&f_n, &x_set), (&generator, &vertex_x_set)] {
+            let actual = super::x_set_of_path_algebra_vector_with_basis(
+                std::slice::from_ref(&generator),
+                &[],
+                &ideal,
+                vector,
+                &mut shared_basis,
+            )
+            .unwrap();
+            assert_eq!(&actual, expected);
+        }
+        assert!(matches!(
+            super::x_set_of_path_algebra_vector_with_basis(
+                std::slice::from_ref(&generator),
+                &[],
+                &ideal,
+                &projective.zero(),
+                &mut shared_basis,
+            ),
+            Err(ProjectivePathModuleError::ZeroXSetVector)
+        ));
         let right_relations = ideal.right_groebner_basis().unwrap();
         let two_sided_relations = ideal.groebner_basis().unwrap();
         json!({

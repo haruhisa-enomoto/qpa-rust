@@ -1,0 +1,1468 @@
+{
+  "date": "2026-10-10",
+  "baseline_source_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b",
+  "scope": "A bounded performance audit of exact library operations used by homological-conjectures; no consumer API migration.",
+  "changes": [
+    "Share immutable Groebner relation storage; lazily reuse tip dictionaries, nontips, and canonical coordinate ordering. Tail reduction uses copy-on-write and changed tips get fresh caches.",
+    "Reuse the right Groebner basis locally across generators in each GSZ resolution step, preserving checks and error order.",
+    "Skip zero and unit arithmetic during matrix products; nullspace queries no longer materialize unused dense basis and transformation outputs.",
+    "Compare immutable module representations without cloning arrow matrices, with a direct identity shortcut.",
+    "Compose validated immutable maps without repeating arrow-square validation. Public construction still checks every entered matrix; exact composition preserves the checked invariants."
+  ],
+  "inventory": {
+    "method": "AST scan of lib and experiments Python files that directly import qpa; attribute call counts are syntactic, not type-resolved or runtime frequencies.",
+    "direct_import_files": 693,
+    "files_by_directory": {
+      "lib": 27,
+      "experiments": 666
+    },
+    "selected_call_counts": {
+      "hom_basis_to": 604,
+      "isomorphic_to": 514,
+      "ext1": 507,
+      "indecomposable_projectives": 427,
+      "first_syzygy": 380,
+      "compose": 325,
+      "kernel": 177,
+      "decompose": 148,
+      "projective_resolution": 72,
+      "is_direct_summand_of": 52,
+      "tensor_product": 12,
+      "projective_resolution_fp_path_algebra_module": 3
+    },
+    "limitations": "This is a workload-family audit, not execution of every experiment or coverage of every exposed API."
+  },
+  "method": {
+    "build": "Release, default numerica-no-gmp; correctness checks also use numerica-gmp.",
+    "timing": "Five alternating pairs of fresh processes, reversing build order each pair, pinned to CPU 0. One sample per case per process; fresh inputs per case. Existing consumer presentation caches persist within each process. Imports and report output excluded from case timings.",
+    "comparison": "Every returned JSON-normalized result matches baseline. Test-based fixtures returning null execute their original assertions; their null hashes are not complete mathematical certificates.",
+    "host": "Shared WSL2 Linux host. Builds, validation and profiling completed before the accepted comparison. Unrelated consumer work may run concurrently; small timing differences are not reliable speedup claims.",
+    "profiling": "Python cProfile identifies library/consumer boundaries; Callgrind identifies native call costs. Profiled wall times are diagnostic, not benchmark speedups. Native totals include imports; inclusive function counts overlap.",
+    "provenance": "Consumer Cartan tests normally check a different sibling checkout. The survey explicitly redirects that root to the checkout under test via a temporary startup module, also for spawned workers. It preserves real module paths and records extension hashes; consumer source files are unchanged."
+  },
+  "commands": [
+    ".venv/bin/maturin develop --release",
+    "PYTHONPATH=<baseline package directory or current python directory> taskset -c 0 .venv/bin/python benchmarks/broad_workloads.py --consumer-root ../homological-conjectures --repeat 1 --output <sample.json> --compare <first-baseline.json>",
+    ".venv/bin/python benchmarks/consumer_survey.py --consumer-root ../homological-conjectures --qpa-checkout-root <checkout> --profile --extra-test tests/test_cartan_rank_two_candidate_verifier.py --extra-test tests/test_cartan_rank_two_d24_multitail.py --extra-test tests/test_cartan_rank_two_d25_filtered_cover.py --extra-test tests/test_cartan_rank_two_module_cycles.py --extra-test tests/test_cartan_search_presentations.py --extra-test lib/python/subcat/test_qpa_lattice.py --extra-test lib/python/subcat/test_qpa_horn.py --extra-test lib/python/subcat/test_qpa_closure.py --output <survey.json>",
+    "valgrind --tool=callgrind --callgrind-out-file=<profile> .venv/bin/python benchmarks/broad_workloads.py --consumer-root ../homological-conjectures --case <case> --repeat 1 --output <result.json>"
+  ],
+  "run_metadata": {
+    "before": {
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "qpa_package": "/home/italing/work/qpa-rust/target/performance-pass3/qpa/__init__.py",
+      "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b",
+      "extension_sha256": "05a058b2f87a7ba8d811f9efec439818f2615a4b66e3831cc53793493c79a445",
+      "repetitions": 1
+    },
+    "after": {
+      "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+      "qpa_package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+      "extension_sha256": "398d357b99c402dd86859c76addf5f8c439c686c9fc04f70c4bf3fd7f0e9ca18",
+      "repetitions": 1
+    }
+  },
+  "benchmark_dependencies": {
+    "pytest": "9.1.1",
+    "sympy": "1.14.0",
+    "numpy": "2.5.3",
+    "tqdm": "4.70.1"
+  },
+  "cases": {
+    "hom_rational": {
+      "before": {
+        "seconds": [
+          0.2985016410239041,
+          0.30673388903960586,
+          0.30390610499307513,
+          0.2931223140330985,
+          0.31580653798300773
+        ],
+        "median_seconds": 0.30390610499307513
+      },
+      "after": {
+        "seconds": [
+          0.17642588703893125,
+          0.17803312989417464,
+          0.2011646559694782,
+          0.2097697869176045,
+          0.2355851159663871
+        ],
+        "median_seconds": 0.2011646559694782
+      },
+      "speedup": 1.5107331033299678,
+      "result_sha256": "c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db"
+    },
+    "kernel_rational": {
+      "before": {
+        "seconds": [
+          0.0018441580468788743,
+          0.0017683339538052678,
+          0.002270804950967431,
+          0.001780361053533852,
+          0.0030186750227585435
+        ],
+        "median_seconds": 0.0018441580468788743
+      },
+      "after": {
+        "seconds": [
+          0.0027820130344480276,
+          0.0016936020692810416,
+          0.0015315619530156255,
+          0.0020218280842527747,
+          0.0013255930971354246
+        ],
+        "median_seconds": 0.0016936020692810416
+      },
+      "speedup": 1.088896902246787,
+      "result_sha256": "da262769505520bceb58329db3ca4bedd6ea933bde89e1d573daf70930dc0fba"
+    },
+    "ext_binary": {
+      "before": {
+        "seconds": [
+          0.00580068095587194,
+          0.004725389997474849,
+          0.005054292967543006,
+          0.005005965940654278,
+          0.005852002068422735
+        ],
+        "median_seconds": 0.005054292967543006
+      },
+      "after": {
+        "seconds": [
+          0.004587839008308947,
+          0.004328262992203236,
+          0.004699809942394495,
+          0.004616949008777738,
+          0.00396527408156544
+        ],
+        "median_seconds": 0.004587839008308947
+      },
+      "speedup": 1.1016718237909553,
+      "result_sha256": "2747b7c718564ba5f066f0523b03e17f6a496b06851333d2d59ab6d863225848"
+    },
+    "additive_closure_prime": {
+      "before": {
+        "seconds": [
+          0.0016978469211608171,
+          0.0011015620548278093,
+          0.0008731180569157004,
+          0.0013338238932192326,
+          0.0016959210624918342
+        ],
+        "median_seconds": 0.0013338238932192326
+      },
+      "after": {
+        "seconds": [
+          0.0014608330093324184,
+          0.0012651670258492231,
+          0.002158456016331911,
+          0.0021803639829158783,
+          0.0012045030016452074
+        ],
+        "median_seconds": 0.0014608330093324184
+      },
+      "speedup": 0.9130570603882867,
+      "result_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b"
+    },
+    "consumer_js29_rational": {
+      "before": {
+        "seconds": [
+          4.543857792043127,
+          4.527497875038534,
+          5.006301068002358,
+          5.044215832953341,
+          4.792338320054114
+        ],
+        "median_seconds": 4.792338320054114
+      },
+      "after": {
+        "seconds": [
+          3.117659830953926,
+          3.2015734200831503,
+          3.633023488917388,
+          3.7444949119817466,
+          3.6109237670898438
+        ],
+        "median_seconds": 3.6109237670898438
+      },
+      "speedup": 1.3271779270810828,
+      "result_sha256": "01794c7693760d9be654d9d4cb1cb102e2123839973abd0042e278cf17baa615"
+    },
+    "consumer_graded_ext_binary": {
+      "before": {
+        "seconds": [
+          0.2367590939393267,
+          0.24900121102109551,
+          0.24726119195111096,
+          0.2800154569558799,
+          0.2954032880952582
+        ],
+        "median_seconds": 0.24900121102109551
+      },
+      "after": {
+        "seconds": [
+          0.027485631057061255,
+          0.02797370497137308,
+          0.03414726199116558,
+          0.028012676048092544,
+          0.02926343900617212
+        ],
+        "median_seconds": 0.028012676048092544
+      },
+      "speedup": 8.888876257077577,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_delooping": {
+      "before": {
+        "seconds": [
+          0.06883783801458776,
+          0.07135235902387649,
+          0.06453404203057289,
+          0.07895746699068695,
+          0.06430869398172945
+        ],
+        "median_seconds": 0.06883783801458776
+      },
+      "after": {
+        "seconds": [
+          0.028736911015585065,
+          0.025932396994903684,
+          0.028174267034046352,
+          0.030553154996596277,
+          0.031119360006414354
+        ],
+        "median_seconds": 0.028736911015585065
+      },
+      "speedup": 2.3954501573691935,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_reflexive_tubes": {
+      "before": {
+        "seconds": [
+          0.02506150701083243,
+          0.03146597999148071,
+          0.025184822967275977,
+          0.0351846149424091,
+          0.032180181005969644
+        ],
+        "median_seconds": 0.03146597999148071
+      },
+      "after": {
+        "seconds": [
+          0.013658986892551184,
+          0.012920971028506756,
+          0.012420363957062364,
+          0.014389309915713966,
+          0.014979764935560524
+        ],
+        "median_seconds": 0.013658986892551184
+      },
+      "speedup": 2.3036832994283363,
+      "result_sha256": "51a8f96af2e764b108ce039c4a6d0311e1cb344b64c9fdcf4a04bb0f0bfa3245"
+    },
+    "consumer_e6_rational": {
+      "before": {
+        "seconds": [
+          0.016639024019241333,
+          0.016096601029857993,
+          0.016037215013056993,
+          0.019568560062907636,
+          0.017556246020831168
+        ],
+        "median_seconds": 0.016639024019241333
+      },
+      "after": {
+        "seconds": [
+          0.011138307978399098,
+          0.008374189026653767,
+          0.010502311051823199,
+          0.009592656046152115,
+          0.011885809013620019
+        ],
+        "median_seconds": 0.010502311051823199
+      },
+      "speedup": 1.584320245052426,
+      "result_sha256": "14e3509d50faad0624d75c1a77f9fc7ab66038f7f1e41941802a031a312757e5"
+    },
+    "consumer_gsz_nonminimal": {
+      "before": {
+        "seconds": [
+          0.10230736597441137,
+          0.11400326795410365,
+          0.10958300495985895,
+          0.12642412702552974,
+          0.10866411798633635
+        ],
+        "median_seconds": 0.10958300495985895
+      },
+      "after": {
+        "seconds": [
+          0.029796749004162848,
+          0.030220090062357485,
+          0.03437374206259847,
+          0.03707488905638456,
+          0.033328043995425105
+        ],
+        "median_seconds": 0.033328043995425105
+      },
+      "speedup": 3.288011890973898,
+      "result_sha256": "1fe79177e81cc66f5e81c711308dcea01a8faefc9cf64311565d879e07bd068a"
+    },
+    "consumer_ar_a5_binary": {
+      "before": {
+        "seconds": [
+          0.006574345054104924,
+          0.006364644970744848,
+          0.0071691389894112945,
+          0.008650845964439213,
+          0.006822822033427656
+        ],
+        "median_seconds": 0.006822822033427656
+      },
+      "after": {
+        "seconds": [
+          0.006473752087913454,
+          0.005661195958964527,
+          0.006693462026305497,
+          0.009581287042237818,
+          0.006263875984586775
+        ],
+        "median_seconds": 0.006473752087913454
+      },
+      "speedup": 1.0539208083309088,
+      "result_sha256": "b0e6492803e09e5e3a544df26b9f8bf86a545278b203b9a8bb2787ff6cfa5af0"
+    },
+    "consumer_ar_a7_prime": {
+      "before": {
+        "seconds": [
+          0.02187866496387869,
+          0.019518312066793442,
+          0.021380764083005488,
+          0.0232971019577235,
+          0.019313469994813204
+        ],
+        "median_seconds": 0.021380764083005488
+      },
+      "after": {
+        "seconds": [
+          0.01924450509250164,
+          0.01935872295871377,
+          0.020665743038989604,
+          0.024323238991200924,
+          0.019667385960929096
+        ],
+        "median_seconds": 0.019667385960929096
+      },
+      "speedup": 1.0871177351926768,
+      "result_sha256": "8aec47c244ec3c8e036a2c6dbc78421ca37ac8637f1211ca0dbc7fdaff0abe1d"
+    },
+    "consumer_ar_a5_extension": {
+      "before": {
+        "seconds": [
+          0.01891957107000053,
+          0.01901087595615536,
+          0.01845067401882261,
+          0.024796823039650917,
+          0.019010753952898085
+        ],
+        "median_seconds": 0.019010753952898085
+      },
+      "after": {
+        "seconds": [
+          0.01845461002085358,
+          0.019226199015975,
+          0.02059096598532051,
+          0.022899206960573792,
+          0.019701711018569767
+        ],
+        "median_seconds": 0.019701711018569767
+      },
+      "speedup": 0.9649290833156356,
+      "result_sha256": "b0e6492803e09e5e3a544df26b9f8bf86a545278b203b9a8bb2787ff6cfa5af0"
+    },
+    "consumer_fan_a4": {
+      "before": {
+        "seconds": [
+          0.0046374869998544455,
+          0.005323372082784772,
+          0.005239599966444075,
+          0.004730032989755273,
+          0.004945446038618684
+        ],
+        "median_seconds": 0.004945446038618684
+      },
+      "after": {
+        "seconds": [
+          0.004672564100474119,
+          0.004411716945469379,
+          0.0065710010239854455,
+          0.0054725270019844174,
+          0.007077893009409308
+        ],
+        "median_seconds": 0.0054725270019844174
+      },
+      "speedup": 0.9036860004209013,
+      "result_sha256": "3ea0f4289d22e4b3c8241592e1231b127d2230e44f4ab14ece225946b4b49570"
+    },
+    "consumer_presilting_window": {
+      "before": {
+        "seconds": [
+          0.0895721489796415,
+          0.09574727097060531,
+          0.09276379097718745,
+          0.10324507497716695,
+          0.08540959400124848
+        ],
+        "median_seconds": 0.09276379097718745
+      },
+      "after": {
+        "seconds": [
+          0.016271256026811898,
+          0.01580235199071467,
+          0.01667303708381951,
+          0.018234350020065904,
+          0.02800379309337586
+        ],
+        "median_seconds": 0.01667303708381951
+      },
+      "speedup": 5.563700872902806,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_string_fan": {
+      "before": {
+        "seconds": [
+          0.08559052494820207,
+          0.08781347097828984,
+          0.10441035300027579,
+          0.0886753189843148,
+          0.0891725899418816
+        ],
+        "median_seconds": 0.0886753189843148
+      },
+      "after": {
+        "seconds": [
+          0.03877842903602868,
+          0.041554634110070765,
+          0.051469941972754896,
+          0.04575472790747881,
+          0.04731649300083518
+        ],
+        "median_seconds": 0.04575472790747881
+      },
+      "speedup": 1.938058055194345,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_natural_endomorphism": {
+      "before": {
+        "seconds": [
+          0.008023926988244057,
+          0.007699709967710078,
+          0.008234992041252553,
+          0.008261092007160187,
+          0.009256414021365345
+        ],
+        "median_seconds": 0.008234992041252553
+      },
+      "after": {
+        "seconds": [
+          0.007588102016597986,
+          0.008972741896286607,
+          0.008631767006590962,
+          0.007745594950392842,
+          0.007736162981018424
+        ],
+        "median_seconds": 0.007745594950392842
+      },
+      "speedup": 1.0631839250559945,
+      "result_sha256": "0324129dc3f4bef89232b3456b63bcbc188e9afc0d872485653582bb98e33936"
+    },
+    "consumer_rational_syzygies": {
+      "before": {
+        "seconds": [
+          0.009231411968357861,
+          0.00903162604663521,
+          0.009397140005603433,
+          0.00864721299149096,
+          0.011061168974265456
+        ],
+        "median_seconds": 0.009231411968357861
+      },
+      "after": {
+        "seconds": [
+          0.006082042003981769,
+          0.005785675020888448,
+          0.0055817520478740335,
+          0.00744022591970861,
+          0.005906086997129023
+        ],
+        "median_seconds": 0.005906086997129023
+      },
+      "speedup": 1.5630335233540065,
+      "result_sha256": "c14bc7d02c76f1aeaef4499b60987f4ef3b4e23b000ea9940627b633166707f6"
+    },
+    "consumer_mesh": {
+      "before": {
+        "seconds": [
+          0.0036673429422080517,
+          0.004713622969575226,
+          0.0035753919510170817,
+          0.0050803759368136525,
+          0.005236848955973983
+        ],
+        "median_seconds": 0.004713622969575226
+      },
+      "after": {
+        "seconds": [
+          0.002178975031711161,
+          0.0021265349350869656,
+          0.0024729439755901694,
+          0.00425253005232662,
+          0.0034120139898732305
+        ],
+        "median_seconds": 0.0024729439755901694
+      },
+      "speedup": 1.9060775400099057,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_relative_ext": {
+      "before": {
+        "seconds": [
+          0.0020374649902805686,
+          0.0019537860061973333,
+          0.0018569740932434797,
+          0.0027017990360036492,
+          0.0031762319849804044
+        ],
+        "median_seconds": 0.0020374649902805686
+      },
+      "after": {
+        "seconds": [
+          0.0015374369686469436,
+          0.0014127489412203431,
+          0.0015215520979836583,
+          0.002259382978081703,
+          0.002379382960498333
+        ],
+        "median_seconds": 0.0015374369686469436
+      },
+      "speedup": 1.3252348108122352,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_cartan_cycle": {
+      "before": {
+        "seconds": [
+          0.018364251009188592,
+          0.017886277986690402,
+          0.01732373400591314,
+          0.018630043952725828,
+          0.02086736506316811
+        ],
+        "median_seconds": 0.018364251009188592
+      },
+      "after": {
+        "seconds": [
+          0.0037741430569440126,
+          0.0037910729879513383,
+          0.004887184943072498,
+          0.005137694999575615,
+          0.00421825994271785
+        ],
+        "median_seconds": 0.00421825994271785
+      },
+      "speedup": 4.353513358248946,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_cartan_deep_recurrence": {
+      "before": {
+        "seconds": [
+          0.2987595599843189,
+          0.3070061339531094,
+          0.31514202104881406,
+          0.3202292079804465,
+          0.32065265299752355
+        ],
+        "median_seconds": 0.31514202104881406
+      },
+      "after": {
+        "seconds": [
+          0.03179443709086627,
+          0.03325812192633748,
+          0.03365358000155538,
+          0.038089833105914295,
+          0.08476281189359725
+        ],
+        "median_seconds": 0.03365358000155538
+      },
+      "speedup": 9.364294111777975,
+      "result_sha256": "998c2019ce8d045d86c2860c75d9e2fe7616618edc71d4c733048677d5224527"
+    },
+    "consumer_closure_lattice": {
+      "before": {
+        "seconds": [
+          0.06842544605024159,
+          0.0729607930406928,
+          0.0766171959694475,
+          0.11935595702379942,
+          0.08036158699542284
+        ],
+        "median_seconds": 0.0766171959694475
+      },
+      "after": {
+        "seconds": [
+          0.0657697250135243,
+          0.06439719593618065,
+          0.07419432094320655,
+          0.07474715798161924,
+          0.07204109209123999
+        ],
+        "median_seconds": 0.07204109209123999
+      },
+      "speedup": 1.0635207455268985,
+      "result_sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    "consumer_tensor_words": {
+      "before": {
+        "seconds": [
+          0.0020990889752283692,
+          0.002208571066148579,
+          0.002795373904518783,
+          0.002373573021031916,
+          0.0023016330087557435
+        ],
+        "median_seconds": 0.0023016330087557435
+      },
+      "after": {
+        "seconds": [
+          0.0013697949470952153,
+          0.0013198170345276594,
+          0.0029364549554884434,
+          0.0018101839814335108,
+          0.0014503910206258297
+        ],
+        "median_seconds": 0.0014503910206258297
+      },
+      "speedup": 1.5869051697263068,
+      "result_sha256": "022bc47d4dfd48ff1b2b2a618017ef93a4710a9bd28b3f781ad41474ea9de0c5"
+    },
+    "hom_prime": {
+      "before": {
+        "seconds": [
+          0.003957034088671207,
+          0.004163556965067983,
+          0.004281201050616801,
+          0.005409152014181018,
+          0.004401847021654248
+        ],
+        "median_seconds": 0.004281201050616801
+      },
+      "after": {
+        "seconds": [
+          0.0059396750293672085,
+          0.00574935507029295,
+          0.00686560501344502,
+          0.006232258980162442,
+          0.005019626929424703
+        ],
+        "median_seconds": 0.0059396750293672085
+      },
+      "speedup": 0.7207803506840852,
+      "result_sha256": "c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db"
+    },
+    "hom_extension": {
+      "before": {
+        "seconds": [
+          0.14446949295233935,
+          0.17380849597975612,
+          0.15208494302351028,
+          0.21214736602269113,
+          0.14693860698025674
+        ],
+        "median_seconds": 0.15208494302351028
+      },
+      "after": {
+        "seconds": [
+          0.15203785593621433,
+          0.15761992998886853,
+          0.17199016292579472,
+          0.16199681907892227,
+          0.18267514102626592
+        ],
+        "median_seconds": 0.16199681907892227
+      },
+      "speedup": 0.9388143785058947,
+      "result_sha256": "c2356069e9d1e79ca924378153cfbbfb4d4416b1f99d41a2940bfdb66c5319db"
+    },
+    "dense_compose_rational": {
+      "before": {
+        "seconds": [
+          0.009059289004653692,
+          0.009653258952312171,
+          0.00922709098085761,
+          0.009588542045094073,
+          0.009786868002265692
+        ],
+        "median_seconds": 0.009588542045094073
+      },
+      "after": {
+        "seconds": [
+          0.007620192016474903,
+          0.007834229967556894,
+          0.00814012298360467,
+          0.008749130996875465,
+          0.008803437929600477
+        ],
+        "median_seconds": 0.00814012298360467
+      },
+      "speedup": 1.1779357712907679,
+      "result_sha256": "b9d54edc4f6e95a396a053d822e82de84088a0608184f0f5ae8702765e96730b"
+    },
+    "dense_compose_prime": {
+      "before": {
+        "seconds": [
+          0.0008661720203235745,
+          0.0007553179748356342,
+          0.0007208730094134808,
+          0.0010872830171138048,
+          0.0007461679633706808
+        ],
+        "median_seconds": 0.0007553179748356342
+      },
+      "after": {
+        "seconds": [
+          0.000634157913736999,
+          0.0007420249748975039,
+          0.0008123270235955715,
+          0.0008102189749479294,
+          0.0008350859861820936
+        ],
+        "median_seconds": 0.0008102189749479294
+      },
+      "speedup": 0.9322393059039089,
+      "result_sha256": "e214d5816ec149a3cd51907a25edc7b9011131f6b91d1e7bc918019505b66bb1"
+    },
+    "dense_compose_binary": {
+      "before": {
+        "seconds": [
+          0.0003706190036609769,
+          0.0003914210246875882,
+          0.000470678904093802,
+          0.0005486949812620878,
+          0.00044638896360993385
+        ],
+        "median_seconds": 0.00044638896360993385
+      },
+      "after": {
+        "seconds": [
+          0.0004845779621973634,
+          0.0005163559690117836,
+          0.0004205519799143076,
+          0.0005558650009334087,
+          0.00039766100235283375
+        ],
+        "median_seconds": 0.0004845779621973634
+      },
+      "speedup": 0.9211912188200677,
+      "result_sha256": "2fa32cce082e2e66f1f9de23797211021a88858d6e98dff8152be5ceb4e351d0"
+    }
+  },
+  "peak_process_memory": {
+    "before": {
+      "samples_kib": [
+        3182560,
+        3182556,
+        3182352,
+        3182340,
+        3182404
+      ],
+      "median_kib": 3182404
+    },
+    "after": {
+      "samples_kib": [
+        2247548,
+        2247456,
+        2247460,
+        2247240,
+        2247464
+      ],
+      "median_kib": 2247460
+    }
+  },
+  "consumer_surveys": {
+    "before": {
+      "tests": 169,
+      "families": {
+        "tests/test_ar_knitting_qpa.py": {
+          "tests": 5,
+          "profiled_call_seconds": 0.10942503297701478
+        },
+        "tests/test_ar_map_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.12070359790232033
+        },
+        "tests/test_bounded_global_dimension_qpa.py": {
+          "tests": 11,
+          "profiled_call_seconds": 0.3971399310976267
+        },
+        "tests/test_boundedness_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.007490513031370938
+        },
+        "tests/test_cartan_rank_two_qpa.py": {
+          "tests": 1,
+          "profiled_call_seconds": 0.003727553994394839
+        },
+        "tests/test_delooping_qpa.py": {
+          "tests": 14,
+          "profiled_call_seconds": 0.5879701382946223
+        },
+        "tests/test_finite_tau_mesh_qpa.py": {
+          "tests": 6,
+          "profiled_call_seconds": 0.04418212897144258
+        },
+        "tests/test_finite_type_g_fan_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.0522405969677493
+        },
+        "tests/test_g_fan_algebra_data_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.012268205871805549
+        },
+        "tests/test_g_fan_realization_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.40490696590859443
+        },
+        "tests/test_gorenstein_symmetry_qpa.py": {
+          "tests": 9,
+          "profiled_call_seconds": 0.08552415983285755
+        },
+        "tests/test_graded_square_zero_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 1.619682713993825
+        },
+        "tests/test_module_linear_algebra_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.018372046994045377
+        },
+        "tests/test_natural_endomorphism_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.0332997168879956
+        },
+        "tests/test_presilting_window_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.7784275230951607
+        },
+        "tests/test_relative_generator_ext_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.07045181002467871
+        },
+        "tests/test_ringel_zhang_qpa.py": {
+          "tests": 5,
+          "profiled_call_seconds": 0.07824753888417035
+        },
+        "tests/test_string_fan_realization_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.996048987028189
+        },
+        "tests/test_string_module_candidates_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.025629732059314847
+        },
+        "tests/test_syzygy_cycles_qpa.py": {
+          "tests": 11,
+          "profiled_call_seconds": 0.10773867613170296
+        },
+        "tests/test_two_term_complexes_qpa.py": {
+          "tests": 11,
+          "profiled_call_seconds": 0.09911327704321593
+        },
+        "tests/test_cartan_rank_two_candidate_verifier.py": {
+          "tests": 9,
+          "profiled_call_seconds": 2.8477065393235534
+        },
+        "tests/test_cartan_rank_two_d24_multitail.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.05541513906791806
+        },
+        "tests/test_cartan_rank_two_d25_filtered_cover.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.031093649100512266
+        },
+        "tests/test_cartan_rank_two_module_cycles.py": {
+          "tests": 13,
+          "profiled_call_seconds": 10.768071863101795
+        },
+        "tests/test_cartan_search_presentations.py": {
+          "tests": 5,
+          "profiled_call_seconds": 1.7510829360689968
+        },
+        "lib/python/subcat/test_qpa_lattice.py": {
+          "tests": 10,
+          "profiled_call_seconds": 1.2153908369364217
+        },
+        "lib/python/subcat/test_qpa_horn.py": {
+          "tests": 14,
+          "profiled_call_seconds": 3.7951323045417666
+        },
+        "lib/python/subcat/test_qpa_closure.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.011160813039168715
+        }
+      },
+      "extension_sha256": "05a058b2f87a7ba8d811f9efec439818f2615a4b66e3831cc53793493c79a445",
+      "provenance_checkout_override": "/home/italing/work/qpa-rust/target/performance-pass3",
+      "test_source_sha256": {
+        "tests/test_ar_knitting_qpa.py": "f47716fd1f8ef7095c01ae394e1e0abfcb03fc4eadbe0a3a49db62bcd82e03f3",
+        "tests/test_ar_map_qpa.py": "5eab058d952f0b725d0533a3a44700c5ee39068ccfcfa1bae876e5d79ade3287",
+        "tests/test_bounded_global_dimension_qpa.py": "4a48e66e789a451a5de3f1f092c019a015d5e03818d691cbbbed846e3bb20b8f",
+        "tests/test_boundedness_qpa.py": "561882119effe2d5ff0ba1e6ed9cac3ebf748be7760fc80e2e81ccf3195267b3",
+        "tests/test_cartan_rank_two_qpa.py": "7d62c0b45f30348279ee19e83b29e6aedc3bb25079e1b4d3ada78aab20b2858a",
+        "tests/test_delooping_qpa.py": "732f11c5228d46e5113bbee276f14a1b5d5d892d0b6c7b22a7db95cc4044a10d",
+        "tests/test_finite_tau_mesh_qpa.py": "3289784072efe2ccffa3ee30e5e734587421ea37880ba0596f7e415981a32354",
+        "tests/test_finite_type_g_fan_qpa.py": "081847027c2e7e4b67926fe67e4a45e639b37185367ced7b33995ed1f1358deb",
+        "tests/test_g_fan_algebra_data_qpa.py": "7ee763aab68ce52085a8042272a03d0bae8368bab4502f0767b8aa23cf72c6a3",
+        "tests/test_g_fan_realization_qpa.py": "c15015da874f07b2eeec50c795aa4426703b6f86fd947fbabe98cf8ef276dd05",
+        "tests/test_gorenstein_symmetry_qpa.py": "9a08fe5a665796ea9fee0595c5e5f8badeb8767839803b35a4e5d6842cdaabbe",
+        "tests/test_graded_square_zero_qpa.py": "5805a53b11da2601663dedb251c3549f88f1ca35253f8522aaa943f0555dc042",
+        "tests/test_module_linear_algebra_qpa.py": "e82c07dab4e4fcb537b26e8ce26efad9e594b4d49041201ffa9d73fa3997b8d3",
+        "tests/test_natural_endomorphism_qpa.py": "418fe6ae3b274e12eb34c380b5e799e3a3fbc0a55de1f5a07d8bca32b98e2ddf",
+        "tests/test_presilting_window_qpa.py": "5ddcb7645326eaa57e683cc54d4094a1433aa1c37140db329e44f48e4f37a922",
+        "tests/test_relative_generator_ext_qpa.py": "5f257c217eeba0ade3caeced9d4df31d8ceac1ab8c6b589d821de77a5d290762",
+        "tests/test_ringel_zhang_qpa.py": "9be3c9aba6c1f6744380fbc015eeb515e4ee239d43c1a43b91787cffb37fa888",
+        "tests/test_string_fan_realization_qpa.py": "5ddcebd74e4bcc7573707153ddfc9ffd3dd7c3f86978841a8baeb941c995714c",
+        "tests/test_string_module_candidates_qpa.py": "cd57df03d02dc5edb0efd43cb2a4523886cb15e7481e3522352b822d2cea9852",
+        "tests/test_syzygy_cycles_qpa.py": "dd8c5f2eee5bd24bc09eb41de4528b3025652cbbebda66d673635a5f257363b4",
+        "tests/test_two_term_complexes_qpa.py": "4c49b134ffe7320c29ce236114a59884d550e79b6700ef7a5525a033cce84627",
+        "tests/test_cartan_rank_two_candidate_verifier.py": "7ce34b88d2aeb052ad7c95a392d63519e98630996dc13649a9e90ac580e23a85",
+        "tests/test_cartan_rank_two_d24_multitail.py": "adbe8521621cbce6e21e66ec9750b0c814f740db00e6ab024b89094b125f6c71",
+        "tests/test_cartan_rank_two_d25_filtered_cover.py": "6bb83bf2faaf4f1247568ec00548611713d2b525a49e4aaf93c5c58870c36523",
+        "tests/test_cartan_rank_two_module_cycles.py": "10bc742aa9400ba07bb5d6c2a21a149c5e52725cda766f96d98a07db99c51131",
+        "tests/test_cartan_search_presentations.py": "20e2857c12be6fe37c05c5908b000a9032b3997ba545c42305cc2c7e4473ff32",
+        "lib/python/subcat/test_qpa_lattice.py": "181c187f3a5117f1ac6e566b10212c09922eca0d6b368ee3fc9cef41b2fc0b44",
+        "lib/python/subcat/test_qpa_horn.py": "5c523fec8dd15164c38c8da8879878741fa4cb6bd4c0ddf126b27124f42659de",
+        "lib/python/subcat/test_qpa_closure.py": "ef296e47651ca6d8a0f0562cc41e19aa53ab7d934a2648eaa88de20017fa14a9"
+      }
+    },
+    "after": {
+      "tests": 169,
+      "families": {
+        "tests/test_ar_knitting_qpa.py": {
+          "tests": 5,
+          "profiled_call_seconds": 0.014986876049079001
+        },
+        "tests/test_ar_map_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.009311325033195317
+        },
+        "tests/test_bounded_global_dimension_qpa.py": {
+          "tests": 11,
+          "profiled_call_seconds": 0.039092155755497515
+        },
+        "tests/test_boundedness_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.0020959050161764026
+        },
+        "tests/test_cartan_rank_two_qpa.py": {
+          "tests": 1,
+          "profiled_call_seconds": 0.0008787680417299271
+        },
+        "tests/test_delooping_qpa.py": {
+          "tests": 14,
+          "profiled_call_seconds": 0.15177307289559394
+        },
+        "tests/test_finite_tau_mesh_qpa.py": {
+          "tests": 6,
+          "profiled_call_seconds": 0.016127474838867784
+        },
+        "tests/test_finite_type_g_fan_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.013218644075095654
+        },
+        "tests/test_g_fan_algebra_data_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.0023431049194186926
+        },
+        "tests/test_g_fan_realization_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.13570275099482387
+        },
+        "tests/test_gorenstein_symmetry_qpa.py": {
+          "tests": 9,
+          "profiled_call_seconds": 0.018452713964506984
+        },
+        "tests/test_graded_square_zero_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.06824973004404455
+        },
+        "tests/test_module_linear_algebra_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.0030252878786996007
+        },
+        "tests/test_natural_endomorphism_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.005691695958375931
+        },
+        "tests/test_presilting_window_qpa.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.03071658406406641
+        },
+        "tests/test_relative_generator_ext_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.007219828898087144
+        },
+        "tests/test_ringel_zhang_qpa.py": {
+          "tests": 5,
+          "profiled_call_seconds": 0.009507403243333101
+        },
+        "tests/test_string_fan_realization_qpa.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.09162569895852357
+        },
+        "tests/test_string_module_candidates_qpa.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.0051125799072906375
+        },
+        "tests/test_syzygy_cycles_qpa.py": {
+          "tests": 11,
+          "profiled_call_seconds": 0.010933519923128188
+        },
+        "tests/test_two_term_complexes_qpa.py": {
+          "tests": 11,
+          "profiled_call_seconds": 0.010282992967404425
+        },
+        "tests/test_cartan_rank_two_candidate_verifier.py": {
+          "tests": 9,
+          "profiled_call_seconds": 0.1795570378890261
+        },
+        "tests/test_cartan_rank_two_d24_multitail.py": {
+          "tests": 2,
+          "profiled_call_seconds": 0.0056119749788194895
+        },
+        "tests/test_cartan_rank_two_d25_filtered_cover.py": {
+          "tests": 3,
+          "profiled_call_seconds": 0.001578829949721694
+        },
+        "tests/test_cartan_rank_two_module_cycles.py": {
+          "tests": 13,
+          "profiled_call_seconds": 1.562894438044168
+        },
+        "tests/test_cartan_search_presentations.py": {
+          "tests": 5,
+          "profiled_call_seconds": 1.3236323889577761
+        },
+        "lib/python/subcat/test_qpa_lattice.py": {
+          "tests": 10,
+          "profiled_call_seconds": 0.6406859139679
+        },
+        "lib/python/subcat/test_qpa_horn.py": {
+          "tests": 14,
+          "profiled_call_seconds": 1.4044298749649897
+        },
+        "lib/python/subcat/test_qpa_closure.py": {
+          "tests": 4,
+          "profiled_call_seconds": 0.0050481988582760096
+        }
+      },
+      "extension_sha256": "398d357b99c402dd86859c76addf5f8c439c686c9fc04f70c4bf3fd7f0e9ca18",
+      "provenance_checkout_override": "/home/italing/work/qpa-rust",
+      "test_source_sha256": {
+        "tests/test_ar_knitting_qpa.py": "f47716fd1f8ef7095c01ae394e1e0abfcb03fc4eadbe0a3a49db62bcd82e03f3",
+        "tests/test_ar_map_qpa.py": "5eab058d952f0b725d0533a3a44700c5ee39068ccfcfa1bae876e5d79ade3287",
+        "tests/test_bounded_global_dimension_qpa.py": "4a48e66e789a451a5de3f1f092c019a015d5e03818d691cbbbed846e3bb20b8f",
+        "tests/test_boundedness_qpa.py": "561882119effe2d5ff0ba1e6ed9cac3ebf748be7760fc80e2e81ccf3195267b3",
+        "tests/test_cartan_rank_two_qpa.py": "7d62c0b45f30348279ee19e83b29e6aedc3bb25079e1b4d3ada78aab20b2858a",
+        "tests/test_delooping_qpa.py": "732f11c5228d46e5113bbee276f14a1b5d5d892d0b6c7b22a7db95cc4044a10d",
+        "tests/test_finite_tau_mesh_qpa.py": "3289784072efe2ccffa3ee30e5e734587421ea37880ba0596f7e415981a32354",
+        "tests/test_finite_type_g_fan_qpa.py": "081847027c2e7e4b67926fe67e4a45e639b37185367ced7b33995ed1f1358deb",
+        "tests/test_g_fan_algebra_data_qpa.py": "7ee763aab68ce52085a8042272a03d0bae8368bab4502f0767b8aa23cf72c6a3",
+        "tests/test_g_fan_realization_qpa.py": "c15015da874f07b2eeec50c795aa4426703b6f86fd947fbabe98cf8ef276dd05",
+        "tests/test_gorenstein_symmetry_qpa.py": "9a08fe5a665796ea9fee0595c5e5f8badeb8767839803b35a4e5d6842cdaabbe",
+        "tests/test_graded_square_zero_qpa.py": "5805a53b11da2601663dedb251c3549f88f1ca35253f8522aaa943f0555dc042",
+        "tests/test_module_linear_algebra_qpa.py": "e82c07dab4e4fcb537b26e8ce26efad9e594b4d49041201ffa9d73fa3997b8d3",
+        "tests/test_natural_endomorphism_qpa.py": "418fe6ae3b274e12eb34c380b5e799e3a3fbc0a55de1f5a07d8bca32b98e2ddf",
+        "tests/test_presilting_window_qpa.py": "5ddcb7645326eaa57e683cc54d4094a1433aa1c37140db329e44f48e4f37a922",
+        "tests/test_relative_generator_ext_qpa.py": "5f257c217eeba0ade3caeced9d4df31d8ceac1ab8c6b589d821de77a5d290762",
+        "tests/test_ringel_zhang_qpa.py": "9be3c9aba6c1f6744380fbc015eeb515e4ee239d43c1a43b91787cffb37fa888",
+        "tests/test_string_fan_realization_qpa.py": "5ddcebd74e4bcc7573707153ddfc9ffd3dd7c3f86978841a8baeb941c995714c",
+        "tests/test_string_module_candidates_qpa.py": "cd57df03d02dc5edb0efd43cb2a4523886cb15e7481e3522352b822d2cea9852",
+        "tests/test_syzygy_cycles_qpa.py": "dd8c5f2eee5bd24bc09eb41de4528b3025652cbbebda66d673635a5f257363b4",
+        "tests/test_two_term_complexes_qpa.py": "4c49b134ffe7320c29ce236114a59884d550e79b6700ef7a5525a033cce84627",
+        "tests/test_cartan_rank_two_candidate_verifier.py": "7ce34b88d2aeb052ad7c95a392d63519e98630996dc13649a9e90ac580e23a85",
+        "tests/test_cartan_rank_two_d24_multitail.py": "adbe8521621cbce6e21e66ec9750b0c814f740db00e6ab024b89094b125f6c71",
+        "tests/test_cartan_rank_two_d25_filtered_cover.py": "6bb83bf2faaf4f1247568ec00548611713d2b525a49e4aaf93c5c58870c36523",
+        "tests/test_cartan_rank_two_module_cycles.py": "10bc742aa9400ba07bb5d6c2a21a149c5e52725cda766f96d98a07db99c51131",
+        "tests/test_cartan_search_presentations.py": "20e2857c12be6fe37c05c5908b000a9032b3997ba545c42305cc2c7e4473ff32",
+        "lib/python/subcat/test_qpa_lattice.py": "181c187f3a5117f1ac6e566b10212c09922eca0d6b368ee3fc9cef41b2fc0b44",
+        "lib/python/subcat/test_qpa_horn.py": "5c523fec8dd15164c38c8da8879878741fa4cb6bd4c0ddf126b27124f42659de",
+        "lib/python/subcat/test_qpa_closure.py": "ef296e47651ca6d8a0f0562cc41e19aa53ab7d934a2648eaa88de20017fa14a9"
+      }
+    }
+  },
+  "native_profiles": {
+    "graded_before": {
+      "total_instructions_including_python_imports": 4722424902,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_gbnp::module::ext_over_algebra": 2749336090,
+        "qpa_gbnp::module::projective_cover": 2733315467,
+        "qpa_gbnp::module::hom_from_projective_with_family": 2429107011,
+        "qpa_gbnp::module::indec_projective_modules": 2344984495,
+        "qpa_gbnp::module::canonical_basis_coefficients": 1546531960,
+        "qpa_core::quotient::QuotientPathAlgebra<F>::canonical_basis_coefficients": 1546463121,
+        "qpa_core::groebner::GroebnerBasis<F>::nontips": 1235707987,
+        "qpa_core::static_dictionary::QuiverStaticDictionary::new": 996267304,
+        "qpa_core::groebner::GroebnerBasis<F>::completely_reduce": 939286241,
+        "qpa_core::groebner::GroebnerBasis<F>::tip_reduce": 918381554,
+        "qpa_core::static_dictionary::QuiverStaticDictionary::difference_words": 718908076,
+        "qpa_core::quotient::QuotientPathAlgebraElement<F>::multiply": 640613562,
+        "qpa_core::quotient::QuotientPathAlgebra<F>::path": 301185877,
+        "qpa_core::static_dictionary::AutomatonState::new": 286257747,
+        "qpa_core::path_module::minimal_generating_set_of_module": 264553859,
+        "qpa_core::path_module::top_of_module_projection": 263424579
+      },
+      "stage": "Initial diagnostic build; timed benchmark baseline was separately rebuilt from d6ec934.",
+      "build": {
+        "qpa_build_revision": "21d06e30bc946807eeed0c5dbca53e05f586e435-dirty",
+        "extension_sha256": "b965b067c82b25973baed1a8a93f43f533cc0946b725f72dfefc35920dd86b5e"
+      }
+    },
+    "js29_before": {
+      "total_instructions_including_python_imports": 18665586851,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_core::path_module::hom_over_algebra": 10266256844,
+        "qpa_core::matrix::DenseMatrix<F>::nullspace_rows": 6476666151,
+        "qpa_core::matrix::DenseMatrix<F>::semi_echelon": 6268051077,
+        "qpa_core::matrix::DenseMatrix<F>::multiply": 3384831628,
+        "qpa_gbnp::module::from_matrix_to_homomorphism_of_projectives": 2440919605,
+        "qpa_core::path_module::right_module_over_path_algebra_impl": 2429622616,
+        "qpa_core::path_module::relations_are_satisfied": 2393677787,
+        "qpa_core::matrix::rows_with_shape": 2335411470,
+        "qpa_core::path_module::right_module_hom_over_algebra": 2209879541,
+        "qpa_core::path_module::direct_sum_of_qpa_modules": 2159255253,
+        "qpa_core::groebner::GroebnerBasis<F>::completely_reduce": 1523429952,
+        "qpa_core::groebner::GroebnerBasis<F>::tip_reduce": 1512576441,
+        "qpa_core::path_module::path_action_matrix": 1466318545,
+        "qpa_core::quotient::QuotientPathAlgebraElement<F>::multiply": 1430888315,
+        "qpa_core::quotient::QuotientPathAlgebra<F>::by_relators_and_complete_groebner_basis": 1329531907,
+        "qpa_core::quotient::PathAlgebraIdeal<F>::is_admissible": 1323149235
+      },
+      "stage": "Initial diagnostic build; timed benchmark baseline was separately rebuilt from d6ec934.",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b",
+        "extension_sha256": "05a058b2f87a7ba8d811f9efec439818f2615a4b66e3831cc53793493c79a445"
+      }
+    },
+    "gsz_before": {
+      "total_instructions_including_python_imports": 3092224341,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_core::projective_resolution::projective_resolution_fp_path_algebra_module": 1053831531,
+        "qpa_core::projective_resolution::next_resolution_step": 1048860830,
+        "qpa_core::projective_path_module::x_set_of_path_algebra_vector": 886435819,
+        "qpa_core::quotient::PathAlgebraIdeal<F>::right_groebner_basis": 856873927,
+        "qpa_core::groebner::GroebnerBasis<F>::right_basis": 853081758,
+        "qpa_core::groebner::GroebnerBasis<F>::is_prefix_of_tip_in_tip_ideal": 759676578,
+        "qpa_core::static_dictionary::QuiverStaticDictionary::new": 550003782,
+        "qpa_core::static_dictionary::AutomatonState::new": 130580702,
+        "qpa_core::projective_path_module::first_part": 64829258,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::multiply": 47429008,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::leading_monomial": 47274147,
+        "qpa_core::projective_path_module::left_division": 39627059,
+        "qpa_core::groebner::GroebnerBasis<F>::nontips": 35618304,
+        "qpa_core::groebner::GroebnerBasis<F>::tip_reduced_basis": 34040581,
+        "qpa_core::projective_path_module::RightProjectivePathAlgebraModule<F>::vector": 30034698,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::add": 28796338
+      },
+      "stage": "Initial diagnostic build; timed benchmark baseline was separately rebuilt from d6ec934.",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b",
+        "extension_sha256": "05a058b2f87a7ba8d811f9efec439818f2615a4b66e3831cc53793493c79a445"
+      }
+    },
+    "gsz_cache": {
+      "total_instructions_including_python_imports": 2359420764,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_core::projective_resolution::projective_resolution_fp_path_algebra_module": 337617413,
+        "qpa_core::projective_resolution::next_resolution_step": 335528533,
+        "qpa_core::projective_path_module::x_set_of_path_algebra_vector": 171845895,
+        "qpa_core::quotient::PathAlgebraIdeal<F>::right_groebner_basis": 140435749,
+        "qpa_core::groebner::GroebnerBasis<F>::right_basis": 136658081,
+        "qpa_core::groebner::GroebnerBasis<F>::is_prefix_of_tip_in_tip_ideal": 81655800,
+        "qpa_core::projective_path_module::first_part": 63922005,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::multiply": 43723249,
+        "qpa_core::projective_path_module::left_division": 39746703,
+        "qpa_core::groebner::GroebnerBasis<F>::tip_reduced_basis": 34786541,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::leading_monomial": 30528179,
+        "qpa_core::projective_path_module::RightProjectivePathAlgebraModule<F>::vector": 30052700,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::add": 28855151,
+        "qpa_core::ordering::QuiverOrdering::compare": 24129488,
+        "qpa_core::quiver::Path::multiply": 20593101,
+        "qpa_core::groebner::sort_elements": 10565118
+      },
+      "stage": "intermediate audit build, before module equality and composition changes",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+        "extension_sha256": "e9726ed5e76d6d00f0cce8ac80b2d1b6677cd4e7f1ba291bd0ed8dc7faa0e590"
+      }
+    },
+    "graded_cache_matrix": {
+      "total_instructions_including_python_imports": 2640643685,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_gbnp::module::ext_over_algebra": 664545133,
+        "qpa_gbnp::module::projective_cover": 648703390,
+        "qpa_gbnp::module::hom_from_projective_with_family": 549276760,
+        "qpa_gbnp::module::indec_projective_modules": 490465704,
+        "qpa_gbnp::module::canonical_basis_coefficients": 393987163,
+        "qpa_core::quotient::QuotientPathAlgebra<F>::canonical_basis_coefficients": 393918324,
+        "qpa_core::groebner::GroebnerBasis<F>::tip_reduced_basis": 113051155,
+        "qpa_core::groebner::GroebnerBasis<F>::nontips": 100450351,
+        "qpa_core::quotient::PathAlgebraIdeal<F>::groebner_basis": 73435869,
+        "qpa_core::path_module::minimal_generating_set_of_module": 63185363,
+        "qpa_core::path_module::top_of_module_projection": 62056598,
+        "qpa_core::path_module::radical_of_module_inclusion": 60967150,
+        "qpa_core::quotient::QuotientPathAlgebraElement<F>::multiply": 59971778,
+        "qpa_core::quotient::sort_paths_as_qpa_set": 50861724,
+        "qpa_core::path_module::right_module_over_path_algebra_impl": 50044127,
+        "qpa_core::quiver::Quiver::compare_paths": 48632241
+      },
+      "stage": "intermediate audit build, before module equality and composition changes",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+        "extension_sha256": "595a29b5eb36d3c21a7af5bad8c4e8a2e562d137402c064a41ba396d6b3cfdd2"
+      }
+    },
+    "graded_after_basis_sharing": {
+      "total_instructions_including_python_imports": 2197729859,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_gbnp::module::ext_over_algebra": 228808864,
+        "qpa_gbnp::module::projective_cover": 212650886,
+        "qpa_gbnp::module::hom_from_projective_with_family": 114601990,
+        "qpa_gbnp::module::indec_projective_modules": 79932603,
+        "qpa_core::path_module::minimal_generating_set_of_module": 61967415,
+        "qpa_core::path_module::top_of_module_projection": 60833209,
+        "qpa_core::path_module::radical_of_module_inclusion": 59777413,
+        "qpa_core::quotient::QuotientPathAlgebraElement<F>::multiply": 53465515,
+        "qpa_core::quotient::PathAlgebraIdeal<F>::is_admissible": 47023476,
+        "qpa_core::path_module::right_module_over_path_algebra_impl": 43981203,
+        "qpa_core::quotient::quotient_ideal_span": 40860628,
+        "qpa_core::groebner::GroebnerBasis<F>::completely_reduce": 38347986,
+        "qpa_core::path_module::relations_are_satisfied": 32360698,
+        "qpa_core::matrix::DenseMatrix<F>::multiply": 30703535,
+        "qpa_core::path_module::right_module_hom_over_algebra": 29304041,
+        "qpa_gbnp::module::basis_of_projectives": 24063593
+      },
+      "stage": "intermediate audit build, before module equality and composition changes",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+        "extension_sha256": "a39ed582b3e25c50b55ea60db588320e73d374538a97860869f6e3a84d607c20"
+      }
+    },
+    "gsz_after_local_reuse": {
+      "total_instructions_including_python_imports": 2212967881,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_core::projective_resolution::projective_resolution_fp_path_algebra_module": 194351037,
+        "qpa_core::projective_resolution::next_resolution_step": 192523102,
+        "qpa_core::projective_path_module::first_part": 62525283,
+        "qpa_core::projective_path_module::left_division": 39802434,
+        "qpa_core::projective_path_module::x_set_of_path_algebra_vector_with_basis": 30310552,
+        "qpa_core::projective_path_module::RightProjectivePathAlgebraModule<F>::vector": 29941132,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::add": 28809152,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::leading_monomial": 28281703,
+        "qpa_core::ordering::QuiverOrdering::compare": 12996410,
+        "qpa_core::path_algebra::PathAlgebraElement<F>::multiply": 11294544,
+        "qpa_core::quiver::Path::multiply": 5723327,
+        "qpa_core::quiver::Path::external_representation": 5131566,
+        "qpa_gbnp::pathalg::quotient_by_relations": 4968775,
+        "qpa_core::quotient::QuotientPathAlgebra<F>::by_relators_and_complete_groebner_basis": 4589938,
+        "qpa_core::quotient::PathAlgebraIdeal<F>::is_admissible": 4338974,
+        "qpa_core::path_algebra::uniform_endpoint": 4168582
+      },
+      "stage": "intermediate audit build, before module equality and composition changes",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+        "extension_sha256": "a39ed582b3e25c50b55ea60db588320e73d374538a97860869f6e3a84d607c20"
+      }
+    },
+    "cartan_before_map_changes": {
+      "stage": "After basis and matrix changes, before module equality and composition changes",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+        "extension_sha256": "a39ed582b3e25c50b55ea60db588320e73d374538a97860869f6e3a84d607c20"
+      },
+      "total_instructions_including_python_imports": 6811796660,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_core::path_module::maximal_common_direct_summand": 2446359159,
+        "qpa_core::path_module::common_direct_summand": 2446338729,
+        "qpa_core::path_module::PathAlgebraModuleHomomorphism<F>::compose": 2299174876,
+        "qpa_core::matrix::DenseMatrix<F>::multiply": 1728249499,
+        "qpa_core::path_module::right_module_hom_over_algebra": 1682617910,
+        "qpa_core::path_module::PathAlgebraModule<F>::matrices_of_path_algebra_module": 173272059,
+        "qpa_core::path_module::hom_over_algebra": 76672466,
+        "qpa_core::path_module::top_of_module_projection": 55723548,
+        "qpa_gbnp::module::is_projective_module": 48255898,
+        "qpa_core::path_module::top_of_module": 43071449,
+        "qpa_core::path_module::radical_of_module_inclusion": 41046587,
+        "qpa_core::matrix::DenseMatrix<F>::nullspace_rows": 38783588,
+        "qpa_core::path_module::subrepresentation_inclusion": 36314778,
+        "qpa_core::matrix::DenseMatrix<F>::semi_echelon": 36045338,
+        "qpa_core::matrix::DenseMatrix<F>::solution_row": 35424288,
+        "qpa_core::matrix::binary::<impl qpa_core::matrix::DenseMatrix<F>>::packed_binary": 33753514
+      }
+    },
+    "cartan_accepted": {
+      "stage": "Final audited release build",
+      "build": {
+        "qpa_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+        "extension_sha256": "398d357b99c402dd86859c76addf5f8c439c686c9fc04f70c4bf3fd7f0e9ca18"
+      },
+      "total_instructions_including_python_imports": 4634236290,
+      "top_library_functions_inclusive_instructions": {
+        "qpa_core::path_module::maximal_common_direct_summand": 475385871,
+        "qpa_core::path_module::common_direct_summand": 475365407,
+        "qpa_core::path_module::PathAlgebraModuleHomomorphism<F>::compose": 327630663,
+        "qpa_core::matrix::DenseMatrix<F>::multiply": 320943064,
+        "qpa_core::path_module::hom_over_algebra": 76613648,
+        "qpa_core::path_module::top_of_module_projection": 55738454,
+        "qpa_gbnp::module::is_projective_module": 48190771,
+        "qpa_core::path_module::top_of_module": 43004672,
+        "qpa_core::path_module::radical_of_module_inclusion": 41006339,
+        "qpa_core::matrix::DenseMatrix<F>::nullspace_rows": 38818721,
+        "qpa_core::path_module::subrepresentation_inclusion": 36262104,
+        "qpa_core::matrix::DenseMatrix<F>::semi_echelon": 35947728,
+        "qpa_core::matrix::DenseMatrix<F>::solution_row": 35332637,
+        "qpa_core::path_module::right_module_hom_over_algebra": 35062737,
+        "qpa_core::matrix::binary::<impl qpa_core::matrix::DenseMatrix<F>>::packed_binary": 33765805,
+        "qpa_gbnp::module::first_syzygy": 31759347
+      }
+    }
+  },
+  "validation": {
+    "rust_tests_per_backend": 434,
+    "python_tests": 373,
+    "consumer_tests": 169,
+    "rust_checks": {
+      "rust-tests": {
+        "returncode": 0,
+        "seconds": 25.924132937914692
+      },
+      "gmp-tests": {
+        "returncode": 0,
+        "seconds": 25.745088399969973
+      },
+      "clippy": {
+        "returncode": 0,
+        "seconds": 8.748520600027405
+      },
+      "gmp-clippy": {
+        "returncode": 0,
+        "seconds": 13.19007219991181
+      },
+      "rustdoc": {
+        "returncode": 0,
+        "seconds": 5.919901650049724
+      },
+      "gmp-rustdoc": {
+        "returncode": 0,
+        "seconds": 5.942462658043951
+      }
+    },
+    "other_checks": [
+      "cargo fmt",
+      "included source rustfmt",
+      "git diff --check",
+      "Python binding ledger",
+      "generated Python documentation"
+    ],
+    "regressions": [
+      "Exact QPA fixture outputs",
+      "Four-field matrix products and nullspace ordering, including empty shapes",
+      "Groebner clone sharing, copy-on-write tail reduction, basis replacement and enumerator behavior",
+      "GSZ shared-basis overlap results and zero-vector error",
+      "Composition versus the checked constructor across four fields, zero spaces and incompatible inputs",
+      "Identical, reconstructed and zero-module equality"
+    ]
+  },
+  "assessment": {
+    "recommendation": "End this optimization round and prepare the release.",
+    "stopping_criterion": "Investigate substantial costs in representative calculations and retain practical changes with repeatable end-to-end gains; stop when the remaining measured costs require broader algorithm or representation changes, are in consumer orchestration, or are too small to establish a material benefit.",
+    "remaining_costs": [
+      "Large rational Hom calculations still build and eliminate dense exact systems. Sparse or fraction-free approaches would need a separate design preserving QPA basis ordering.",
+      "Common-summand calculations still perform the actual Hom searches and matrix products. Specialized matrix layouts or binary multiplication are possible future algorithm work, not measured pending fixes.",
+      "Consumer language enumeration, fan geometry, closure search and worker startup are outside the library. Exhaustive module enumeration retains its combinatorial growth."
+    ],
+    "limits": [
+      "No claim that all future optimization opportunities are exhausted. Larger or different workloads may reveal new bottlenecks.",
+      "Performance comparisons are against the preceding Rust commit, not GAP/QPA, and use one machine and the default backend.",
+      "No version bump, tag, publication or cross-platform wheel validation is part of this audit."
+    ],
+    "mixed_results": "Not every probe improved. The small GF(5) Hom-dimension probe rose from 4.28 ms to 5.94 ms across the accepted repetitions; it also regressed in the earlier pilot. This remains an accepted small absolute regression, not a speedup or a proven noise effect. Other slower medians are recorded in cases; the shared host and run-to-run variation limit interpretation of small differences. The large representative consumer workloads improved materially."
+  },
+  "source_sha256": {
+    "README.md": "216ab956d5473c02de82cd9bf6dfd44294495ce5fc77ffe754776687314abfe9",
+    "crates/qpa-core/src/groebner.rs": "ec3128b182237fee5acd677904e4173b2aa5e77528c4bddbf4d002340ae39e8f",
+    "crates/qpa-core/src/matrix.rs": "1f75fab92b83f62a2b4f7b4821ea0b9fddee1b8d316be64f33f95ec7a0136333",
+    "crates/qpa-core/src/path_module/endomorphisms.rs": "c1f2041bff98ded38e0388d5b736ce6176ca138d091cbbdccd81e27cd266f76f",
+    "crates/qpa-core/src/path_module/homomorphisms.rs": "61caf6aabceb781c772182504bd98413656d6686d03a754ac92e6c115c4ea003",
+    "crates/qpa-core/src/path_module/objects.rs": "f59c2c969ef3e6bbf0654d7c074f8403a4f9d48a43fbf9963902d438ec570ac1",
+    "crates/qpa-core/src/path_module/tests.rs": "9a8177ff680de96ac886be62eccf3939c203f4de89d05333ee0f8332ea323e6d",
+    "crates/qpa-core/src/projective_path_module.rs": "2478cf2a4904ea78fac8ecc1413514c4f9e88617002b03c20feedfb485205812",
+    "crates/qpa-core/src/projective_resolution.rs": "7c48b4d01c54c44cbbf6b016a2bbbc8fafc2ca1a97fd890c0bf325af5874ef73",
+    "crates/qpa-core/src/quotient.rs": "7455ac466e2f32a6b48fa00eb583e5c3674906f1b26263909dea2122f6e8ada1",
+    "crates/qpa-core/tests/matrix_elimination.rs": "a3cc7e712b40ee0bcc0c1e115318eab2b209fe760d6696aabca548aa4848687d",
+    "benchmarks/broad_workloads.py": "3443b0510a0f14193a766e4352c8181bbfc0d25317f874a8e0f4c4c433ae27eb",
+    "benchmarks/consumer_survey.py": "056736a6b8a6b44f73defeebe941f95d6ae47966b89e9f43e5516d2b0f5232eb"
+  },
+  "consumer_revision_at_finish": "ccb987ba29a63cf08ba4173f9a39be589d10470e",
+  "benchmark_run_order": [
+    {
+      "cycle": 0,
+      "version": "before",
+      "process_seconds": 6.812650547013618
+    },
+    {
+      "cycle": 0,
+      "version": "after",
+      "process_seconds": 4.488780373940244
+    },
+    {
+      "cycle": 1,
+      "version": "after",
+      "process_seconds": 4.622532802051865
+    },
+    {
+      "cycle": 1,
+      "version": "before",
+      "process_seconds": 6.956017861026339
+    },
+    {
+      "cycle": 2,
+      "version": "before",
+      "process_seconds": 7.421012851060368
+    },
+    {
+      "cycle": 2,
+      "version": "after",
+      "process_seconds": 5.191065757069737
+    },
+    {
+      "cycle": 3,
+      "version": "after",
+      "process_seconds": 5.459116455982439
+    },
+    {
+      "cycle": 3,
+      "version": "before",
+      "process_seconds": 7.595586318988353
+    },
+    {
+      "cycle": 4,
+      "version": "before",
+      "process_seconds": 7.2651743510505185
+    },
+    {
+      "cycle": 4,
+      "version": "after",
+      "process_seconds": 5.321816407958977
+    }
+  ]
+}

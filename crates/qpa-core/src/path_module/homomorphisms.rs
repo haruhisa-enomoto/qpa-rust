@@ -54,38 +54,50 @@ pub fn right_module_hom_over_algebra<F: Field>(
         }
     }
 
-    Ok(PathAlgebraModuleHomomorphism(Arc::new(
-        PathAlgebraModuleHomomorphismData {
-            source,
-            range,
-            vertex_matrices,
-            kernel_inclusion: OnceLock::new(),
-            image_projection_inclusion: OnceLock::new(),
-            cokernel_projection: OnceLock::new(),
-            dual_homomorphism: OnceLock::new(),
-            star_homomorphism: OnceLock::new(),
-            transpose_homomorphism: OnceLock::new(),
-            d_tr_homomorphism: OnceLock::new(),
-            tr_d_homomorphism: OnceLock::new(),
-            nakayama_homomorphism: OnceLock::new(),
-            opposite_nakayama_homomorphism: OnceLock::new(),
-            is_injective: OnceLock::new(),
-            is_surjective: OnceLock::new(),
-            is_split_monomorphism: OnceLock::new(),
-            is_split_epimorphism: OnceLock::new(),
-            is_right_minimal: OnceLock::new(),
-            is_left_minimal: OnceLock::new(),
-            left_inverse_weak: RwLock::new(None),
-            left_inverse_fail: OnceLock::new(),
-            right_inverse_weak: RwLock::new(None),
-            right_inverse_fail: OnceLock::new(),
-            right_minimal_version: OnceLock::new(),
-            left_minimal_version: OnceLock::new(),
-            kernel_of_what: RwLock::new(None),
-            image_of_what: RwLock::new(None),
-            cokernel_of_what: RwLock::new(None),
-        },
-    )))
+    Ok(module_homomorphism_from_verified_matrices(
+        source,
+        range,
+        vertex_matrices,
+    ))
+}
+
+// Only the checked constructor and operations that preserve its invariants
+// may call this. Module representations and map matrices are immutable.
+fn module_homomorphism_from_verified_matrices<F: Field>(
+    source: PathAlgebraModule<F>,
+    range: PathAlgebraModule<F>,
+    vertex_matrices: Vec<DenseMatrix<F>>,
+) -> PathAlgebraModuleHomomorphism<F> {
+    PathAlgebraModuleHomomorphism(Arc::new(PathAlgebraModuleHomomorphismData {
+        source,
+        range,
+        vertex_matrices,
+        kernel_inclusion: OnceLock::new(),
+        image_projection_inclusion: OnceLock::new(),
+        cokernel_projection: OnceLock::new(),
+        dual_homomorphism: OnceLock::new(),
+        star_homomorphism: OnceLock::new(),
+        transpose_homomorphism: OnceLock::new(),
+        d_tr_homomorphism: OnceLock::new(),
+        tr_d_homomorphism: OnceLock::new(),
+        nakayama_homomorphism: OnceLock::new(),
+        opposite_nakayama_homomorphism: OnceLock::new(),
+        is_injective: OnceLock::new(),
+        is_surjective: OnceLock::new(),
+        is_split_monomorphism: OnceLock::new(),
+        is_split_epimorphism: OnceLock::new(),
+        is_right_minimal: OnceLock::new(),
+        is_left_minimal: OnceLock::new(),
+        left_inverse_weak: RwLock::new(None),
+        left_inverse_fail: OnceLock::new(),
+        right_inverse_weak: RwLock::new(None),
+        right_inverse_fail: OnceLock::new(),
+        right_minimal_version: OnceLock::new(),
+        left_minimal_version: OnceLock::new(),
+        kernel_of_what: RwLock::new(None),
+        image_of_what: RwLock::new(None),
+        cokernel_of_what: RwLock::new(None),
+    }))
 }
 /// Translate QPA's cached `ZeroModule(A)` attribute.
 ///

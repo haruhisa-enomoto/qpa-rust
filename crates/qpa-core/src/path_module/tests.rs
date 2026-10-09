@@ -2792,11 +2792,23 @@ fn clones_are_identical_but_reconstruction_is_only_equal() {
         .unwrap();
 
     assert!(first.is_identical(&clone));
+    assert_eq!(first, clone);
     assert!(!first.is_identical(&second));
     assert_eq!(first, second);
     assert_ne!(first, different_dimension);
     assert_ne!(first, different_matrix);
     assert_ne!(first, different_algebra);
+    let zero =
+        right_module_over_path_algebra(first.right_acting_algebra().clone(), vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+    let other_zero =
+        right_module_over_path_algebra(first.right_acting_algebra().clone(), vec![0, 0], &[])
+            .unwrap()
+            .unwrap();
+    assert!(!zero.is_identical(&other_zero));
+    assert_eq!(zero, other_zero);
+    assert_ne!(zero, first);
 }
 
 #[test]
@@ -3984,4 +3996,85 @@ fn lift_idempotents_preserves_qpa_missing_method_boundary() {
         lift_idempotents(&module),
         Err(PathAlgebraModuleError::UninstalledLiftIdempotents)
     ));
+}
+
+#[test]
+fn composition_matches_checked_construction_across_fields_and_zero_spaces() {
+    fn check<F: Field>(field: F, scalar: &F::Element) {
+        let quiver =
+            Quiver::from_indexed(2, vec![ArrowSpec::named(vertex(1), vertex(2), "a")]).unwrap();
+        let algebra = QuiverAlgebra::Path(PathAlgebra::new(field.clone(), quiver).unwrap());
+        let module = |size| {
+            let specification = if size == 0 {
+                Vec::new()
+            } else {
+                vec![NamedArrowMatrix::new(
+                    "a",
+                    DenseMatrix::identity(size, field.clone()),
+                )]
+            };
+            right_module_over_path_algebra(algebra.clone(), vec![size, size], &specification)
+                .unwrap()
+                .unwrap()
+        };
+        let map = |source: PathAlgebraModule<F>, target: PathAlgebraModule<F>| {
+            let s = source.dimension_vector()[0];
+            let t = target.dimension_vector()[0];
+            let mut matrix = DenseMatrix::zero(s.max(1), t.max(1), field.clone());
+            for i in 0..s {
+                for j in 0..t {
+                    matrix[(i, j)] = if (i + j) % 2 == 0 {
+                        scalar.clone()
+                    } else {
+                        field.one()
+                    };
+                }
+            }
+            right_module_hom_over_algebra(source, target, vec![matrix.clone(), matrix]).unwrap()
+        };
+        for s in [0, 1, 3] {
+            for middle in [0, 1, 3] {
+                for t in [0, 1, 3] {
+                    let source = module(s);
+                    let target = module(t);
+                    // Equal, separately allocated middle modules must compose too.
+                    let f = map(source.clone(), module(middle));
+                    let g = map(module(middle), target.clone());
+                    let matrices = f
+                        .vertex_matrices()
+                        .iter()
+                        .zip(g.vertex_matrices())
+                        .map(|(left, right)| left.multiply(right).unwrap())
+                        .collect();
+                    let expected = right_module_hom_over_algebra(source, target, matrices).unwrap();
+                    assert_eq!(f.compose(&g).unwrap(), expected);
+                }
+            }
+        }
+        let f = map(module(1), module(1));
+        let g = map(module(3), module(1));
+        assert!(matches!(
+            f.compose(&g),
+            Err(PathAlgebraModuleError::NoncomposableHomomorphisms)
+        ));
+        assert!(matches!(
+            right_module_hom_over_algebra(
+                module(1),
+                module(1),
+                vec![
+                    DenseMatrix::identity(1, field.clone()),
+                    DenseMatrix::zero(1, 1, field)
+                ]
+            ),
+            Err(PathAlgebraModuleError::NoncommutingHomomorphismSquare { .. })
+        ));
+    }
+    check(Q, &q(2));
+    check(Z2, &Z2.one());
+    let prime = Zp::new(5);
+    let scalar = prime.nth(2.into());
+    check(prime, &scalar);
+    let extension = crate::GaloisField::conway(2, 2).unwrap();
+    let scalar = extension.primitive_element();
+    check(extension, &scalar);
 }

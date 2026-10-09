@@ -1309,11 +1309,10 @@ impl<F: Field> QuotientPathAlgebra<F> {
             .ok_or(QuotientError::MissingGroebnerBasis)?
             .tip_reduced_basis()?;
         self.ideal().set_groebner_basis(basis.clone());
-        let mut paths = basis
-            .nontips()?
+        let paths = basis
+            .canonical_nontips()?
             .ok_or(QuotientError::InfiniteQuotientBasis)?;
-        sort_paths_as_qpa_set(&mut paths)?;
-        element_coordinates(element.representative(), &paths)
+        element_coordinates(element.representative(), paths)
     }
 
     /// Translate QPA's quotient `ObjByExtRep` conversion.
