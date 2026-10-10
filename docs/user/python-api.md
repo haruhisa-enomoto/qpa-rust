@@ -32,6 +32,12 @@ print(qpa.PORT_GIT_COMMIT)
 print(qpa.__file__)
 ```
 
+The published Linux 0.2.0 wheels report `PORT_GIT_COMMIT` as `"unknown"`
+because of a build-container metadata omission. They were built from
+`e9695a0b23c8dd4538db29ab33f6bc9e870eabeb` (`v0.2.0`); package version and file
+path checks still work. The release workflow checks this field for future
+Linux wheels.
+
 Use `type(value)` and the reference for that class rather than inferring a
 return type from a variable name. For example, `algebra.enveloping_algebra()`
 returns a `TensorProductAlgebra`; `.algebra` gives its common algebra handle,

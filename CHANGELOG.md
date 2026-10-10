@@ -74,8 +74,8 @@ See the [algebra](docs/user/python-algebras.md),
   validation: 588 Python tests and 434 Rust tests on each coefficient backend,
   169 consumer tests, and 29 broader calculations with matching mathematical
   results.
-- Published wheels embed the source commit in `qpa.PORT_GIT_COMMIT` for build
-  identification.
+- Release builds pass the source commit for `qpa.PORT_GIT_COMMIT` build
+  identification. See the Linux packaging limitation below.
 
 ### Compatibility notes
 
@@ -93,6 +93,12 @@ See the [algebra](docs/user/python-algebras.md),
   predicates remain properties, and `QuotientAlgebra.dimension()` retains its
   string-or-`None` result.
 - Error messages for invalid inputs are not guaranteed to remain identical.
+- The published Linux 0.2.0 wheels report `qpa.PORT_GIT_COMMIT == "unknown"`
+  because the build container did not receive the commit variable. Their source
+  revision is `e9695a0b23c8dd4538db29ab33f6bc9e870eabeb` (`v0.2.0`). This affects
+  build identification, not calculations; the installed Linux wheel passes all
+  588 Python tests. The release workflow now forwards the variable explicitly
+  and checks it before uploading future Linux wheels.
 
 ## 0.1.0
 
