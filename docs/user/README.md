@@ -14,6 +14,7 @@ surface into typed APIs; they do not select replacement algorithms.
 - Use the translated [Gröbner-basis routes](python-groebner.md).
 - Translate names with the [GAP/QPA to Python map](gap-to-python.md).
 - Navigate the [Python API and provenance references](python-api.md).
+- Read the [changelog](../../CHANGELOG.md) for release changes and compatibility notes.
 
 ## Shared mathematical contract
 
