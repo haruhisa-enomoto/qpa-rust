@@ -16,7 +16,7 @@ uv run python -c "import qpa; print(qpa.Field.prime(5))"
 ```
 
 Pin an exact version when a computation must stay reproducible, for example
-`uv add "qpa-rust==0.1.0"`. On a platform without a prebuilt wheel, `uv`
+`uv add "qpa-rust==0.2.0"`. On a platform without a prebuilt wheel, `uv`
 falls back to the source distribution, which needs the Rust toolchain
 described below.
 
@@ -31,7 +31,7 @@ are required:
 uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
 ```
 
-A tag such as `@v0.1.0` after the URL selects a release commit. The same Git
+A tag such as `@v0.2.0` after the URL selects a release commit. The same Git
 URL works with `pip install`.
 
 ## Use a local clone from another project

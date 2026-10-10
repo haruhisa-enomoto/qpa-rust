@@ -14,7 +14,7 @@ numerica-gmp = ["numerica/gmp", "qpa-core/numerica-gmp"]
 
 [dependencies]
 numerica.workspace = true
-qpa-core = { version = "0.1.0", path = "../qpa-core", default-features = false }
+qpa-core = { version = "0.2.0", path = "../qpa-core", default-features = false }
 rand.workspace = true
 thiserror.workspace = true
 
