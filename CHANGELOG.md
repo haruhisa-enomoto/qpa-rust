@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 — Unreleased
+## 0.2.0 — 2026-10-10
 
 This release improves exact module calculations and makes the Python algebra
 interfaces more consistent. Existing supported calls retain their names and

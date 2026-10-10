@@ -3,9 +3,8 @@
 The Python distribution is named `qpa-rust`; Python code imports it as `qpa`.
 Python 3.10 and newer are supported.
 
-This checkout documents the upcoming 0.2.0 API. Until that version is published,
-use the Git or local-checkout installation below for its new methods; the
-published PyPI version is 0.1.0.
+This guide documents the 0.2.0 API. Upgrade an existing installation to use the
+new methods: `uv add "qpa-rust==0.2.0"`.
 
 ## Install from PyPI
 
@@ -20,7 +19,7 @@ uv run python -c "import qpa; print(qpa.Field.prime(5))"
 ```
 
 Pin an exact version when a computation must stay reproducible, for example
-`uv add "qpa-rust==0.1.0"`. On a platform without a prebuilt wheel, `uv`
+`uv add "qpa-rust==0.2.0"`. On a platform without a prebuilt wheel, `uv`
 falls back to the source distribution, which needs the Rust toolchain
 described below.
 
@@ -35,7 +34,7 @@ are required:
 uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
 ```
 
-A tag such as `@v0.1.0` after the URL selects a published release commit. The same Git
+A tag such as `@v0.2.0` after the URL selects a published release commit. The same Git
 URL works with `pip install`.
 
 ## Use a local clone from another project

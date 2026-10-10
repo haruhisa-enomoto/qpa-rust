@@ -121,7 +121,7 @@ Rust users can depend on the `qpa-core` and `qpa-gbnp` crates directly; see the
 
 ## Status
 
-This checkout targets unreleased version 0.2.0; PyPI currently has 0.1.0.
+The current release is 0.2.0.
 See the [changelog](CHANGELOG.md) for release changes and compatibility notes.
 The Python API may still change. Performance has not
 yet been compared with QPA under GAP. Computations that are expensive in QPA,
