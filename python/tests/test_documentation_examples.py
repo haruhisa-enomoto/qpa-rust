@@ -20,6 +20,17 @@ def test_documented_python_example_runs(example: str) -> None:
     runpy.run_path(str(EXAMPLES / example), run_name="__main__")
 
 
+@pytest.mark.parametrize(
+    "guide",
+    ["python-algebras.md", "python-modules.md", "python-homological.md", "coefficient-domains.md"],
+)
+def test_workflow_guide_python_blocks_run_in_order(guide: str) -> None:
+    path = EXAMPLES.parents[1] / "user" / guide
+    namespace = {}
+    for index, code in enumerate(re.findall(r"```python\n(.*?)\n```", path.read_text(), re.S)):
+        exec(compile(code, f"{path}#example-{index}", "exec"), namespace)
+
+
 def test_local_documentation_links_resolve() -> None:
     root = Path(__file__).resolve().parents[2]
     markdown_files = [root / "README.md", *(root / "docs").rglob("*.md")]

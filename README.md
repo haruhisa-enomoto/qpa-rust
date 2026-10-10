@@ -121,7 +121,8 @@ Rust users can depend on the `qpa-core` and `qpa-gbnp` crates directly; see the
 
 ## Status
 
-This is version 0.2.0 and the Python API may still change. Performance has not
+This checkout targets unreleased version 0.2.0; PyPI currently has 0.1.0.
+The Python API may still change. Performance has not
 yet been compared with QPA under GAP. Computations that are expensive in QPA,
 such as Gröbner bases and submodule enumeration, retain QPA's algorithms and
 can still be expensive. The [performance audit](benchmarks/results/broad-audit.json)

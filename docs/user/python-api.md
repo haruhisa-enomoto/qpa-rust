@@ -19,6 +19,36 @@ From Python, `help(qpa.Field)`, `help(qpa.Quiver)`, and the other core classes
 show runtime PyO3 documentation. Explanations for the primary workflow methods
 are also kept in the stub and task guide so they remain visible to static tools.
 
+When a method is unexpectedly missing, first check the installed build and the
+actual type of the value. A tensor construction, an algebra, a module, and a
+map are separate objects even when one computation returns the next:
+
+```python
+import importlib.metadata
+import qpa
+
+print(importlib.metadata.version("qpa-rust"))
+print(qpa.PORT_GIT_COMMIT)
+print(qpa.__file__)
+```
+
+Use `type(value)` and the reference for that class rather than inferring a
+return type from a variable name. For example, `algebra.enveloping_algebra()`
+returns a `TensorProductAlgebra`; `.algebra` gives its common algebra handle,
+and `.quotient` gives its concrete quotient. Both algebra handles provide
+standard projective, injective, and simple modules. To unwrap a
+`QuiverAlgebra`, use `.quotient_algebra` or `.path_algebra` according to
+`.is_quotient`. Its `.original_path_algebra` is the ambient algebra and would
+discard the quotient relations.
+
+The [module guide](python-modules.md) distinguishes module/map results and
+the [homological guide](python-homological.md) records resolution and complex
+degree conventions. Examples are executed in the test suite. A separate API
+contract test checks the shipped class members, method/property distinction,
+and callable parameters against the installed extension.
+The [API consistency audit](../development/python-api-audit.json) records the
+tested workflows, fixes, retained conventions, and remaining feature gaps.
+
 ## GAP/QPA operation and source index
 
 The generated [QPA operation index](../python/qpa-operation-index.md) maps all

@@ -1,0 +1,481 @@
+{
+  "date": "2026-10-10",
+  "target_version": "0.2.0 (unreleased)",
+  "baseline_revision": "9800385e5d71ff7e984ec2f7fb57f2c8fcbb460b",
+  "scope": "Python interface consistency and discoverability for existing exact calculations. Core mathematical algorithms are unchanged.",
+  "method": {
+    "expectation_trials": "Three independent agents each wrote three bounded calculation scripts before reading the API, source, stubs, or introspection output. They received a working construction seed. Original scripts were frozen before execution; diagnosis and corrected workflows followed.",
+    "interpretation": "These nine qualitative trials identify plausible failure modes, not population frequencies or a guarantee that arbitrary guessed code will work. Original guesses are preserved, not silently rewritten to pass.",
+    "contract_scan": "Compare shipped stub classes and functions with the installed extension in both directions: member existence, duplicate declarations, property/setter versus method, static binding, constructor and method parameter names, required/default status, literal defaults, positional and keyword conventions. CPython operator slots use generic names and are excluded from signature comparison; builtins without inspectable signatures are skipped. Return values require workflow tests.",
+    "workflow_validation": "Four coefficient fields, concrete and common algebra handles, tensor/enveloping results, exact matrix construction, arithmetic, module maps, direct sums, Hom/Ext results, resolutions and finite complexes. Existing consumer tests provide compatibility coverage."
+  },
+  "surface": {
+    "baseline_classes": 141,
+    "baseline_members": 1856,
+    "current_classes": 141,
+    "current_members": 1898
+  },
+  "findings": [
+    {
+      "issue": "Common algebra wrappers lose standard operations available on both concrete variants. Tensor inputs additionally require explicit wrapping.",
+      "resolution": "Added common simples/projectives/injectives/zero module, integer and exact matrix construction, named generators/zero/one, explicit concrete as_quiver_algebra, tensor/enveloping conveniences and mixed concrete/common tensor factors.",
+      "tests": "python/tests/test_common_algebra_api.py"
+    },
+    {
+      "issue": "Nine PathAlgebra invariant methods appear in the public stub but do not exist at runtime.",
+      "resolution": "Bound the existing Cartan/Coxeter and symmetry/distributivity operations on both concrete algebra classes, preserving the common wrapper algorithms, outputs and failure behavior.",
+      "tests": "python/tests/test_algebra_invariants.py"
+    },
+    {
+      "issue": "Two public matrix utilities have different keyword parameter names in stub and runtime.",
+      "resolution": "Corrected the stubs to use the existing runtime rows parameter; no existing runtime keyword was renamed.",
+      "tests": "python/tests/test_api_contract.py"
+    },
+    {
+      "issue": "QuotientAlgebra.right_projective_module exists at runtime but is absent from the stub; the PathAlgebra declaration is duplicated.",
+      "resolution": "Added the quotient signature with its actual return type and removed the duplicate path-algebra declaration.",
+      "tests": "python/tests/test_api_contract.py"
+    },
+    {
+      "issue": "Generated reference labels four DynamicTree property setters as ordinary methods.",
+      "resolution": "The stub and runtime properties were already correct. Fixed reference generation to label property setters accurately.",
+      "tests": "scripts/check-python-docs"
+    },
+    {
+      "issue": "Exact coefficients cannot perform ordinary Scalar arithmetic; integer/fraction map entries require manual wrapping.",
+      "resolution": "Added Scalar/int arithmetic, signed scalar powers and checked exact matrix conversion. Floats and implicit field changes remain rejected. All scalar exponent magnitudes are bounded by 4294967295 to prevent a Numerica backend panic; invalid powers and zero division produce Python exceptions.",
+      "tests": [
+        "python/tests/test_scalar_arithmetic.py",
+        "python/tests/test_exact_map_inputs.py",
+        "python/tests/test_common_algebra_api.py"
+      ]
+    },
+    {
+      "issue": "Algebra elements expose pow but do not support x ** n; generic generator action requires representation-specific unwrapping.",
+      "resolution": "Added nonnegative Python powers on concrete/common elements, common unary negation, and ModuleElement.act_by accepting all three element wrappers while checking parent algebra and field.",
+      "tests": [
+        "python/tests/test_element_arithmetic.py",
+        "python/tests/test_common_algebra_api.py"
+      ]
+    },
+    {
+      "issue": "Natural guesses confuse generic Hom mappings with module maps, properties with methods, and modules with their inclusion/projection maps.",
+      "resolution": "Documented exact result classes, corresponding map accessors, scalar scaling, direct-sum accessors and row-action composition. Existing names and result types are preserved.",
+      "docs": [
+        "docs/user/python-modules.md",
+        "docs/user/python-homological.md",
+        "docs/user/python-api.md"
+      ]
+    },
+    {
+      "issue": "Resolution bounds, term lookup and finite-complex degree conventions are easy to guess incorrectly.",
+      "resolution": "Added executable bounded resolution example, augmentation/source-degree explanation, Hom/Ext result table, dimension-shifting recipe and nontrivial endpoint homology tests.",
+      "tests": "python/tests/test_resolution_workflow.py"
+    }
+  ],
+  "retained_contracts_and_deferred_features": [
+    "Module dimensions and predicates remain properties. QuotientAlgebra.dimension() retains its str-or-None contract; no callable-list/int compatibility tricks were added.",
+    "Generic and matrix-module Hom map types remain distinct. Use module.hom_basis_to or hom_basis_with_coefficients_to when composition and kernels are needed.",
+    "Algebra element and map scaling remains explicit via scale_left/scale. Scalar arithmetic supports Scalar and Python int operands, not implicit Fraction arithmetic or arbitrary custom reflected operands.",
+    "General-degree Ext and degree batching remain explicit dimension-shifting recipes. No speculative ext alias with unclear representative semantics was introduced.",
+    "Resolution Betti conveniences, arbitrary-element action matrices, complex identity conveniences and induced homology maps remain separate feature requests; no substitute mathematical algorithms were invented.",
+    "TensorProductAlgebra remains a construction object with .algebra and .quotient; no blanket method forwarding or __getattr__ hides this distinction.",
+    "Finite dimensions on a generic handle still require the appropriate concrete algebra view; original_path_algebra must not be used to discard quotient relations.",
+    "PyO3 class names in exceptions can still be displayed under builtins. Installed version, package path and embedded revision checks are documented to distinguish stale builds."
+  ],
+  "stopping_criterion": "Documented representative workflows execute, shipped contracts match the installed extension, concrete/common conveniences preserve identities and checked behavior, and remaining gaps are explicitly classified rather than hidden. This is not exhaustive coverage of every return value or possible user expectation.",
+  "blind_trials": [
+    {
+      "name": "algebra_expectations/originals/01_bound_modules.py",
+      "sha256": "46bdbc792d18e4cec69e2e42dca3f7bca1fe984a53588a66a63542bd9c4af4cd",
+      "source": "\"\"\"Compute basic module data for the finite algebra k(1 -> 2).\"\"\"\nimport qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, \"a\")]))\na = p.quotient([])\n\nsimples = a.simple_modules()\nprojectives = a.indecomposable_projectives()\ninjectives = a.indecomposable_injectives()\nprint(\"algebra dimension:\", a.dimension())\nfor vertex, (s, p_i, i_i) in enumerate(zip(simples, projectives, injectives), 1):\n    print(vertex, s.dimension_vector(), p_i.dimension_vector(), i_i.dimension_vector())\nfor i, source in enumerate(simples, 1):\n    for j, target in enumerate(simples, 1):\n        print(i, j, source.hom(target).dimension(), source.ext(target, 1).dimension())\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "algebra_expectations/originals/02_tensor_action.py",
+      "sha256": "366c8147b64e5fcdc6646f6703c3a72be0fb40393743aa3d8a4be9657b88d704",
+      "source": "\"\"\"Build the enveloping algebra and act on one of its projectives.\"\"\"\nimport qpa\n\nk = qpa.Field.prime(2)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, \"a\")]))\nopposite = a.opposite()\nenveloping = a.tensor_product(opposite)\nprint(\"enveloping dimension:\", enveloping.dimension())\nprojective = enveloping.indecomposable_projectives()[0]\nprint(\"projective dimension:\", projective.dimension())\nfor generator in enveloping.generators():\n    print(\"generator action:\", projective.action_matrix(generator))\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "algebra_expectations/originals/03_common_wrapper.py",
+      "sha256": "0bc77a328272d8a8656767dfba63b0f5006a894997d59ca2cc830479768b0a3d",
+      "source": "\"\"\"Reuse one calculation through the common quiver-algebra wrapper.\"\"\"\nimport qpa\n\n\ndef cartan_and_extensions(algebra):\n    simples = algebra.simple_modules()\n    projectives = algebra.indecomposable_projectives()\n    cartan = [module.dimension_vector() for module in projectives]\n    extensions = [\n        [source.ext(target, 1).dimension() for target in simples]\n        for source in simples\n    ]\n    return {\"dimension\": algebra.dimension(), \"cartan_columns\": cartan, \"ext1\": extensions}\n\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, \"a\")]))\ngeneric = qpa.QuiverAlgebra.from_path_algebra(p)\nprint(cartan_and_extensions(generic))\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "homological_expectations/01_resolution_expected.py",
+      "sha256": "3412a7630ff6734bee731bea90d06339a19ef6d71d4785d989ccd7285158f682",
+      "source": "import qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(1, [(1, 1, 'x')]))\nx = p.generator('x')\na = p.quotient([x * x])\ns = a.simple_modules()[0]\n\nresolution = s.projective_resolution(3)\nfor degree in range(4):\n    term = resolution.term(degree)\n    print('term', degree, term.dimension)\nfor degree in range(1, 4):\n    differential = resolution.differential(degree)\n    print('map', degree, differential.matrix)\nprint('Betti dimensions', resolution.betti_numbers())\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "homological_expectations/02_hom_ext_expected.py",
+      "sha256": "53487607bda9f06d2d2225f941a8a23e62713b776a1d37fdf77795b4870ac3a8",
+      "source": "import qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(1, [(1, 1, 'x')]))\nx = p.generator('x')\na = p.quotient([x * x])\ns = a.simple_modules()[0]\n\nhom = s.hom(s)\nprint('Hom dimension', hom.dimension)\nprint('Hom basis', hom.basis)\nfor degree in range(4):\n    ext = s.ext(s, degree)\n    print('Ext', degree, ext.dimension, ext.basis)\nprint('Ext dimensions', s.ext_dimensions(s, range(4)))\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "homological_expectations/03_complex_expected.py",
+      "sha256": "5142fb3c524f00b3a7cf12b6a5dca9d6844156c730a34703440655493bef0f4b",
+      "source": "import qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(1, [(1, 1, 'x')]))\nx = p.generator('x')\na = p.quotient([x * x])\ns = a.simple_modules()[0]\n\nzero = s.zero_map(s)\ncomplex_ = qpa.ChainComplex({1: s, 0: s}, {1: zero})\nprint('H0', complex_.homology(0).dimension)\nprint('H1', complex_.homology(1).dimension)\nidentity = complex_.identity()\nprint('induced H0', identity.induced_map(0).matrix)\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "map_expectations/01_homology_original.py",
+      "sha256": "348c8dfe586ee4f7409741a9c55e8b37de73fb10551ef9fa0fd7209adf9a7e7b",
+      "source": "import qpa\n\nk = qpa.Field.prime(5)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\nm = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\n\nidentity = m.identity()\nhom = m.hom(m)\nprint('endomorphism dimension:', hom.dimension())\nf = hom.basis()[0]\nassert identity @ f == f\nassert f @ identity == f\n\nzero = hom.zero()\nker = zero.kernel()\nim = identity.image()\ncoker = identity.cokernel()\nprint('kernel:', ker.module.dimension_vector())\nprint('image:', im.module.dimension_vector())\nprint('cokernel:', coker.module.dimension_vector())\nassert ker.inclusion @ ker.module.identity() == ker.inclusion\nassert im.module.is_isomorphic(m)\nassert coker.module.dimension_vector() == [0, 0]\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "map_expectations/02_direct_sum_original.py",
+      "sha256": "b18a2e46509b9f45d5231b960b9ae58a0eb901bb61bebd3ccc41791a01b05348",
+      "source": "import qpa\n\nk = qpa.Field.prime(5)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\nm = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\ns = a.module_from_integer_matrices([0, 1], [('a', [[]])])\n\nsum_data = qpa.direct_sum(m, s)\nbig = sum_data.module\ni_m, i_s = sum_data.inclusions\np_m, p_s = sum_data.projections\nassert p_m @ i_m == m.identity()\nassert p_s @ i_s == s.identity()\nassert i_m @ p_m + i_s @ p_s == big.identity()\nassert (p_m @ i_s).is_zero()\n\ncopy = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\nassert copy.is_isomorphic(m)\nassert i_m.is_split_monomorphism()\nassert p_m.is_split_epimorphism()\nprint('direct sum:', big.dimension_vector())\nprint('splitting verified')\n",
+      "baseline_exit_code": 1
+    },
+    {
+      "name": "map_expectations/03_exact_arithmetic_original.py",
+      "sha256": "f6ca02a7ee0af4591640879c10eaf550bbe95e0a6f17005ebf9100cd82e50874",
+      "source": "import qpa\nfrom fractions import Fraction\n\nk = qpa.Field.prime(5)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\ne1, e2 = a.idempotents()\narrow = a.arrow('a')\nassert arrow + arrow == 2 * arrow\nassert 5 * arrow == a.zero()\nassert arrow * arrow == a.zero()\nprint('algebra arithmetic:', e1 + e2 == a.one())\n\nm = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\nf = a.module_map(m, m, [[[2]], [[2]]])\nassert f @ f == 4 * m.identity()\nassert f + 3 * m.identity() == m.hom(m).zero()\nprint('map matrices:', f.matrices())\n\nq = qpa.Field.rational()\naq = qpa.PathAlgebra(q, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\nn = aq.module_from_matrices([1, 1], [('a', [[Fraction(1, 2)]])])\nassert n.arrow_matrix('a')[0][0] == Fraction(1, 2)\nprint('exact arrow matrix:', n.arrow_matrix('a'))\n",
+      "baseline_exit_code": 1
+    }
+  ],
+  "validation": {
+    "rust": {
+      "rust-tests": {
+        "exit_code": 0,
+        "seconds": 123.16856252402067,
+        "passed": 434
+      },
+      "gmp-tests": {
+        "exit_code": 0,
+        "seconds": 70.73260973498691,
+        "passed": 434
+      },
+      "clippy": {
+        "exit_code": 0,
+        "seconds": 13.32000386400614
+      },
+      "gmp-clippy": {
+        "exit_code": 0,
+        "seconds": 24.979292417992838
+      },
+      "rustdoc": {
+        "exit_code": 0,
+        "seconds": 15.068389705033042
+      },
+      "gmp-rustdoc": {
+        "exit_code": 0,
+        "seconds": 16.94404127309099
+      }
+    },
+    "python-tests-final": {
+      "exit_code": 0,
+      "passed": 588,
+      "backend": "default",
+      "extension_sha256": "1ce7367b0ca9534b93dae543d5c125f67a3e996c1c145e4f0bb4c0b2b81f9860",
+      "build_revision": "9800385e5d71ff7e984ec2f7fb57f2c8fcbb460b-dirty",
+      "command": "env -u PYTHONPATH .venv/bin/python -m pytest python/tests -q"
+    },
+    "gmp-python-tests-final": {
+      "exit_code": 0,
+      "passed": 588,
+      "backend": "numerica-gmp",
+      "package": "/home/italing/work/qpa-rust/target/api-audit/gmp-venv/lib/python3.12/site-packages/qpa/__init__.py",
+      "extension_sha256": "e2e3894a249dd0c9b36a10daabbfd774ed70740b2541dc7c5950123cc4096ae5",
+      "build_revision": "9800385e5d71ff7e984ec2f7fb57f2c8fcbb460b-dirty"
+    },
+    "consumer-tests-final": {
+      "exit_code": 0,
+      "passed": 169,
+      "extension_sha256": "1ce7367b0ca9534b93dae543d5c125f67a3e996c1c145e4f0bb4c0b2b81f9860",
+      "test_ids": [
+        "tests/test_ar_knitting_qpa.py::test_knitting_matches_tiny_a3_reference_catalog",
+        "tests/test_ar_knitting_qpa.py::test_knitting_covers_all_components_of_disconnected_algebra",
+        "tests/test_ar_knitting_qpa.py::test_finite_component_exhaustion_certifies_completeness",
+        "tests/test_ar_knitting_qpa.py::test_cap_stops_before_adding_another_isomorphism_class",
+        "tests/test_ar_knitting_qpa.py::test_expected_count_is_a_loud_upper_bound",
+        "tests/test_ar_map_qpa.py::ArMapQpaCalibrationTests::test_diamond_matches_rust_qpa_terminal_permutation",
+        "tests/test_ar_map_qpa.py::ArMapQpaCalibrationTests::test_dual_number_simple_matches_rust_period_one",
+        "tests/test_ar_map_qpa.py::ArMapQpaCalibrationTests::test_path_algebra_a2_simples_match_rust_finite_resolutions",
+        "tests/test_ar_map_qpa.py::ArMapQpaCalibrationTests::test_pentagon_matches_rust_qpa_nonbijection",
+        "tests/test_bounded_global_dimension_qpa.py::BoundedRightGlobalDimensionTests::test_finite_algebra_returns_all_simple_resolutions",
+        "tests/test_bounded_global_dimension_qpa.py::BoundedRightGlobalDimensionTests::test_negative_bound_is_rejected",
+        "tests/test_bounded_global_dimension_qpa.py::BoundedRightGlobalDimensionTests::test_nonprojective_omega_witnesses_excess_bound",
+        "tests/test_bounded_global_dimension_qpa.py::BoundedRightGlobalDimensionTests::test_projective_omega_witnesses_exact_next_dimension",
+        "tests/test_bounded_global_dimension_qpa.py::GszBoundedRightGlobalDimensionTests::test_dimension_sixteen_p9_exceeds_bound_quickly",
+        "tests/test_bounded_global_dimension_qpa.py::GszBoundedRightGlobalDimensionTests::test_dual_numbers_matches_minimal_matrix_api",
+        "tests/test_bounded_global_dimension_qpa.py::GszBoundedRightGlobalDimensionTests::test_finite_a3_matches_minimal_matrix_api",
+        "tests/test_bounded_global_dimension_qpa.py::GszBoundedRightGlobalDimensionTests::test_negative_bound_is_rejected",
+        "tests/test_bounded_global_dimension_qpa.py::GszBoundedRightGlobalDimensionTests::test_nonminimal_gsz_prefix_uses_semisimple_homology",
+        "tests/test_bounded_global_dimension_qpa.py::GszBoundedRightGlobalDimensionTests::test_nonminimal_p9_betti_rows_match_matrix_qpa",
+        "tests/test_bounded_global_dimension_qpa.py::GszBoundedRightGlobalDimensionTests::test_over_bound_a3_matches_minimal_matrix_api",
+        "tests/test_boundedness_qpa.py::BoundednessQpaTests::test_dual_numbers_simple_is_rejected",
+        "tests/test_boundedness_qpa.py::BoundednessQpaTests::test_isomorphism_lookup_uses_dimension_and_qpa_isomorphism",
+        "tests/test_boundedness_qpa.py::BoundednessQpaTests::test_projective_has_empty_certified_syzygy_closure",
+        "tests/test_cartan_rank_two_qpa.py::test_qpa_composition_pairing_on_a_declared_brick",
+        "tests/test_delooping_qpa.py::test_periodic_simple_and_projective_have_split_approximations",
+        "tests/test_delooping_qpa.py::test_hereditary_source_simple_has_zero_projective_approximation",
+        "tests/test_delooping_qpa.py::test_general_depth_respects_periodic_and_finite_pd_boundaries[iterated-1]",
+        "tests/test_delooping_qpa.py::test_general_depth_respects_periodic_and_finite_pd_boundaries[iterated-3]",
+        "tests/test_delooping_qpa.py::test_general_depth_respects_periodic_and_finite_pd_boundaries[transpose-1]",
+        "tests/test_delooping_qpa.py::test_general_depth_respects_periodic_and_finite_pd_boundaries[transpose-3]",
+        "tests/test_delooping_qpa.py::test_second_syzygy_summand_need_not_be_a_third_syzygy_summand[iterated]",
+        "tests/test_delooping_qpa.py::test_second_syzygy_summand_need_not_be_a_third_syzygy_summand[transpose]",
+        "tests/test_delooping_qpa.py::test_transpose_construction_retains_projective_summands[field0]",
+        "tests/test_delooping_qpa.py::test_transpose_construction_retains_projective_summands[field1]",
+        "tests/test_delooping_qpa.py::test_projective_cokernel_reduction_removes_a_full_projective_type",
+        "tests/test_delooping_qpa.py::test_type_reduction_handles_nonprojectives_and_multiple_top_generators[False]",
+        "tests/test_delooping_qpa.py::test_type_reduction_handles_nonprojectives_and_multiple_top_generators[True]",
+        "tests/test_delooping_qpa.py::test_type_reduction_handles_disjoint_vertex_supports",
+        "tests/test_finite_tau_mesh_qpa.py::test_weak_kernel_keeps_approximation_support_summands",
+        "tests/test_finite_tau_mesh_qpa.py::test_nonzero_stable_socle_correction",
+        "tests/test_finite_tau_mesh_qpa.py::test_parallel_arrow_pairings",
+        "tests/test_finite_tau_mesh_qpa.py::test_rejects_graph_outside_proved_scope",
+        "tests/test_finite_tau_mesh_qpa.py::test_acyclic_quiver_need_not_have_a_length_function",
+        "tests/test_finite_tau_mesh_qpa.py::test_layered_cover_handles_cycles_and_semisimple_components",
+        "tests/test_finite_type_g_fan_qpa.py::test_a2_projective_presentation_sign_and_support_pairs",
+        "tests/test_finite_type_g_fan_qpa.py::test_cap_hit_cannot_produce_complete_fan",
+        "tests/test_g_fan_algebra_data_qpa.py::test_parallel_arrows_need_two_generators_on_both_sides",
+        "tests/test_g_fan_algebra_data_qpa.py::test_loop_actions_distinguish_left_and_right_generator_numbers",
+        "tests/test_g_fan_realization_qpa.py::test_representation_infinite_algebra_needs_only_four_witnesses",
+        "tests/test_g_fan_realization_qpa.py::test_incomplete_collection_of_actual_cones_is_rejected",
+        "tests/test_g_fan_realization_qpa.py::test_nonconvexity_needs_only_one_cone_and_one_additional_ray",
+        "tests/test_gorenstein_symmetry_qpa.py::BoundedPdTests::test_dimension_cap_stops_early",
+        "tests/test_gorenstein_symmetry_qpa.py::BoundedPdTests::test_none_records_all_bound_steps",
+        "tests/test_gorenstein_symmetry_qpa.py::BoundedPdTests::test_projective_module_has_dimension_zero",
+        "tests/test_gorenstein_symmetry_qpa.py::BoundedPdTests::test_simple_over_a2_has_dimension_one",
+        "tests/test_gorenstein_symmetry_qpa.py::VerdictTests::test_dual_numbers_are_selfinjective",
+        "tests/test_gorenstein_symmetry_qpa.py::VerdictTests::test_hereditary_a2_is_gorenstein_with_value_one",
+        "tests/test_gorenstein_symmetry_qpa.py::VerdictTests::test_nakayama_c2_has_both_sides_two",
+        "tests/test_gorenstein_symmetry_qpa.py::VerdictTests::test_recheck_rejects_noncandidate",
+        "tests/test_gorenstein_symmetry_qpa.py::VerdictTests::test_two_loop_radical_square_zero_is_undecided",
+        "tests/test_graded_square_zero_qpa.py::test_middle_arrow_complexes_and_negative_self_hom",
+        "tests/test_graded_square_zero_qpa.py::test_hereditary_comparison_keeps_the_direct_arrow",
+        "tests/test_graded_square_zero_qpa.py::test_invalid_sizes",
+        "tests/test_graded_square_zero_qpa.py::test_scalar_chain_maps_separate_the_negative_arrow_hom",
+        "tests/test_module_linear_algebra_qpa.py::test_dependent_generators_and_zero_vertices[0]",
+        "tests/test_module_linear_algebra_qpa.py::test_dependent_generators_and_zero_vertices[2]",
+        "tests/test_module_linear_algebra_qpa.py::test_dependent_generators_and_zero_vertices[5]",
+        "tests/test_module_linear_algebra_qpa.py::test_linear_span_does_not_close_under_arrow_actions",
+        "tests/test_natural_endomorphism_qpa.py::NaturalEndomorphismTests::test_blocks_and_repeated_summands",
+        "tests/test_natural_endomorphism_qpa.py::NaturalEndomorphismTests::test_natural_module_detects_nonzero_self_ext",
+        "tests/test_presilting_window_qpa.py::test_resolution_ext_matches_module_ext",
+        "tests/test_presilting_window_qpa.py::test_window_enumeration_respects_silting_rank",
+        "tests/test_presilting_window_qpa.py::test_universal_extension_and_contractible_disk",
+        "tests/test_presilting_window_qpa.py::test_module_chain_on_kronecker_gives_preprojectives",
+        "tests/test_relative_generator_ext_qpa.py::test_regular_generator_agrees_with_ordinary_ext[2]",
+        "tests/test_relative_generator_ext_qpa.py::test_regular_generator_agrees_with_ordinary_ext[5]",
+        "tests/test_relative_generator_ext_qpa.py::test_nongenerator_approximation_is_rejected",
+        "tests/test_ringel_zhang_qpa.py::RingelZhangQpaTests::test_algebra_dual_syzygy_shift",
+        "tests/test_ringel_zhang_qpa.py::RingelZhangQpaTests::test_nonintegral_rational_parameter_uses_the_same_template",
+        "tests/test_ringel_zhang_qpa.py::RingelZhangQpaTests::test_nontorsionless_witness",
+        "tests/test_ringel_zhang_qpa.py::RingelZhangQpaTests::test_opposite_presentation_and_module_dimensions",
+        "tests/test_ringel_zhang_qpa.py::RingelZhangQpaTests::test_paper_syzygy_parameter_shift",
+        "tests/test_string_fan_realization_qpa.py::test_finite_example_and_incorrect_complete_fan",
+        "tests/test_string_fan_realization_qpa.py::test_representation_infinite_string_algebra_with_and_without_pruning",
+        "tests/test_string_module_candidates_qpa.py::test_strings_for_a2_give_the_exact_three_indecomposables",
+        "tests/test_string_module_candidates_qpa.py::test_loop_strings_distinguish_projective_and_injective_branching",
+        "tests/test_string_module_candidates_qpa.py::test_cubic_relations_stop_a_directed_cycle",
+        "tests/test_syzygy_cycles_qpa.py::DirectedCycleTests::test_finds_cycle_with_repeated_initial_vertex",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_a2_path_algebra_exhausts_without_cycle",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_bounded_screen_certifies_dual_number_recurrence",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_bounded_screen_interleaves_by_current_dimension",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_bounded_screen_reports_two_hereditary_terminations",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_completed_peer_trace_keeps_depth_bound_status",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_dual_number_simple_has_reverified_period_one_cycle",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_module_dimension_bound_is_nonclosing",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_root_simple_screen_replays_dual_number_self_loop",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_root_simple_screen_treats_no_cycle_as_bounded_only",
+        "tests/test_syzygy_cycles_qpa.py::SyzygyCycleTests::test_zero_expansion_bound_is_reported",
+        "tests/test_two_term_complexes_qpa.py::test_contractible_disk_has_zero_homotopy_end[2]",
+        "tests/test_two_term_complexes_qpa.py::test_contractible_disk_has_zero_homotopy_end[5]",
+        "tests/test_two_term_complexes_qpa.py::test_zero_differential_retains_both_stalk_endomorphisms[2]",
+        "tests/test_two_term_complexes_qpa.py::test_zero_differential_retains_both_stalk_endomorphisms[5]",
+        "tests/test_two_term_complexes_qpa.py::test_single_stalk_preserves_endomorphism_ring[2]",
+        "tests/test_two_term_complexes_qpa.py::test_single_stalk_preserves_endomorphism_ring[5]",
+        "tests/test_two_term_complexes_qpa.py::test_radical_differential_has_nonzero_null_homotopies[2]",
+        "tests/test_two_term_complexes_qpa.py::test_radical_differential_has_nonzero_null_homotopies[5]",
+        "tests/test_two_term_complexes_qpa.py::test_incoming_arrow_map_uses_range_rows",
+        "tests/test_two_term_complexes_qpa.py::test_no_incoming_arrows_gives_zero_approximation",
+        "tests/test_two_term_complexes_qpa.py::test_null_homotopies_with_dependent_nonzero_images",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_build_revision_is_recorded_without_restricting_verification",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_cartan_mismatch_is_rejected",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_depth_four_recurrence_skips_bounded_resolution",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_determinant_minus_one_radical_square_zero_cycle_exceeds_bound",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_inadmissible_finite_quotient_is_rejected",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_infinite_dimensional_quotient_is_rejected",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_known_finite_asymmetric_algebra_has_determinant_one",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_reduced_groebner_saorin_guard_skips_resolution",
+        "tests/test_cartan_rank_two_candidate_verifier.py::GF2BipartiteCartanCandidateVerifierTests::test_shallow_syzygy_recurrence_skips_bounded_resolution",
+        "tests/test_cartan_rank_two_d24_multitail.py::Dimension24MultiTailTests::test_tail_slots_include_every_later_same_parity_layer",
+        "tests/test_cartan_rank_two_d24_multitail.py::Dimension24MultiTailTests::test_truncated_rows_agree_with_a_small_qpa_quotient",
+        "tests/test_cartan_rank_two_d25_filtered_cover.py::test_claim171_profile_configurations",
+        "tests/test_cartan_rank_two_d25_filtered_cover.py::test_exact_target_uses_selected_profile_layers",
+        "tests/test_cartan_rank_two_d25_filtered_cover.py::test_profile_activation_changes_quiver_and_clears_cached_geometry",
+        "tests/test_cartan_rank_two_module_cycles.py::test_coordinate_module_cycle_is_replayed_and_serializable",
+        "tests/test_cartan_rank_two_module_cycles.py::test_coordinate_module_failures_have_no_closing_force",
+        "tests/test_cartan_rank_two_module_cycles.py::test_cycle_harvester_replays_every_rotation_on_its_source",
+        "tests/test_cartan_rank_two_module_cycles.py::test_harvested_template_has_exact_target_specific_outcomes",
+        "tests/test_cartan_rank_two_module_cycles.py::test_template_replay_dimension_cap_is_nonclosing",
+        "tests/test_cartan_rank_two_module_cycles.py::test_template_scheduler_tasks_run_in_spawned_pool",
+        "tests/test_cartan_rank_two_module_cycles.py::test_template_replay_rejects_arrow_schema_drift",
+        "tests/test_cartan_rank_two_module_cycles.py::test_template_constructor_rejects_noninteger_bits",
+        "tests/test_cartan_rank_two_module_cycles.py::test_zero_vertex_dimension_uses_omitted_qpa_arrow_actions",
+        "tests/test_cartan_rank_two_module_cycles.py::test_generic_template_closure_is_accepted_by_cache_validator",
+        "tests/test_cartan_rank_two_module_cycles.py::test_candidate_verifier_and_cache_accept_exact_module_cycle",
+        "tests/test_cartan_rank_two_module_cycles.py::test_coordinate_module_runs_after_the_adaptive_simple_screen",
+        "tests/test_cartan_rank_two_module_cycles.py::test_skipped_depth_four_branch_is_completed_only_on_residual",
+        "tests/test_cartan_search_presentations.py::CartanSearchPresentationTests::test_qpa_adapter_builds_one_dimension_nineteen_quotient",
+        "tests/test_cartan_search_presentations.py::CartanSearchPresentationTests::test_radical_filtered_relation_preserves_prescribed_layers",
+        "tests/test_cartan_search_presentations.py::CartanSearchPresentationTests::test_radical_filtered_tails_reverse_only_length_priority",
+        "tests/test_cartan_search_presentations.py::CartanSearchPresentationTests::test_the_468_point_language_and_overlap_universe",
+        "tests/test_cartan_search_presentations.py::CartanSearchPresentationTests::test_the_next_language_universe_has_the_audited_size",
+        "lib/python/subcat/test_qpa_lattice.py::test_rref_and_span",
+        "lib/python/subcat/test_qpa_lattice.py::test_intersect_spans",
+        "lib/python/subcat/test_qpa_lattice.py::test_peak_a3_collective_generation_fixture",
+        "lib/python/subcat/test_qpa_lattice.py::test_nakayama_self_injective_profiles",
+        "lib/python/subcat/test_qpa_lattice.py::test_hom_matrix_is_unitriangular_for_a_directed_algebra",
+        "lib/python/subcat/test_qpa_lattice.py::test_empty_family_is_closed_on_both_sides",
+        "lib/python/subcat/test_qpa_lattice.py::test_knitting_matches_brute_force_enumeration[peak A3]",
+        "lib/python/subcat/test_qpa_lattice.py::test_knitting_matches_brute_force_enumeration[A3 linear hereditary]",
+        "lib/python/subcat/test_qpa_lattice.py::test_knitting_matches_brute_force_enumeration[Lambda(3,3)]",
+        "lib/python/subcat/test_qpa_lattice.py::test_knitting_matches_brute_force_enumeration[3 vertices 4 arrows rad^2]",
+        "lib/python/subcat/test_qpa_horn.py::test_horn_family_matches_brute_force[peak A3]",
+        "lib/python/subcat/test_qpa_horn.py::test_horn_family_matches_brute_force[A3 linear hereditary]",
+        "lib/python/subcat/test_qpa_horn.py::test_horn_family_matches_brute_force[A3 linear rad^2]",
+        "lib/python/subcat/test_qpa_horn.py::test_horn_family_matches_brute_force[Lambda(2,3)]",
+        "lib/python/subcat/test_qpa_horn.py::test_horn_family_matches_brute_force[Lambda(3,2)]",
+        "lib/python/subcat/test_qpa_horn.py::test_horn_family_matches_brute_force[2-cycle + pendant]",
+        "lib/python/subcat/test_qpa_horn.py::test_python_and_rust_profiles_agree_with_brute_force[peak A3]",
+        "lib/python/subcat/test_qpa_horn.py::test_python_and_rust_profiles_agree_with_brute_force[A3 linear hereditary]",
+        "lib/python/subcat/test_qpa_horn.py::test_python_and_rust_profiles_agree_with_brute_force[A3 linear rad^2]",
+        "lib/python/subcat/test_qpa_horn.py::test_python_and_rust_profiles_agree_with_brute_force[Lambda(2,3)]",
+        "lib/python/subcat/test_qpa_horn.py::test_python_and_rust_profiles_agree_with_brute_force[Lambda(3,2)]",
+        "lib/python/subcat/test_qpa_horn.py::test_python_and_rust_profiles_agree_with_brute_force[2-cycle + pendant]",
+        "lib/python/subcat/test_qpa_horn.py::test_peak_a3_fixture",
+        "lib/python/subcat/test_qpa_horn.py::test_premises_never_contain_their_target",
+        "lib/python/subcat/test_qpa_closure.py::test_closure_families_a2",
+        "lib/python/subcat/test_qpa_closure.py::test_horn_profiles_match_gf2_and_gf3",
+        "lib/python/subcat/test_qpa_closure.py::test_basis_gf3",
+        "lib/python/subcat/test_qpa_closure.py::test_minimal_masks"
+      ]
+    },
+    "corrected-workflows-final": [
+      {
+        "script": "algebra_expectations/corrected/01_bound_modules.py",
+        "exit_code": 0,
+        "output": "algebra dimension: 3\n1 [1, 0] [1, 1] [1, 0]\n2 [0, 1] [0, 1] [1, 1]\n1 1 1 0\n1 2 0 1\n2 1 0 0\n2 2 1 0\n",
+        "source": "\"\"\"Compute basic module data for the finite algebra k(1 -> 2).\"\"\"\nimport qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, \"a\")]))\na = p.quotient([])\nsimples = a.simple_modules()\nprojectives = a.indecomposable_projectives()\ninjectives = a.indecomposable_injectives()\nprint(\"algebra dimension:\", int(a.dimension()))\nfor vertex, (s, p_i, i_i) in enumerate(zip(simples, projectives, injectives), 1):\n    print(vertex, s.dimension_vector, p_i.dimension_vector, i_i.dimension_vector)\nfor i, source in enumerate(simples, 1):\n    for j, target in enumerate(simples, 1):\n        print(i, j, source.hom_dimension_to(target), source.ext1_dimension(target))\n",
+        "sha256": "e88d0f6e32dc9de08fb08a22cc0ba4d15acfd9ee6038a3631a5e036b09dba3f1"
+      },
+      {
+        "script": "algebra_expectations/corrected/02_tensor_action.py",
+        "exit_code": 0,
+        "output": "enveloping dimension: 9\nprojective dimension: 2\ngenerator action: [[1 mod 2, 0 mod 2], [0 mod 2, 0 mod 2]]\ngenerator action: [[0 mod 2, 0 mod 2], [0 mod 2, 0 mod 2]]\ngenerator action: [[0 mod 2, 0 mod 2], [0 mod 2, 1 mod 2]]\ngenerator action: [[0 mod 2, 0 mod 2], [0 mod 2, 0 mod 2]]\ngenerator action: [[0 mod 2, 0 mod 2], [0 mod 2, 0 mod 2]]\ngenerator action: [[0 mod 2, 0 mod 2], [0 mod 2, 0 mod 2]]\ngenerator action: [[0 mod 2, 1 mod 2], [0 mod 2, 0 mod 2]]\ngenerator action: [[0 mod 2, 0 mod 2], [0 mod 2, 0 mod 2]]\n",
+        "source": "\"\"\"Build the enveloping algebra and act on one of its projectives.\"\"\"\nimport qpa\n\nk = qpa.Field.prime(2)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, \"a\")]))\ngeneric = qpa.QuiverAlgebra.from_path_algebra(a)\nopposite = qpa.QuiverAlgebra.from_path_algebra(a.opposite())\nenveloping = generic.tensor_product(opposite)\n# generic.enveloping_algebra() is also available.\nquotient = enveloping.quotient\nprint(\"enveloping dimension:\", int(quotient.dimension()))\nprojective = quotient.indecomposable_projectives()[0]\nprint(\"projective dimension:\", projective.dimension)\nbasis = projective.basis_elements()\nfor generator in quotient.generators:\n    matrix = [vector.act_by_quotient_element(generator).basis_coefficients for vector in basis]\n    print(\"generator action:\", matrix)\n",
+        "sha256": "ff22bac0028235a0c3b6d06cacd3550fc5c4999be92e839b4bc8eefb2c344d9c"
+      },
+      {
+        "script": "algebra_expectations/corrected/03_common_wrapper.py",
+        "exit_code": 0,
+        "output": "{'dimension': 3, 'cartan_columns': [[1, 1], [0, 1]], 'ext1': [[0, 1], [0, 0]]}\n{'dimension': 3, 'cartan_columns': [[1, 1], [0, 1]], 'ext1': [[0, 1], [0, 0]]}\n",
+        "source": "\"\"\"Reuse one calculation through the common quiver-algebra wrapper.\"\"\"\nimport qpa\n\n\ndef cartan_and_extensions(algebra):\n    concrete = algebra.quotient_algebra if algebra.is_quotient else algebra.path_algebra\n    simples = concrete.simple_modules()\n    projectives = concrete.indecomposable_projectives()\n    cartan = [module.dimension_vector for module in projectives]\n    extensions = [[source.ext1_dimension(target) for target in simples] for source in simples]\n    dimension = int(concrete.dimension()) if algebra.is_quotient else len(concrete.canonical_basis())\n    return {\"dimension\": dimension, \"cartan_columns\": cartan, \"ext1\": extensions}\n\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, \"a\")]))\ngeneric = qpa.QuiverAlgebra.from_path_algebra(p)\nprint(cartan_and_extensions(generic))\nprint(cartan_and_extensions(qpa.QuiverAlgebra.from_quotient_algebra(p.quotient([]))))\n",
+        "sha256": "120e09dbfb0afb97757e8823ebdbb00fd8edb443f310a8ae668ecfb27681e643"
+      },
+      {
+        "script": "homological_expectations/01_resolution_corrected.py",
+        "exit_code": 0,
+        "output": "term 0 2\nterm 1 2\nterm 2 2\nterm 3 2\nmap 1 [[0 mod 2, 1 mod 2], [0 mod 2, 0 mod 2]]\nmap 2 [[0 mod 2, 1 mod 2], [0 mod 2, 0 mod 2]]\nmap 3 [[0 mod 2, 1 mod 2], [0 mod 2, 0 mod 2]]\nBetti dimensions [1, 1, 1, 1]\n",
+        "source": "import qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(1, [(1, 1, 'x')]))\nx = p.generator('x')\na = p.quotient([x * x])\ns = a.simple_modules()[0]\n\nresolution = s.projective_resolution()\nassert resolution.object(-1).dimension == 1\nfor degree in range(4):\n    term = resolution.object(degree)\n    assert term.dimension == 2\n    print('term', degree, term.dimension)\nfor degree in range(1, 4):\n    differential = resolution.differential(degree)\n    print('map', degree, differential.underlying_linear_matrix())\n# Over this split local algebra, the dimension of each projective top is\n# its free rank. Projective covers produce the minimal resolution.\nbetti = [resolution.object(i).top().dimension for i in range(4)]\nassert betti == [1, 1, 1, 1]\nprint('Betti dimensions', betti)\n",
+        "sha256": "5249591333dacfcbfb8f4d6de5a51fa1bfe6f389a07fc9400390c322027eecfa"
+      },
+      {
+        "script": "homological_expectations/02_hom_ext_corrected.py",
+        "exit_code": 0,
+        "output": "Hom dimension 1\nHom basis [<<Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]> ---> <Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]>>]\nExt 0 1 [<<Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]> ---> <Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]>>]\nExt 1 1 [<<Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]> ---> <Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]>>]\nExt 2 1 [<<Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]> ---> <Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]>>]\nExt 3 1 [<<Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]> ---> <Module over <GF(2)[<quiver with 1 vertices and 1 arrows>]/<two-sided ideal in <GF(2)[<quiver with 1 vertices and 1 arrows>]>, (1 generator)>> with dimension vector [ 1 ]>>]\nExt dimensions by degree [1, 1, 1, 1]\nExt^1 dimensions by target [1, 0]\n",
+        "source": "import qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(1, [(1, 1, 'x')]))\nx = p.generator('x')\na = p.quotient([x * x])\ns = a.simple_modules()[0]\n\nhom = s.hom_basis_with_coefficients_to(s)\nassert hom is not None\nassert hom.dimension == s.hom_dimension_to(s) == 1\nassert len(hom.basis) == len(s.hom_basis_to(s)) == 1\nprint('Hom dimension', hom.dimension)\nprint('Hom basis', hom.basis)\n# Ext^0 is Hom; dimension shifting supplies higher degrees from Ext^1.\n# Representatives in positive degrees are maps from the next syzygy to s.\next_dimensions = [hom.dimension]\nprint('Ext', 0, hom.dimension, hom.basis)\nfor degree in range(1, 4):\n    source = s if degree == 1 else s.nth_syzygy(degree - 1)\n    ext = source.ext1(s)\n    assert ext.dimension == source.ext1_dimension(s) == len(ext.basis) == 1\n    ext_dimensions.append(ext.dimension)\n    print('Ext', degree, ext.dimension, ext.basis)\nassert ext_dimensions == [1, 1, 1, 1]\nprint('Ext dimensions by degree', ext_dimensions)\n# The built-in batch varies coefficient modules, holding degree one fixed.\nprojective = s.projective_cover().source\nbatch = s.ext1_dimensions([s, projective])\nassert batch == [1, 0]\nprint('Ext^1 dimensions by target', batch)\n",
+        "sha256": "0c48d9fc49d6d8d463b8fd4a500cf9dca91fcc27be9aaf9e35054dc1ee7033f5"
+      },
+      {
+        "script": "homological_expectations/03_complex_corrected.py",
+        "exit_code": 0,
+        "output": "H 0 1\nH 1 1\nidentity component 0 [[1 mod 2]]\nshort exact sequence True\nsequence degrees -1, 0, 1 [1, 2, 1]\n",
+        "source": "import qpa\n\nk = qpa.Field.prime(2)\np = qpa.PathAlgebra(k, qpa.Quiver.indexed(1, [(1, 1, 'x')]))\nx = p.generator('x')\na = p.quotient([x * x])\ns = a.simple_modules()[0]\n\nzero = s.zero_map_to(s)\n# base_degree is the source degree of the first differential.\ncomplex_ = s.finite_complex(1, [zero])\nfor degree in (0, 1):\n    homology = complex_.homology(degree)\n    assert homology.dimension == 1\n    print('H', degree, homology.dimension)\nidentity = complex_.finite_chain_map_to(complex_, 0, [s.identity(), s.identity()])\nprint('identity component 0', identity.morphism(0).underlying_linear_matrix())\n# No bound method computes the induced map on homology.\ncover = s.projective_cover()\ninclusion = cover.kernel_inclusion()\nsequence = inclusion.short_exact_sequence_with(cover)\nassert sequence.is_short_exact_sequence\nassert [sequence.object(i).dimension for i in (-1, 0, 1)] == [1, 2, 1]\nassert [sequence.homology(i).dimension for i in (-1, 0, 1)] == [0, 0, 0]\nprint('short exact sequence', sequence.is_short_exact_sequence)\nprint('sequence degrees -1, 0, 1', [sequence.object(i).dimension for i in (-1, 0, 1)])\n",
+        "sha256": "e1c34610f14eef833fc8b1057a1438f48ca03a9bfb90c4e12537aaa9375ea176"
+      },
+      {
+        "script": "map_expectations/01_homology_corrected.py",
+        "exit_code": 0,
+        "output": "endomorphism dimension: 1\nkernel: [1, 1]\nimage: [1, 1]\ncokernel: [0, 0]\n",
+        "source": "import qpa\n\nk = qpa.Field.prime(5)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\nm = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\n\nidentity = m.identity()\nprint('endomorphism dimension:', m.hom_dimension_to(m))\nf = m.hom_basis_to(m)[0]\nassert identity.compose(f) == f\nassert f.compose(identity) == f\nzero = m.zero_map_to(m)\nker = zero.kernel()\nim = identity.image_module()\ncoker = identity.cokernel()\nprint('kernel:', ker.dimension_vector)\nprint('image:', im.dimension_vector)\nprint('cokernel:', coker.dimension_vector)\ninclusion = zero.kernel_inclusion()\nassert inclusion.source.identity().compose(inclusion) == inclusion\nassert im.isomorphic_to(m)\nassert coker.dimension_vector == [0, 0]\nassert ker.dimension_vector == [1, 1]\nassert im.dimension_vector == [1, 1]\n",
+        "sha256": "47c495bb590e9f08558443743c4866f70ca6aaf3f787cd0ee49d88d8de204a56"
+      },
+      {
+        "script": "map_expectations/02_direct_sum_corrected.py",
+        "exit_code": 0,
+        "output": "direct sum: [1, 2]\nsplitting verified\n",
+        "source": "import qpa\n\nk = qpa.Field.prime(5)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\nm = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\ns = a.module_from_integer_matrices([0, 1], [])\n\nbig = qpa.MatrixModule.direct_sum([m, s])\ni_m, i_s = big.direct_sum_inclusions()\np_m, p_s = big.direct_sum_projections()\nassert i_m.compose(p_m) == m.identity()\nassert i_s.compose(p_s) == s.identity()\nassert p_m.compose(i_m) + p_s.compose(i_s) == big.identity()\nassert i_s.compose(p_m).is_zero\n\ncopy = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\nassert copy.isomorphic_to(m)\nassert i_m.is_split_monomorphism\nassert p_m.is_split_epimorphism\nassert big.dimension_vector == [1, 2]\nprint('direct sum:', big.dimension_vector)\nprint('splitting verified')\n",
+        "sha256": "6b3704dbc822e57696366afdc222f4a0e1eac7a2e88f6bdd879cc30b81ba0379"
+      },
+      {
+        "script": "map_expectations/03_exact_arithmetic_corrected.py",
+        "exit_code": 0,
+        "output": "algebra arithmetic: True\nmap matrices: [[[2 mod 5]], [[2 mod 5]]]\nexact arrow matrix: [[1/2]]\n",
+        "source": "import qpa\nfrom fractions import Fraction\n\nk = qpa.Field.prime(5)\na = qpa.PathAlgebra(k, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\ne1, e2 = a.generator('v1'), a.generator('v2')\narrow = a.generator('a')\nassert arrow + arrow == arrow.scale_left(k.element(2))\nassert arrow.scale_left(k.element(5)) == a.zero()\nassert arrow * arrow == a.zero()\nassert e1 + e2 == a.one()\nprint('algebra arithmetic:', e1 + e2 == a.one())\n\nm = a.module_from_integer_matrices([1, 1], [('a', [[1]])])\nf = m.homomorphism_to(m, [[[k.element(2)]], [[k.element(2)]]])\nassert f.compose(f) == m.identity().scale(k.element(4))\nassert f + m.identity().scale(k.element(3)) == m.zero_map_to(m)\nprint('map matrices:', f.vertex_matrices)\n\nq = qpa.Field.rational()\naq = qpa.PathAlgebra(q, qpa.Quiver.indexed(2, [(1, 2, 'a')]))\nhalf = Fraction(1, 2)\ncoefficient = q.element(half.numerator, half.denominator)\nn = qpa.QuiverAlgebra.from_path_algebra(aq).right_module_over_path_algebra_with_dimensions([1, 1], [('a', [[coefficient]])])\nassert n is not None\nassert n.arrow_matrices[0][0][0] == q.element(1, 2)\nassert Fraction(int(n.arrow_matrices[0][0][0].numerator), int(n.arrow_matrices[0][0][0].denominator)) == half\nprint('exact arrow matrix:', n.arrow_matrices[0])\n",
+        "sha256": "86ccf1629551578ce87b5be49e28028ab671904e74d9d94135079dab8ea45ae3"
+      }
+    ],
+    "workloads-final": {
+      "exit_code": 0,
+      "passed": 29,
+      "consumer_revision": "bc0f12f86d9e5a8b22518b7474f51f0d33285abc",
+      "baseline_build_revision": "d6ec93438caeec384403e5e7a0aeb261c86d8c8b-dirty",
+      "baseline_extension_sha256": "398d357b99c402dd86859c76addf5f8c439c686c9fc04f70c4bf3fd7f0e9ca18",
+      "current_build_revision": "9800385e5d71ff7e984ec2f7fb57f2c8fcbb460b-dirty",
+      "current_extension_sha256": "1ce7367b0ca9534b93dae543d5c125f67a3e996c1c145e4f0bb4c0b2b81f9860",
+      "comparison": "All result structures equal after normalizing only consumer_js29_rational/result/engine_version from 0.2.0 to 0.1.0. All embedded assertions passed. Timings are not used to claim performance changes.",
+      "cases": [
+        "hom_rational",
+        "kernel_rational",
+        "ext_binary",
+        "additive_closure_prime",
+        "consumer_js29_rational",
+        "consumer_graded_ext_binary",
+        "consumer_delooping",
+        "consumer_reflexive_tubes",
+        "consumer_e6_rational",
+        "consumer_gsz_nonminimal",
+        "consumer_ar_a5_binary",
+        "consumer_ar_a7_prime",
+        "consumer_ar_a5_extension",
+        "consumer_fan_a4",
+        "consumer_presilting_window",
+        "consumer_string_fan",
+        "consumer_natural_endomorphism",
+        "consumer_rational_syzygies",
+        "consumer_mesh",
+        "consumer_relative_ext",
+        "consumer_cartan_cycle",
+        "consumer_cartan_deep_recurrence",
+        "consumer_closure_lattice",
+        "consumer_tensor_words",
+        "hom_prime",
+        "hom_extension",
+        "dense_compose_rational",
+        "dense_compose_prime",
+        "dense_compose_binary"
+      ]
+    },
+    "final_checks": {
+      "format": 0,
+      "generated_docs": 0,
+      "binding_ledger": 0,
+      "git_diff_check": 0,
+      "contract_and_documentation_tests": {
+        "exit_code": 0,
+        "passed": 13
+      }
+    }
+  }
+}

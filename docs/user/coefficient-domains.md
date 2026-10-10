@@ -48,6 +48,31 @@ canonical nonnegative residue for a prime-field value.
 and mixed-field operations are rejected unless `Field.embed` requests the
 canonical Conway-subfield embedding explicitly.
 
+Scalars support `+`, `-`, `*`, `/`, unary `-`, and integer powers. Binary
+arithmetic accepts scalars from the same field and exact Python integers on
+either side. Integers are interpreted in the scalar's field:
+
+```python
+assert two_thirds + 1 == rationals.element(5, 3)
+assert 2 / two_thirds == rationals.element(3)
+assert field5.element(3) / 2 == field5.element(4)
+assert z16 ** -1 * z16 == field16.element(1)
+```
+
+Division by zero in the coefficient field and negative powers of zero raise
+`ZeroDivisionError`. This includes division by the characteristic, such as
+`field5.element(1) / 5`. Exponents must be Python integers from `-4294967295`
+through `4294967295`, inclusive, for every coefficient field. Larger magnitudes
+raise `OverflowError` before arithmetic, including powers of zero or one.
+This bound follows the rational coefficient backend's exponent limit; powers
+within it can still produce very large exact values. Zero to the zeroth power
+is the field's one. Three-argument `pow` is
+unsupported. Arithmetic does not implicitly convert floats, `Fraction`
+objects, booleans, or scalars from another field. Construct fractional operands
+with `field.element(numerator, denominator)` and use `Field.embed` for supported
+field embeddings. Equality and hashing retain the owning field: a scalar does
+not compare equal to a Python integer.
+
 In Rust, import Numerica's `Ring`, `RingOps`, and `Field` traits when using
 their methods. They are re-exported by the facade.
 

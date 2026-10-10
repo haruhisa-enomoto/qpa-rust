@@ -97,7 +97,10 @@ def render_python_api() -> str:
                 ast.unparse(decorator)
                 for decorator in member.decorator_list
             }
-            kind = "property" if "property" in decorators else "method"
+            if any(decorator.endswith(".setter") for decorator in decorators):
+                kind = "property setter"
+            else:
+                kind = "property" if "property" in decorators else "method"
             lines.extend(
                 [
                     f"#### `{cls.name}.{member.name}` ({kind})",

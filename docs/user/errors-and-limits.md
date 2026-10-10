@@ -65,5 +65,5 @@ not silently replace a failing QPA method with another mathematical algorithm.
   not a memory or runtime guarantee.
 - Source methods known to loop outside their intended domain have explicit
   precondition guards where the compatibility ledger records one.
-- Finite extension fields and coefficient-dependent central splitting over
-  unsupported domains remain later work.
+- Canonical finite extension fields are supported. Coefficient-dependent
+  operations outside their documented field domains retain explicit errors.

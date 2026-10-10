@@ -1504,16 +1504,8 @@ impl PyQuiverAlgebra {
     }
 
     /// Apply QPA's binary `TensorProductOfAlgebras` method.
-    fn tensor_product(&self, right: &Self) -> PyResult<super::PyTensorProductAlgebra> {
-        dispatch_pair_ref!(
-            &self.kind,
-            &right.kind,
-            QuiverAlgebraKind,
-            |left, right| super::tensor::tensor_product_for(left, right),
-            Err(invalid(
-                "tensor factors belong to different coefficient fields"
-            ))
-        )
+    fn tensor_product(&self, right: &Bound<'_, PyAny>) -> PyResult<super::PyTensorProductAlgebra> {
+        super::common::tensor_product(self, right)
     }
 
     /// Apply QPA's cached `EnvelopingAlgebra` attribute.

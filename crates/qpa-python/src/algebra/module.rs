@@ -412,14 +412,21 @@ fn build_module_homomorphism<F: runtime::PythonField>(
     py: Python<'_>,
     source: &PathAlgebraModule<F>,
     range: &PathAlgebraModule<F>,
-    matrices: Vec<Vec<Vec<Py<PyScalar>>>>,
+    matrices: Vec<Vec<Vec<Py<PyAny>>>>,
 ) -> PyResult<PathAlgebraModuleHomomorphism<F>> {
     let field = source.right_acting_algebra().field();
     let matrices = matrices
         .into_iter()
         .map(|rows| {
-            DenseMatrix::from_rows(extract_scalar_rows(py, field, rows)?, field.clone())
-                .map_err(invalid)
+            let rows = rows
+                .into_iter()
+                .map(|row| {
+                    row.into_iter()
+                        .map(|value| crate::field::exact_scalar_for(field, value.bind(py)))
+                        .collect::<PyResult<Vec<_>>>()
+                })
+                .collect::<PyResult<Vec<_>>>()?;
+            DenseMatrix::from_rows(rows, field.clone()).map_err(invalid)
         })
         .collect::<PyResult<Vec<_>>>()?;
     qpa_core::right_module_hom_over_algebra(source.clone(), range.clone(), matrices)
@@ -1642,11 +1649,15 @@ impl PyMatrixModule {
         )
     }
 
+    /// Construct a checked map from exact Scalar, int, or Fraction matrices.
+    ///
+    /// Matrices follow vertex order and row action. Floats and scalars from
+    /// other fields are rejected; every arrow square must commute.
     fn homomorphism_to(
         &self,
         py: Python<'_>,
         range: &Self,
-        vertex_matrices: Vec<Vec<Vec<Py<PyScalar>>>>,
+        vertex_matrices: Vec<Vec<Vec<Py<PyAny>>>>,
     ) -> PyResult<PyModuleHomomorphism> {
         let kind = map_pair_ref!(
             &self.kind,

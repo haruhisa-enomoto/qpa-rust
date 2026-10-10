@@ -152,3 +152,22 @@ def test_quotient_distributivity_follows_qpa() -> None:
         (FIXTURES / "reptype_quotient.schema-v1.json").read_text(encoding="utf-8")
     )
     assert diamond.is_distributive_algebra() == expected["distributive"]["diamond"]
+
+
+@pytest.mark.parametrize('field', [qpa.Field.rational(), qpa.Field.prime(2),
+                                  qpa.Field.prime(5), qpa.Field.extension(2, 2)])
+def test_concrete_algebras_expose_the_same_invariant_queries(field):
+    path = qpa.PathAlgebra(field, qpa.Quiver.indexed(2, [(1, 2, 'a')]))
+    quotient = path.quotient([])
+    for concrete in [path, quotient]:
+        common = concrete.as_quiver_algebra()
+        for name in ['cartan_matrix', 'coxeter_matrix', 'coxeter_polynomial',
+                     'is_selfinjective_algebra', 'is_symmetric_algebra',
+                     'is_weakly_symmetric_algebra', 'is_schurian_algebra',
+                     'is_semicommutative_algebra', 'is_distributive_algebra']:
+            assert getattr(concrete, name)() == getattr(common, name)()
+    assert path.cartan_matrix() == [[1, 1], [0, 1]]
+    assert not path.is_selfinjective_algebra()
+    loop = qpa.PathAlgebra(field, qpa.Quiver.indexed(1, [(1, 1, 'x')]))
+    assert loop.cartan_matrix() is None
+    assert loop.coxeter_matrix() is None

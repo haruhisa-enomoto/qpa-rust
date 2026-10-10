@@ -126,7 +126,7 @@ tests = ["python/tests/test_architecture_spike.py::test_opposite_structure_const
 [[bindings]]
 qpa_name = "RightModuleOverPathAlgebra"
 status = "exposed"
-target = "qpa.PathAlgebra.module_from_integer_matrices; qpa.QuotientAlgebra.module_from_integer_matrices; qpa.QuiverAlgebra.right_module_over_path_algebra_with_dimensions; qpa.QuiverAlgebra.right_module_over_path_algebra; qpa.QuiverAlgebra.right_module_over_path_algebra_named; qpa.QuiverAlgebra.right_module_over_path_algebra_indexed"
+target = "qpa.PathAlgebra.module_from_integer_matrices; qpa.QuotientAlgebra.module_from_integer_matrices; qpa.QuiverAlgebra.right_module_over_path_algebra_with_dimensions; qpa.QuiverAlgebra.right_module_over_path_algebra; qpa.QuiverAlgebra.right_module_over_path_algebra_named; qpa.QuiverAlgebra.right_module_over_path_algebra_indexed; qpa.PathAlgebra.module_from_matrices; qpa.QuotientAlgebra.module_from_matrices; qpa.QuiverAlgebra.module_from_matrices; qpa.QuiverAlgebra.module_from_integer_matrices"
 tests = ["python/tests/test_architecture_spike.py::test_module_elements_homomorphisms_and_structure_follow_qpa","python/tests/test_partial_overload_completion.py::test_checked_module_constructor_overloads_follow_qpa","python/tests/test_partial_overload_completion.py::test_checked_constructor_rejects_foreign_field_and_returns_qpa_fail"]
 notes = "Explicit-dimension and inferred positional, named, arrow-object, and zero-space action forms are exposed."
 
@@ -1779,16 +1779,16 @@ tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_a
 [[bindings]]
 qpa_name = "IndecInjectiveModules"
 status = "exposed"
-target = "qpa.PathAlgebra.indecomposable_injectives"
+target = "qpa.PathAlgebra.indecomposable_injectives; qpa.QuotientAlgebra.indecomposable_injectives; qpa.QuiverAlgebra.indecomposable_injectives"
 tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
-notes = "Exposed for both path algebras and quotient path algebras."
+notes = "Exposed for path, quotient, and common quiver-algebra handles."
 
 [[bindings]]
 qpa_name = "IndecProjectiveModules"
 status = "exposed"
-target = "qpa.PathAlgebra.indecomposable_projectives"
+target = "qpa.PathAlgebra.indecomposable_projectives; qpa.QuotientAlgebra.indecomposable_projectives; qpa.QuiverAlgebra.indecomposable_projectives"
 tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
-notes = "Exposed for both path algebras and quotient path algebras."
+notes = "Exposed for path, quotient, and common quiver-algebra handles."
 
 [[bindings]]
 qpa_name = "InjectiveEnvelope"
@@ -1836,9 +1836,9 @@ tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_a
 [[bindings]]
 qpa_name = "SimpleModules"
 status = "exposed"
-target = "qpa.PathAlgebra.simple_modules"
+target = "qpa.PathAlgebra.simple_modules; qpa.QuotientAlgebra.simple_modules; qpa.QuiverAlgebra.simple_modules"
 tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
-notes = "Exposed for both path algebras and quotient path algebras."
+notes = "Exposed for path, quotient, and common quiver-algebra handles."
 
 [[bindings]]
 qpa_name = "SocleOfModuleInclusion"
@@ -1888,9 +1888,9 @@ tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_a
 [[bindings]]
 qpa_name = "ZeroModule"
 status = "exposed"
-target = "qpa.PathAlgebra.zero_module"
+target = "qpa.PathAlgebra.zero_module; qpa.QuotientAlgebra.zero_module; qpa.QuiverAlgebra.zero_module"
 tests = ["python/tests/test_architecture_spike.py::test_submodules_projectives_and_injectives_follow_qpa"]
-notes = "Exposed for both path algebras and quotient path algebras."
+notes = "Exposed for path, quotient, and common quiver-algebra handles."
 
 # Lazy homological resolutions
 
@@ -3652,7 +3652,7 @@ tests = ["python/tests/test_architecture_spike.py::test_quiver_product_and_path_
 [[bindings]]
 qpa_name = "TensorProductOfAlgebras"
 status = "exposed"
-target = "qpa.QuiverAlgebra.tensor_product; qpa.TensorProductAlgebra"
+target = "qpa.QuiverAlgebra.tensor_product; qpa.TensorProductAlgebra; qpa.PathAlgebra.tensor_product; qpa.QuotientAlgebra.tensor_product"
 tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 notes = "Delegates directly to QPA's translated binary tensor-product method for path or quotient factors."
 
@@ -3679,7 +3679,7 @@ notes = "Preserves QPA's convention that only index 1 selects the first factor a
 [[bindings]]
 qpa_name = "EnvelopingAlgebra"
 status = "exposed"
-target = "qpa.QuiverAlgebra.enveloping_algebra"
+target = "qpa.QuiverAlgebra.enveloping_algebra; qpa.PathAlgebra.enveloping_algebra; qpa.QuotientAlgebra.enveloping_algebra"
 tests = ["python/tests/test_architecture_spike.py::test_tensor_products_and_enveloping_algebras_follow_qpa"]
 notes = "Returns the retained tensor wrapper so QPA's factor decomposition and cached repeated-call identity remain observable."
 
@@ -3699,7 +3699,7 @@ notes = "Represented by the unified path-algebra-or-quotient Python wrapper."
 [[bindings]]
 qpa_name = "IncludeInPathAlgebra"
 status = "exposed"
-target = "qpa.QuiverAlgebra.include_path"
+target = "qpa.QuiverAlgebra.include_path; qpa.QuiverAlgebra.generator"
 tests = ["python/tests/test_architecture_spike.py::test_tensor_elements_follow_qpa"]
 notes = "Delegates to QPA's name-based record-component inclusion, including quotient reduction."
 
@@ -4405,7 +4405,7 @@ notes = "Preserves QPA's algebra-or-fail result, exact diagnostics, and in-place
 [[bindings]]
 qpa_name = "IsSymmetricAlgebra"
 status = "exposed"
-target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra; qpa.QuiverAlgebra.is_symmetric_algebra"
+target = "qpa.BrauerConfigurationAlgebra.is_symmetric_algebra; qpa.QuiverAlgebra.is_symmetric_algebra; qpa.PathAlgebra.is_symmetric_algebra; qpa.QuotientAlgebra.is_symmetric_algebra"
 tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_algebras_follow_qpa","python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 # Cartan and Coxeter invariants
@@ -4413,51 +4413,51 @@ tests = ["python/tests/test_brauer_configurations.py::test_brauer_configuration_
 [[bindings]]
 qpa_name = "CartanMatrix"
 status = "exposed"
-target = "qpa.QuiverAlgebra.cartan_matrix"
+target = "qpa.QuiverAlgebra.cartan_matrix; qpa.PathAlgebra.cartan_matrix; qpa.QuotientAlgebra.cartan_matrix"
 tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
 
 [[bindings]]
 qpa_name = "CoxeterMatrix"
 status = "exposed"
-target = "qpa.QuiverAlgebra.coxeter_matrix"
+target = "qpa.QuiverAlgebra.coxeter_matrix; qpa.PathAlgebra.coxeter_matrix; qpa.QuotientAlgebra.coxeter_matrix"
 tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
 notes = "Returns QPA's exact rational matrix even when the algebra coefficient field is finite."
 
 [[bindings]]
 qpa_name = "CoxeterPolynomial"
 status = "exposed"
-target = "qpa.QuiverAlgebra.coxeter_polynomial"
+target = "qpa.QuiverAlgebra.coxeter_polynomial; qpa.PathAlgebra.coxeter_polynomial; qpa.QuotientAlgebra.coxeter_polynomial"
 tests = ["python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_invariants_follow_qpa","python/tests/test_algebra_invariants.py::test_cartan_and_coxeter_fail_results_follow_qpa"]
 notes = "Coefficients are exact rationals in QPA's ascending-degree order."
 
 [[bindings]]
 qpa_name = "IsDistributiveAlgebra"
 status = "exposed"
-target = "qpa.QuiverAlgebra.is_distributive_algebra"
+target = "qpa.QuiverAlgebra.is_distributive_algebra; qpa.PathAlgebra.is_distributive_algebra; qpa.QuotientAlgebra.is_distributive_algebra"
 tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa","python/tests/test_algebra_invariants.py::test_quotient_distributivity_follows_qpa"]
 
 [[bindings]]
 qpa_name = "IsSchurianAlgebra"
 status = "exposed"
-target = "qpa.QuiverAlgebra.is_schurian_algebra"
+target = "qpa.QuiverAlgebra.is_schurian_algebra; qpa.PathAlgebra.is_schurian_algebra; qpa.QuotientAlgebra.is_schurian_algebra"
 tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsSelfinjectiveAlgebra"
 status = "exposed"
-target = "qpa.QuiverAlgebra.is_selfinjective_algebra"
+target = "qpa.QuiverAlgebra.is_selfinjective_algebra; qpa.PathAlgebra.is_selfinjective_algebra; qpa.QuotientAlgebra.is_selfinjective_algebra"
 tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsSemicommutativeAlgebra"
 status = "exposed"
-target = "qpa.QuiverAlgebra.is_semicommutative_algebra"
+target = "qpa.QuiverAlgebra.is_semicommutative_algebra; qpa.PathAlgebra.is_semicommutative_algebra; qpa.QuotientAlgebra.is_semicommutative_algebra"
 tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[bindings]]
 qpa_name = "IsWeaklySymmetricAlgebra"
 status = "exposed"
-target = "qpa.QuiverAlgebra.is_weakly_symmetric_algebra"
+target = "qpa.QuiverAlgebra.is_weakly_symmetric_algebra; qpa.PathAlgebra.is_weakly_symmetric_algebra; qpa.QuotientAlgebra.is_weakly_symmetric_algebra"
 tests = ["python/tests/test_algebra_invariants.py::test_symmetry_and_path_algebra_properties_follow_qpa"]
 
 [[bindings]]

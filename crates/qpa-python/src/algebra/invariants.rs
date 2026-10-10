@@ -75,3 +75,72 @@ pub(super) fn distributive_for<F: runtime::PythonField>(
         }
     }
 }
+
+// Concrete and common algebra handles expose the same invariant queries.
+// Only the wrapper changes; all calculations retain the QPA dispatch below.
+macro_rules! concrete_invariants {
+    ($wrapper:ty, $kind:ident, $variant:ident) => {
+        #[pymethods]
+        impl $wrapper {
+            /// Return QPA's Cartan matrix, or `None` outside its finite domain.
+            fn cartan_matrix(&self) -> PyResult<Option<Vec<Vec<usize>>>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    cartan_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            /// Return QPA's rational Coxeter matrix, or `None` when unavailable.
+            fn coxeter_matrix(&self) -> PyResult<Option<Vec<Vec<PyScalar>>>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    coxeter_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            /// Return Coxeter polynomial coefficients in increasing degree order.
+            fn coxeter_polynomial(&self) -> PyResult<Option<Vec<PyScalar>>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    coxeter_polynomial_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            fn is_selfinjective_algebra(&self) -> PyResult<Option<bool>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    selfinjective_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            fn is_symmetric_algebra(&self) -> PyResult<Option<bool>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    symmetric_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            fn is_weakly_symmetric_algebra(&self) -> PyResult<Option<bool>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    weakly_symmetric_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            fn is_schurian_algebra(&self) -> PyResult<Option<bool>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    schurian_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            fn is_semicommutative_algebra(&self) -> PyResult<Option<bool>> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    semicommutative_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+
+            fn is_distributive_algebra(&self) -> PyResult<bool> {
+                dispatch_ref!(&self.kind, $kind, |algebra| {
+                    distributive_for(&QuiverAlgebra::$variant(algebra.clone()))
+                })
+            }
+        }
+    };
+}
+
+concrete_invariants!(PyPathAlgebra, AlgebraKind, Path);
+concrete_invariants!(PyQuotientAlgebra, QuotientKind, Quotient);

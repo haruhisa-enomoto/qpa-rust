@@ -1,5 +1,6 @@
 //! Python methods for module elements and basis-coordinate mappings.
 
+use super::super::tensor::QuiverAlgebraElementKind;
 use pyo3::pymethods;
 
 #[allow(clippy::wildcard_imports)]
@@ -121,6 +122,45 @@ impl PyModuleElement {
                     .scalar_value(scalar)?,
             )
         );
+        Ok(Self { kind })
+    }
+
+    /// Act on the right by a concrete or wrapped algebra element.
+    ///
+    /// The acting algebra and coefficient field must match this module.
+    fn act_by(&self, element: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(element) = element.extract::<PyRef<'_, PyAlgebraElement>>() {
+            return self.act_by_algebra_element(&element);
+        }
+        if let Ok(element) = element.extract::<PyRef<'_, PyQuotientElement>>() {
+            return self.act_by_quotient_element(&element);
+        }
+        let element = element
+            .extract::<PyRef<'_, PyQuiverAlgebraElement>>()
+            .map_err(|_| {
+                pyo3::exceptions::PyTypeError::new_err(
+                    "expected an AlgebraElement, QuotientElement, or QuiverAlgebraElement",
+                )
+            })?;
+        let kind = match (&self.kind, &element.kind) {
+            (ModuleElementKind::Rational(left), QuiverAlgebraElementKind::Rational(right)) => {
+                ModuleElementKind::Rational(left.act(right).map_err(invalid)?)
+            }
+            (ModuleElementKind::Binary(left), QuiverAlgebraElementKind::Binary(right)) => {
+                ModuleElementKind::Binary(left.act(right).map_err(invalid)?)
+            }
+            (ModuleElementKind::Prime(left), QuiverAlgebraElementKind::Prime(right)) => {
+                ModuleElementKind::Prime(left.act(right).map_err(invalid)?)
+            }
+            (ModuleElementKind::Extension(left), QuiverAlgebraElementKind::Extension(right)) => {
+                ModuleElementKind::Extension(left.act(right).map_err(invalid)?)
+            }
+            _ => {
+                return Err(invalid(
+                    "acting element belongs to another coefficient field",
+                ));
+            }
+        };
         Ok(Self { kind })
     }
 

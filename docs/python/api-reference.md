@@ -8,7 +8,7 @@ main mathematical workflows. For the originating GAP/QPA name and source
 file, use the [QPA operation index](qpa-operation-index.md).
 
 The current surface contains 141 classes, 35 module-level functions,
-and 1856 class methods or properties.
+and 1898 class methods or properties.
 
 ## Module constants
 
@@ -93,13 +93,13 @@ def cat(identity: object, properties: dict[str, object]) -> CallbackCategory
 ### `qpa.complement_in_full_row_space`
 
 ```python
-def complement_in_full_row_space(matrix: list[list[Scalar]], field: Field) -> list[list[Scalar]]
+def complement_in_full_row_space(rows: list[list[Scalar]], field: Field) -> list[list[Scalar]]
 ```
 
 ### `qpa.is_in_full_matrix_ring`
 
 ```python
-def is_in_full_matrix_ring(matrix: list[list[Scalar]], field: Field) -> bool
+def is_in_full_matrix_ring(rows: list[list[Scalar]], field: Field) -> bool
 ```
 
 ### `qpa.integers_list`
@@ -494,7 +494,7 @@ def DynamicTree.has_item(self) -> bool
 def DynamicTree.item(self) -> object | None
 ```
 
-#### `DynamicTree.item` (method)
+#### `DynamicTree.item` (property setter)
 
 ```python
 def DynamicTree.item(self, value: object | None) -> None
@@ -506,7 +506,7 @@ def DynamicTree.item(self, value: object | None) -> None
 def DynamicTree.parent(self) -> DynamicTree | None
 ```
 
-#### `DynamicTree.parent` (method)
+#### `DynamicTree.parent` (property setter)
 
 ```python
 def DynamicTree.parent(self, value: DynamicTree | None) -> None
@@ -518,7 +518,7 @@ def DynamicTree.parent(self, value: DynamicTree | None) -> None
 def DynamicTree.left(self) -> DynamicTree | None
 ```
 
-#### `DynamicTree.left` (method)
+#### `DynamicTree.left` (property setter)
 
 ```python
 def DynamicTree.left(self, value: DynamicTree | None) -> None
@@ -530,7 +530,7 @@ def DynamicTree.left(self, value: DynamicTree | None) -> None
 def DynamicTree.right(self) -> DynamicTree | None
 ```
 
-#### `DynamicTree.right` (method)
+#### `DynamicTree.right` (property setter)
 
 ```python
 def DynamicTree.right(self, value: DynamicTree | None) -> None
@@ -1400,6 +1400,68 @@ def Scalar.is_zero(self) -> bool
 
 ```python
 def Scalar.__hash__(self) -> int
+```
+
+#### `Scalar.__add__` (method)
+
+```python
+def Scalar.__add__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__radd__` (method)
+
+```python
+def Scalar.__radd__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__sub__` (method)
+
+```python
+def Scalar.__sub__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__rsub__` (method)
+
+```python
+def Scalar.__rsub__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__mul__` (method)
+
+```python
+def Scalar.__mul__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__rmul__` (method)
+
+```python
+def Scalar.__rmul__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__truediv__` (method)
+
+```python
+def Scalar.__truediv__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__rtruediv__` (method)
+
+```python
+def Scalar.__rtruediv__(self, other: Scalar | int) -> Scalar
+```
+
+#### `Scalar.__neg__` (method)
+
+```python
+def Scalar.__neg__(self) -> Scalar
+```
+
+#### `Scalar.__pow__` (method)
+
+Exact field power with exponent magnitude at most 4294967295; larger exponents raise OverflowError.
+
+```python
+def Scalar.__pow__(self, exponent: int, modulo: None=None) -> Scalar
 ```
 
 ### `qpa.StructureConstantsAlgebra`
@@ -3356,12 +3418,6 @@ def PathAlgebra.is_semicommutative_algebra(self) -> bool | None
 def PathAlgebra.is_distributive_algebra(self) -> bool
 ```
 
-#### `PathAlgebra.right_projective_module` (method)
-
-```python
-def PathAlgebra.right_projective_module(self, vertices: list[int]) -> RightProjectiveModule
-```
-
 #### `PathAlgebra.global_dimension` (property)
 
 ```python
@@ -3886,6 +3942,38 @@ def PathAlgebra.vertex_projective_presentation(self, rows: list[list[AlgebraElem
 def PathAlgebra.vertex_projective_presentation_with_vertices(self, rows: list[list[AlgebraElement]], vertices: list[int]) -> RightFpPathAlgebraModule
 ```
 
+#### `PathAlgebra.module_from_matrices` (method)
+
+Construct a checked right module from Scalar, int, or Fraction entries; reject floats.
+
+```python
+def PathAlgebra.module_from_matrices(self, dimension_vector: list[int], actions: list[tuple[str, list[list[_ExactScalar]]]]) -> MatrixModule
+```
+
+#### `PathAlgebra.as_quiver_algebra` (method)
+
+Wrap this algebra without changing its identity or relations.
+
+```python
+def PathAlgebra.as_quiver_algebra(self) -> QuiverAlgebra
+```
+
+#### `PathAlgebra.tensor_product` (method)
+
+Return a tensor construction; use .algebra or .quotient for module calculations.
+
+```python
+def PathAlgebra.tensor_product(self, right: PathAlgebra | QuotientAlgebra | QuiverAlgebra) -> TensorProductAlgebra
+```
+
+#### `PathAlgebra.enveloping_algebra` (method)
+
+Return the cached tensor construction for the opposite algebra and this algebra.
+
+```python
+def PathAlgebra.enveloping_algebra(self) -> TensorProductAlgebra
+```
+
 ### `qpa.AlgebraElement`
 
 An exact element of a path algebra, represented as path terms.
@@ -4120,6 +4208,14 @@ def AlgebraElement.__eq__(self, right: AlgebraElement) -> bool
 
 ```python
 def AlgebraElement.print_obj(self) -> str
+```
+
+#### `AlgebraElement.__pow__` (method)
+
+Raise to a nonnegative integer power; modular powers are unsupported.
+
+```python
+def AlgebraElement.__pow__(self, exponent: int, modulo: None=None) -> AlgebraElement
 ```
 
 ### `qpa.PathAlgebraCentre`
@@ -6238,6 +6334,68 @@ class QuotientAlgebra
 def QuotientAlgebra.projective_resolution_fp_path_algebra_module(self, ideal: PathAlgebraIdeal, presentation_map: list[list[QuotientElement]], term: int | None=...) -> GszProjectiveResolution
 ```
 
+#### `QuotientAlgebra.cartan_matrix` (method)
+
+```python
+def QuotientAlgebra.cartan_matrix(self) -> list[list[int]] | None
+```
+
+#### `QuotientAlgebra.coxeter_matrix` (method)
+
+```python
+def QuotientAlgebra.coxeter_matrix(self) -> list[list[Scalar]] | None
+```
+
+#### `QuotientAlgebra.coxeter_polynomial` (method)
+
+```python
+def QuotientAlgebra.coxeter_polynomial(self) -> list[Scalar] | None
+```
+
+#### `QuotientAlgebra.is_selfinjective_algebra` (method)
+
+```python
+def QuotientAlgebra.is_selfinjective_algebra(self) -> bool | None
+```
+
+#### `QuotientAlgebra.is_symmetric_algebra` (method)
+
+```python
+def QuotientAlgebra.is_symmetric_algebra(self) -> bool | None
+```
+
+#### `QuotientAlgebra.is_weakly_symmetric_algebra` (method)
+
+```python
+def QuotientAlgebra.is_weakly_symmetric_algebra(self) -> bool | None
+```
+
+#### `QuotientAlgebra.is_schurian_algebra` (method)
+
+```python
+def QuotientAlgebra.is_schurian_algebra(self) -> bool | None
+```
+
+#### `QuotientAlgebra.is_semicommutative_algebra` (method)
+
+```python
+def QuotientAlgebra.is_semicommutative_algebra(self) -> bool | None
+```
+
+#### `QuotientAlgebra.is_distributive_algebra` (method)
+
+```python
+def QuotientAlgebra.is_distributive_algebra(self) -> bool
+```
+
+#### `QuotientAlgebra.right_projective_module` (method)
+
+Construct a quotient vertex projective from one-based vertex positions.
+
+```python
+def QuotientAlgebra.right_projective_module(self, vertices: list[int]) -> RightProjectiveQuotientModule
+```
+
 #### `QuotientAlgebra.truncated` (method)
 
 Construct the QPA quotient by the indicated arrow-ideal power.
@@ -6688,6 +6846,38 @@ def QuotientAlgebra.view(self) -> str
 def QuotientAlgebra.print_obj(self) -> str
 ```
 
+#### `QuotientAlgebra.module_from_matrices` (method)
+
+Construct a checked right module from Scalar, int, or Fraction entries; reject floats.
+
+```python
+def QuotientAlgebra.module_from_matrices(self, dimension_vector: list[int], actions: list[tuple[str, list[list[_ExactScalar]]]]) -> MatrixModule
+```
+
+#### `QuotientAlgebra.as_quiver_algebra` (method)
+
+Wrap this algebra without changing its identity or relations.
+
+```python
+def QuotientAlgebra.as_quiver_algebra(self) -> QuiverAlgebra
+```
+
+#### `QuotientAlgebra.tensor_product` (method)
+
+Return a tensor construction; use .algebra or .quotient for module calculations.
+
+```python
+def QuotientAlgebra.tensor_product(self, right: PathAlgebra | QuotientAlgebra | QuiverAlgebra) -> TensorProductAlgebra
+```
+
+#### `QuotientAlgebra.enveloping_algebra` (method)
+
+Return the cached tensor construction for the opposite algebra and this algebra.
+
+```python
+def QuotientAlgebra.enveloping_algebra(self) -> TensorProductAlgebra
+```
+
 ### `qpa.QuotientElement`
 
 A residue class in a quotient path algebra.
@@ -6916,6 +7106,14 @@ def QuotientElement.__eq__(self, right: QuotientElement) -> bool
 
 ```python
 def QuotientElement.print_obj(self) -> str
+```
+
+#### `QuotientElement.__pow__` (method)
+
+Raise to a nonnegative integer power; modular powers are unsupported.
+
+```python
+def QuotientElement.__pow__(self, exponent: int, modulo: None=None) -> QuotientElement
 ```
 
 ### `qpa.QuotientCanonicalBasis`
@@ -7414,6 +7612,8 @@ def QuiverAlgebra.elements_of_units(self) -> list[QuiverAlgebraElement]
 
 #### `QuiverAlgebra.original_path_algebra` (property)
 
+Return the ambient path algebra; this drops quotient relations and is not an unwrap operation.
+
 ```python
 def QuiverAlgebra.original_path_algebra(self) -> PathAlgebra
 ```
@@ -7511,7 +7711,7 @@ def QuiverAlgebra.quotient_algebra(self) -> QuotientAlgebra | None
 #### `QuiverAlgebra.tensor_product` (method)
 
 ```python
-def QuiverAlgebra.tensor_product(self, right: QuiverAlgebra) -> TensorProductAlgebra
+def QuiverAlgebra.tensor_product(self, right: PathAlgebra | QuotientAlgebra | QuiverAlgebra) -> TensorProductAlgebra
 ```
 
 #### `QuiverAlgebra.enveloping_algebra` (method)
@@ -7530,6 +7730,78 @@ def QuiverAlgebra.is_enveloping_algebra(self) -> bool
 
 ```python
 def QuiverAlgebra.is_identical(self, other: QuiverAlgebra) -> bool
+```
+
+#### `QuiverAlgebra.module_from_matrices` (method)
+
+Construct a checked right module from Scalar, int, or Fraction entries; reject floats.
+
+```python
+def QuiverAlgebra.module_from_matrices(self, dimension_vector: list[int], actions: list[tuple[str, list[list[_ExactScalar]]]]) -> MatrixModule
+```
+
+#### `QuiverAlgebra.simple_modules` (method)
+
+Return standard simple modules in vertex order.
+
+```python
+def QuiverAlgebra.simple_modules(self) -> list[MatrixModule]
+```
+
+#### `QuiverAlgebra.indecomposable_projectives` (method)
+
+Return indecomposable projectives in vertex order.
+
+```python
+def QuiverAlgebra.indecomposable_projectives(self) -> list[MatrixModule]
+```
+
+#### `QuiverAlgebra.indecomposable_injectives` (method)
+
+Return indecomposable injectives in vertex order.
+
+```python
+def QuiverAlgebra.indecomposable_injectives(self) -> list[MatrixModule]
+```
+
+#### `QuiverAlgebra.zero_module` (method)
+
+```python
+def QuiverAlgebra.zero_module(self) -> MatrixModule
+```
+
+#### `QuiverAlgebra.module_from_integer_matrices` (method)
+
+```python
+def QuiverAlgebra.module_from_integer_matrices(self, dimension_vector: list[int], actions: list[tuple[str, list[list[int]]]]) -> MatrixModule
+```
+
+#### `QuiverAlgebra.generator` (method)
+
+Return a named vertex or arrow belonging to this algebra.
+
+```python
+def QuiverAlgebra.generator(self, name: str) -> QuiverAlgebraElement
+```
+
+#### `QuiverAlgebra.generators` (property)
+
+Return vertices followed by arrows, matching the concrete Python algebra.
+
+```python
+def QuiverAlgebra.generators(self) -> list[QuiverAlgebraElement]
+```
+
+#### `QuiverAlgebra.zero` (method)
+
+```python
+def QuiverAlgebra.zero(self) -> QuiverAlgebraElement
+```
+
+#### `QuiverAlgebra.one` (method)
+
+```python
+def QuiverAlgebra.one(self) -> QuiverAlgebraElement
 ```
 
 ### `qpa.QuiverAlgebraUnitGroup`
@@ -7720,11 +7992,15 @@ class TensorProductAlgebra
 
 #### `TensorProductAlgebra.algebra` (property)
 
+Return the common algebra handle, supporting standard module constructors and invariants.
+
 ```python
 def TensorProductAlgebra.algebra(self) -> QuiverAlgebra
 ```
 
 #### `TensorProductAlgebra.quotient` (property)
+
+Return the concrete QuotientAlgebra presentation, retaining the tensor relations.
 
 ```python
 def TensorProductAlgebra.quotient(self) -> QuotientAlgebra
@@ -8600,6 +8876,20 @@ def QuiverAlgebraElement.__sub__(self, right: QuiverAlgebraElement) -> QuiverAlg
 def QuiverAlgebraElement.__mul__(self, right: QuiverAlgebraElement) -> QuiverAlgebraElement
 ```
 
+#### `QuiverAlgebraElement.__pow__` (method)
+
+Raise to a nonnegative integer power; modular powers are unsupported.
+
+```python
+def QuiverAlgebraElement.__pow__(self, exponent: int, modulo: None=None) -> QuiverAlgebraElement
+```
+
+#### `QuiverAlgebraElement.__neg__` (method)
+
+```python
+def QuiverAlgebraElement.__neg__(self) -> QuiverAlgebraElement
+```
+
 ### `qpa.AlgebraAsQuiverAlgebraResult`
 
 ```python
@@ -9072,6 +9362,8 @@ def MatrixModule.right_acting_algebra(self) -> QuiverAlgebra
 
 #### `MatrixModule.dimension_vector` (property)
 
+Dimensions at vertices in quiver order; this is a property, not a method.
+
 ```python
 def MatrixModule.dimension_vector(self) -> list[int]
 ```
@@ -9173,6 +9465,8 @@ def MatrixModule.lift_idempotents(self) -> None
 ```
 
 #### `MatrixModule.direct_sum` (method)
+
+Return the direct-sum module (None for empty input); obtain inclusions and projections from that module.
 
 ```python
 def MatrixModule.direct_sum(modules: list[MatrixModule]) -> MatrixModule | None
@@ -9328,6 +9622,8 @@ def MatrixModule.hom_dimension_to(self, range: MatrixModule) -> int | None
 
 #### `MatrixModule.hom_basis_with_coefficients_to` (method)
 
+Return structured Hom data with dimension, basis maps, and coordinates; None for different acting algebras.
+
 ```python
 def MatrixModule.hom_basis_with_coefficients_to(self, range: MatrixModule) -> ModuleHomomorphismBasis | None
 ```
@@ -9406,8 +9702,10 @@ def MatrixModule.homomorphism_from_images(self, range: MatrixModule, images: lis
 
 #### `MatrixModule.homomorphism_to` (method)
 
+Construct a checked row-action map from exact Scalar, int, or Fraction matrices in vertex order.
+
 ```python
-def MatrixModule.homomorphism_to(self, range: MatrixModule, vertex_matrices: list[list[list[Scalar]]]) -> ModuleHomomorphism
+def MatrixModule.homomorphism_to(self, range: MatrixModule, vertex_matrices: list[list[list[_ExactScalar]]]) -> ModuleHomomorphism
 ```
 
 #### `MatrixModule.radical` (method)
@@ -10160,6 +10458,14 @@ def ModuleElement.__eq__(self, right: ModuleElement) -> bool
 
 ```python
 def ModuleElement.print_obj(self) -> str
+```
+
+#### `ModuleElement.act_by` (method)
+
+Act on the right, checking the algebra and field of a concrete or wrapped element.
+
+```python
+def ModuleElement.act_by(self, element: AlgebraElement | QuotientElement | QuiverAlgebraElement) -> ModuleElement
 ```
 
 ### `qpa.ModuleElementSpace`
@@ -10965,6 +11271,8 @@ def GenericModuleHomSpace.dimension(self) -> int
 ```
 
 #### `GenericModuleHomSpace.generators` (property)
+
+Return generic linear mappings, not ModuleHomomorphism objects; use module.hom_basis_to for kernels and composition.
 
 ```python
 def GenericModuleHomSpace.generators(self) -> list[GenericModuleHomomorphism]

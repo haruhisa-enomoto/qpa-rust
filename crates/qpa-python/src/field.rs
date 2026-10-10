@@ -15,7 +15,7 @@ use numerica::domains::{
 };
 use pyo3::{
     Bound, PyResult,
-    exceptions::PyTypeError,
+    exceptions::{PyOverflowError, PyTypeError, PyZeroDivisionError},
     prelude::*,
     types::{PyAny, PyInt},
 };
@@ -35,6 +35,28 @@ pub(crate) fn parse_python_integer(value: &Bound<'_, PyAny>) -> PyResult<Integer
     }
     Integer::from_str(value.str()?.to_str()?)
         .map_err(|error| PyTypeError::new_err(format!("invalid Python integer: {error}")))
+}
+
+/// Convert an exact Python coefficient while retaining explicit scalar fields.
+pub(crate) fn exact_scalar_for<F: runtime::PythonField>(
+    field: &F,
+    value: &Bound<'_, PyAny>,
+) -> PyResult<F::Element> {
+    if let Ok(scalar) = value.extract::<PyRef<'_, PyScalar>>() {
+        return field.scalar_value(&scalar);
+    }
+    if value.is_instance_of::<PyInt>() {
+        return Ok(field.integer_value(&parse_python_integer(value)?));
+    }
+    let fraction_type = value.py().import("fractions")?.getattr("Fraction")?;
+    if value.is_instance(&fraction_type)? {
+        let numerator = parse_python_integer(&value.getattr("numerator")?)?;
+        let denominator = parse_python_integer(&value.getattr("denominator")?)?;
+        return field.scalar_value(&runtime::scalar_fraction(field, &numerator, &denominator)?);
+    }
+    Err(PyTypeError::new_err(
+        "an exact coefficient must be a Scalar, Python int, or fractions.Fraction",
+    ))
 }
 
 /// Convert a Numerica arbitrary-precision integer to Python's exact `int`.
@@ -378,7 +400,78 @@ pub(crate) struct PyScalar {
     pub(crate) value: ScalarKind,
 }
 
+#[derive(Clone, Copy)]
+enum ScalarOperation {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Negate,
+    Power(i64),
+}
+
+fn scalar_operation<F: runtime::PythonField>(
+    field: &F,
+    left: &PyScalar,
+    right: &PyScalar,
+    operation: ScalarOperation,
+) -> PyResult<PyScalar> {
+    let left = field.scalar_value(left)?;
+    let right = field.scalar_value(right)?;
+    let result = match operation {
+        ScalarOperation::Add => field.add(&left, &right),
+        ScalarOperation::Subtract => field.sub(&left, &right),
+        ScalarOperation::Multiply => field.mul(&left, &right),
+        ScalarOperation::Divide => {
+            if field.is_zero(&right) {
+                return Err(PyZeroDivisionError::new_err(
+                    "division by zero in coefficient field",
+                ));
+            }
+            field.div(&left, &right)
+        }
+        ScalarOperation::Negate => field.neg(&left),
+        ScalarOperation::Power(exponent) => {
+            let base = if exponent < 0 {
+                if field.is_zero(&left) {
+                    return Err(PyZeroDivisionError::new_err(
+                        "zero cannot have a negative power",
+                    ));
+                }
+                field.inv(&left)
+            } else {
+                left
+            };
+            field.pow(&base, exponent.unsigned_abs())
+        }
+    };
+    Ok(field.wrap_scalar(&result))
+}
+
 impl PyScalar {
+    fn operand(&self, value: &Bound<'_, PyAny>) -> PyResult<Self> {
+        if let Ok(scalar) = value.extract::<PyRef<'_, Self>>() {
+            return Ok(scalar.clone());
+        }
+        self.field().element(value, None)
+    }
+
+    fn operate(&self, right: &Self, operation: ScalarOperation) -> PyResult<Self> {
+        match self.field().kind {
+            FieldKind::Rational => scalar_operation(&Q, self, right, operation),
+            FieldKind::Binary => scalar_operation(&Z2, self, right, operation),
+            FieldKind::Prime(characteristic) => {
+                scalar_operation(&Zp::new(characteristic), self, right, operation)
+            }
+            kind @ FieldKind::Extension { .. } => scalar_operation(
+                &kind.galois_field().expect("extension variant has a field"),
+                self,
+                right,
+                operation,
+            ),
+        }
+    }
+
     pub(crate) fn prime(characteristic: u32, representative: u32) -> Self {
         Self {
             value: ScalarKind::Prime {
@@ -415,6 +508,64 @@ impl PyScalar {
 
 #[pymethods]
 impl PyScalar {
+    fn __add__(&self, right: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.operate(&self.operand(right)?, ScalarOperation::Add)
+    }
+
+    fn __radd__(&self, left: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__add__(left)
+    }
+
+    fn __sub__(&self, right: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.operate(&self.operand(right)?, ScalarOperation::Subtract)
+    }
+
+    fn __rsub__(&self, left: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.operand(left)?.operate(self, ScalarOperation::Subtract)
+    }
+
+    fn __mul__(&self, right: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.operate(&self.operand(right)?, ScalarOperation::Multiply)
+    }
+
+    fn __rmul__(&self, left: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.__mul__(left)
+    }
+
+    fn __truediv__(&self, right: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.operate(&self.operand(right)?, ScalarOperation::Divide)
+    }
+
+    fn __rtruediv__(&self, left: &Bound<'_, PyAny>) -> PyResult<Self> {
+        self.operand(left)?.operate(self, ScalarOperation::Divide)
+    }
+
+    fn __neg__(&self) -> PyResult<Self> {
+        self.operate(self, ScalarOperation::Negate)
+    }
+
+    fn __pow__(
+        &self,
+        exponent: &Bound<'_, PyAny>,
+        modulo: Option<&Bound<'_, PyAny>>,
+    ) -> PyResult<Self> {
+        if modulo.is_some() {
+            return Err(PyTypeError::new_err(
+                "modular powers are not defined for field scalars",
+            ));
+        }
+        parse_python_integer(exponent)?;
+        let exponent = exponent.extract::<i64>()?;
+        // Numerica's rational powers delegate to Integer::pow, which panics
+        // above u32::MAX. Keep one checked contract across coefficient fields.
+        if exponent.unsigned_abs() > u64::from(u32::MAX) {
+            return Err(PyOverflowError::new_err(
+                "scalar power exponent must be between -4294967295 and 4294967295",
+            ));
+        }
+        self.operate(self, ScalarOperation::Power(exponent))
+    }
+
     #[getter]
     fn field(&self) -> PyField {
         let kind = match self.value {
