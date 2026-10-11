@@ -3,8 +3,9 @@
 The Python distribution is named `qpa-rust`; Python code imports it as `qpa`.
 Python 3.10 and newer are supported.
 
-This guide documents the 0.2.0 API. Upgrade an existing installation to use the
-new methods: `uv add "qpa-rust==0.2.0"`.
+This guide documents the 0.2.1 API. This patch release speeds up existing
+calculations without an API migration. Once published, select it with
+`uv add "qpa-rust==0.2.1"`.
 
 ## Install from PyPI
 
@@ -19,7 +20,7 @@ uv run python -c "import qpa; print(qpa.Field.prime(5))"
 ```
 
 Pin an exact version when a computation must stay reproducible, for example
-`uv add "qpa-rust==0.2.0"`. On a platform without a prebuilt wheel, `uv`
+`uv add "qpa-rust==0.2.1"`. On a platform without a prebuilt wheel, `uv`
 falls back to the source distribution, which needs the Rust toolchain
 described below.
 
@@ -34,7 +35,7 @@ are required:
 uv add "qpa-rust @ git+https://github.com/haruhisa-enomoto/qpa-rust"
 ```
 
-A tag such as `@v0.2.0` after the URL selects a published release commit. The same Git
+A tag such as `@v0.2.1` after the URL selects a published release commit. The same Git
 URL works with `pip install`.
 
 ## Use a local clone from another project
@@ -74,8 +75,10 @@ on a mounted Windows filesystem. Later builds reuse Cargo and `uv` caches.
 
 The repository's `pyproject.toml` declares Maturin as its PEP 517 build
 backend. A consumer project does not need to add Maturin or PyO3 itself. A
-source build does require the Rust toolchain and native build prerequisites on
-the host machine.
+source build does require Rust **1.89 or newer** and native build prerequisites
+on the host machine. Git checkouts pin Rust 1.89.0; when building a source
+distribution, select a compatible toolchain yourself (for example,
+`RUSTUP_TOOLCHAIN=1.89.0 uv add "qpa-rust==0.2.1"`).
 
 An absolute local path is intentionally not portable to another machine; use
 the PyPI release or the Git URL in shared project files.

@@ -9,7 +9,9 @@ use std::ops::{Index, IndexMut};
 use numerica::domains::Field;
 use thiserror::Error;
 
+mod adaptive_row;
 mod binary;
+pub(crate) mod sparse;
 
 /// A dense row-major matrix over an exact Numerica field.
 ///
@@ -173,6 +175,20 @@ impl<F: Field> DenseMatrix<F> {
                 .collect(),
             self.field.clone(),
         )
+    }
+
+    pub(crate) fn add_scaled_assign(
+        &mut self,
+        right: &Self,
+        scalar: &F::Element,
+    ) -> Result<(), MatrixError> {
+        self.ensure_same_field(right)?;
+        self.ensure_same_shape(right)?;
+        let field = self.field.clone();
+        for row in 0..self.nrows {
+            add_scaled_row(&field, self.row_mut(row), right.row(row), scalar);
+        }
+        Ok(())
     }
 
     /// Multiply matrices using GAP's row-vector convention.
@@ -606,7 +622,7 @@ impl<F: Field> DenseMatrix<F> {
         if self.use_packed_binary() {
             return self.packed_binary::<false>().vectors.len();
         }
-        self.semi_echelon_basis().nrows
+        self.rank_without_export()
     }
 }
 

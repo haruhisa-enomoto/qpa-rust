@@ -348,6 +348,7 @@ fn projective_basis_data<F: Field>(
     };
     let vertex_count = algebra.quiver().number_of_vertices();
     let mut intervals = vec![vec![Vec::new(); vertex_count]; vertex_count];
+    let coordinates = (0..vertex_count).map(|_| std::sync::OnceLock::new()).collect();
     for (basis_index, element) in basis.iter().enumerate() {
         let monomial = element.leading_monomial();
         let PathEndpoint::Vertex(source) = monomial.source() else {
@@ -356,9 +357,11 @@ fn projective_basis_data<F: Field>(
         let PathEndpoint::Vertex(target) = monomial.target() else {
             continue;
         };
-        intervals[source.index().get() - 1][target.index().get() - 1].push(basis_index);
+        let source = source.index().get() - 1;
+        let target = target.index().get() - 1;
+        intervals[source][target].push(basis_index);
     }
-    Ok(Some(ProjectiveBasisData { basis, intervals }))
+    Ok(Some(ProjectiveBasisData { basis, intervals, coordinates }))
 }
 
 /// Translate QPA's cached `IsProjectiveModule(M)` dimension test.
@@ -451,13 +454,13 @@ pub fn hom_from_projective<F: Field>(
     element: &PathAlgebraModuleElement<F>,
     target: &PathAlgebraModule<F>,
 ) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, EnvelopingModuleError> {
-    hom_from_projective_with_family(element, target, &mut None)
+    hom_from_projective_with_basis(element, target, &mut None)
 }
 
-fn hom_from_projective_with_family<F: Field>(
+fn hom_from_projective_with_basis<F: Field>(
     element: &PathAlgebraModuleElement<F>,
     target: &PathAlgebraModule<F>,
-    projectives: &mut Option<Vec<PathAlgebraModule<F>>>,
+    basis_data: &mut Option<ProjectiveBasisData<F>>,
 ) -> Result<Option<PathAlgebraModuleHomomorphism<F>>, EnvelopingModuleError> {
     if !element.module().is_identical(target) {
         return Err(EnvelopingModuleError::ProjectiveElementInWrongModule);
@@ -466,13 +469,18 @@ fn hom_from_projective_with_family<F: Field>(
     let [vertex] = support.as_slice() else {
         return Ok(None);
     };
-    let bases = basis_of_projectives(target.right_acting_algebra())?
-        .ok_or(EnvelopingModuleError::ProjectiveBasisUnavailable)?;
-    let projectives = match projectives {
-        Some(family) => family,
-        None => projectives.insert(indec_projective_modules(target.right_acting_algebra())?),
+    let algebra = target.right_acting_algebra();
+    let data = if let Some(data) = basis_data {
+        data
+    } else {
+        let data = projective_basis_data(algebra)?
+            .ok_or(EnvelopingModuleError::ProjectiveBasisUnavailable)?;
+        if matches!(algebra, QuiverAlgebra::Quotient(quotient) if !quotient.is_admissible()?) {
+            return Err(EnvelopingModuleError::NonadmissibleLoewyAlgebra);
+        }
+        basis_data.insert(data)
     };
-    let projective = projectives[*vertex - 1].clone();
+    let projective = projective_from_basis_data(algebra, data, *vertex - 1)?;
     let field = target.right_acting_algebra().field().clone();
     let matrices = projective
         .dimension_vector()
@@ -491,10 +499,10 @@ fn hom_from_projective_with_family<F: Field>(
                         field.clone(),
                     ));
                 }
-                let rows = bases[*vertex - 1][target_vertex]
+                let rows = data.intervals[*vertex - 1][target_vertex]
                     .iter()
-                    .map(|basis_element| {
-                        Ok(element.act(basis_element)?.external_representation()[target_vertex]
+                    .map(|&basis_index| {
+                        Ok(element.act(&data.basis[basis_index])?.external_representation()[target_vertex]
                             .clone())
                     })
                     .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;

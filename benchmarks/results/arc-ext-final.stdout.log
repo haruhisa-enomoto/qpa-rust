@@ -1,0 +1,38 @@
+{"event": "start", "stage": "load_basis"}
+{"event": "timing", "stage": "load_basis", "seconds": 0.1107132260221988, "peak_rss_kib": 53060}
+{"event": "start", "stage": "verify_input_relations"}
+{"event": "timing", "stage": "verify_input_relations", "seconds": 0.0693626570282504, "peak_rss_kib": 53060}
+{"event": "start", "stage": "quotient"}
+{"event": "timing", "stage": "quotient", "seconds": 0.059280790970660746, "peak_rss_kib": 55292}
+{"event": "start", "stage": "admissibility"}
+{"event": "timing", "stage": "admissibility", "seconds": 15.618752793991007, "peak_rss_kib": 103100}
+{"event": "start", "stage": "checked_witness_module"}
+{"event": "timing", "stage": "checked_witness_module", "seconds": 0.009768542950041592, "peak_rss_kib": 104796}
+{"event": "module", "dimension": 110, "dimension_vector": [26, 30, 40, 13, 0, 0, 0, 1]}
+{"event": "start", "stage": "top_projection_1"}
+{"event": "timing", "stage": "top_projection_1", "seconds": 0.06870227202307433, "peak_rss_kib": 106332}
+{"event": "source_top", "degree": 1, "dimension_vector": [0, 0, 0, 1, 0, 0, 0, 1]}
+{"event": "start", "stage": "cover_1"}
+{"event": "timing", "stage": "cover_1", "seconds": 22.331060644006357, "peak_rss_kib": 1633844}
+{"event": "start", "stage": "kernel_1"}
+{"event": "timing", "stage": "kernel_1", "seconds": 0.9280117599992082, "peak_rss_kib": 1633844}
+{"event": "start", "stage": "exactness_1"}
+{"event": "timing", "stage": "exactness_1", "seconds": 0.004320204956457019, "peak_rss_kib": 1633844}
+{"event": "resolution_term", "degree": 1, "exact_sequence_checked": true, "projective_dimension": 1196, "projective_dimension_vector": [282, 286, 440, 166, 6, 2, 8, 6], "syzygy_dimension": 1086, "syzygy_dimension_vector": [256, 256, 400, 153, 6, 2, 8, 5]}
+{"event": "start", "stage": "ext_1"}
+{"event": "timing", "stage": "ext_1", "seconds": 10.049322678009048, "peak_rss_kib": 1633844}
+{"event": "ext", "degree": 1, "source": "Z", "target": "Z", "dimension": 0}
+{"event": "start", "stage": "top_projection_2"}
+{"event": "timing", "stage": "top_projection_2", "seconds": 26.5150609560078, "peak_rss_kib": 1633844}
+{"event": "source_top", "degree": 2, "dimension_vector": [0, 0, 0, 1, 0, 0, 1, 0]}
+{"event": "start", "stage": "cover_2"}
+{"event": "timing", "stage": "cover_2", "seconds": 31.507024782011285, "peak_rss_kib": 2333304}
+{"event": "start", "stage": "kernel_2"}
+{"event": "timing", "stage": "kernel_2", "seconds": 3.1305718729272485, "peak_rss_kib": 2333304}
+{"event": "start", "stage": "exactness_2"}
+{"event": "timing", "stage": "exactness_2", "seconds": 0.06429355009458959, "peak_rss_kib": 2333304}
+{"event": "resolution_term", "degree": 2, "exact_sequence_checked": true, "projective_dimension": 2822, "projective_dimension_vector": [678, 610, 1032, 438, 16, 16, 24, 8], "syzygy_dimension": 1736, "syzygy_dimension_vector": [422, 354, 632, 285, 10, 14, 16, 3]}
+{"event": "start", "stage": "ext_2"}
+{"event": "timing", "stage": "ext_2", "seconds": 134.67320981505327, "peak_rss_kib": 4576808}
+{"event": "ext", "degree": 2, "source": "Z", "target": "Z", "dimension": 0}
+{"event": "result", "ext_dimensions": {"1": 0, "2": 0}}

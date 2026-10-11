@@ -1,0 +1,30 @@
+py-spy> Sampling process 49 times a second. Press Control-C to exit.
+
+BENCH {"event": "metadata", "monotonic": 661981.547573757, "pid": 2628696, "package": "/home/italing/work/qpa-rust/python/qpa/__init__.py", "version": "0.2.0", "revision": "6207cd941fefcadab5a695001be3aac573b1dacf", "extension_sha256": "cbee0a2c587509df4185361112c8a47d807635bf80990741e5cc4a38007f83c8"}
+BENCH {"event": "start", "monotonic": 661981.547659075, "stage": "parse"}
+BENCH {"event": "timing", "monotonic": 661981.569720344, "stage": "parse", "seconds": 0.0018691339064389467, "cpu_seconds": 0.08608091, "peak_rss_kib": 53424}
+BENCH {"event": "input", "monotonic": 661981.572522419, "vertices": 8, "arrows": 43, "relations": 106, "terms": 957, "terms_by_path_length": {"2": 195, "3": 152, "4": 50, "5": 52, "6": 104, "7": 185, "8": 175, "9": 38, "10": 6}, "max_terms_per_relation": 94, "expected_dimension": 7708}
+BENCH {"event": "start", "monotonic": 661981.572583494, "stage": "presentation"}
+BENCH {"event": "timing", "monotonic": 661981.577857656, "stage": "presentation", "seconds": 0.005255201016552746, "cpu_seconds": 0.094487387, "peak_rss_kib": 53424}
+BENCH {"event": "start", "monotonic": 661981.577892979, "stage": "ideal"}
+BENCH {"event": "timing", "monotonic": 661981.577991629, "stage": "ideal", "seconds": 9.17480792850256e-05, "cpu_seconds": 0.094639798, "peak_rss_kib": 53424}
+BENCH {"event": "start", "monotonic": 661981.578006226, "stage": "groebner"}
+BENCH {"event": "timing", "monotonic": 662006.154755357, "stage": "groebner", "seconds": 24.57672447396908, "cpu_seconds": 26.202727369, "peak_rss_kib": 53424}
+BENCH {"event": "completed_basis", "monotonic": 662006.154843465, "relations": 1406}
+BENCH {"event": "start", "monotonic": 662006.154853526, "stage": "completed_ideal"}
+BENCH {"event": "timing", "monotonic": 662006.155801398, "stage": "completed_ideal", "seconds": 0.0009293669136241078, "cpu_seconds": 26.203871149, "peak_rss_kib": 53424}
+BENCH {"event": "start", "monotonic": 662006.155908151, "stage": "attach"}
+BENCH {"event": "timing", "monotonic": 662006.16034279, "stage": "attach", "seconds": 0.004416333045810461, "cpu_seconds": 26.207985858, "peak_rss_kib": 53424}
+BENCH {"event": "start", "monotonic": 662006.160401875, "stage": "quotient"}
+BENCH {"event": "timing", "monotonic": 662006.217821325, "stage": "quotient", "seconds": 0.05739829200319946, "cpu_seconds": 26.268011882, "peak_rss_kib": 53424}
+BENCH {"event": "start", "monotonic": 662006.217888738, "stage": "dimension"}
+BENCH {"event": "timing", "monotonic": 662006.220311253, "stage": "dimension", "seconds": 0.002407071995548904, "cpu_seconds": 26.27072404, "peak_rss_kib": 53424}
+BENCH {"event": "dimension", "monotonic": 662006.220348163, "value": 7708, "matches_expected": true}
+BENCH {"event": "start", "monotonic": 662006.220355496, "stage": "basis"}
+BENCH {"event": "timing", "monotonic": 662006.233322221, "stage": "basis", "seconds": 0.01294868194963783, "cpu_seconds": 26.283751139, "peak_rss_kib": 58972}
+BENCH {"event": "basis_size", "monotonic": 662006.233380612, "value": 7708}
+BENCH {"event": "start", "monotonic": 662006.233388942, "stage": "admissibility"}
+
+py-spy> Stopped sampling because Control-C pressed
+py-spy> Wrote speedscope file to 'benchmarks/results/arc-construction-opposite-rational-profile.speedscope.json'. Samples: 3445 Errors: 0
+py-spy> Visit https://www.speedscope.app/ to view

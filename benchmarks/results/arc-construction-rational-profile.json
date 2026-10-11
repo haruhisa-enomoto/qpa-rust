@@ -1,0 +1,469 @@
+{
+  "date": "2026-10-10T14:46:24.542495+00:00",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "input": "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-bound-quiver.md",
+  "input_sha256": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d",
+  "source_sha256": "617ffc9b8434eebb5525d7dfb221705e7624102345fc76d46f14a019b7a06e47",
+  "field": "Q",
+  "opposite": false,
+  "stop_after": "groebner",
+  "stage_timeout": 30.0,
+  "total_timeout": 45.0,
+  "address_space_limit_mib": 4096,
+  "command": [
+    "py-spy",
+    "record",
+    "--native",
+    "--rate",
+    "49",
+    "--format",
+    "speedscope",
+    "--output",
+    "benchmarks/results/arc-construction-rational-profile.speedscope.json",
+    "--",
+    "/home/italing/work/qpa-rust/.venv/bin/python",
+    "/home/italing/work/qpa-rust/benchmarks/arc_construction.py",
+    "--worker",
+    "--input",
+    "/home/italing/work/homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-bound-quiver.md",
+    "--field",
+    "Q",
+    "--stop-after",
+    "groebner",
+    "--memory-mib",
+    "4096"
+  ],
+  "profile": "benchmarks/results/arc-construction-rational-profile.speedscope.json",
+  "status": "timeout",
+  "samples": [
+    {
+      "elapsed_seconds": 0.00041881902143359184,
+      "stage": "startup",
+      "pids": [
+        2626607
+      ],
+      "rss_kib": 696,
+      "cpu_seconds": 0.0
+    },
+    {
+      "elapsed_seconds": 1.0008539609843865,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 71408,
+      "cpu_seconds": 1.12
+    },
+    {
+      "elapsed_seconds": 2.0015389199834317,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 83316,
+      "cpu_seconds": 2.25
+    },
+    {
+      "elapsed_seconds": 3.0022452059201896,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 84264,
+      "cpu_seconds": 3.37
+    },
+    {
+      "elapsed_seconds": 4.002784466021694,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 85000,
+      "cpu_seconds": 4.489999999999999
+    },
+    {
+      "elapsed_seconds": 5.003379776026122,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 85424,
+      "cpu_seconds": 5.62
+    },
+    {
+      "elapsed_seconds": 6.003956977976486,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 86552,
+      "cpu_seconds": 6.720000000000001
+    },
+    {
+      "elapsed_seconds": 7.004680658923462,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 87236,
+      "cpu_seconds": 7.84
+    },
+    {
+      "elapsed_seconds": 8.005437786923721,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 87760,
+      "cpu_seconds": 8.97
+    },
+    {
+      "elapsed_seconds": 9.006017704959959,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 87876,
+      "cpu_seconds": 10.090000000000002
+    },
+    {
+      "elapsed_seconds": 10.006592373014428,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 87952,
+      "cpu_seconds": 11.209999999999999
+    },
+    {
+      "elapsed_seconds": 11.009410400991328,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 88360,
+      "cpu_seconds": 12.34
+    },
+    {
+      "elapsed_seconds": 12.010094503988512,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89040,
+      "cpu_seconds": 13.459999999999999
+    },
+    {
+      "elapsed_seconds": 13.010747716994956,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89100,
+      "cpu_seconds": 14.579999999999998
+    },
+    {
+      "elapsed_seconds": 14.01137248496525,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89136,
+      "cpu_seconds": 15.68
+    },
+    {
+      "elapsed_seconds": 15.012035825988278,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89532,
+      "cpu_seconds": 16.76
+    },
+    {
+      "elapsed_seconds": 16.015163618023507,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89572,
+      "cpu_seconds": 17.85
+    },
+    {
+      "elapsed_seconds": 17.015851537929848,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89632,
+      "cpu_seconds": 18.950000000000003
+    },
+    {
+      "elapsed_seconds": 18.01644643896725,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89680,
+      "cpu_seconds": 20.029999999999998
+    },
+    {
+      "elapsed_seconds": 19.017271920922212,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89728,
+      "cpu_seconds": 21.12
+    },
+    {
+      "elapsed_seconds": 20.018136781989597,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89760,
+      "cpu_seconds": 22.2
+    },
+    {
+      "elapsed_seconds": 21.021193124935962,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89792,
+      "cpu_seconds": 23.29
+    },
+    {
+      "elapsed_seconds": 22.021971757989377,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89944,
+      "cpu_seconds": 24.39
+    },
+    {
+      "elapsed_seconds": 23.02272191795055,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 89968,
+      "cpu_seconds": 25.48
+    },
+    {
+      "elapsed_seconds": 24.023683488019742,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 90004,
+      "cpu_seconds": 26.580000000000002
+    },
+    {
+      "elapsed_seconds": 25.024332726956345,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 90844,
+      "cpu_seconds": 27.669999999999998
+    },
+    {
+      "elapsed_seconds": 26.025490000029095,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 90888,
+      "cpu_seconds": 28.77
+    },
+    {
+      "elapsed_seconds": 27.026190990931354,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 90912,
+      "cpu_seconds": 29.869999999999997
+    },
+    {
+      "elapsed_seconds": 28.02695968397893,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 90956,
+      "cpu_seconds": 30.97
+    },
+    {
+      "elapsed_seconds": 29.027719106990844,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 90984,
+      "cpu_seconds": 32.07
+    },
+    {
+      "elapsed_seconds": 30.02854074095376,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 91036,
+      "cpu_seconds": 33.160000000000004
+    },
+    {
+      "elapsed_seconds": 31.02918084396515,
+      "stage": "groebner",
+      "pids": [
+        2626607,
+        2626608
+      ],
+      "rss_kib": 91068,
+      "cpu_seconds": 34.260000000000005
+    }
+  ],
+  "events": [
+    {
+      "event": "metadata",
+      "monotonic": 661665.276253514,
+      "pid": 2626608,
+      "package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "version": "0.2.0",
+      "revision": "6207cd941fefcadab5a695001be3aac573b1dacf",
+      "extension_sha256": "cbee0a2c587509df4185361112c8a47d807635bf80990741e5cc4a38007f83c8"
+    },
+    {
+      "event": "start",
+      "monotonic": 661665.276336582,
+      "stage": "parse"
+    },
+    {
+      "event": "timing",
+      "monotonic": 661665.278261352,
+      "stage": "parse",
+      "seconds": 0.001897715963423252,
+      "cpu_seconds": 0.082617491,
+      "peak_rss_kib": 53652
+    },
+    {
+      "event": "input",
+      "monotonic": 661665.280407479,
+      "vertices": 8,
+      "arrows": 43,
+      "relations": 106,
+      "terms": 957,
+      "terms_by_path_length": {
+        "2": 195,
+        "3": 152,
+        "4": 50,
+        "5": 52,
+        "6": 104,
+        "7": 185,
+        "8": 175,
+        "9": 38,
+        "10": 6
+      },
+      "max_terms_per_relation": 94,
+      "expected_dimension": 7708
+    },
+    {
+      "event": "start",
+      "monotonic": 661665.280449427,
+      "stage": "presentation"
+    },
+    {
+      "event": "timing",
+      "monotonic": 661665.285586495,
+      "stage": "presentation",
+      "seconds": 0.005121293943375349,
+      "cpu_seconds": 0.090763807,
+      "peak_rss_kib": 53652
+    },
+    {
+      "event": "start",
+      "monotonic": 661665.285628614,
+      "stage": "ideal"
+    },
+    {
+      "event": "timing",
+      "monotonic": 661665.285728627,
+      "stage": "ideal",
+      "seconds": 9.300210513174534e-05,
+      "cpu_seconds": 0.090929314,
+      "peak_rss_kib": 53652
+    },
+    {
+      "event": "start",
+      "monotonic": 661665.285740494,
+      "stage": "groebner"
+    }
+  ],
+  "elapsed_seconds": 31.02918084396515,
+  "last_started_stage": "groebner",
+  "stage_seconds": {
+    "parse": 0.001897715963423252,
+    "presentation": 0.005121293943375349,
+    "ideal": 9.300210513174534e-05
+  },
+  "timed_out_stage": "groebner",
+  "returncode": 0,
+  "stderr": "",
+  "sampled_peak_process_tree_rss_kib": 91068
+}

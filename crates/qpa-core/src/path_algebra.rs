@@ -400,6 +400,25 @@ impl<F: Field> PathAlgebra<F> {
             .and_then(WeakPathAlgebraModule::upgrade)
     }
 
+    pub(crate) fn cached_indec_projective_module(
+        &self,
+        index: usize,
+    ) -> Option<PathAlgebraModule<F>> {
+        self.0.indec_projective_modules.cached_at(index)
+    }
+
+    pub(crate) fn merge_indec_projective_module(
+        &self,
+        index: usize,
+        generated: &PathAlgebraModule<F>,
+    ) -> Option<PathAlgebraModule<F>> {
+        self.0.indec_projective_modules.merge_at(
+            index,
+            self.quiver().number_of_vertices(),
+            generated,
+        )
+    }
+
     pub(crate) fn cached_indec_projective_modules(&self) -> Option<Vec<PathAlgebraModule<F>>> {
         self.0.indec_projective_modules.cached()
     }

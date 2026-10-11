@@ -121,14 +121,22 @@ Rust users can depend on the `qpa-core` and `qpa-gbnp` crates directly; see the
 
 ## Status
 
-The current release is 0.2.0.
+The current release is 0.2.1.
 See the [changelog](CHANGELOG.md) for release changes and compatibility notes.
-The Python API may still change. Performance has not
-yet been compared with QPA under GAP. Computations that are expensive in QPA,
-such as Gröbner bases and submodule enumeration, retain QPA's algorithms and
-can still be expensive. The [performance audit](benchmarks/results/broad-audit.json)
+The Python API may still change. A bounded
+[construction benchmark](benchmarks/results/algebra-construction.md) compares
+small synthetic presentations with GAP/QPA; it is not a general performance
+comparison. Computations that are expensive in QPA, such as Gröbner bases and
+submodule enumeration, retain QPA's algorithms and can still be expensive. The [performance audit](benchmarks/results/broad-audit.json)
 records comparisons between Rust builds, consumer workload coverage, and
-remaining limitations. Reproduction scripts are in [benchmarks](benchmarks/).
+remaining limitations. The [ordinary-API performance report](benchmarks/results/arc-native-api.md)
+uses the ARC input to validate general native optimizations for rational
+construction and low-degree Ext, without an example-specific preconditioner.
+All four priorities in the [native performance plan](docs/development/performance-plan.md)
+are implemented. The [complete performance report](benchmarks/results/native-performance.md)
+records ordinary-API before/after measurements, compatibility checks, and remaining
+tradeoffs.
+Reproduction scripts are in [benchmarks](benchmarks/).
 
 ## Credits and licensing
 

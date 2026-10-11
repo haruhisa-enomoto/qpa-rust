@@ -1,0 +1,18 @@
+   Compiling qpa-core v0.2.0 (/home/italing/work/qpa-rust/crates/qpa-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.65s
+     Running unittests src/lib.rs (target/debug/deps/qpa_core-f9fdf5ae3324c99e)
+
+running 1 test
+fill profile numerica::domains::rational::FractionField<numerica::domains::integer::IntegerRing>: input_max=78, peak_sparse=585, promotions=64
+fill profile numerica::domains::finite_field::FiniteField<numerica::domains::finite_field::Two>: input_max=76, peak_sparse=328, promotions=50
+fill profile numerica::domains::finite_field::FiniteField<u32>: input_max=78, peak_sparse=583, promotions=64
+fill profile qpa_core::finite_field::GaloisField: input_max=76, peak_sparse=328, promotions=50
+test matrix::sparse::tests::fill_in_adaptation_and_direct_binary_packing_preserve_ordered_nullspaces ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 228 filtered out; finished in 0.82s
+
+     Running tests/matrix_elimination.rs (target/debug/deps/matrix_elimination-6bcd5fb096392f54)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s

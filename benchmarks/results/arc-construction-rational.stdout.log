@@ -1,0 +1,10 @@
+BENCH {"event": "metadata", "monotonic": 661532.29395943, "pid": 2626107, "package": "/home/italing/work/qpa-rust/python/qpa/__init__.py", "version": "0.2.0", "revision": "6207cd941fefcadab5a695001be3aac573b1dacf", "extension_sha256": "cbee0a2c587509df4185361112c8a47d807635bf80990741e5cc4a38007f83c8"}
+BENCH {"event": "start", "monotonic": 661532.294054495, "stage": "parse"}
+BENCH {"event": "timing", "monotonic": 661532.295941816, "stage": "parse", "seconds": 0.0018313300097361207, "cpu_seconds": 0.082573017, "peak_rss_kib": 52932}
+BENCH {"event": "input", "monotonic": 661532.297981804, "vertices": 8, "arrows": 43, "relations": 106, "terms": 957, "terms_by_path_length": {"2": 195, "3": 152, "4": 50, "5": 52, "6": 104, "7": 185, "8": 175, "9": 38, "10": 6}, "max_terms_per_relation": 94, "expected_dimension": 7708}
+BENCH {"event": "input_match", "monotonic": 661532.29877172, "path": "/home/italing/work/homological-conjectures/data/auslander-reiten-counterexample/arc-explicit-presentation.json"}
+BENCH {"event": "start", "monotonic": 661532.298788383, "stage": "presentation"}
+BENCH {"event": "timing", "monotonic": 661532.30353823, "stage": "presentation", "seconds": 0.00473657192196697, "cpu_seconds": 0.09102263, "peak_rss_kib": 52932}
+BENCH {"event": "start", "monotonic": 661532.30356052, "stage": "ideal"}
+BENCH {"event": "timing", "monotonic": 661532.30362395, "stage": "ideal", "seconds": 5.726097151637077e-05, "cpu_seconds": 0.091122814, "peak_rss_kib": 52932}
+BENCH {"event": "start", "monotonic": 661532.30363603, "stage": "groebner"}

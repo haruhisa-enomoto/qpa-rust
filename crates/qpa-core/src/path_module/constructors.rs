@@ -260,7 +260,7 @@ pub fn right_module_over_path_algebra<F: Field>(
     dimension_vector: Vec<usize>,
     generators: &[NamedArrowMatrix<F>],
 ) -> Result<Option<PathAlgebraModule<F>>, PathAlgebraModuleError> {
-    right_module_over_path_algebra_impl(algebra, dimension_vector, generators, None)
+    right_module_over_path_algebra_impl(algebra, dimension_vector, generators, None, false)
 }
 
 /// Construct a checked module while retaining the tensor object underlying
@@ -276,7 +276,7 @@ pub fn right_module_over_path_algebra_with_tensor<F: Field>(
     if tensor.algebra() != &algebra {
         return Err(PathAlgebraModuleError::RetainedTensorAlgebraMismatch);
     }
-    right_module_over_path_algebra_impl(algebra, dimension_vector, generators, Some(tensor))
+    right_module_over_path_algebra_impl(algebra, dimension_vector, generators, Some(tensor), false)
 }
 
 fn right_module_over_path_algebra_impl<F: Field>(
@@ -284,6 +284,7 @@ fn right_module_over_path_algebra_impl<F: Field>(
     dimension_vector: Vec<usize>,
     generators: &[NamedArrowMatrix<F>],
     retained_tensor: Option<TensorProductAlgebra<F>>,
+    relations_certified: bool,
 ) -> Result<Option<PathAlgebraModule<F>>, PathAlgebraModuleError> {
     let quiver = algebra.quiver();
     if dimension_vector.len() != quiver.number_of_vertices() {
@@ -364,7 +365,7 @@ fn right_module_over_path_algebra_impl<F: Field>(
         arrow_matrices[arrow.index().zero_based()] = generator.matrix().clone();
     }
 
-    if dimension != 0
+    if !relations_certified && dimension != 0
         && algebra.as_quotient().is_some()
         && !relations_are_satisfied(&algebra, &dimension_vector, &arrow_matrices, &field)?
     {
@@ -386,7 +387,8 @@ fn physical_dimension(dimension: usize) -> usize {
     dimension.max(1)
 }
 
-fn relations_are_satisfied<F: Field>(
+#[cfg(test)]
+fn relations_are_satisfied_uncached<F: Field>(
     algebra: &QuiverAlgebra<F>,
     dimension_vector: &[usize],
     arrow_matrices: &[DenseMatrix<F>],
@@ -410,6 +412,7 @@ fn relations_are_satisfied<F: Field>(
     Ok(true)
 }
 
+#[cfg(test)]
 fn path_action_matrix<F: Field>(
     path: &Path,
     dimension_vector: &[usize],

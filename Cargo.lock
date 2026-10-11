@@ -399,7 +399,7 @@ dependencies = [
 
 [[package]]
 name = "qpa-core"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "numerica",
  "rand",
@@ -410,7 +410,7 @@ dependencies = [
 
 [[package]]
 name = "qpa-gbnp"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "numerica",
  "qpa-core",
@@ -421,14 +421,14 @@ dependencies = [
 
 [[package]]
 name = "qpa-porting"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "serde_json",
 ]
 
 [[package]]
 name = "qpa-python"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "numerica",
  "pyo3",

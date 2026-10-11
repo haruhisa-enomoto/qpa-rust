@@ -461,8 +461,9 @@ pub enum EnvelopingModuleError {
     /// `ExtOverAlgebra` requires one common acting algebra.
     #[error("the two modules entered are not modules over the same algebra")]
     ExtModulesOverDifferentAlgebras,
-    /// A Hom call cannot reject the already checked Ext modules.
-    #[error("HomOverAlgebra rejected modules in the ExtOverAlgebra construction")]
+    /// An internal Hom call rejected already checked Ext modules or returned
+    /// dimensions inconsistent with their exact cover sequence.
+    #[error("HomOverAlgebra returned missing or inconsistent data in the ExtOverAlgebra construction")]
     InternalExtHomRejected,
     /// GAP's Steinitz extension must complete the image basis to the Hom basis.
     #[error("NaturalHomomorphismBySubspace did not produce a complete Ext quotient basis")]

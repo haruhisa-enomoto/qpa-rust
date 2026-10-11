@@ -1,0 +1,960 @@
+{
+  "date": "2026-10-10T14:52:09.324822+00:00",
+  "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "python": "3.12.11 (main, Aug  8 2025, 17:06:48) [Clang 20.1.4 ]",
+  "cpu_affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "input": "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-bound-quiver.md",
+  "input_sha256": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d",
+  "source_sha256": "617ffc9b8434eebb5525d7dfb221705e7624102345fc76d46f14a019b7a06e47",
+  "field": "Q",
+  "opposite": true,
+  "stop_after": "admissibility",
+  "stage_timeout": 45.0,
+  "total_timeout": 90.0,
+  "address_space_limit_mib": 4096,
+  "command": [
+    "py-spy",
+    "record",
+    "--native",
+    "--rate",
+    "49",
+    "--format",
+    "speedscope",
+    "--output",
+    "benchmarks/results/arc-construction-opposite-rational-profile.speedscope.json",
+    "--",
+    "/home/italing/work/qpa-rust/.venv/bin/python",
+    "/home/italing/work/qpa-rust/benchmarks/arc_construction.py",
+    "--worker",
+    "--input",
+    "/home/italing/work/homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-bound-quiver.md",
+    "--field",
+    "Q",
+    "--stop-after",
+    "admissibility",
+    "--memory-mib",
+    "4096",
+    "--opposite"
+  ],
+  "profile": "benchmarks/results/arc-construction-opposite-rational-profile.speedscope.json",
+  "status": "timeout",
+  "samples": [
+    {
+      "elapsed_seconds": 0.0003861150471493602,
+      "stage": "startup",
+      "pids": [
+        2628695
+      ],
+      "rss_kib": 576,
+      "cpu_seconds": 0.0
+    },
+    {
+      "elapsed_seconds": 1.0008823190582916,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 81640,
+      "cpu_seconds": 1.09
+    },
+    {
+      "elapsed_seconds": 2.0015157610177994,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 83328,
+      "cpu_seconds": 2.19
+    },
+    {
+      "elapsed_seconds": 3.0021410840563476,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 83744,
+      "cpu_seconds": 3.29
+    },
+    {
+      "elapsed_seconds": 4.002709856024012,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 84220,
+      "cpu_seconds": 4.39
+    },
+    {
+      "elapsed_seconds": 5.003719839965925,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 84524,
+      "cpu_seconds": 5.49
+    },
+    {
+      "elapsed_seconds": 6.0043958380119875,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 84816,
+      "cpu_seconds": 6.59
+    },
+    {
+      "elapsed_seconds": 7.005099516012706,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 85096,
+      "cpu_seconds": 7.67
+    },
+    {
+      "elapsed_seconds": 8.005681053036824,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 85208,
+      "cpu_seconds": 8.77
+    },
+    {
+      "elapsed_seconds": 9.006382921012118,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 85416,
+      "cpu_seconds": 9.870000000000001
+    },
+    {
+      "elapsed_seconds": 10.006908594048582,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 85524,
+      "cpu_seconds": 10.96
+    },
+    {
+      "elapsed_seconds": 11.007597413030453,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 85800,
+      "cpu_seconds": 12.059999999999999
+    },
+    {
+      "elapsed_seconds": 12.0081804220099,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86092,
+      "cpu_seconds": 13.15
+    },
+    {
+      "elapsed_seconds": 13.008770429063588,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86212,
+      "cpu_seconds": 14.25
+    },
+    {
+      "elapsed_seconds": 14.009400759008713,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86284,
+      "cpu_seconds": 15.34
+    },
+    {
+      "elapsed_seconds": 15.010163374012336,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86420,
+      "cpu_seconds": 16.44
+    },
+    {
+      "elapsed_seconds": 16.010937858955003,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86552,
+      "cpu_seconds": 17.55
+    },
+    {
+      "elapsed_seconds": 17.011637400952168,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86608,
+      "cpu_seconds": 18.64
+    },
+    {
+      "elapsed_seconds": 18.012353911995888,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86792,
+      "cpu_seconds": 19.73
+    },
+    {
+      "elapsed_seconds": 19.012945436988957,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86836,
+      "cpu_seconds": 20.830000000000002
+    },
+    {
+      "elapsed_seconds": 20.013566761044785,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 86988,
+      "cpu_seconds": 21.919999999999998
+    },
+    {
+      "elapsed_seconds": 21.01455276098568,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 87136,
+      "cpu_seconds": 23.020000000000003
+    },
+    {
+      "elapsed_seconds": 22.0152472530026,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 87256,
+      "cpu_seconds": 24.11
+    },
+    {
+      "elapsed_seconds": 23.01588049600832,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 87284,
+      "cpu_seconds": 25.209999999999997
+    },
+    {
+      "elapsed_seconds": 24.01662287802901,
+      "stage": "groebner",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 87324,
+      "cpu_seconds": 26.310000000000002
+    },
+    {
+      "elapsed_seconds": 25.0173697109567,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 114632,
+      "cpu_seconds": 27.400000000000002
+    },
+    {
+      "elapsed_seconds": 26.01983107603155,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 123288,
+      "cpu_seconds": 28.49
+    },
+    {
+      "elapsed_seconds": 27.020534447045065,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 132824,
+      "cpu_seconds": 29.58
+    },
+    {
+      "elapsed_seconds": 28.021504490985535,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 142740,
+      "cpu_seconds": 30.68
+    },
+    {
+      "elapsed_seconds": 29.022515135002322,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 149720,
+      "cpu_seconds": 31.79
+    },
+    {
+      "elapsed_seconds": 30.023527325014584,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 154248,
+      "cpu_seconds": 32.88
+    },
+    {
+      "elapsed_seconds": 31.02464975800831,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 160428,
+      "cpu_seconds": 33.97
+    },
+    {
+      "elapsed_seconds": 32.02546545304358,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 168656,
+      "cpu_seconds": 35.08
+    },
+    {
+      "elapsed_seconds": 33.02629456797149,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 173208,
+      "cpu_seconds": 36.18
+    },
+    {
+      "elapsed_seconds": 34.02708925399929,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 178552,
+      "cpu_seconds": 37.27
+    },
+    {
+      "elapsed_seconds": 35.027896804967895,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 183576,
+      "cpu_seconds": 38.38
+    },
+    {
+      "elapsed_seconds": 36.028818377060816,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 188216,
+      "cpu_seconds": 39.46
+    },
+    {
+      "elapsed_seconds": 37.029774770955555,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 194116,
+      "cpu_seconds": 40.559999999999995
+    },
+    {
+      "elapsed_seconds": 38.033277107053436,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 200596,
+      "cpu_seconds": 41.65
+    },
+    {
+      "elapsed_seconds": 39.034118758980185,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 203940,
+      "cpu_seconds": 42.76
+    },
+    {
+      "elapsed_seconds": 40.0350608950248,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 206280,
+      "cpu_seconds": 43.85
+    },
+    {
+      "elapsed_seconds": 41.03589019505307,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 212192,
+      "cpu_seconds": 44.95
+    },
+    {
+      "elapsed_seconds": 42.03668687597383,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 217136,
+      "cpu_seconds": 46.04
+    },
+    {
+      "elapsed_seconds": 43.03789432498161,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 221764,
+      "cpu_seconds": 47.14
+    },
+    {
+      "elapsed_seconds": 44.03873653803021,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 225352,
+      "cpu_seconds": 48.230000000000004
+    },
+    {
+      "elapsed_seconds": 45.03955072397366,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 228660,
+      "cpu_seconds": 49.32
+    },
+    {
+      "elapsed_seconds": 46.040431697969325,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 234040,
+      "cpu_seconds": 50.419999999999995
+    },
+    {
+      "elapsed_seconds": 47.04138592304662,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 236980,
+      "cpu_seconds": 51.51
+    },
+    {
+      "elapsed_seconds": 48.04260488203727,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 238468,
+      "cpu_seconds": 52.61
+    },
+    {
+      "elapsed_seconds": 49.04346615902614,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 241860,
+      "cpu_seconds": 53.71
+    },
+    {
+      "elapsed_seconds": 50.04430950700771,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 244936,
+      "cpu_seconds": 54.8
+    },
+    {
+      "elapsed_seconds": 51.04508843005169,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 247592,
+      "cpu_seconds": 55.9
+    },
+    {
+      "elapsed_seconds": 52.04610300704371,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 249776,
+      "cpu_seconds": 57.01
+    },
+    {
+      "elapsed_seconds": 53.04739720898215,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 252876,
+      "cpu_seconds": 58.1
+    },
+    {
+      "elapsed_seconds": 54.0482531520538,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 256520,
+      "cpu_seconds": 59.21
+    },
+    {
+      "elapsed_seconds": 55.04918487800751,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 260076,
+      "cpu_seconds": 60.300000000000004
+    },
+    {
+      "elapsed_seconds": 56.05012699496001,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 263944,
+      "cpu_seconds": 61.4
+    },
+    {
+      "elapsed_seconds": 57.051026246044785,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 266472,
+      "cpu_seconds": 62.5
+    },
+    {
+      "elapsed_seconds": 58.05206589400768,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 269556,
+      "cpu_seconds": 63.589999999999996
+    },
+    {
+      "elapsed_seconds": 59.05290091095958,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 272068,
+      "cpu_seconds": 64.69
+    },
+    {
+      "elapsed_seconds": 60.05667684995569,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 277696,
+      "cpu_seconds": 65.8
+    },
+    {
+      "elapsed_seconds": 61.05768986803014,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 280816,
+      "cpu_seconds": 66.89999999999999
+    },
+    {
+      "elapsed_seconds": 62.05864060705062,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 283724,
+      "cpu_seconds": 68.0
+    },
+    {
+      "elapsed_seconds": 63.05957501102239,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 285408,
+      "cpu_seconds": 69.10000000000001
+    },
+    {
+      "elapsed_seconds": 64.060489734984,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 288952,
+      "cpu_seconds": 70.2
+    },
+    {
+      "elapsed_seconds": 65.0618723660009,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 292216,
+      "cpu_seconds": 71.29
+    },
+    {
+      "elapsed_seconds": 66.06282955396455,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 295524,
+      "cpu_seconds": 72.38
+    },
+    {
+      "elapsed_seconds": 67.06376166106202,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 298996,
+      "cpu_seconds": 73.48
+    },
+    {
+      "elapsed_seconds": 68.06480540102348,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 301436,
+      "cpu_seconds": 74.58
+    },
+    {
+      "elapsed_seconds": 69.0657447950216,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 305088,
+      "cpu_seconds": 75.68
+    },
+    {
+      "elapsed_seconds": 70.0691469849553,
+      "stage": "admissibility",
+      "pids": [
+        2628695,
+        2628696
+      ],
+      "rss_kib": 308400,
+      "cpu_seconds": 76.78
+    }
+  ],
+  "events": [
+    {
+      "event": "metadata",
+      "monotonic": 661981.547573757,
+      "pid": 2628696,
+      "package": "/home/italing/work/qpa-rust/python/qpa/__init__.py",
+      "version": "0.2.0",
+      "revision": "6207cd941fefcadab5a695001be3aac573b1dacf",
+      "extension_sha256": "cbee0a2c587509df4185361112c8a47d807635bf80990741e5cc4a38007f83c8"
+    },
+    {
+      "event": "start",
+      "monotonic": 661981.547659075,
+      "stage": "parse"
+    },
+    {
+      "event": "timing",
+      "monotonic": 661981.569720344,
+      "stage": "parse",
+      "seconds": 0.0018691339064389467,
+      "cpu_seconds": 0.08608091,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "input",
+      "monotonic": 661981.572522419,
+      "vertices": 8,
+      "arrows": 43,
+      "relations": 106,
+      "terms": 957,
+      "terms_by_path_length": {
+        "2": 195,
+        "3": 152,
+        "4": 50,
+        "5": 52,
+        "6": 104,
+        "7": 185,
+        "8": 175,
+        "9": 38,
+        "10": 6
+      },
+      "max_terms_per_relation": 94,
+      "expected_dimension": 7708
+    },
+    {
+      "event": "start",
+      "monotonic": 661981.572583494,
+      "stage": "presentation"
+    },
+    {
+      "event": "timing",
+      "monotonic": 661981.577857656,
+      "stage": "presentation",
+      "seconds": 0.005255201016552746,
+      "cpu_seconds": 0.094487387,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "start",
+      "monotonic": 661981.577892979,
+      "stage": "ideal"
+    },
+    {
+      "event": "timing",
+      "monotonic": 661981.577991629,
+      "stage": "ideal",
+      "seconds": 9.17480792850256e-05,
+      "cpu_seconds": 0.094639798,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "start",
+      "monotonic": 661981.578006226,
+      "stage": "groebner"
+    },
+    {
+      "event": "timing",
+      "monotonic": 662006.154755357,
+      "stage": "groebner",
+      "seconds": 24.57672447396908,
+      "cpu_seconds": 26.202727369,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "completed_basis",
+      "monotonic": 662006.154843465,
+      "relations": 1406
+    },
+    {
+      "event": "start",
+      "monotonic": 662006.154853526,
+      "stage": "completed_ideal"
+    },
+    {
+      "event": "timing",
+      "monotonic": 662006.155801398,
+      "stage": "completed_ideal",
+      "seconds": 0.0009293669136241078,
+      "cpu_seconds": 26.203871149,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "start",
+      "monotonic": 662006.155908151,
+      "stage": "attach"
+    },
+    {
+      "event": "timing",
+      "monotonic": 662006.16034279,
+      "stage": "attach",
+      "seconds": 0.004416333045810461,
+      "cpu_seconds": 26.207985858,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "start",
+      "monotonic": 662006.160401875,
+      "stage": "quotient"
+    },
+    {
+      "event": "timing",
+      "monotonic": 662006.217821325,
+      "stage": "quotient",
+      "seconds": 0.05739829200319946,
+      "cpu_seconds": 26.268011882,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "start",
+      "monotonic": 662006.217888738,
+      "stage": "dimension"
+    },
+    {
+      "event": "timing",
+      "monotonic": 662006.220311253,
+      "stage": "dimension",
+      "seconds": 0.002407071995548904,
+      "cpu_seconds": 26.27072404,
+      "peak_rss_kib": 53424
+    },
+    {
+      "event": "dimension",
+      "monotonic": 662006.220348163,
+      "value": 7708,
+      "matches_expected": true
+    },
+    {
+      "event": "start",
+      "monotonic": 662006.220355496,
+      "stage": "basis"
+    },
+    {
+      "event": "timing",
+      "monotonic": 662006.233322221,
+      "stage": "basis",
+      "seconds": 0.01294868194963783,
+      "cpu_seconds": 26.283751139,
+      "peak_rss_kib": 58972
+    },
+    {
+      "event": "basis_size",
+      "monotonic": 662006.233380612,
+      "value": 7708
+    },
+    {
+      "event": "start",
+      "monotonic": 662006.233388942,
+      "stage": "admissibility"
+    }
+  ],
+  "elapsed_seconds": 70.0691469849553,
+  "last_started_stage": "admissibility",
+  "stage_seconds": {
+    "parse": 0.0018691339064389467,
+    "presentation": 0.005255201016552746,
+    "ideal": 9.17480792850256e-05,
+    "groebner": 24.57672447396908,
+    "completed_ideal": 0.0009293669136241078,
+    "attach": 0.004416333045810461,
+    "quotient": 0.05739829200319946,
+    "dimension": 0.002407071995548904,
+    "basis": 0.01294868194963783
+  },
+  "timed_out_stage": "admissibility",
+  "returncode": 0,
+  "stderr": "",
+  "sampled_peak_process_tree_rss_kib": 308400
+}

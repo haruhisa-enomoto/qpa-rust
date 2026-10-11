@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "qpa-rust"
-version = "0.2.0"
+version = "0.2.1"
 description = "Python bindings for the source-faithful Rust port of QPA"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,4 +27,5 @@ features = ["extension-module"]
 include = [
     { path = "LICENSE", format = "sdist" },
     { path = "NOTICE.md", format = "sdist" },
+    { path = "tests/fixtures/**/*", format = "sdist" },
 ]

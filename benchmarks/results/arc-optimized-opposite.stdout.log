@@ -1,0 +1,27 @@
+{"event": "metadata", "input_sha256": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d", "version": "0.2.0", "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty", "opposite": true, "precondition": true, "extension_sha256": "ee2a270654b27f6079832a003cb399e34ddb4b18c49a0fc11f2526974f1a806e"}
+{"event": "input", "vertices": 8, "arrows": 43, "relations": 106, "terms": 957, "terms_by_path_length": {"2": 195, "3": 152, "4": 50, "5": 52, "6": 104, "7": 185, "8": 175, "9": 38, "10": 6}, "max_terms_per_relation": 94, "expected_dimension": 7708}
+{"event": "start", "stage": "presentation"}
+{"event": "timing", "stage": "presentation", "seconds": 0.005481478990986943, "peak_rss_kib": 52864}
+{"event": "start", "stage": "diagonal_groebner"}
+{"event": "timing", "stage": "diagonal_groebner", "seconds": 0.009917492978274822, "peak_rss_kib": 52864}
+{"event": "start", "stage": "reduce_connecting"}
+{"event": "timing", "stage": "reduce_connecting", "seconds": 0.01275581307709217, "peak_rss_kib": 52864}
+{"event": "preconditioned", "diagonal_relations": 170, "connecting_relations": 44, "terms": 1222}
+{"event": "start", "stage": "groebner"}
+{"event": "timing", "stage": "groebner", "seconds": 10.921059787971899, "peak_rss_kib": 52864}
+{"event": "completed_basis", "relations": 1406}
+{"event": "start", "stage": "save_basis"}
+{"event": "timing", "stage": "save_basis", "seconds": 0.03386485809460282, "peak_rss_kib": 53696}
+{"event": "start", "stage": "attach"}
+{"event": "timing", "stage": "attach", "seconds": 0.002726317965425551, "peak_rss_kib": 53696}
+{"event": "start", "stage": "original_relations_reduce_to_zero"}
+{"event": "timing", "stage": "original_relations_reduce_to_zero", "seconds": 0.06442685693036765, "peak_rss_kib": 53696}
+{"event": "start", "stage": "quotient"}
+{"event": "timing", "stage": "quotient", "seconds": 0.05290745303500444, "peak_rss_kib": 53696}
+{"event": "start", "stage": "dimension"}
+{"event": "timing", "stage": "dimension", "seconds": 0.0025956060271710157, "peak_rss_kib": 55284}
+{"event": "start", "stage": "canonical_basis"}
+{"event": "timing", "stage": "canonical_basis", "seconds": 0.012627771007828414, "peak_rss_kib": 61908}
+{"event": "start", "stage": "admissibility"}
+{"event": "timing", "stage": "admissibility", "seconds": 14.925775278010406, "peak_rss_kib": 106484}
+{"event": "result", "dimension": 7708, "admissibility_checked": true}

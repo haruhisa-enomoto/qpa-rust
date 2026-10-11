@@ -318,6 +318,7 @@ impl<F: Field> ExtOverAlgebraResult<F> {
 pub struct ExtDimensionSource<F: Field> {
     cover: PathAlgebraModuleHomomorphism<F>,
     syzygy_inclusion: PathAlgebraModuleHomomorphism<F>,
+    projective_multiplicities: Vec<usize>,
 }
 
 impl<F: Field> ExtDimensionSource<F> {
@@ -325,25 +326,48 @@ impl<F: Field> ExtDimensionSource<F> {
     ///
     /// # Errors
     ///
-    /// Propagates projective-cover and kernel-inclusion construction failures.
+    /// Propagates cover, kernel and minimal-generator construction failures.
     pub fn new(module: &PathAlgebraModule<F>) -> Result<Self, EnvelopingModuleError> {
         let cover = projective_cover(module)?;
         let syzygy_inclusion = kernel_inclusion(&cover)?;
+        let mut projective_multiplicities = vec![0_usize; module.dimension_vector().len()];
+        // The native cover uses one e_i A per vertex-uniform minimal generator.
+        // These generators are already cached by ProjectiveCover. Count them
+        // once per prepared source, not once per target. For a zero syzygy the
+        // multiplicities are unused; in particular do not request a top for
+        // zero modules over otherwise unsupported algebras.
+        if syzygy_inclusion.source().dimension() != 0 {
+            for generator in minimal_generating_set_of_module(module.clone())? {
+                let support = generator.support_vertices();
+                let [vertex] = support.as_slice() else {
+                    return Err(EnvelopingModuleError::MinimalGeneratorNotVertexUniform);
+                };
+                let count = &mut projective_multiplicities[*vertex - 1];
+                *count = count
+                    .checked_add(1)
+                    .ok_or(PathAlgebraModuleError::DimensionOverflow)?;
+            }
+        }
         Ok(Self {
             cover,
             syzygy_inclusion,
+            projective_multiplicities,
         })
     }
 
-    /// Compute `dim Ext^1(M, N)` using QPA's induced restriction map.
+    /// Compute `dim Ext^1(M, N)` by exactness, without projective Hom bases.
     ///
-    /// Computes `dim Hom(Omega(M), N)` minus the rank of the restrictions
-    /// from `Hom(P(M), N)`, without constructing quotient representatives.
+    /// The kernel of `Hom(P,N) -> Hom(Omega(M),N)` is `Hom(M,N)`. Thus its
+    /// image rank is `dim Hom(P,N) - dim Hom(M,N)`. For the native cover
+    /// `P = direct_sum_i (e_i A)^m_i`, evaluation at `e_i` gives
+    /// `dim Hom(P,N) = sum_i m_i dim(N_i)`. Only the two remaining Hom
+    /// dimensions require elimination; no restriction maps are materialized.
+    /// The basis-returning [`ext_over_algebra`] remains unchanged.
     ///
     /// # Errors
     ///
-    /// Requires the same acting algebra and propagates Hom, composition, and
-    /// exact matrix construction failures.
+    /// Requires the same acting algebra and propagates Hom failures, dimension
+    /// overflow, or inconsistent dimensions for the exact cover sequence.
     pub fn dimension(
         &self,
         coefficients_in: &PathAlgebraModule<F>,
@@ -357,30 +381,59 @@ impl<F: Field> ExtDimensionSource<F> {
         if hom_dimension == 0 {
             return Ok(0);
         }
-        let projective_hom = hom_over_algebra(self.cover.source(), coefficients_in)?
+        let source_hom_dimension = hom_dimension_over_algebra(self.cover.range(), coefficients_in)?
             .ok_or(EnvelopingModuleError::InternalExtHomRejected)?;
-        let mut rows = Vec::new();
-        for homomorphism in projective_hom {
-            let restriction = self.syzygy_inclusion.compose(&homomorphism)?;
-            if !restriction.is_zero() {
-                rows.push(restriction.flat_vertex_matrix_entries());
-            }
-        }
-        let image_rank =
-            DenseMatrix::from_rows(rows, coefficients_in.right_acting_algebra().field().clone())?
-                .rank();
-        Ok(hom_dimension - image_rank)
+        let projective_hom_dimension = projective_hom_dimension_from_multiplicities(
+            &self.projective_multiplicities,
+            coefficients_in.dimension_vector(),
+        )?;
+        ext_dimension_from_hom_dimensions(
+            hom_dimension,
+            projective_hom_dimension,
+            source_hom_dimension,
+        )
     }
 }
 
-/// Compute `dim Ext^1(M, N)` without constructing quotient representatives.
+fn projective_hom_dimension_from_multiplicities(
+    multiplicities: &[usize],
+    target_dimensions: &[usize],
+) -> Result<usize, EnvelopingModuleError> {
+    debug_assert_eq!(multiplicities.len(), target_dimensions.len());
+    multiplicities
+        .iter()
+        .zip(target_dimensions)
+        .try_fold(0_usize, |total, (&m, &n)| {
+            m.checked_mul(n)
+                .and_then(|product| total.checked_add(product))
+                .ok_or_else(|| PathAlgebraModuleError::DimensionOverflow.into())
+        })
+}
+
+fn ext_dimension_from_hom_dimensions(
+    syzygy: usize,
+    projective: usize,
+    source: usize,
+) -> Result<usize, EnvelopingModuleError> {
+    // Subtract the image rank instead of adding the two Hom dimensions first:
+    // their sum can overflow even when all dimensions and the answer fit.
+    projective
+        .checked_sub(source)
+        .and_then(|image_rank| syzygy.checked_sub(image_rank))
+        // Preserve the public 0.2.0 error enum: arithmetic overflow uses the
+        // existing module error; impossible Hom dimensions use this internal
+        // Hom failure rather than adding a source-breaking enum variant.
+        .ok_or(EnvelopingModuleError::InternalExtHomRejected)
+}
+
+/// Compute `dim Ext^1(M, N)` without projective Hom bases or restriction maps.
 ///
 /// For repeated queries with one source, retain an [`ExtDimensionSource`].
 ///
 /// # Errors
 ///
-/// Requires the same acting algebra and propagates projective-cover, kernel,
-/// Hom, composition, and exact matrix construction failures.
+/// Requires the same acting algebra and propagates cover, kernel, Hom and
+/// checked dimension-arithmetic failures.
 pub fn ext_dimension_over_algebra<F: Field>(
     module: &PathAlgebraModule<F>,
     coefficients_in: &PathAlgebraModule<F>,

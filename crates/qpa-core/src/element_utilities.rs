@@ -395,6 +395,31 @@ impl<F: Field> QuiverAlgebra<F> {
         }
     }
 
+    /// Recover one live projective from the weak family cache (zero-based).
+    #[doc(hidden)]
+    #[must_use]
+    pub fn cached_indec_projective_module(&self, index: usize) -> Option<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.cached_indec_projective_module(index),
+            Self::Quotient(algebra) => algebra.cached_indec_projective_module(index),
+        }
+    }
+
+    /// Merge one projective without retaining its algebra in a reference cycle.
+    /// Returns `None` for an out-of-range zero-based vertex index.
+    #[doc(hidden)]
+    #[must_use]
+    pub fn merge_indec_projective_module(
+        &self,
+        index: usize,
+        generated: &PathAlgebraModule<F>,
+    ) -> Option<PathAlgebraModule<F>> {
+        match self {
+            Self::Path(algebra) => algebra.merge_indec_projective_module(index, generated),
+            Self::Quotient(algebra) => algebra.merge_indec_projective_module(index, generated),
+        }
+    }
+
     /// Return QPA's cached `IndecProjectiveModules` attribute when every
     /// component is still live.
     #[doc(hidden)]

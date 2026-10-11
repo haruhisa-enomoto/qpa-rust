@@ -2,7 +2,7 @@
 ///
 /// The nonzero branch constructs one indecomposable projective map per
 /// ordered minimal generator, takes their QPA direct sum, and sums the
-/// projection composites in that same order.
+/// projection composites in that same order (assembled directly as row blocks).
 ///
 /// # Errors
 ///
@@ -19,41 +19,43 @@ pub fn projective_cover<F: Field>(
         zero_module_mapping(zero, module.clone())?
     } else {
         let generators = minimal_generating_set_of_module(module.clone())?;
-        // HomFromProjective requests the complete family for each generator.
-        // Its algebra-side cache is weak: retaining only the selected sources
-        // lets unused members expire and forces the next call to rebuild the
-        // family. Keep all members live until every generator map is made.
-        // Initialize on the first map, preserving HomFromProjective's checks
-        // and error order for unsupported algebras.
-        let mut projectives = None;
+        // Share canonical basis indexing across generators, but construct only
+        // their selected projectives. Maps retain those sources through assembly.
+        let mut basis_data = None;
         let maps = generators
             .iter()
             .map(|generator| {
-                hom_from_projective_with_family(generator, module, &mut projectives)?
+                hom_from_projective_with_basis(generator, module, &mut basis_data)?
                     .ok_or(EnvelopingModuleError::MinimalGeneratorNotVertexUniform)
             })
             .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
-        drop(projectives);
+        drop(basis_data);
         let sources = maps
             .iter()
             .map(|homomorphism| homomorphism.source().clone())
             .collect::<Vec<_>>();
         let direct_sum = direct_sum_of_qpa_modules(&sources)?
             .ok_or(EnvelopingModuleError::EmptyNonzeroProjectiveCover)?;
-        let projections = direct_sum_projections(&direct_sum)?;
-        let mut composites = projections
-            .iter()
-            .zip(&maps)
-            .map(|(projection, map)| Ok(projection.compose(map)?))
-            .collect::<Result<Vec<_>, EnvelopingModuleError>>()?
-            .into_iter();
-        let mut sum = composites
-            .next()
-            .ok_or(EnvelopingModuleError::EmptyNonzeroProjectiveCover)?;
-        for composite in composites {
-            sum = sum.add(&composite)?;
-        }
-        sum
+        // Sum_j projection_j * map_j is exactly vertical concatenation at
+        // each vertex. Copy only logical rows; zero spaces keep QPA stand-ins.
+        let matrices = direct_sum.dimension_vector().iter()
+            .zip(module.dimension_vector()).enumerate()
+            .map(|(vertex, (&rows, &columns))| {
+                let mut matrix = DenseMatrix::zero(rows.max(1), columns.max(1),
+                    module.right_acting_algebra().field().clone());
+                let mut offset = 0;
+                for map in &maps {
+                    let count = map.source().dimension_vector()[vertex];
+                    for row in 0..count {
+                        for column in 0..columns {
+                            matrix[(offset + row, column)] = map.vertex_matrices()[vertex][(row, column)].clone();
+                        }
+                    }
+                    offset += count;
+                }
+                matrix
+            }).collect();
+        right_module_hom_over_algebra(direct_sum, module.clone(), matrices)?
     };
     Ok(module.cache_projective_cover(&cover))
 }

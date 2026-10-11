@@ -18,21 +18,37 @@ impl<F: Field> DenseMatrix<F> {
     }
 
     pub(super) fn packed_binary<const TRANSFORM: bool>(&self) -> PackedSemiEchelon {
-        let mut result = PackedSemiEchelon {
-            heads: vec![None; self.ncols],
+        PackedSemiEchelon::from_rows::<TRANSFORM>(
+            self.nrows,
+            self.ncols,
+            (0..self.nrows).map(|index| {
+                let mut row = vec![0_u64; self.ncols.div_ceil(64)];
+                for (column, entry) in self.row(index).iter().enumerate() {
+                    if !self.field.is_zero(entry) {
+                        row[column / 64] |= 1 << (column % 64);
+                    }
+                }
+                row
+            }),
+        )
+    }
+}
+
+impl PackedSemiEchelon {
+    pub(super) fn from_rows<const TRANSFORM: bool>(
+        nrows: usize,
+        ncols: usize,
+        rows: impl Iterator<Item = Vec<u64>>,
+    ) -> Self {
+        let mut result = Self {
+            heads: vec![None; ncols],
             vectors: Vec::new(),
             coefficients: Vec::new(),
             relations: Vec::new(),
         };
-        for row_index in 0..self.nrows {
-            let mut row = vec![0_u64; self.ncols.div_ceil(64)];
-            for (column, entry) in self.row(row_index).iter().enumerate() {
-                if !self.field.is_zero(entry) {
-                    row[column / 64] |= 1 << (column % 64);
-                }
-            }
+        for (row_index, mut row) in rows.enumerate() {
             let mut combination = if TRANSFORM {
-                let mut row = vec![0_u64; self.nrows.div_ceil(64)];
+                let mut row = vec![0_u64; nrows.div_ceil(64)];
                 row[row_index / 64] = 1 << (row_index % 64);
                 row
             } else {
@@ -72,6 +88,10 @@ impl<F: Field> DenseMatrix<F> {
 }
 
 impl PackedSemiEchelon {
+    pub(super) fn relation_matrix<F: Field>(&self, nrows: usize, field: &F) -> DenseMatrix<F> {
+        unpack_rows(&self.relations, nrows, field)
+    }
+
     pub(super) fn unpack_relations<F: Field>(&self, matrix: &DenseMatrix<F>) -> DenseMatrix<F> {
         unpack_rows(&self.relations, matrix.nrows, &matrix.field)
     }

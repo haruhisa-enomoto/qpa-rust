@@ -65,31 +65,41 @@ pub fn direct_sum_of_qpa_modules<F: Field>(
         specification.push(NamedArrowMatrix::new(arrow.name(), matrix));
     }
 
-    let direct_sum = right_module_over_path_algebra(
-        first.right_acting_algebra().clone(),
-        dimensions,
-        &specification,
-    )?
-    .ok_or(PathAlgebraModuleError::GeneratedDirectSumViolatesRelations)?;
-    let projections = construct_direct_sum_component_maps(&direct_sum, modules, true)?;
-    let inclusions = construct_direct_sum_component_maps(&direct_sum, modules, false)?;
+    let fields_match = modules.iter().all(|module| module.arrow_matrices().iter()
+        .all(|matrix| matrix.field() == &field));
+    // Each input is already a checked representation. Uniform relations
+    // evaluate blockwise on this direct sum, so their zero evaluations carry
+    // over. Nonuniform relations retain legacy physical-zero-space behavior;
+    // NC inputs with foreign runtime fields also require the original checks.
+    let uniform = first.right_acting_algebra().relations().iter().all(|relation| {
+        relation.terms().first().is_none_or(|first_term| relation.terms().iter().all(|term| {
+            term.path().source() == first_term.path().source()
+                && term.path().target() == first_term.path().target()
+        }))
+    });
+    let direct_sum = right_module_over_path_algebra_impl(
+        first.right_acting_algebra().clone(), dimensions, &specification, None,
+        fields_match && uniform,
+    )?.ok_or(PathAlgebraModuleError::GeneratedDirectSumViolatesRelations)?;
+    // Eager maps previously expired immediately (only weak references were
+    // stored). Build them on demand, but preserve eager NC field failures.
+    let empty_maps = || (0..modules.len())
+        .map(|_| WeakPathAlgebraModuleHomomorphism(Weak::new())).collect();
+    let projections = if fields_match { empty_maps() } else {
+        construct_direct_sum_component_maps(&direct_sum, modules, true)?.iter()
+            .map(PathAlgebraModuleHomomorphism::downgrade).collect()
+    };
+    let inclusions = if fields_match { empty_maps() } else {
+        construct_direct_sum_component_maps(&direct_sum, modules, false)?.iter()
+            .map(PathAlgebraModuleHomomorphism::downgrade).collect()
+    };
     direct_sum
         .0
         .direct_sum
         .set(DirectSumMetadata {
             summands: modules.to_vec(),
-            projections: RwLock::new(
-                projections
-                    .iter()
-                    .map(PathAlgebraModuleHomomorphism::downgrade)
-                    .collect(),
-            ),
-            inclusions: RwLock::new(
-                inclusions
-                    .iter()
-                    .map(PathAlgebraModuleHomomorphism::downgrade)
-                    .collect(),
-            ),
+            projections: RwLock::new(projections),
+            inclusions: RwLock::new(inclusions),
         })
         .map_err(|_| PathAlgebraModuleError::DirectSumMetadataAlreadySet)?;
     Ok(Some(direct_sum))

@@ -1,0 +1,15 @@
+{"event": "metadata", "construction": "ordinary_api", "input_sha256": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d", "version": "0.2.0", "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty", "opposite": false, "extension_sha256": "10c34ab8e5793782b184a6345d03e16e56b5367a1fe9b868327b48853a8e53e2"}
+{"event": "input", "vertices": 8, "arrows": 43, "relations": 106, "terms": 957, "terms_by_path_length": {"2": 195, "3": 152, "4": 50, "5": 52, "6": 104, "7": 185, "8": 175, "9": 38, "10": 6}, "max_terms_per_relation": 94, "expected_dimension": 7708}
+{"event": "start", "stage": "presentation"}
+{"event": "timing", "stage": "presentation", "seconds": 0.005614698980934918, "peak_rss_kib": 53308}
+{"event": "start", "stage": "ordinary_quotient"}
+{"event": "timing", "stage": "ordinary_quotient", "seconds": 30.244096743059345, "peak_rss_kib": 95008}
+{"event": "start", "stage": "original_relations_reduce_to_zero"}
+{"event": "timing", "stage": "original_relations_reduce_to_zero", "seconds": 0.2341277569066733, "peak_rss_kib": 95200}
+{"event": "start", "stage": "dimension"}
+{"event": "timing", "stage": "dimension", "seconds": 0.0013895450392737985, "peak_rss_kib": 95200}
+{"event": "start", "stage": "canonical_basis"}
+{"event": "timing", "stage": "canonical_basis", "seconds": 0.0038132419576868415, "peak_rss_kib": 96032}
+{"event": "start", "stage": "admissibility"}
+{"event": "timing", "stage": "admissibility", "seconds": 3.8960715755820274e-06, "peak_rss_kib": 96032}
+{"event": "result", "dimension": 7708, "admissibility_checked": true, "completed_relations": 1376}

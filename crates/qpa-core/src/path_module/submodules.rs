@@ -473,7 +473,10 @@ pub fn natural_homomorphism_by_subalgebra_module<F: Field>(
 /// QPA first makes every generator vertex-uniform, repeatedly acts by every
 /// arrow until no nonzero elements remain, takes GAP's fully reduced canonical
 /// row-space basis, and then reconstructs both the subrepresentation and its
-/// inclusion.  This function follows that sequence and ordering.
+/// inclusion. Dependent frontier elements can be discarded by linearity:
+/// their arrow images lie in the span of the corresponding basis images.
+/// This avoids enumerating exponentially many redundant path images while
+/// retaining the identical final canonical basis and arrow matrices.
 ///
 /// # Errors
 ///
@@ -499,12 +502,14 @@ pub fn subrepresentation_inclusion<F: Field>(
         return zero_module_mapping(zero, module);
     }
 
+    let field = algebra.field().clone();
+    let mut span = crate::matrix::sparse::IncrementalRowSpan::new(field.clone());
     let mut uniform_generators = Vec::new();
     for generator in generators {
         for vertex in 0..vertex_count {
             let mut uniform = module.zero_element();
             uniform.coordinates[vertex].clone_from(&generator.coordinates[vertex]);
-            if !uniform.is_zero() {
+            if span.insert(&uniform.basis_coefficients()) {
                 uniform_generators.push(uniform);
             }
         }
@@ -522,7 +527,7 @@ pub fn subrepresentation_inclusion<F: Field>(
         for element in &new {
             for arrow in &arrow_elements {
                 let image = element.act(arrow)?;
-                if !image.is_zero() {
+                if span.insert(&image.basis_coefficients()) {
                     next.push(image);
                 }
             }
@@ -531,7 +536,6 @@ pub fn subrepresentation_inclusion<F: Field>(
         new = next;
     }
 
-    let field = algebra.field().clone();
     let spanning_rows = DenseMatrix::from_flat(
         spanning_elements.len(),
         module.dimension(),
@@ -560,6 +564,8 @@ pub fn subrepresentation_inclusion<F: Field>(
     let sub_offsets = dimension_offsets(&sub_dimension);
     let module_offsets = dimension_offsets(module.dimension_vector());
 
+    // Every arrow image is solved against this same canonical basis.
+    let coordinate_solver = canonical_basis.semi_echelon_transformation();
     let mut arrow_matrices = Vec::new();
     for (arrow, arrow_element) in algebra.quiver().arrows().zip(&arrow_elements) {
         let source = arrow.source().index().zero_based();
@@ -574,7 +580,7 @@ pub fn subrepresentation_inclusion<F: Field>(
             .take(sub_dimension[source])
         {
             let image = basis_element.act(arrow_element)?;
-            let coefficients = canonical_basis
+            let coefficients = coordinate_solver
                 .solution_row(&image.basis_coefficients())?
                 .ok_or(PathAlgebraModuleError::InternalSubrepresentationCoordinates)?;
             rows.extend_from_slice(

@@ -28,6 +28,8 @@ use crate::{
     tensor::WeakTensorProductAlgebra,
 };
 
+mod admissibility;
+
 /// Rust logging target corresponding to QPA's declared
 /// `InfoElementOfQuotientOfPathAlgebra` class.
 pub const INFO_ELEMENT_OF_QUOTIENT_OF_PATH_ALGEBRA: &str = "qpa::quotient_element";
@@ -36,6 +38,7 @@ struct PathAlgebraIdealData<F: Field> {
     algebra: PathAlgebra<F>,
     generators: Vec<PathAlgebraElement<F>>,
     groebner_basis: RwLock<Option<GroebnerBasis<F>>>,
+    admissible: OnceLock<bool>,
 }
 
 /// A QPA two-sided ideal in a path algebra.
@@ -60,6 +63,7 @@ impl<F: Field> PathAlgebraIdeal<F> {
             algebra,
             generators,
             groebner_basis: RwLock::new(None),
+            admissible: OnceLock::new(),
         })))
     }
 
@@ -72,6 +76,7 @@ impl<F: Field> PathAlgebraIdeal<F> {
             algebra,
             generators,
             groebner_basis: RwLock::new(Some(basis)),
+            admissible: OnceLock::new(),
         }))
     }
 
@@ -253,6 +258,15 @@ impl<F: Field> PathAlgebraIdeal<F> {
     ///
     /// Propagates Gröbner, quotient, matrix, and path-arithmetic failures.
     pub fn is_admissible(&self) -> Result<bool, QuotientError> {
+        if let Some(value) = self.0.admissible.get() {
+            return Ok(*value);
+        }
+        let value = self.compute_admissibility()?;
+        let _ = self.0.admissible.set(value);
+        Ok(value)
+    }
+
+    fn compute_admissibility(&self) -> Result<bool, QuotientError> {
         if self.is_trivial() {
             return Ok(self.algebra().has_finite_canonical_basis());
         }
@@ -271,21 +285,7 @@ impl<F: Field> PathAlgebraIdeal<F> {
         let Some(algebra_basis) = quotient.canonical_basis()? else {
             return Ok(false);
         };
-        let one = quotient.one()?;
-        let mut arrow_generators = Vec::new();
-        for arrow in quotient.original_path_algebra().quiver().arrows() {
-            let arrow = quotient.path(arrow.path())?;
-            arrow_generators.push(one.multiply(&arrow)?);
-        }
-        let arrow_ideal = quotient_ideal_span(&quotient, &arrow_generators, &algebra_basis)?;
-        let mut dimension = arrow_ideal.len();
-        let mut power =
-            quotient_product_space(&quotient, &arrow_ideal, &arrow_ideal, &algebra_basis)?;
-        while dimension != power.len() {
-            dimension = power.len();
-            power = quotient_product_space(&quotient, &power, &power, &algebra_basis)?;
-        }
-        Ok(dimension == 0)
+        admissibility::arrow_ideal_is_nilpotent(&quotient, &algebra_basis)
     }
 
     /// Translate QPA's `ProductOfIdeals(I, J)` with `self` as `I`.
@@ -1446,6 +1446,25 @@ impl<F: Field> QuotientPathAlgebra<F> {
             .and_then(WeakPathAlgebraModule::upgrade)
     }
 
+    pub(crate) fn cached_indec_projective_module(
+        &self,
+        index: usize,
+    ) -> Option<PathAlgebraModule<F>> {
+        self.0.indec_projective_modules.cached_at(index)
+    }
+
+    pub(crate) fn merge_indec_projective_module(
+        &self,
+        index: usize,
+        generated: &PathAlgebraModule<F>,
+    ) -> Option<PathAlgebraModule<F>> {
+        self.0.indec_projective_modules.merge_at(
+            index,
+            self.quiver().number_of_vertices(),
+            generated,
+        )
+    }
+
     pub(crate) fn cached_indec_projective_modules(&self) -> Option<Vec<PathAlgebraModule<F>>> {
         self.0.indec_projective_modules.cached()
     }
@@ -2426,6 +2445,7 @@ fn quotient_ideal_span<F: Field>(
     quotient_span_basis(quotient, &products, algebra_basis)
 }
 
+#[cfg(test)]
 fn quotient_product_space<F: Field>(
     quotient: &QuotientPathAlgebra<F>,
     left: &[QuotientPathAlgebraElement<F>],

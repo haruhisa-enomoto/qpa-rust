@@ -1,0 +1,284 @@
+{
+  "command": [
+    "benchmarks/ext_dimension_only.py",
+    "--output",
+    "benchmarks/results/ext-dimension-only-after.json"
+  ],
+  "scale": 24,
+  "repeat": 3,
+  "version": "0.2.0",
+  "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty",
+  "runner_sha256": "fe3b1baaff24479a6aa09b6f3a83ee05e394f127b4eeda61984fa5db63271e83",
+  "extension_sha256": "a84d9a1be30948cfd4b1fe7ec48141213ab38756aa7c1a44794cba98ea2430b9",
+  "cases": [
+    {
+      "field": "Q",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.0007717129774391651,
+      "preparation_seconds": 0.005555612966418266,
+      "query_seconds": [
+        0.005585083970800042,
+        0.004025912960059941,
+        0.0031828490318730474
+      ],
+      "query_median_seconds": 0.004025912960059941,
+      "process_peak_rss_kib_so_far": 53124
+    },
+    {
+      "field": "Q",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.0002931120106950402,
+      "preparation_seconds": 0.006872266065329313,
+      "query_seconds": [
+        0.0016131279990077019,
+        0.0015887609915807843,
+        0.0016008159145712852
+      ],
+      "query_median_seconds": 0.0016008159145712852,
+      "process_peak_rss_kib_so_far": 53124
+    },
+    {
+      "field": "GF2",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.00028118095360696316,
+      "preparation_seconds": 0.0005045010475441813,
+      "query_seconds": [
+        0.0003128349781036377,
+        0.0002976539544761181,
+        0.0003076220164075494
+      ],
+      "query_median_seconds": 0.0003076220164075494,
+      "process_peak_rss_kib_so_far": 53124
+    },
+    {
+      "field": "GF2",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.00014870602171868086,
+      "preparation_seconds": 0.0008032070472836494,
+      "query_seconds": [
+        0.0005354159511625767,
+        0.00047817802987992764,
+        0.00046097394078969955
+      ],
+      "query_median_seconds": 0.00047817802987992764,
+      "process_peak_rss_kib_so_far": 53124
+    },
+    {
+      "field": "GF101",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.000244552968069911,
+      "preparation_seconds": 0.0005721179768443108,
+      "query_seconds": [
+        0.000409075990319252,
+        0.0003718569641932845,
+        0.00038609199691563845
+      ],
+      "query_median_seconds": 0.00038609199691563845,
+      "process_peak_rss_kib_so_far": 53124
+    },
+    {
+      "field": "GF101",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.00018632598221302032,
+      "preparation_seconds": 0.0009132520062848926,
+      "query_seconds": [
+        0.0005547510227188468,
+        0.0006228280253708363,
+        0.000553375924937427
+      ],
+      "query_median_seconds": 0.0005547510227188468,
+      "process_peak_rss_kib_so_far": 53124
+    },
+    {
+      "field": "GF4",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.0008079409599304199,
+      "preparation_seconds": 0.008249270962551236,
+      "query_seconds": [
+        0.0058369399048388,
+        0.005600451957434416,
+        0.005769656039774418
+      ],
+      "query_median_seconds": 0.005769656039774418,
+      "process_peak_rss_kib_so_far": 53124
+    },
+    {
+      "field": "GF4",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.0003927149809896946,
+      "preparation_seconds": 0.011277324054390192,
+      "query_seconds": [
+        0.003460200037807226,
+        0.0034630829468369484,
+        0.0034421380842104554
+      ],
+      "query_median_seconds": 0.003460200037807226,
+      "process_peak_rss_kib_so_far": 53124
+    }
+  ],
+  "status": "complete"
+}

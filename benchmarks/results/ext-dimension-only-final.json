@@ -1,0 +1,284 @@
+{
+  "command": [
+    "benchmarks/ext_dimension_only.py",
+    "--output",
+    "benchmarks/results/ext-dimension-only-final.json"
+  ],
+  "scale": 24,
+  "repeat": 3,
+  "version": "0.2.0",
+  "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty",
+  "runner_sha256": "fe3b1baaff24479a6aa09b6f3a83ee05e394f127b4eeda61984fa5db63271e83",
+  "extension_sha256": "9632c6ac045e363142645a2f3f5d301fe1715f1b355b1513f9490a307d1ef131",
+  "cases": [
+    {
+      "field": "Q",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.00043003889732062817,
+      "preparation_seconds": 0.0033127680653706193,
+      "query_seconds": [
+        0.004862328991293907,
+        0.003114235936664045,
+        0.003320293966680765
+      ],
+      "query_median_seconds": 0.003320293966680765,
+      "process_peak_rss_kib_so_far": 53064
+    },
+    {
+      "field": "Q",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.00028788496274501085,
+      "preparation_seconds": 0.004781306022778153,
+      "query_seconds": [
+        0.0018807310843840241,
+        0.0018023140728473663,
+        0.0018833570647984743
+      ],
+      "query_median_seconds": 0.0018807310843840241,
+      "process_peak_rss_kib_so_far": 53064
+    },
+    {
+      "field": "GF2",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.000213986961171031,
+      "preparation_seconds": 0.00036344502586871386,
+      "query_seconds": [
+        0.000403541955165565,
+        0.0003940640017390251,
+        0.00039961293805390596
+      ],
+      "query_median_seconds": 0.00039961293805390596,
+      "process_peak_rss_kib_so_far": 53064
+    },
+    {
+      "field": "GF2",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.00011145009193569422,
+      "preparation_seconds": 0.0005724889924749732,
+      "query_seconds": [
+        0.0007291219662874937,
+        0.0007112940074875951,
+        0.000720523064956069
+      ],
+      "query_median_seconds": 0.000720523064956069,
+      "process_peak_rss_kib_so_far": 53064
+    },
+    {
+      "field": "GF101",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.00013065594248473644,
+      "preparation_seconds": 0.00039477599784731865,
+      "query_seconds": [
+        0.00048206502106040716,
+        0.0004990409361198545,
+        0.0004414749564602971
+      ],
+      "query_median_seconds": 0.00048206502106040716,
+      "process_peak_rss_kib_so_far": 53064
+    },
+    {
+      "field": "GF101",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.00011654803529381752,
+      "preparation_seconds": 0.0006072450196370482,
+      "query_seconds": [
+        0.0007698589470237494,
+        0.0007265419699251652,
+        0.0008906509028747678
+      ],
+      "query_median_seconds": 0.0007698589470237494,
+      "process_peak_rss_kib_so_far": 53064
+    },
+    {
+      "field": "GF4",
+      "family": "truncated_loop_mixed",
+      "dimensions": [
+        48,
+        96,
+        48,
+        0
+      ],
+      "source_dimensions": [
+        28
+      ],
+      "target_dimensions": [
+        [
+          4
+        ],
+        [
+          16
+        ],
+        [
+          16
+        ],
+        [
+          12
+        ]
+      ],
+      "construction_seconds": 0.00023229210637509823,
+      "preparation_seconds": 0.005117567954584956,
+      "query_seconds": [
+        0.005809391033835709,
+        0.005679438007064164,
+        0.005629398045130074
+      ],
+      "query_median_seconds": 0.005679438007064164,
+      "process_peak_rss_kib_so_far": 53064
+    },
+    {
+      "field": "GF4",
+      "family": "regular_kronecker",
+      "dimensions": [
+        24,
+        0
+      ],
+      "source_dimensions": [
+        24,
+        24
+      ],
+      "target_dimensions": [
+        [
+          24,
+          24
+        ],
+        [
+          24,
+          24
+        ]
+      ],
+      "construction_seconds": 0.00037182506639510393,
+      "preparation_seconds": 0.007023861980997026,
+      "query_seconds": [
+        0.003560442943125963,
+        0.0038283589528873563,
+        0.003819516976363957
+      ],
+      "query_median_seconds": 0.003819516976363957,
+      "process_peak_rss_kib_so_far": 53064
+    }
+  ],
+  "status": "complete"
+}

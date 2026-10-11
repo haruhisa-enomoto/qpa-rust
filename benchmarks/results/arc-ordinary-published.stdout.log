@@ -1,0 +1,5 @@
+{"event": "metadata", "construction": "ordinary_api", "input_sha256": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d", "version": "0.2.0", "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty", "opposite": false, "precondition": false, "extension_sha256": "457d89fa5a056fa0cc5a1e27378253b5d5b7470088e8ee161a0c0f6d50d7585a"}
+{"event": "input", "vertices": 8, "arrows": 43, "relations": 106, "terms": 957, "terms_by_path_length": {"2": 195, "3": 152, "4": 50, "5": 52, "6": 104, "7": 185, "8": 175, "9": 38, "10": 6}, "max_terms_per_relation": 94, "expected_dimension": 7708}
+{"event": "start", "stage": "presentation"}
+{"event": "timing", "stage": "presentation", "seconds": 0.0056978799402713776, "peak_rss_kib": 53036}
+{"event": "start", "stage": "ordinary_quotient"}

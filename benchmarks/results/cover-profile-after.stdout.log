@@ -1,0 +1,54 @@
+{"event": "start", "stage": "ordinary_quotient"}
+{"event": "timing", "stage": "ordinary_quotient", "seconds": 28.451888618059456, "peak_rss_kib": 96100}
+{"event": "start", "stage": "verify_input_relations"}
+{"event": "timing", "stage": "verify_input_relations", "seconds": 0.07054842496290803, "peak_rss_kib": 96292}
+{"event": "start", "stage": "admissibility"}
+{"event": "timing", "stage": "admissibility", "seconds": 5.058012902736664e-06, "peak_rss_kib": 97124}
+{"event": "start", "stage": "checked_witness_module"}
+{"event": "timing", "stage": "checked_witness_module", "seconds": 0.01651992998085916, "peak_rss_kib": 98532}
+{"event": "module", "dimension": 110, "dimension_vector": [26, 30, 40, 13, 0, 0, 0, 1]}
+{"event": "start", "stage": "top_projection_1"}
+{"event": "timing", "stage": "top_projection_1", "seconds": 0.08397254894953221, "peak_rss_kib": 99492}
+{"event": "source_top", "degree": 1, "dimension_vector": [0, 0, 0, 1, 0, 0, 0, 1]}
+{"event": "start", "stage": "generators_1"}
+{"event": "timing", "stage": "generators_1", "seconds": 0.0002482880372554064, "peak_rss_kib": 99684}
+{"event": "start", "stage": "projective_family_1"}
+{"event": "timing", "stage": "projective_family_1", "seconds": 72.89378117106389, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "generator_maps_1"}
+{"event": "timing", "stage": "generator_maps_1", "seconds": 0.030968638020567596, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "direct_sum_1"}
+{"event": "timing", "stage": "direct_sum_1", "seconds": 0.11379430303350091, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "projections_1"}
+{"event": "timing", "stage": "projections_1", "seconds": 0.10859855508897454, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "composites_1"}
+{"event": "timing", "stage": "composites_1", "seconds": 0.0028686780715361238, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "add_maps_1"}
+{"event": "timing", "stage": "add_maps_1", "seconds": 0.0147330560721457, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "kernel_1"}
+{"event": "timing", "stage": "kernel_1", "seconds": 3.6216437009861693, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "exactness_1"}
+{"event": "timing", "stage": "exactness_1", "seconds": 0.004913424956612289, "peak_rss_kib": 1693948}
+{"event": "resolution_term", "degree": 1, "exact_sequence_checked": true, "projective_dimension": 1196, "projective_dimension_vector": [282, 286, 440, 166, 6, 2, 8, 6], "syzygy_dimension": 1086, "syzygy_dimension_vector": [256, 256, 400, 153, 6, 2, 8, 5]}
+{"event": "start", "stage": "top_projection_2"}
+{"event": "timing", "stage": "top_projection_2", "seconds": 31.313539632014, "peak_rss_kib": 1693948}
+{"event": "source_top", "degree": 2, "dimension_vector": [0, 0, 0, 1, 0, 0, 1, 0]}
+{"event": "start", "stage": "generators_2"}
+{"event": "timing", "stage": "generators_2", "seconds": 0.02224399708211422, "peak_rss_kib": 1693948}
+{"event": "start", "stage": "projective_family_2"}
+{"event": "timing", "stage": "projective_family_2", "seconds": 66.64765983493999, "peak_rss_kib": 2115288}
+{"event": "start", "stage": "generator_maps_2"}
+{"event": "timing", "stage": "generator_maps_2", "seconds": 0.40453889104537666, "peak_rss_kib": 2115288}
+{"event": "start", "stage": "direct_sum_2"}
+{"event": "timing", "stage": "direct_sum_2", "seconds": 0.8982995440019295, "peak_rss_kib": 2353092}
+{"event": "start", "stage": "projections_2"}
+{"event": "timing", "stage": "projections_2", "seconds": 0.6785788519773632, "peak_rss_kib": 2353092}
+{"event": "start", "stage": "composites_2"}
+{"event": "timing", "stage": "composites_2", "seconds": 0.04012175998650491, "peak_rss_kib": 2353092}
+{"event": "start", "stage": "add_maps_2"}
+{"event": "timing", "stage": "add_maps_2", "seconds": 0.30245782097335905, "peak_rss_kib": 2353092}
+{"event": "start", "stage": "kernel_2"}
+{"event": "timing", "stage": "kernel_2", "seconds": 13.513754575978965, "peak_rss_kib": 2353092}
+{"event": "start", "stage": "exactness_2"}
+{"event": "timing", "stage": "exactness_2", "seconds": 0.05965897801797837, "peak_rss_kib": 2353092}
+{"event": "resolution_term", "degree": 2, "exact_sequence_checked": true, "projective_dimension": 2822, "projective_dimension_vector": [678, 610, 1032, 438, 16, 16, 24, 8], "syzygy_dimension": 1736, "syzygy_dimension_vector": [422, 354, 632, 285, 10, 14, 16, 3]}
+{"event": "result", "ext_dimensions": {}}

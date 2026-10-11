@@ -62,3 +62,11 @@ include!("module/errors.rs");
 #[cfg(test)]
 #[path = "module/tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "module/ext_dimension_tests.rs"]
+mod ext_dimension_tests;
+
+#[cfg(test)]
+#[path = "module/projective_optimization_tests.rs"]
+mod projective_optimization_tests;

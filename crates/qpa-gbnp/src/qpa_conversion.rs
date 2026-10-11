@@ -13,6 +13,8 @@ use thiserror::Error;
 
 use crate::{NpError, NpMonomial, NpPolynomial, SgrobnerError, clean_np, sgrobner};
 
+mod components;
+
 /// Raw two-list Cohen/NP representation returned by QPA conversion.
 ///
 /// Unlike [`NpPolynomial`], this preserves QPA's source term order until GBNP
@@ -320,6 +322,11 @@ fn relation<F: Field>(
 
 /// Translate checked QPA `GBNPGroebnerBasis` for arrow-ideal relations.
 ///
+/// When the quiver has both internal and crossing component relations,
+/// complete the internal ideal first and reduce the crossing relations by it.
+/// This structural preconditioning preserves the ideal and the final reduced
+/// basis, and requires no caller-supplied partition or presentation metadata.
+///
 /// # Errors
 ///
 /// Returns an error for elements outside the algebra/arrow ideal or any GBNP
@@ -332,11 +339,14 @@ pub fn gbnp_groebner_basis<F: Field>(
         return Err(QpaGbnpError::OutsideArrowIdeal);
     }
     let uniform = make_uniform_list(elements, algebra)?;
-    let raw = path_to_cohen(&uniform)?;
-    let input = raw
-        .iter()
-        .map(CohenPolynomial::clean)
-        .collect::<Result<Vec<_>, _>>()?;
+    let input = if let Some(input) = components::precondition(&uniform, algebra)? {
+        input
+    } else {
+        path_to_cohen(&uniform)?
+            .iter()
+            .map(CohenPolynomial::clean)
+            .collect::<Result<Vec<_>, _>>()?
+    };
     cohen_to_path(&sgrobner(&input)?, algebra)
 }
 

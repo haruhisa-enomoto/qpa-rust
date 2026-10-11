@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Compile the v0.2.0 exhaustive Ext error match as an external Rust client.
+
+This is a focused patch-compatibility guard, not a general semver checker.
+Review the remaining public API diff separately. Requires Git baseline v0.2.0
+and the normal workspace dependencies; the probe is generated under target/.
+"""
+import json
+from pathlib import Path
+import re
+import subprocess
+
+ROOT = Path(__file__).resolve().parents[1]
+BASELINE = 'v0.2.0'
+SOURCE = 'crates/qpa-gbnp/src/module/errors.rs'
+
+
+def variants(source):
+    body = source.split('pub enum EnvelopingModuleError {', 1)[1].split('\n}', 1)[0]
+    return re.findall(r'^    ([A-Z][A-Za-z0-9_]*)\s*([({,])', body, re.MULTILINE)
+
+
+def main():
+    previous = subprocess.check_output(['git', 'show', f'{BASELINE}:{SOURCE}'], cwd=ROOT, text=True)
+    old = variants(previous)
+    current = variants((ROOT / SOURCE).read_text())
+    assert old and old == current, 'public EnvelopingModuleError variants changed since v0.2.0'
+    probe = ROOT / 'target' / 'patch-api-probe'
+    (probe / 'src').mkdir(parents=True, exist_ok=True)
+    (probe / 'Cargo.toml').write_text(
+        '[workspace]\n[package]\nname="qpa-patch-api-probe"\nversion="0.0.0"\nedition="2024"\n'
+        '[dependencies]\nqpa-gbnp = { path = '
+        + json.dumps(str(ROOT / 'crates/qpa-gbnp')) + ' }\n')
+    arms = '\n'.join('        E::' + name + {'(': '(..)', '{': ' { .. }', ',': ''}[kind] + ' => (),'
+                     for name, kind in old)
+    (probe / 'src/main.rs').write_text(
+        'use qpa_gbnp::EnvelopingModuleError as E;\n'
+        '#[allow(dead_code)]\nfn exhaustive_v020_match(error: E) {\n    match error {\n'
+        + arms + '\n    }\n}\nfn main() {}\n')
+    subprocess.run(['cargo', 'check', '--offline', '--manifest-path', str(probe / 'Cargo.toml'),
+                    '--target-dir', str(ROOT / 'target')], cwd=ROOT, check=True)
+    print(f'PASS: {len(old)} v0.2.0 variants, external exhaustive match compiles unchanged.')
+
+
+if __name__ == '__main__':
+    main()

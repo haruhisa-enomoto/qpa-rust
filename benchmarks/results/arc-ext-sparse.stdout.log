@@ -1,0 +1,24 @@
+{"event": "start", "stage": "load_basis"}
+{"event": "timing", "stage": "load_basis", "seconds": 0.10307540197391063, "peak_rss_kib": 53020}
+{"event": "start", "stage": "verify_input_relations"}
+{"event": "timing", "stage": "verify_input_relations", "seconds": 0.06434625503607094, "peak_rss_kib": 53020}
+{"event": "start", "stage": "quotient"}
+{"event": "timing", "stage": "quotient", "seconds": 0.05394044308923185, "peak_rss_kib": 55592}
+{"event": "start", "stage": "admissibility"}
+{"event": "timing", "stage": "admissibility", "seconds": 14.70138069393579, "peak_rss_kib": 103208}
+{"event": "start", "stage": "checked_witness_module"}
+{"event": "timing", "stage": "checked_witness_module", "seconds": 0.009688406018540263, "peak_rss_kib": 104904}
+{"event": "start", "stage": "top"}
+{"event": "timing", "stage": "top", "seconds": 2.337421452975832, "peak_rss_kib": 258280}
+{"event": "module", "dimension": 110, "dimension_vector": [26, 30, 40, 13, 0, 0, 0, 1], "top": [0, 0, 0, 1, 0, 0, 0, 1]}
+{"event": "start", "stage": "cover_1"}
+{"event": "timing", "stage": "cover_1", "seconds": 23.357692808960564, "peak_rss_kib": 1629500}
+{"event": "start", "stage": "kernel_1"}
+{"event": "timing", "stage": "kernel_1", "seconds": 0.8659487690310925, "peak_rss_kib": 1629500}
+{"event": "start", "stage": "exactness_1"}
+{"event": "timing", "stage": "exactness_1", "seconds": 0.0036801149835810065, "peak_rss_kib": 1629500}
+{"event": "resolution_term", "degree": 1, "exact_sequence_checked": true, "projective_dimension": 1196, "projective_dimension_vector": [282, 286, 440, 166, 6, 2, 8, 6], "syzygy_dimension": 1086, "syzygy_dimension_vector": [256, 256, 400, 153, 6, 2, 8, 5]}
+{"event": "start", "stage": "ext_1"}
+{"event": "timing", "stage": "ext_1", "seconds": 9.871244999929331, "peak_rss_kib": 1629500}
+{"event": "ext", "degree": 1, "source": "Z", "target": "Z", "dimension": 0}
+{"event": "start", "stage": "cover_2"}

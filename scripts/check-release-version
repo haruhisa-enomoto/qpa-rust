@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+"""Check workspace/distribution/lock versions, optionally against a release tag."""
+from pathlib import Path
+import sys
+import tomllib
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load(path):
+    with (ROOT / path).open('rb') as stream:
+        return tomllib.load(stream)
+
+
+def main():
+    if len(sys.argv) > 2:
+        raise SystemExit('usage: scripts/check-release-version [vX.Y.Z]')
+    workspace = load('Cargo.toml')['workspace']
+    project = load('pyproject.toml')['project']
+    version = workspace['package']['version']
+    versions = {'pyproject.toml': project['version']}
+    crate_names = [load(f'{member}/Cargo.toml')['package']['name'] for member in workspace['members']]
+    for lock, names in [('Cargo.lock', crate_names), ('uv.lock', [project['name']])]:
+        packages = {package['name']: package['version'] for package in load(lock)['package']}
+        for name in names:
+            versions[f'{lock}:{name}'] = packages[name]
+    versions['qpa-gbnp -> qpa-core'] = load('crates/qpa-gbnp/Cargo.toml')['dependencies']['qpa-core']['version']
+    for name, actual in versions.items():
+        if actual != version:
+            raise SystemExit(f'{name}: expected {version}, found {actual}')
+    if len(sys.argv) == 2 and sys.argv[1] != f'v{version}':
+        raise SystemExit(f'tag {sys.argv[1]!r} does not match v{version}')
+    print(f'PASS: workspace, Python, internal dependency and lock versions agree: {version}')
+
+
+if __name__ == '__main__':
+    main()

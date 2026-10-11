@@ -30,8 +30,21 @@ include!("path_module/homomorphisms.rs");
 include!("path_module/submodules.rs");
 include!("path_module/categorical.rs");
 include!("path_module/constructors.rs");
+include!("path_module/relation_checking.rs");
 include!("path_module/errors.rs");
 
 #[cfg(test)]
 #[path = "path_module/tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "path_module/action_tests.rs"]
+mod action_tests;
+
+#[cfg(test)]
+#[path = "path_module/relation_tests.rs"]
+mod relation_tests;
+
+#[cfg(test)]
+#[path = "path_module/projective_cache_tests.rs"]
+mod projective_cache_tests;

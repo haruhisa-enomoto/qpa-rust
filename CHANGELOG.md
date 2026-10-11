@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.2.1 — 2026-10-11
+
+A performance patch for existing exact algebra and module calculations. Public
+Python signatures, ordered bases, source-domain checks, and object-identity
+conventions are preserved; no consumer migration is required.
+
+### Performance
+
+- Automatically precondition quotient Gröbner completion by strongly connected
+  quiver components, without algebra-specific names or supplied bases.
+- Use sparse, cached arrow-ideal products for admissibility tests, preserving
+  the distinction between finite dimension and admissibility.
+- Build sparse Hom equations; evaluate module elements along paths using vector
+  actions, and generate subrepresentations from independent frontier vectors.
+- Compute Ext dimensions from exact Hom dimensions and cover multiplicities,
+  without constructing projective Hom bases or restriction matrices. The
+  basis-returning Ext API and its ordered representatives are unchanged.
+- Construct only selected projectives, reuse live weak-cache members, extract
+  local coordinates, and assemble cover matrices directly in summand order.
+- Reuse bounded path prefixes during relation checks, avoid zero/scaled
+  temporaries, and reuse validation for structurally certified uniform direct
+  sums. Caller-supplied actions remain checked.
+- Adapt individual elimination rows after fill-in, pack eligible GF(2) systems
+  directly from sparse storage, and avoid unused rank-only basis exports.
+
+The [performance report](benchmarks/results/native-performance.md) records an
+ordinary-API workflow falling from **540.65 s to 180.29 s**, with peak RSS
+falling from **4.36 GiB to 2.73 GiB** across the four-priority pass. These are
+working-tree benchmark observations, not universal guarantees. Some small
+sparse queries are slower; rational coefficient growth and large retained
+resolution data remain limitations. Exact results agree across the tested
+rational, prime-field, and extension-field workloads.
+
+### Compatibility and packaging
+
+- Retain the 0.2.0 public Rust error-enum variants. Ext arithmetic guards use
+  the existing module dimension-overflow and internal Hom-failure variants,
+  avoiding a patch-release break for downstream exhaustive matches.
+- Add an external compile probe for the 0.2.0 exhaustive error match and a
+  source-level public API audit; Rust 1.89 remains the minimum toolchain.
+- Preserve the Linux wheel source-provenance fix following 0.2.0. Release wheels
+  must identify the tagged source commit rather than report `unknown`.
+- Gate release builds on matching versions/tags, test installed Linux wheels
+  before upload, include frozen Rust test fixtures in source distributions,
+  and repair executable permissions on the live-oracle verification helpers.
+
+Release verification and local artifact results are recorded in
+[the 0.2.1 release audit](docs/development/release-0.2.1.md).
+
 ## 0.2.0 — 2026-10-10
 
 This release improves exact module calculations and makes the Python algebra

@@ -1,5 +1,10 @@
 # Post-port roadmap
 
+Current performance follow-up: [four native optimization priorities](docs/development/performance-plan.md).
+All four priorities are complete with regression and benchmark evidence;
+see [the performance report](benchmarks/results/native-performance.md) for results
+and remaining tradeoffs. Version/release changes remain with the maintainer.
+
 Last updated: 2026-07-21
 
 Status: all six campaigns below have passed their exit gates. The verification

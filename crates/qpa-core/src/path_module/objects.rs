@@ -1449,6 +1449,11 @@ impl<F: Field> PathAlgebraModuleElement<F> {
 
     /// Apply QPA's right action by a path-algebra or quotient element.
     ///
+    /// # Panics
+    ///
+    /// Panics if an internal normalized algebra term contains a non-walk
+    /// path, violating the path-algebra representation invariant.
+    ///
     /// # Errors
     ///
     /// Rejects an element outside the identical acting-algebra family and
@@ -1472,19 +1477,21 @@ impl<F: Field> PathAlgebraModuleElement<F> {
             };
             let source_index = source.index().zero_based();
             let target_index = target.index().zero_based();
-            let action = path_action_matrix(
-                term.path(),
-                self.module.dimension_vector(),
-                self.module.arrow_matrices(),
-                algebra.field().clone(),
-            )?;
-            let row = DenseMatrix::from_flat(
+            // Reassociate v*(A1*...*Ak) as (...((v*A1)*A2)...*Ak).
+            // This is the same exact right action, without materializing a
+            // potentially large path-action matrix for a single vector.
+            // An empty walk is the vertex identity, including zero-space
+            // physical stand-ins. Keep every arrow's shape/field check.
+            let mut image = DenseMatrix::from_flat(
                 1,
                 self.coordinates[source_index].len(),
                 self.coordinates[source_index].clone(),
                 algebra.field().clone(),
             )?;
-            let image = row.multiply(&action)?.scale_left(term.coefficient());
+            for arrow in term.path().walk().expect("normalized algebra terms have walks") {
+                image = image.multiply(&self.module.arrow_matrices()[arrow.zero_based()])?;
+            }
+            let image = image.scale_left(term.coefficient());
             for (entry, value) in result.coordinates[target_index]
                 .iter_mut()
                 .zip(image.row(0))
@@ -2505,6 +2512,30 @@ impl<F: Field> WeakPathAlgebraModuleListCache<F> {
             .iter()
             .map(WeakPathAlgebraModule::upgrade)
             .collect()
+    }
+
+    pub(crate) fn cached_at(&self, index: usize) -> Option<PathAlgebraModule<F>> {
+        self.modules.read().unwrap_or_else(std::sync::PoisonError::into_inner)
+            .get(index)?.upgrade()
+    }
+
+    pub(crate) fn merge_at(
+        &self,
+        index: usize,
+        count: usize,
+        generated: &PathAlgebraModule<F>,
+    ) -> Option<PathAlgebraModule<F>> {
+        if index >= count {
+            return None;
+        }
+        let mut slot = self.modules.write().unwrap_or_else(std::sync::PoisonError::into_inner);
+        slot.resize_with(count, || WeakPathAlgebraModule(Weak::new()));
+        let _ = self.bound.set(());
+        if let Some(cached) = slot[index].upgrade() {
+            return Some(cached);
+        }
+        slot[index] = generated.downgrade();
+        Some(generated.clone())
     }
 
     pub(crate) fn merge(&self, generated: &[PathAlgebraModule<F>]) -> Vec<PathAlgebraModule<F>> {

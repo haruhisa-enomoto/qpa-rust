@@ -66,6 +66,66 @@ def test_dimension_error_boundaries_match_existing_apis():
             query()
 
 
+@pytest.mark.parametrize('family', ['infinite_path', 'nonadmissible_quotient'])
+def test_ext_dimension_zero_source_preserves_unsupported_algebra_boundaries(family):
+    parent = qpa.PathAlgebra(qpa.Field.rational(), qpa.Quiver.indexed(1, [(1, 1, 'x')]))
+    if family == 'infinite_path':
+        algebra = parent
+    else:
+        x = parent.generator('x')
+        algebra = parent.quotient([x*x - x])
+        assert not algebra.is_admissible
+    zero = algebra.zero_module()
+    module = algebra.module_from_integer_matrices([1], [('x', [[0]])])
+    assert zero.ext1_dimension(module) == zero.ext1(module).dimension == 0
+    assert zero.ext1_dimensions([module, zero, module]) == [0, 0, 0]
+    # Do not introduce a target-zero shortcut which suppresses cover errors.
+    for query in [lambda: module.ext1_dimension(zero), lambda: module.ext1(zero),
+                  lambda: module.ext1_dimensions([zero])]:
+        with pytest.raises(qpa.InvalidInputError):
+            query()
+
+
+def test_unconstrained_hom_dimension_does_not_materialize_unknown_rows():
+    algebra = qpa.QuiverAlgebra.from_path_algebra(qpa.PathAlgebra(
+        qpa.Field.rational(), qpa.Quiver.indexed(1, [])))
+    module = algebra.right_module_over_path_algebra_with_dimensions([100_000], [])
+    assert module.hom_dimension_to(module) == 10_000_000_000
+
+
+@pytest.mark.parametrize('field', FIELDS)
+def test_sparse_hom_equations_preserve_regular_kronecker_ext(field):
+    # 800 unknowns and 800 constraints: above the small-dense cutoff.
+    # End(R_n) = k[t]/(t^n), and Ext^1(R_n,R_n) also has dimension n.
+    n = 20
+    algebra = qpa.QuiverAlgebra.from_path_algebra(qpa.PathAlgebra(
+        field, qpa.Quiver.indexed(2, [(1, 2, 'a'), (1, 2, 'b')])))
+    zero, one = field.element(0), field.element(1)
+    eigenvalue = field.primitive_element() if (field.degree or 1) > 1 else zero
+    identity = [[one if i == j else zero for j in range(n)] for i in range(n)]
+    jordan = [[eigenvalue if i == j else one if j == i + 1 else zero
+               for j in range(n)] for i in range(n)]
+    module = algebra.right_module_over_path_algebra_with_dimensions(
+        [n, n], [('a', identity), ('b', jordan)])
+    assert module.hom_dimension_to(module) == n
+    assert len(module.hom_basis_to(module)) == n
+    assert module.ext1_dimension(module) == n
+
+
+@pytest.mark.parametrize('field', FIELDS)
+def test_subrepresentation_discards_exponentially_redundant_path_images(field):
+    n = 24
+    parent = qpa.PathAlgebra(field, qpa.Quiver.indexed(1, [(1, 1, 'x'), (1, 1, 'y')]))
+    jordan = [[int(j == i + 1) for j in range(n)] for i in range(n)]
+    module = parent.module_from_integer_matrices([n], [('x', jordan), ('y', jordan)])
+    # All 2**length words give the same vector until length n. The full
+    # subrepresentation is the original module in its canonical basis.
+    inclusion = module.subrepresentation_inclusion([module.basis_elements()[0]])
+    assert inclusion.source == module
+    assert inclusion.range.is_identical(module)
+    assert inclusion.vertex_matrices == module.identity().vertex_matrices
+
+
 def test_binary_ext_grid_with_nonzero_restriction_image():
     algebra = qpa.QuotientAlgebra.truncated(
         qpa.Field.prime(2), qpa.Quiver.indexed(1, [(1, 1, 'x'), (1, 1, 'y')]), 2

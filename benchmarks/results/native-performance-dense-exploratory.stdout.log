@@ -1,0 +1,5 @@
+{"field": "Q", "case": "cover_loop", "seconds": [0.012941326946020126, 0.013019190053455532, 0.012510403990745544], "median_seconds": 0.012941326946020126, "values": [90], "process_peak_rss_kib_so_far": 48764}
+{"field": "Q", "case": "checked_module_loop", "seconds": [0.01061981706880033, 0.011683295015245676, 0.012803121004253626], "median_seconds": 0.011683295015245676, "values": [90], "process_peak_rss_kib_so_far": 48764}
+{"field": "Q", "case": "cover_line", "seconds": [0.0006077700527384877, 0.0006306699942797422, 0.000578113947995007], "median_seconds": 0.0006077700527384877, "values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6], "process_peak_rss_kib_so_far": 48764}
+{"field": "Q", "case": "checked_module_line", "seconds": [3.172503784298897e-05, 1.1604977771639824e-05, 1.0447925888001919e-05], "median_seconds": 1.1604977771639824e-05, "values": [0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 6, 6], "process_peak_rss_kib_so_far": 48764}
+{"field": "Q", "case": "hom_sparse", "seconds": [0.00020937691442668438, 0.00018731295131146908, 0.00018469395581632853], "median_seconds": 0.00018731295131146908, "values": 1, "process_peak_rss_kib_so_far": 48764}

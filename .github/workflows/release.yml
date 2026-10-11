@@ -14,8 +14,28 @@ env:
   QPA_PORT_GIT_COMMIT: ${{ github.sha }}
 
 jobs:
+  metadata:
+    name: Release version consistency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check versions and release tag
+        env:
+          RELEASE_REF_TYPE: ${{ github.ref_type }}
+          RELEASE_REF_NAME: ${{ github.ref_name }}
+        run: |
+          if [ "$RELEASE_REF_TYPE" = tag ]; then
+            python scripts/check-release-version "$RELEASE_REF_NAME"
+          else
+            python scripts/check-release-version
+          fi
+
   wheels:
     name: Wheels for ${{ matrix.platform.name }}
+    needs: [metadata]
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       fail-fast: false
@@ -39,15 +59,23 @@ jobs:
           args: --release --out dist --interpreter 3.10 3.11 3.12 3.13
           docker-options: -e QPA_PORT_GIT_COMMIT
           sccache: "true"
-      - name: Verify Linux wheel source commit
+      - name: Verify installed Linux wheel
         if: runner.os == 'Linux'
         run: |
           python -m pip install --no-index --find-links dist qpa-rust
+          python -m pip install pytest
           python - <<'PY'
+          from importlib.metadata import version
+          from pathlib import Path
           import os
+          import tomllib
           import qpa
+          expected = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+          assert version("qpa-rust") == expected
+          assert not Path(qpa.__file__).resolve().is_relative_to(Path.cwd())
           assert qpa.PORT_GIT_COMMIT == os.environ["QPA_PORT_GIT_COMMIT"], qpa.PORT_GIT_COMMIT
           PY
+          python -I -m pytest -q python/tests
       - uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.platform.name }}
@@ -55,6 +83,7 @@ jobs:
 
   sdist:
     name: Source distribution
+    needs: [metadata]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

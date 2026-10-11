@@ -1,0 +1,100 @@
+{
+  "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty",
+  "repeat": 3,
+  "extension_sha256": "a84d9a1be30948cfd4b1fe7ec48141213ab38756aa7c1a44794cba98ea2430b9",
+  "runner_sha256": "22e9e358df74128d30d96d84c22bd0faa8532fe8eb4c5e2a449b7acbcfb62fef",
+  "cases": [
+    {
+      "field": "Q",
+      "case": "cover_loop",
+      "seconds": [
+        0.012941326946020126,
+        0.013019190053455532,
+        0.012510403990745544
+      ],
+      "median_seconds": 0.012941326946020126,
+      "values": [
+        90
+      ],
+      "process_peak_rss_kib_so_far": 48764
+    },
+    {
+      "field": "Q",
+      "case": "checked_module_loop",
+      "seconds": [
+        0.01061981706880033,
+        0.011683295015245676,
+        0.012803121004253626
+      ],
+      "median_seconds": 0.011683295015245676,
+      "values": [
+        90
+      ],
+      "process_peak_rss_kib_so_far": 48764
+    },
+    {
+      "field": "Q",
+      "case": "cover_line",
+      "seconds": [
+        0.0006077700527384877,
+        0.0006306699942797422,
+        0.000578113947995007
+      ],
+      "median_seconds": 0.0006077700527384877,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        6,
+        6
+      ],
+      "process_peak_rss_kib_so_far": 48764
+    },
+    {
+      "field": "Q",
+      "case": "checked_module_line",
+      "seconds": [
+        3.172503784298897e-05,
+        1.1604977771639824e-05,
+        1.0447925888001919e-05
+      ],
+      "median_seconds": 1.1604977771639824e-05,
+      "values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        6,
+        6
+      ],
+      "process_peak_rss_kib_so_far": 48764
+    },
+    {
+      "field": "Q",
+      "case": "hom_sparse",
+      "seconds": [
+        0.00020937691442668438,
+        0.00018731295131146908,
+        0.00018469395581632853
+      ],
+      "median_seconds": 0.00018731295131146908,
+      "values": 1,
+      "process_peak_rss_kib_so_far": 48764
+    }
+  ],
+  "status": "cancelled",
+  "termination": "Manually terminated with SIGTERM at 258.46 seconds; the three-sample rational dense query batch did not complete. See native-performance.md; this is not the completed baseline."
+}

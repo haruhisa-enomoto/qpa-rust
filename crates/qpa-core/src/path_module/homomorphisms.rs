@@ -1191,7 +1191,7 @@ pub fn hom_dimension_over_algebra<F: Field>(
 fn hom_equations<F: Field>(
     source: &PathAlgebraModule<F>,
     range: &PathAlgebraModule<F>,
-) -> Result<Option<DenseMatrix<F>>, PathAlgebraModuleError> {
+) -> Result<Option<crate::matrix::sparse::SparseMatrix<F>>, PathAlgebraModuleError> {
     if source.right_acting_algebra() != range.right_acting_algebra() {
         return Ok(None);
     }
@@ -1250,7 +1250,10 @@ fn hom_equations<F: Field>(
         }
     }
 
-    let mut equations = DenseMatrix::zero(row_count, column_count, field.clone());
+    // Keep QPA's unknown/equation order, but do not allocate their usually
+    // almost entirely zero Cartesian product. Sparse elimination preserves
+    // the dense algorithm's ordered nullspace representatives exactly.
+    let mut equations = crate::matrix::sparse::SparseMatrix::zero(row_count, column_count, field.clone());
     if row_count != 0 && column_count != 0 {
         let mut previous_column = 0_usize;
         for vertex in 0..vertex_count {
@@ -1289,8 +1292,8 @@ fn hom_equations<F: Field>(
                         )? + source_row * range_dimensions[arrow_source];
                         for range_row in 0..range_dimensions[arrow_source] {
                             for target_column in 0..range_dimensions[arrow_target] {
-                                equations[(row_start + range_row, column_start + target_column)] =
-                                    range_action[(range_row, target_column)].clone();
+                                equations.set(row_start + range_row, column_start + target_column,
+                                    range_action[(range_row, target_column)].clone());
                             }
                         }
                     }
@@ -1303,13 +1306,11 @@ fn hom_equations<F: Field>(
                         for target_row in 0..source_dimensions[arrow_target] {
                             let negative = field.neg(&source_action[(source_row, target_row)]);
                             for target_column in 0..range_dimensions[arrow_target] {
-                                field.add_assign(
-                                    &mut equations[(
-                                        target_row_start
-                                            + target_row * range_dimensions[arrow_target]
-                                            + target_column,
-                                        column_start + target_column,
-                                    )],
+                                equations.add(
+                                    target_row_start
+                                        + target_row * range_dimensions[arrow_target]
+                                        + target_column,
+                                    column_start + target_column,
                                     &negative,
                                 );
                             }

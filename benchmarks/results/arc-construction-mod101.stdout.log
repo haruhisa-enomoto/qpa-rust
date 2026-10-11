@@ -1,0 +1,24 @@
+BENCH {"event": "metadata", "monotonic": 661730.734513307, "pid": 2627099, "package": "/home/italing/work/qpa-rust/python/qpa/__init__.py", "version": "0.2.0", "revision": "6207cd941fefcadab5a695001be3aac573b1dacf", "extension_sha256": "cbee0a2c587509df4185361112c8a47d807635bf80990741e5cc4a38007f83c8"}
+BENCH {"event": "start", "monotonic": 661730.734607256, "stage": "parse"}
+BENCH {"event": "timing", "monotonic": 661730.736527647, "stage": "parse", "seconds": 0.0018914990359917283, "cpu_seconds": 0.078255576, "peak_rss_kib": 52884}
+BENCH {"event": "input", "monotonic": 661730.738583617, "vertices": 8, "arrows": 43, "relations": 106, "terms": 957, "terms_by_path_length": {"2": 195, "3": 152, "4": 50, "5": 52, "6": 104, "7": 185, "8": 175, "9": 38, "10": 6}, "max_terms_per_relation": 94, "expected_dimension": 7708}
+BENCH {"event": "start", "monotonic": 661730.738611178, "stage": "presentation"}
+BENCH {"event": "timing", "monotonic": 661730.74327412, "stage": "presentation", "seconds": 0.004647937952540815, "cpu_seconds": 0.085598768, "peak_rss_kib": 52884}
+BENCH {"event": "start", "monotonic": 661730.743303577, "stage": "ideal"}
+BENCH {"event": "timing", "monotonic": 661730.743377937, "stage": "ideal", "seconds": 6.806396413594484e-05, "cpu_seconds": 0.085717174, "peak_rss_kib": 52884}
+BENCH {"event": "start", "monotonic": 661730.743387974, "stage": "groebner"}
+BENCH {"event": "timing", "monotonic": 661737.530366119, "stage": "groebner", "seconds": 6.7869607110042125, "cpu_seconds": 7.457471961, "peak_rss_kib": 52884}
+BENCH {"event": "completed_basis", "monotonic": 661737.530429052, "relations": 1376}
+BENCH {"event": "start", "monotonic": 661737.530447907, "stage": "completed_ideal"}
+BENCH {"event": "timing", "monotonic": 661737.531047197, "stage": "completed_ideal", "seconds": 0.0005869389278814197, "cpu_seconds": 7.458219874, "peak_rss_kib": 52884}
+BENCH {"event": "start", "monotonic": 661737.531155494, "stage": "attach"}
+BENCH {"event": "timing", "monotonic": 661737.533110115, "stage": "attach", "seconds": 0.0019203450065106153, "cpu_seconds": 7.460463124, "peak_rss_kib": 52884}
+BENCH {"event": "start", "monotonic": 661737.533136592, "stage": "quotient"}
+BENCH {"event": "timing", "monotonic": 661737.582093147, "stage": "quotient", "seconds": 0.04893554397858679, "cpu_seconds": 7.513707713, "peak_rss_kib": 52884}
+BENCH {"event": "start", "monotonic": 661737.582159481, "stage": "dimension"}
+BENCH {"event": "timing", "monotonic": 661737.584218333, "stage": "dimension", "seconds": 0.0020436899503692985, "cpu_seconds": 7.516023889, "peak_rss_kib": 52884}
+BENCH {"event": "dimension", "monotonic": 661737.584262663, "value": 7708, "matches_expected": true}
+BENCH {"event": "start", "monotonic": 661737.584269081, "stage": "basis"}
+BENCH {"event": "timing", "monotonic": 661737.595941562, "stage": "basis", "seconds": 0.0116549429949373, "cpu_seconds": 7.528765333, "peak_rss_kib": 52884}
+BENCH {"event": "basis_size", "monotonic": 661737.596039274, "value": 7708}
+BENCH {"event": "start", "monotonic": 661737.59604945, "stage": "admissibility"}

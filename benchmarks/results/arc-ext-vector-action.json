@@ -1,0 +1,195 @@
+{
+  "field": "Q",
+  "convention": "right module over A^op, transposed published left actions",
+  "pairs": [
+    [
+      "Z",
+      "Z"
+    ]
+  ],
+  "requested_degrees": [
+    1,
+    2
+  ],
+  "version": "0.2.0",
+  "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty",
+  "extension_sha256": "935c344073b36e1526e68db2c6164ae60912b295312ed6dcd5fd3b85e3bc4f14",
+  "inputs": {
+    "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-bound-quiver.md": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d",
+    "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-witness.md": "3631e1f3ff3188f965612f7c82d6e8f796d4c3730707a044d599374110b35e61",
+    "target/arc-optimized-opposite-basis.json": "336916a5f7ff33aef35e69f54139b560a7ae2d01d2e2ba5808f5c12e38726801"
+  },
+  "events": [
+    {
+      "event": "start",
+      "stage": "load_basis"
+    },
+    {
+      "event": "timing",
+      "stage": "load_basis",
+      "seconds": 0.10310786997433752,
+      "peak_rss_kib": 53428
+    },
+    {
+      "event": "start",
+      "stage": "verify_input_relations"
+    },
+    {
+      "event": "timing",
+      "stage": "verify_input_relations",
+      "seconds": 0.06504851998761296,
+      "peak_rss_kib": 53428
+    },
+    {
+      "event": "start",
+      "stage": "quotient"
+    },
+    {
+      "event": "timing",
+      "stage": "quotient",
+      "seconds": 0.054208379006013274,
+      "peak_rss_kib": 55472
+    },
+    {
+      "event": "start",
+      "stage": "admissibility"
+    },
+    {
+      "event": "timing",
+      "stage": "admissibility",
+      "seconds": 15.43505253107287,
+      "peak_rss_kib": 103120
+    },
+    {
+      "event": "start",
+      "stage": "checked_witness_module"
+    },
+    {
+      "event": "timing",
+      "stage": "checked_witness_module",
+      "seconds": 0.009339583106338978,
+      "peak_rss_kib": 104624
+    },
+    {
+      "event": "module",
+      "dimension": 110,
+      "dimension_vector": [
+        26,
+        30,
+        40,
+        13,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "event": "start",
+      "stage": "top_projection_1"
+    },
+    {
+      "event": "timing",
+      "stage": "top_projection_1",
+      "seconds": 1.2339400700293481,
+      "peak_rss_kib": 258160
+    },
+    {
+      "event": "source_top",
+      "degree": 1,
+      "dimension_vector": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "event": "start",
+      "stage": "cover_1"
+    },
+    {
+      "event": "timing",
+      "stage": "cover_1",
+      "seconds": 21.39259211299941,
+      "peak_rss_kib": 1643520
+    },
+    {
+      "event": "start",
+      "stage": "kernel_1"
+    },
+    {
+      "event": "timing",
+      "stage": "kernel_1",
+      "seconds": 0.8802707650465891,
+      "peak_rss_kib": 1643520
+    },
+    {
+      "event": "start",
+      "stage": "exactness_1"
+    },
+    {
+      "event": "timing",
+      "stage": "exactness_1",
+      "seconds": 0.004087578970938921,
+      "peak_rss_kib": 1643520
+    },
+    {
+      "event": "resolution_term",
+      "degree": 1,
+      "exact_sequence_checked": true,
+      "projective_dimension": 1196,
+      "projective_dimension_vector": [
+        282,
+        286,
+        440,
+        166,
+        6,
+        2,
+        8,
+        6
+      ],
+      "syzygy_dimension": 1086,
+      "syzygy_dimension_vector": [
+        256,
+        256,
+        400,
+        153,
+        6,
+        2,
+        8,
+        5
+      ]
+    },
+    {
+      "event": "start",
+      "stage": "ext_1"
+    },
+    {
+      "event": "timing",
+      "stage": "ext_1",
+      "seconds": 9.987840813933872,
+      "peak_rss_kib": 1643520
+    },
+    {
+      "event": "ext",
+      "degree": 1,
+      "source": "Z",
+      "target": "Z",
+      "dimension": 0
+    },
+    {
+      "event": "start",
+      "stage": "top_projection_2"
+    }
+  ],
+  "ext_dimensions": {
+    "1": 0
+  },
+  "status": "allocation_failed_top_2",
+  "failure": "After Ext^1(Z,Z)=0, the 8-GiB address-space guard stopped top_projection_2. SubRepresentationInclusion was enumerating all redundant nonzero path images before canonical span reduction. This artifact was renamed from arc-ext-final after the failed run."
+}

@@ -1,0 +1,160 @@
+{
+  "field": "Q",
+  "convention": "right module over A^op, transposed published left actions",
+  "pairs": [
+    [
+      "Z",
+      "Z"
+    ]
+  ],
+  "requested_degrees": [
+    1
+  ],
+  "version": "0.2.0",
+  "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty",
+  "extension_sha256": "ee2a270654b27f6079832a003cb399e34ddb4b18c49a0fc11f2526974f1a806e",
+  "inputs": {
+    "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-bound-quiver.md": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d",
+    "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-witness.md": "3631e1f3ff3188f965612f7c82d6e8f796d4c3730707a044d599374110b35e61",
+    "target/arc-optimized-opposite-basis.json": "336916a5f7ff33aef35e69f54139b560a7ae2d01d2e2ba5808f5c12e38726801"
+  },
+  "events": [
+    {
+      "event": "start",
+      "stage": "load_basis"
+    },
+    {
+      "event": "timing",
+      "stage": "load_basis",
+      "seconds": 0.10323458793573081,
+      "peak_rss_kib": 53000
+    },
+    {
+      "event": "start",
+      "stage": "verify_input_relations"
+    },
+    {
+      "event": "timing",
+      "stage": "verify_input_relations",
+      "seconds": 0.06513030105270445,
+      "peak_rss_kib": 53000
+    },
+    {
+      "event": "start",
+      "stage": "quotient"
+    },
+    {
+      "event": "timing",
+      "stage": "quotient",
+      "seconds": 0.05492670799139887,
+      "peak_rss_kib": 55536
+    },
+    {
+      "event": "start",
+      "stage": "admissibility"
+    },
+    {
+      "event": "timing",
+      "stage": "admissibility",
+      "seconds": 15.286106137908064,
+      "peak_rss_kib": 103184
+    },
+    {
+      "event": "start",
+      "stage": "checked_witness_module"
+    },
+    {
+      "event": "timing",
+      "stage": "checked_witness_module",
+      "seconds": 0.009537905920296907,
+      "peak_rss_kib": 104880
+    },
+    {
+      "event": "start",
+      "stage": "top"
+    },
+    {
+      "event": "timing",
+      "stage": "top",
+      "seconds": 2.426891413051635,
+      "peak_rss_kib": 258256
+    },
+    {
+      "event": "module",
+      "dimension": 110,
+      "dimension_vector": [
+        26,
+        30,
+        40,
+        13,
+        0,
+        0,
+        0,
+        1
+      ],
+      "top": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "event": "start",
+      "stage": "cover_1"
+    },
+    {
+      "event": "timing",
+      "stage": "cover_1",
+      "seconds": 24.515841791057028,
+      "peak_rss_kib": 1644048
+    },
+    {
+      "event": "start",
+      "stage": "kernel_1"
+    },
+    {
+      "event": "timing",
+      "stage": "kernel_1",
+      "seconds": 0.9270654279971495,
+      "peak_rss_kib": 1644048
+    },
+    {
+      "event": "resolution_term",
+      "degree": 1,
+      "projective_dimension": 1196,
+      "projective_dimension_vector": [
+        282,
+        286,
+        440,
+        166,
+        6,
+        2,
+        8,
+        6
+      ],
+      "syzygy_dimension": 1086,
+      "syzygy_dimension_vector": [
+        256,
+        256,
+        400,
+        153,
+        6,
+        2,
+        8,
+        5
+      ]
+    },
+    {
+      "event": "start",
+      "stage": "ext_1"
+    }
+  ],
+  "ext_dimensions": {},
+  "status": "allocation_failed",
+  "failure": "At ext_1, the dense Hom equation matrix requested 239955846400 bytes. The 8-GiB address-space guard prevented allocation; stderr records SIGABRT. No Ext dimension was obtained."
+}

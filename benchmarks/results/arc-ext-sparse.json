@@ -1,0 +1,192 @@
+{
+  "field": "Q",
+  "convention": "right module over A^op, transposed published left actions",
+  "pairs": [
+    [
+      "Z",
+      "Z"
+    ]
+  ],
+  "requested_degrees": [
+    1,
+    2
+  ],
+  "version": "0.2.0",
+  "revision": "6207cd941fefcadab5a695001be3aac573b1dacf-dirty",
+  "extension_sha256": "55970106ec1e847b26d0ce72fc7ab39995eb85ddc6a8e1a3dcb8c36695ce216b",
+  "inputs": {
+    "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-bound-quiver.md": "78a50028b95bd11ec02f226fef7560b7b03c0ac3e10b8d03e4a73c1b6776a69d",
+    "../homological-conjectures/results/auslander-reiten-counterexample/arc-expanded-witness.md": "3631e1f3ff3188f965612f7c82d6e8f796d4c3730707a044d599374110b35e61",
+    "target/arc-optimized-opposite-basis.json": "336916a5f7ff33aef35e69f54139b560a7ae2d01d2e2ba5808f5c12e38726801"
+  },
+  "events": [
+    {
+      "event": "start",
+      "stage": "load_basis"
+    },
+    {
+      "event": "timing",
+      "stage": "load_basis",
+      "seconds": 0.10307540197391063,
+      "peak_rss_kib": 53020
+    },
+    {
+      "event": "start",
+      "stage": "verify_input_relations"
+    },
+    {
+      "event": "timing",
+      "stage": "verify_input_relations",
+      "seconds": 0.06434625503607094,
+      "peak_rss_kib": 53020
+    },
+    {
+      "event": "start",
+      "stage": "quotient"
+    },
+    {
+      "event": "timing",
+      "stage": "quotient",
+      "seconds": 0.05394044308923185,
+      "peak_rss_kib": 55592
+    },
+    {
+      "event": "start",
+      "stage": "admissibility"
+    },
+    {
+      "event": "timing",
+      "stage": "admissibility",
+      "seconds": 14.70138069393579,
+      "peak_rss_kib": 103208
+    },
+    {
+      "event": "start",
+      "stage": "checked_witness_module"
+    },
+    {
+      "event": "timing",
+      "stage": "checked_witness_module",
+      "seconds": 0.009688406018540263,
+      "peak_rss_kib": 104904
+    },
+    {
+      "event": "start",
+      "stage": "top"
+    },
+    {
+      "event": "timing",
+      "stage": "top",
+      "seconds": 2.337421452975832,
+      "peak_rss_kib": 258280
+    },
+    {
+      "event": "module",
+      "dimension": 110,
+      "dimension_vector": [
+        26,
+        30,
+        40,
+        13,
+        0,
+        0,
+        0,
+        1
+      ],
+      "top": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "event": "start",
+      "stage": "cover_1"
+    },
+    {
+      "event": "timing",
+      "stage": "cover_1",
+      "seconds": 23.357692808960564,
+      "peak_rss_kib": 1629500
+    },
+    {
+      "event": "start",
+      "stage": "kernel_1"
+    },
+    {
+      "event": "timing",
+      "stage": "kernel_1",
+      "seconds": 0.8659487690310925,
+      "peak_rss_kib": 1629500
+    },
+    {
+      "event": "start",
+      "stage": "exactness_1"
+    },
+    {
+      "event": "timing",
+      "stage": "exactness_1",
+      "seconds": 0.0036801149835810065,
+      "peak_rss_kib": 1629500
+    },
+    {
+      "event": "resolution_term",
+      "degree": 1,
+      "exact_sequence_checked": true,
+      "projective_dimension": 1196,
+      "projective_dimension_vector": [
+        282,
+        286,
+        440,
+        166,
+        6,
+        2,
+        8,
+        6
+      ],
+      "syzygy_dimension": 1086,
+      "syzygy_dimension_vector": [
+        256,
+        256,
+        400,
+        153,
+        6,
+        2,
+        8,
+        5
+      ]
+    },
+    {
+      "event": "start",
+      "stage": "ext_1"
+    },
+    {
+      "event": "timing",
+      "stage": "ext_1",
+      "seconds": 9.871244999929331,
+      "peak_rss_kib": 1629500
+    },
+    {
+      "event": "ext",
+      "degree": 1,
+      "source": "Z",
+      "target": "Z",
+      "dimension": 0
+    },
+    {
+      "event": "start",
+      "stage": "cover_2"
+    }
+  ],
+  "ext_dimensions": {
+    "1": 0
+  },
+  "status": "timeout_cover_2",
+  "guard_seconds": 300,
+  "failure": "Ext^1(Z,Z)=0 was completed and saved. The external time guard stopped construction of the second projective cover before any Ext^2 result."
+}

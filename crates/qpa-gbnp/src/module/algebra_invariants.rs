@@ -147,9 +147,14 @@ pub fn loewy_length_of_algebra<F: Field>(
 /// support vertex; elements retain QPA's canonical right-ideal basis order.
 pub type ProjectiveModuleBases<F> = Vec<Vec<Vec<QuiverAlgebraElement<F>>>>;
 
+type ProjectiveCoordinates = std::collections::HashMap<Vec<qpa_core::ArrowIndex>, (usize, usize)>;
+
 struct ProjectiveBasisData<F: Field> {
     basis: Vec<QuiverAlgebraElement<F>>,
     intervals: Vec<Vec<Vec<usize>>>,
+    // Lazy per-projective indexes: basis-only requests and live cache hits
+    // do not build them. The empty word is the starting vertex's idempotent.
+    coordinates: Vec<std::sync::OnceLock<ProjectiveCoordinates>>,
 }
 
 /// Translate QPA's two `BasisOfProjectives(A)` methods.
@@ -206,62 +211,101 @@ pub fn indec_projective_modules<F: Field>(
     if matches!(algebra, QuiverAlgebra::Quotient(quotient) if !quotient.is_admissible()?) {
         return Err(EnvelopingModuleError::NonadmissibleLoewyAlgebra);
     }
-    let basis = data.basis;
-    let vertex_count = algebra.quiver().number_of_vertices();
-    let arrows = algebra
-        .quiver()
-        .arrows()
-        .map(|arrow| include_in_path_algebra(&arrow.path(), algebra))
+    let projectives = (0..algebra.quiver().number_of_vertices())
+        .map(|vertex| projective_from_basis_data(algebra, &data, vertex))
         .collect::<Result<Vec<_>, _>>()?;
-    let mut projectives = Vec::with_capacity(vertex_count);
-
-    for projective_vertex in 0..vertex_count {
-        let intervals = &data.intervals[projective_vertex];
-        let dimensions = intervals.iter().map(Vec::len).collect::<Vec<_>>();
-        let mut specification = Vec::new();
-        for (arrow, arrow_element) in algebra.quiver().arrows().zip(&arrows) {
-            let source = arrow.source().index().get() - 1;
-            let target = arrow.target().index().get() - 1;
-            if dimensions[source] == 0 || dimensions[target] == 0 {
-                continue;
-            }
-            let rows = intervals[source]
-                .iter()
-                .map(|&basis_index| {
-                    let image = basis[basis_index].multiply(arrow_element)?;
-                    let coefficients = canonical_basis_coefficients(algebra, &basis, &image)?;
-                    Ok(intervals[target]
-                        .iter()
-                        .map(|&index| coefficients[index].clone())
-                        .collect::<Vec<_>>())
-                })
-                .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
-            specification.push(NamedArrowMatrix::new(
-                arrow.name(),
-                DenseMatrix::from_rows(rows, algebra.field().clone())?,
-            ));
-        }
-        let projective =
-            right_module_over_path_algebra(algebra.clone(), dimensions.clone(), &specification)?
-                .ok_or(EnvelopingModuleError::GeneratedProjectiveViolatesRelations)?;
-        let mut generator_coordinates = dimensions
-            .iter()
-            .map(|&dimension| vec![algebra.field().zero(); dimension])
-            .collect::<Vec<_>>();
-        let generator_coordinate = intervals[projective_vertex]
-            .iter()
-            .position(|&basis_index| basis[basis_index].leading_monomial().length() == Some(0))
-            .ok_or(EnvelopingModuleError::MissingProjectiveVertexGenerator {
-                vertex: projective_vertex + 1,
-            })?;
-        generator_coordinates[projective_vertex][generator_coordinate] = algebra.field().one();
-        let generator = projective.element_from_vertex_coordinates(generator_coordinates)?;
-        projective.cache_minimal_generating_set(std::slice::from_ref(&generator))?;
-        let _ = projective.cache_is_indecomposable_module(true);
-        let _ = projective.cache_is_projective_module(true);
-        projectives.push(projective);
-    }
     Ok(algebra.merge_indec_projective_modules(&projectives))
+}
+
+// Both full-family requests and HomFromProjective enter here. Recover live
+// members individually: an expired sibling must not rebuild a live module.
+fn projective_from_basis_data<F: Field>(
+    algebra: &QuiverAlgebra<F>,
+    data: &ProjectiveBasisData<F>,
+    projective_vertex: usize,
+) -> Result<PathAlgebraModule<F>, EnvelopingModuleError> {
+    if let Some(cached) = algebra.cached_indec_projective_module(projective_vertex) {
+        return Ok(cached);
+    }
+    let basis = &data.basis;
+    let intervals = &data.intervals[projective_vertex];
+    let coordinates = data.coordinates[projective_vertex].get_or_init(|| {
+        intervals.iter().enumerate().flat_map(|(target, indices)| {
+            indices.iter().enumerate().map(move |(coordinate, &index)| {
+                let path = data.basis[index].leading_monomial();
+                (path.walk().expect("a nonzero canonical basis path").to_vec(), (target, coordinate))
+            })
+        }).collect()
+    });
+    let dimensions = intervals.iter().map(Vec::len).collect::<Vec<_>>();
+    let mut specification = Vec::new();
+    for arrow in algebra.quiver().arrows() {
+        let source = arrow.source().index().get() - 1;
+        let target = arrow.target().index().get() - 1;
+        if dimensions[source] == 0 || dimensions[target] == 0 {
+            continue;
+        }
+        let arrow_element = include_in_path_algebra(&arrow.path(), algebra)?;
+        let rows = intervals[source]
+            .iter()
+            .map(|&basis_index| {
+                let image = basis[basis_index].multiply(&arrow_element)?;
+                let representative = match &image {
+                    QuiverAlgebraElement::Path(element) => element,
+                    QuiverAlgebraElement::Quotient(element) => {
+                        if !element.is_normal_form() {
+                            return Err(QuotientError::ElementsNotInNormalForm.into());
+                        }
+                        element.representative()
+                    }
+                };
+                let mut row = vec![algebra.field().zero(); dimensions[target]];
+                for term in representative.terms() {
+                    let PathEndpoint::Vertex(left) = term.path().source() else {
+                        return Err(EnvelopingModuleError::ElementOutsideCanonicalBasis);
+                    };
+                    if left.index().get() - 1 != projective_vertex {
+                        return Err(EnvelopingModuleError::ElementOutsideCanonicalBasis);
+                    }
+                    let &(right, coordinate) = coordinates
+                        .get(term.path().walk().expect("a nonzero product term"))
+                        .ok_or(EnvelopingModuleError::ElementOutsideCanonicalBasis)?;
+                    if right != target {
+                        return Err(EnvelopingModuleError::ElementOutsideCanonicalBasis);
+                    }
+                    row[coordinate] = term.coefficient().clone();
+                }
+                Ok(row)
+            })
+            .collect::<Result<Vec<_>, EnvelopingModuleError>>()?;
+        specification.push(NamedArrowMatrix::new(
+            arrow.name(),
+            DenseMatrix::from_rows(rows, algebra.field().clone())?,
+        ));
+    }
+    let projective =
+        right_module_over_path_algebra(algebra.clone(), dimensions.clone(), &specification)?
+            .ok_or(EnvelopingModuleError::GeneratedProjectiveViolatesRelations)?;
+    let mut generator_coordinates = dimensions
+        .iter()
+        .map(|&dimension| vec![algebra.field().zero(); dimension])
+        .collect::<Vec<_>>();
+    let generator_coordinate = intervals[projective_vertex]
+        .iter()
+        .position(|&basis_index| basis[basis_index].leading_monomial().length() == Some(0))
+        .ok_or(EnvelopingModuleError::MissingProjectiveVertexGenerator {
+            vertex: projective_vertex + 1,
+        })?;
+    generator_coordinates[projective_vertex][generator_coordinate] = algebra.field().one();
+    let generator = projective.element_from_vertex_coordinates(generator_coordinates)?;
+    projective.cache_minimal_generating_set(std::slice::from_ref(&generator))?;
+    let _ = projective.cache_is_indecomposable_module(true);
+    let _ = projective.cache_is_projective_module(true);
+    algebra.merge_indec_projective_module(projective_vertex, &projective)
+        .ok_or(EnvelopingModuleError::ProjectiveVertexOutOfRange {
+            vertex: projective_vertex + 1,
+            vertex_count: algebra.quiver().number_of_vertices(),
+        })
 }
 
 /// Translate QPA's cached `IndecInjectiveModules(A)` attribute.
